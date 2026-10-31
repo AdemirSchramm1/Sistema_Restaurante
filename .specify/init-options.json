@@ -1,0 +1,7 @@
+{
+  "integration": "claude",
+  "script": "py",
+  "feature_numbering": "sequential",
+  "source": "github/spec-kit@7370e59",
+  "initialized_by": "speckit skill bootstrap"
+}
