@@ -155,7 +155,9 @@ para "o `speckit plan` da feature 001". Cada decisão de arquitetura vira um ADR
 ## R14. Interface e lista de itens
 
 - **Decision**: páginas do App Router com Server Components para listas e Server Actions para
-  escrita; formulários com `react-hook-form` + Zod (o mesmo schema valida no servidor). Lista de
+  escrita; formulários HTML nativos com `useActionState` e Zod no servidor (o schema estrito recusa
+  campos desconhecidos, como custos). **Revisado no implement**: `react-hook-form` saiu, porque o
+  formulário nativo já dá a validação do servidor e funciona sem JavaScript. Lista de
   itens com busca e filtros por parâmetros de URL, paginada no servidor (50 por página), índice
   `pg_trgm` em descrição para a busca por trecho. Meta SC-005 (2.000 itens, resposta ≤ 1 s) medida
   por um teste de integração com 2.000 itens.
@@ -163,6 +165,7 @@ para "o `speckit plan` da feature 001". Cada decisão de arquitetura vira um ADR
 ## R15. Primeira feature = criar o projeto
 
 - **Decision**: a 001 também cria o esqueleto do repositório: Next.js com TypeScript `strict`,
-  Tailwind + shadcn/ui, Vitest, Testcontainers, Playwright, ESLint com regra de fronteiras
+  Tailwind + shadcn/ui (componentes copiados à mão em `src/components/ui`, no estilo shadcn, porque o
+  registro do shadcn não estava acessível no ambiente de desenvolvimento), Vitest, Testcontainers, Playwright, ESLint com regra de fronteiras
   (`eslint-plugin-boundaries`) e GitHub Actions (lint → typecheck → unit → integration → e2e).
   Isso aparece em `tasks.md` como fase "Setup".

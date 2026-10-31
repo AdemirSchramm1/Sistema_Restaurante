@@ -28,3 +28,17 @@ Next.js · React · TypeScript · PostgreSQL · Vercel · Tailwind CSS · shadcn
 
 A ordem das features do módulo de estoque está no
 [roadmap](docs/produto/estoque/00-visao-geral.md#roadmap).
+
+## Rodar localmente
+
+```bash
+pnpm install
+cp .env.example .env.local   # ajuste segredos se quiser
+pnpm db:up && pnpm db:migrate && pnpm db:dev-login
+pnpm dev                     # http://localhost:3000 → "Criar conta"
+```
+
+Testes: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:e2e`.
+O passo a passo completo, com o roteiro manual, está no
+[quickstart da feature 001](specs/001-cadastros-base/quickstart.md). Regras para contribuir:
+[CONTRIBUTING.md](CONTRIBUTING.md).

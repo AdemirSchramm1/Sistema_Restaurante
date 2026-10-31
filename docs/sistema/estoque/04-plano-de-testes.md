@@ -17,7 +17,19 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | I | Local refrigerado sem faixa de temperatura é rejeitado (check constraint) |
 | I | Local "Quarentena" não pode ser apagado |
 | I | **Isolamento de tenant**: restaurante A não lê/grava itens de B |
-| E | Cadastrar item com três unidades e vê-lo na lista |
+| U | Permissões por papel (gerente faz tudo; chef cria e edita itens; demais só leem) |
+| U | Sempre um gerente ativo (`LAST_MANAGER`); convite vence em 7 dias |
+| U | Campos opcionais do item: FC ≥ 1, rendimento em (0, 1], EAN com dígito verificador, NCM, CEST, origem, alérgenos da RDC 26/2015 |
+| U | Compatibilidade item × local (químico só em local de químicos, quarentena ou trânsito) |
+| I | **RLS**: toda tabela com `restaurant_id` tem política; sem restaurante definido nada volta |
+| I | Auditoria só de inserção; tentativa negada vira `DENIED` |
+| I | Edição concorrente devolve `STALE_RECORD` (trava otimista) |
+| I | Convite: só o hash do token no banco; repetido, revogado, vencido, e-mail de outro restaurante |
+| I | Membro desativado perde o acesso; o histórico mantém o usuário |
+| I | Todos os campos de FR-025 gravam e voltam sem perder precisão |
+| I | Busca na lista com 2.000 itens em até 1 s (SC-005) |
+| E | Criar conta, aceitar locais sugeridos, cadastrar item com três unidades, ligar a um local e ver na folha de contagem |
+| E | Gerente convida chef; chef aceita, não gerencia grupos e cadastra item |
 
 ## 002 — Fornecedores
 

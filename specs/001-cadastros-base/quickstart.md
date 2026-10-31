@@ -10,7 +10,9 @@ Guia para provar, de ponta a ponta, que a feature funciona. Detalhes de dados em
 - Navegadores do Playwright (`pnpm exec playwright install chromium`)
 - `.env.local` a partir de `.env.example`: `DATABASE_URL` (papel da aplicação, sem `BYPASSRLS`),
   `DATABASE_MIGRATION_URL` (papel dono), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
-  `MAILER=memory` em desenvolvimento
+  `MAILER=memory` em desenvolvimento (o e-mail aparece no log) ou `MAILER=file` com `MAIL_DIR=.mail`
+  (cada e-mail vira um arquivo; é o que os testes ponta a ponta usam)
+- Sem Docker: defina `TEST_DATABASE_URL` com um PostgreSQL 16+ local para os testes de integração
 
 ## Rodar
 
@@ -18,6 +20,7 @@ Guia para provar, de ponta a ponta, que a feature funciona. Detalhes de dados em
 pnpm install
 pnpm db:up          # sobe PostgreSQL 17 local em container
 pnpm db:migrate     # aplica migrações (tabelas, RLS, triggers, seed de unidades)
+pnpm db:dev-login   # cria o login app_login (sem BYPASSRLS) usado em DATABASE_URL
 pnpm dev            # http://localhost:3000
 ```
 
@@ -27,7 +30,7 @@ pnpm dev            # http://localhost:3000
 pnpm lint && pnpm typecheck
 pnpm test:unit          # domínio: conversões, código, normalização, permissões (cobertura ≥ 90% em src/domain)
 pnpm test:integration   # banco real: duplicidade, RLS, quarentena, unidade bloqueada, auditoria
-pnpm test:e2e           # Playwright: cadastro de item com três unidades
+pnpm test:e2e           # Playwright: cadastro de item e convite do chef (MAILER=file)
 ```
 
 Todos devem passar. Os testes obrigatórios estão em

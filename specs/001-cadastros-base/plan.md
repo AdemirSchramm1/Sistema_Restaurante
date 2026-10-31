@@ -20,7 +20,7 @@ entre restaurantes em duas barreiras (filtro na aplicação + Row Level Security
 **Language/Version**: TypeScript 5.x em modo `strict`, Node.js 22 LTS
 
 **Primary Dependencies**: Next.js (App Router) + React; Tailwind CSS + shadcn/ui; Drizzle ORM +
-drizzle-kit (R1); Better Auth (R3); Zod; react-hook-form; decimal.js (R5); uuid (v7); Resend
+drizzle-kit (R1); Better Auth (R3); Zod; decimal.js (R5); uuid (v7); Resend
 (e-mail, atrás da porta `Mailer`)
 
 **Storage**: PostgreSQL 17 — Neon em produção/preview (R2); RLS por `app.restaurant_id` (R4);

@@ -15,8 +15,8 @@
     "test:e2e": "playwright test",
     "db:up": "docker compose up -d db",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/infra/db/migrate.ts",
-    "db:dev-login": "tsx src/infra/db/dev-login.ts"
+    "db:migrate": "tsx scripts/db-migrate.mts",
+    "db:dev-login": "tsx scripts/db-dev-login.mts"
   },
   "dependencies": {
     "better-auth": "^1.7.14",

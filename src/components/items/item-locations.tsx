@@ -63,7 +63,14 @@ export function ItemLocations({
                 defaultValue={link?.sheetPosition ?? 1}
               />
               <label className="flex items-center gap-1">
-                <input type="radio" name="default" value={o.id} defaultChecked={link?.isDefault} /> padrão
+                <input
+                  type="radio"
+                  name="default"
+                  value={o.id}
+                  defaultChecked={link?.isDefault}
+                  aria-label={`Local padrão: ${o.name}`}
+                />{" "}
+                padrão
               </label>
             </fieldset>
           );

@@ -4,6 +4,7 @@ import { createDb } from "./db/db";
 import { makeDeps } from "./deps";
 import { MemoryMailer } from "./mailer/memory";
 import { ResendMailer } from "./mailer/resend";
+import { FileMailer } from "./mailer/file";
 import type { Mailer } from "@/application/ports";
 
 function env(name: string): string {
@@ -13,6 +14,7 @@ function env(name: string): string {
 }
 
 function mailer(): Mailer {
+  if (process.env.MAILER === "file") return new FileMailer(env("MAIL_DIR"));
   if (process.env.MAILER === "resend") return new ResendMailer(env("RESEND_API_KEY"), env("MAIL_FROM"));
   return new MemoryMailer(true);
 }

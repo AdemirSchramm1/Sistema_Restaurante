@@ -51,7 +51,8 @@ jobs:
       DATABASE_URL: postgres://app_login:app_login@localhost:5432/restaurante
       BETTER_AUTH_SECRET: segredo-da-ci-com-mais-de-trinta-e-dois-caracteres
       BETTER_AUTH_URL: http://localhost:3000
-      MAILER: memory
+      MAILER: file
+      MAIL_DIR: .mail
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
