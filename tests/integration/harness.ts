@@ -116,3 +116,21 @@ export async function addMember(
     roles,
   );
 }
+
+/** Id do subgrupo pelos códigos (ex.: "01", "02" = Hortifrúti > Legumes). */
+export async function subgroupId(
+  env: TestEnv,
+  ctx: RequestContext,
+  groupCode: string,
+  subCode: string,
+): Promise<string> {
+  const r = await env.deps.tenant(ctx.restaurantId, async (repos) => ({
+    ok: true as const,
+    value: await repos.groups.tree(true),
+  }));
+  if (!r.ok) throw new Error("tree");
+  const g = r.value.find((x) => x.code === groupCode);
+  const s = g?.subgroups.find((x) => x.code === subCode);
+  if (!s) throw new Error(`subgrupo ${groupCode}.${subCode} não existe`);
+  return s.id;
+}

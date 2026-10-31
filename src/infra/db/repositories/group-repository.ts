@@ -2,8 +2,8 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { GroupRecord, GroupRepo, SubgroupRecord } from "@/application/inventory/ports";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
-import { itemGroups, itemSubgroups, items, restaurants } from "../schema";
-import { isUniqueViolation } from "./util";
+import { itemGroups, itemSubgroups, restaurants } from "../schema";
+import { isUniqueViolation, withSavepoint } from "./util";
 
 const groupCols = {
   id: itemGroups.id,
@@ -23,7 +23,7 @@ const subgroupCols = {
   name: itemSubgroups.name,
   active: itemSubgroups.active,
   version: itemSubgroups.version,
-  activeItems: sql<number>`(select count(*)::int from ${items} where ${items.subgroupId} = ${itemSubgroups.id} and ${items.active})`,
+  activeItems: sql<number>`(select count(*)::int from items i where i.subgroup_id = "item_subgroups"."id" and i.active)`,
 };
 
 export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
@@ -36,11 +36,13 @@ export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
     nameConstraint: string,
   ): Promise<Result<void>> {
     try {
-      const r = await tx
-        .update(table)
-        .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
-        .where(and(eq(table.id, id), eq(table.version, version)))
-        .returning({ id: table.id });
+      const r = await withSavepoint(tx, () =>
+        tx
+          .update(table)
+          .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
+          .where(and(eq(table.id, id), eq(table.version, version)))
+          .returning({ id: table.id }),
+      );
       if (r.length > 0) return ok(undefined);
       const exists = await tx.select({ id: table.id }).from(table).where(eq(table.id, id));
       return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
@@ -132,14 +134,16 @@ export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
 
     async insertGroup(g, audit) {
       try {
-        await tx.insert(itemGroups).values({
-          ...g,
-          restaurantId,
-          createdAt: audit.at,
-          createdBy: audit.by,
-          updatedAt: audit.at,
-          updatedBy: audit.by,
-        });
+        await withSavepoint(tx, () =>
+          tx.insert(itemGroups).values({
+            ...g,
+            restaurantId,
+            createdAt: audit.at,
+            createdBy: audit.by,
+            updatedAt: audit.at,
+            updatedBy: audit.by,
+          }),
+        );
         return ok(undefined);
       } catch (e) {
         if (isUniqueViolation(e, "item_groups_active_name")) return err("NAME_IN_USE", "name");
@@ -149,14 +153,16 @@ export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
 
     async insertSubgroup(s, audit) {
       try {
-        await tx.insert(itemSubgroups).values({
-          ...s,
-          restaurantId,
-          createdAt: audit.at,
-          createdBy: audit.by,
-          updatedAt: audit.at,
-          updatedBy: audit.by,
-        });
+        await withSavepoint(tx, () =>
+          tx.insert(itemSubgroups).values({
+            ...s,
+            restaurantId,
+            createdAt: audit.at,
+            createdBy: audit.by,
+            updatedAt: audit.at,
+            updatedBy: audit.by,
+          }),
+        );
         return ok(undefined);
       } catch (e) {
         if (isUniqueViolation(e, "item_subgroups_active_name")) return err("NAME_IN_USE", "name");

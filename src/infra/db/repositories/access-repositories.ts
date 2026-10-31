@@ -62,18 +62,16 @@ export function memberRepository(tx: Tx, restaurantId: string, ids: () => string
   async function writeRoles(membershipId: string, roles: Role[], at: Date, by: string | null) {
     await tx.delete(membershipRoles).where(eq(membershipRoles.membershipId, membershipId));
     if (roles.length)
-      await tx
-        .insert(membershipRoles)
-        .values(
-          roles.map((role) => ({
-            id: ids(),
-            restaurantId,
-            membershipId,
-            role,
-            createdAt: at,
-            createdBy: by,
-          })),
-        );
+      await tx.insert(membershipRoles).values(
+        roles.map((role) => ({
+          id: ids(),
+          restaurantId,
+          membershipId,
+          role,
+          createdAt: at,
+          createdBy: by,
+        })),
+      );
   }
 
   return {

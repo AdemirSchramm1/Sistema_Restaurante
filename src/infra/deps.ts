@@ -15,6 +15,7 @@ import { itemRepository } from "./db/repositories/item-repository";
 import { itemLocationRepository } from "./db/repositories/item-location-repository";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
+import { cryptoTokens } from "./tokens";
 
 class Rollback<T> extends Error {
   constructor(readonly result: Result<T>) {
@@ -91,6 +92,7 @@ export function makeDeps(cfg: DepsConfig): Deps & { betterAuth: Auth } {
     mailer: cfg.mailer,
     appUrl: cfg.appUrl,
     auth: betterAuthService(betterAuth, cfg.db),
+    tokens: cryptoTokens,
     global: globalLookups(cfg.db),
     betterAuth,
     async tenant(restaurantId, fn) {

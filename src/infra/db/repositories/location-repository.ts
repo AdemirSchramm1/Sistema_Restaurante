@@ -4,7 +4,7 @@ import type { Location, LocationData } from "@/domain/inventory/location";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { itemLocations, locations } from "../schema";
-import { dec, isUniqueViolation, str } from "./util";
+import { dec, isUniqueViolation, str, withSavepoint } from "./util";
 
 type Row = typeof locations.$inferSelect;
 const toLocation = (r: Row): Location => ({
@@ -31,7 +31,7 @@ const toRow = (l: LocationData) => ({
 export function locationRepository(tx: Tx, restaurantId: string): LocationRepo {
   async function guarded(fn: () => Promise<Result<void>>): Promise<Result<void>> {
     try {
-      return await fn();
+      return await withSavepoint(tx, fn);
     } catch (e) {
       if (isUniqueViolation(e, "locations_active_name")) return err("NAME_IN_USE", "name");
       throw e;

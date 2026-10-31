@@ -38,3 +38,21 @@ export function isRaised(e: unknown, marker: string): boolean {
   const p = pgError(e);
   return p?.code === "P0001" && (p.message ?? "").includes(marker);
 }
+
+import { sql } from "drizzle-orm";
+import type { Tx } from "../db";
+
+let savepointSeq = 0;
+/** Roda `fn` dentro de um SAVEPOINT: se falhar (ex.: violação de unicidade), a transação continua utilizável. */
+export async function withSavepoint<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
+  const name = sql.raw(`sp_${++savepointSeq}`);
+  await tx.execute(sql`savepoint ${name}`);
+  try {
+    const r = await fn();
+    await tx.execute(sql`release savepoint ${name}`);
+    return r;
+  } catch (e) {
+    await tx.execute(sql`rollback to savepoint ${name}`);
+    throw e;
+  }
+}

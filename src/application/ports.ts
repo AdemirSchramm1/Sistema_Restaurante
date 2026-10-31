@@ -17,6 +17,12 @@ export interface Mailer {
   send(message: MailMessage): Promise<void>;
 }
 
+/** Token secreto de link (convite). Só o hash vai para o banco. */
+export interface TokenService {
+  create(): { token: string; hash: string };
+  hash(token: string): string;
+}
+
 /** Criação de login (Better Auth em produção). */
 export interface AuthService {
   createUser(input: { email: string; password: string; name: string }): Promise<Result<{ userId: string }>>;
@@ -57,6 +63,7 @@ export type Deps = {
   ids: IdGenerator;
   mailer: Mailer;
   auth: AuthService;
+  tokens: TokenService;
   global: GlobalLookups;
   appUrl: string;
   /** Roda `fn` numa transação do restaurante. Se `fn` devolver erro, a transação é desfeita. */
