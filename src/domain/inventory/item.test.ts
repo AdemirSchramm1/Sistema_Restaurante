@@ -136,3 +136,64 @@ describe("entra no CMV: vem do grupo e pode ser sobrescrito no item (docs/produt
     expect(effectiveInCogs({ groupInCogs: true, inCogsOverride: false })).toBe(false);
   });
 });
+
+describe("campos opcionais (US4, FR-025)", () => {
+  it("fator de correção ≥ 1", () => {
+    expect(code(validateItem(itemData({ correctionFactor: d("0.9") })))).toBe("INVALID_CORRECTION_FACTOR");
+    expect(code(validateItem(itemData({ correctionFactor: d("1.25") })))).toBe("OK");
+  });
+
+  it("rendimento > 0 e ≤ 1", () => {
+    expect(code(validateItem(itemData({ yieldFactor: d("0.90") })))).toBe("OK");
+    expect(code(validateItem(itemData({ yieldFactor: d("1") })))).toBe("OK");
+    expect(code(validateItem(itemData({ yieldFactor: d("0") })))).toBe("INVALID_YIELD_FACTOR");
+    expect(code(validateItem(itemData({ yieldFactor: d("1.1") })))).toBe("INVALID_YIELD_FACTOR");
+  });
+
+  it("temperatura de recebimento: mín ≤ máx", () => {
+    expect(code(validateItem(itemData({ receivingTempMinC: d("5"), receivingTempMaxC: d("0") })))).toBe(
+      "INVALID_RANGE",
+    );
+    expect(code(validateItem(itemData({ receivingTempMinC: d("-2"), receivingTempMaxC: d("5") })))).toBe(
+      "OK",
+    );
+  });
+
+  it("dias de validade e alerta ≥ 0 e inteiros", () => {
+    expect(code(validateItem(itemData({ shelfLifeDays: -1 })))).toBe("INVALID_DAYS");
+    expect(code(validateItem(itemData({ openedLifeDays: 1.5 })))).toBe("INVALID_DAYS");
+    expect(code(validateItem(itemData({ expiryAlertDays: -3 })))).toBe("INVALID_DAYS");
+    expect(code(validateItem(itemData({ shelfLifeDays: 0, openedLifeDays: 3, expiryAlertDays: 2 })))).toBe(
+      "OK",
+    );
+  });
+
+  it("EAN com dígito verificador válido", () => {
+    expect(code(validateItem(itemData({ eanUnit: "7891000315507" })))).toBe("OK");
+    expect(code(validateItem(itemData({ eanPackage: "7891000315508" })))).toBe("INVALID_EAN");
+  });
+
+  it("SEM GTIN exige EANs vazios", () => {
+    expect(code(validateItem(itemData({ noGtin: true, eanUnit: "7891000315507" })))).toBe("INVALID_EAN");
+    expect(code(validateItem(itemData({ noGtin: true })))).toBe("OK");
+  });
+
+  it("NCM com 8 dígitos, CEST com 7, origem de 0 a 8", () => {
+    expect(code(validateItem(itemData({ ncm: "07020000" })))).toBe("OK");
+    expect(code(validateItem(itemData({ ncm: "0702000" })))).toBe("INVALID_NCM");
+    expect(code(validateItem(itemData({ cest: "1700100" })))).toBe("OK");
+    expect(code(validateItem(itemData({ cest: "17001" })))).toBe("INVALID_CEST");
+    expect(code(validateItem(itemData({ origin: "0" })))).toBe("OK");
+    expect(code(validateItem(itemData({ origin: "9" })))).toBe("INVALID_ORIGIN");
+  });
+
+  it("alérgeno fora da lista → INVALID_ALLERGEN", () => {
+    expect(code(validateItem(itemData({ allergens: ["MILK"] as never })))).not.toBe("INVALID_ALLERGEN");
+    expect(code(validateItem(itemData({ allergens: ["CHOCOLATE"] as never })))).toBe("INVALID_ALLERGEN");
+  });
+
+  it("pesos e temperatura de conservação não negativos onde faz sentido", () => {
+    expect(code(validateItem(itemData({ netWeight: d("-1") })))).toBe("VALIDATION");
+    expect(code(validateItem(itemData({ drainedWeight: d("1.7") })))).toBe("OK");
+  });
+});

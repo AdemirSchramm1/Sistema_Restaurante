@@ -1,7 +1,8 @@
 import { d as dec, type Decimal } from "../shared/decimal";
 import { err, ok, type Result } from "../shared/result";
 import { convert, unitByCode, type ItemConversion, type Unit, type UnitCode } from "./units";
-import type { Allergen } from "./allergens";
+import { isAllergen, type Allergen } from "./allergens";
+import { isValidGtin } from "./ean";
 import type { StorageClass } from "./default-tree";
 
 export const ITEM_TYPES = ["INGREDIENT", "RESALE", "PRODUCED", "CONSUMABLE", "ASSET"] as const;
@@ -128,10 +129,34 @@ export function validateItemUnits(
 }
 
 /** Todas as regras do cadastro. */
+const validDays = (n: number | null) => n === null || (Number.isInteger(n) && n >= 0);
+const negative = (v: Decimal | null) => v !== null && v.isNegative();
+
+/** Campos opcionais de conservação, fiscal e contagem (FR-025, docs 02 e 07). */
+export function validateItemOptionalFields(data: ItemData): Result<void> {
+  if (data.correctionFactor.lt(1)) return err("INVALID_CORRECTION_FACTOR", "correctionFactor");
+  if (data.yieldFactor && (data.yieldFactor.lte(0) || data.yieldFactor.gt(1)))
+    return err("INVALID_YIELD_FACTOR", "yieldFactor");
+  if (data.receivingTempMinC && data.receivingTempMaxC && data.receivingTempMinC.gt(data.receivingTempMaxC))
+    return err("INVALID_RANGE", "receivingTempMinC");
+  for (const f of ["shelfLifeDays", "openedLifeDays", "expiryAlertDays"] as const)
+    if (!validDays(data[f])) return err("INVALID_DAYS", f);
+  for (const f of ["netWeight", "drainedWeight"] as const) if (negative(data[f])) return err("VALIDATION", f);
+  for (const f of ["eanUnit", "eanPackage"] as const) {
+    const v = data[f];
+    if (v && (data.noGtin || !isValidGtin(v))) return err("INVALID_EAN", f);
+  }
+  if (data.ncm && !/^\d{8}$/.test(data.ncm)) return err("INVALID_NCM", "ncm");
+  if (data.cest && !/^\d{7}$/.test(data.cest)) return err("INVALID_CEST", "cest");
+  if (data.origin && !/^[0-8]$/.test(data.origin)) return err("INVALID_ORIGIN", "origin");
+  if (data.allergens.some((a) => !isAllergen(a))) return err("INVALID_ALLERGEN", "allergens");
+  return ok(undefined);
+}
+
 export function validateItem(data: ItemData): Result<void> {
   const units = validateItemUnits(data);
   if (!units.ok) return units;
-  return ok(undefined);
+  return validateItemOptionalFields(data);
 }
 
 /** Quantidade de compra → estoque → receita (FR-022). */
