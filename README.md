@@ -9,12 +9,12 @@ Next.js · React · TypeScript · PostgreSQL · Vercel · Tailwind CSS · shadcn
 
 ## Como o projeto está organizado
 
-| Pasta | Conteúdo |
-|---|---|
-| [`docs/produto/`](docs/produto/estoque/00-visao-geral.md) | Como o sistema funciona para o usuário (regras de negócio) |
-| [`docs/sistema/`](docs/sistema/00-arquitetura.md) | Como o código funciona (arquitetura, TDD, modelo de dados) |
-| [`.specify/`](.specify/memory/constitution.md) | Spec Kit: constituição do projeto, templates e scripts |
-| `specs/` | Uma pasta por feature (spec → plan → tasks), criada pelo Spec Kit |
+| Pasta                                                     | Conteúdo                                                          |
+| --------------------------------------------------------- | ----------------------------------------------------------------- |
+| [`docs/produto/`](docs/produto/estoque/00-visao-geral.md) | Como o sistema funciona para o usuário (regras de negócio)        |
+| [`docs/sistema/`](docs/sistema/00-arquitetura.md)         | Como o código funciona (arquitetura, TDD, modelo de dados)        |
+| [`.specify/`](.specify/memory/constitution.md)            | Spec Kit: constituição do projeto, templates e scripts            |
+| `specs/`                                                  | Uma pasta por feature (spec → plan → tasks), criada pelo Spec Kit |
 
 Índice completo da documentação: [`docs/README.md`](docs/README.md).
 
