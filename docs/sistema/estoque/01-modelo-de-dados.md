@@ -1,6 +1,8 @@
 # Estoque — Modelo de dados
 
-> Status: **proposta inicial**, base para o `data-model.md` das features 001–006. Ajustes feitos no
+> Status: **proposta inicial**, base para o `data-model.md` das features 001–006. Feature 001
+> detalhada em [`specs/001-cadastros-base/data-model.md`](../../../specs/001-cadastros-base/data-model.md)
+> (inclui `restaurants`, `memberships`, `invitations`, `audit_log`). Ajustes feitos no
 > `speckit plan` devem voltar para este arquivo.
 > Regras de negócio: [`docs/produto/estoque/`](../../produto/estoque/00-visao-geral.md).
 
@@ -47,17 +49,22 @@ erDiagram
 | code | text | 2 dígitos, único no restaurante (grupo) / no grupo (subgrupo) |
 | name | text | |
 | in_cogs | boolean | Só no grupo; padrão de "entra no CMV" |
-| is_food | boolean | Só no grupo; alimentar × não alimentar |
+| storage_class | enum | Só no grupo; `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` (substitui `is_food`; feature 001) |
+| is_system | boolean | Só no grupo; árvore padrão, não inativa |
+| next_subgroup_code / next_item_seq | int | Contadores de código (feature 001) |
 
 ### `items`
 | Coluna | Tipo | Notas |
 |---|---|---|
 | code | text | `GG.SS.NNNN`, gerado, imutável, único |
-| description | text | Padronizada; índice único em (subgroup, descrição normalizada) para ativos |
+| description | text | Padronizada |
+| description_normalized | text | Índice único parcial (subgroup, normalizada) onde `active` |
 | type | enum | `INGREDIENT`, `RESALE`, `PRODUCED`, `CONSUMABLE`, `ASSET` |
 | subgroup_id | uuid fk | |
 | financial_category | text | |
-| stock_unit_id | uuid fk | **Bloqueado** após a 1ª movimentação |
+| stock_unit_id | uuid fk | **Bloqueado** após a 1ª movimentação (trigger + `stock_unit_locked_at`) |
+| stock_unit_locked_at | timestamptz null | Preenchido pela feature 003 na 1ª movimentação |
+| purchase_unit_label / purchase_factor | text / numeric(14,4) | Unidade de compra padrão; `supplier_items` sobrescreve por fornecedor |
 | recipe_unit_id | uuid fk | |
 | ean | text null | |
 | catch_weight | boolean | Peso variável |
@@ -107,6 +114,7 @@ logística (`lead_time_days`, `delivery_days int[]`, `min_order_value`), finance
 | temp_min_c / temp_max_c | numeric(4,1) null | Obrigatório se `CHILLED`/`FROZEN` (check constraint) |
 | responsible_user_id | uuid | |
 | count_order | int | Rota de contagem |
+| is_system | boolean | Quarentena: não apaga nem inativa |
 
 ### `item_locations`
 `item_id`, `location_id`, `is_default`, `sheet_position`.

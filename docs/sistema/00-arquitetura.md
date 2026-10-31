@@ -1,7 +1,6 @@
 # Arquitetura
 
-> Status: **proposta inicial**. Pontos marcados *(a decidir)* são fechados no `speckit plan` da
-> primeira feature e então atualizados aqui.
+> Status: decisões da feature 001 fechadas em 2026-10-31 (ver [ADRs](adr/)).
 
 ## Stack
 
@@ -9,11 +8,11 @@
 |---|---|
 | Framework | Next.js (App Router) + React + TypeScript `strict` |
 | Interface | Tailwind CSS + shadcn/ui |
-| Banco | PostgreSQL (Vercel Postgres/Neon ou outro gerenciado *(a decidir)*) |
-| Acesso a dados | ORM com migrações versionadas — sugestão: Drizzle ORM *(a decidir)* |
+| Banco | PostgreSQL 17 no Neon, via Vercel ([ADR 0002](adr/0002-postgres-neon.md)) |
+| Acesso a dados | Drizzle ORM + drizzle-kit ([ADR 0001](adr/0001-orm-drizzle.md)) |
 | Validação | Zod (entrada de formulários, Server Actions e rotas) |
-| Decimais | `decimal.js` (ou similar) no TS; `numeric(p,s)` no PostgreSQL |
-| Autenticação | *(a decidir: Auth.js, Clerk ou Supabase Auth)* |
+| Decimais | `decimal.js` no TS; `numeric(p,s)` no PostgreSQL |
+| Autenticação | Better Auth, e-mail e senha; papéis em tabelas do domínio ([ADR 0003](adr/0003-auth-better-auth.md)) |
 | Testes | Vitest, Testing Library, PostgreSQL em container (Testcontainers), Playwright |
 | Deploy | Vercel (preview por PR, produção na `main`) |
 | CI | GitHub Actions: lint, typecheck, testes |
@@ -69,6 +68,7 @@ src/
       schema/          # tabelas
       migrations/
       repositories/
+  actions/             # Server Actions finas (chamam application/)
   components/          # componentes React (shadcn/ui em components/ui)
 tests/
   integration/         # casos de uso + banco real
@@ -82,17 +82,14 @@ specs/
 
 - Toda tabela de negócio tem `restaurant_id`.
 - Repositórios recebem o `restaurant_id` do usuário autenticado; nunca do cliente.
-- Defesa em profundidade: Row Level Security no PostgreSQL *(a decidir na feature 001)*.
+- Defesa em profundidade: Row Level Security no PostgreSQL com `app.restaurant_id` por transação
+  ([ADR 0004](adr/0004-rls-tenant.md)).
 - Teste obrigatório: usuário do restaurante A não lê nem grava dados do restaurante B.
 
 ## Decisões em aberto
 
 | Decisão | Opções | Quando |
 |---|---|---|
-| ORM | Drizzle × Prisma | `speckit plan` da feature 001 |
-| Autenticação | Auth.js × Clerk × Supabase Auth | `speckit plan` da feature 001 |
-| Provedor PostgreSQL | Vercel Postgres/Neon × Supabase × outro | `speckit plan` da feature 001 |
-| RLS | Sim × só filtro na aplicação | `speckit plan` da feature 001 |
 | Saldo negativo em vendas | Permitir com alerta × bloquear | `speckit clarify` da feature 003 |
 
 Registre cada decisão tomada como ADR curto em `docs/sistema/adr/NNNN-titulo.md`.
