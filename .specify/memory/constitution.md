@@ -16,7 +16,7 @@ Motivo: estoque mexe com dinheiro (CMV) e com o saldo que a cozinha usa para com
 
 ### II. Domínio Puro e Isolado
 
-Regras de negócio (conversão de unidades, custo médio, ponto de pedido, CMV, validade) vivem em
+Regras de negócio (conversão de unidades, custo médio, ponto de pedido, CMV, custo do produto) vivem em
 funções e módulos TypeScript puros, sem acesso a banco, rede, data atual ou React. Data atual e
 IDs são recebidos como parâmetro. Banco, Next.js e UI são camadas finas que chamam o domínio.
 
@@ -26,7 +26,7 @@ Motivo: o domínio puro é testável em milissegundos e é onde está o maior ri
 
 Saldo de estoque nunca é editado diretamente. Ele é sempre o resultado da soma das movimentações.
 Toda movimentação tem tipo, motivo em lista fechada, usuário, data do fato e do lançamento, custo
-no momento e documento de referência. Erro se corrige com movimentação de estorno ou ajuste,
+no momento e documento de referência. Erro se corrige com movimentação de estorno ou acerto,
 nunca com `UPDATE` ou `DELETE` de movimentação.
 
 Motivo: é o que permite explicar a diferença entre CMV teórico e real (manual, seções 4 e 8).
@@ -35,8 +35,8 @@ Motivo: é o que permite explicar a diferença entre CMV teórico e real (manual
 
 - Dinheiro e quantidades usam decimal exato (`numeric` no PostgreSQL, biblioteca decimal no
   TypeScript). `float`/`number` de ponto flutuante é proibido para esses valores.
-- Toda quantidade carrega sua unidade. O saldo é guardado na unidade de estoque do item;
-  conversões (compra → estoque → receita) passam por uma única função de domínio testada.
+- Toda quantidade carrega sua unidade. O saldo é guardado na medida do item; conversões
+  (embalagem → medida, kg ↔ g, l ↔ ml) passam por uma única função de domínio testada.
 - Arredondamento só na apresentação ou em pontos definidos na spec, nunca no meio do cálculo.
 
 ### V. Rastreabilidade e Segregação de Funções
@@ -90,4 +90,4 @@ ou redefinir princípio, MINOR para adicionar princípio ou seção, PATCH para 
 e revisão verificam conformidade; violação justificada fica registrada na tabela "Complexity
 Tracking" do `plan.md` da feature.
 
-**Version**: 1.0.1 | **Ratified**: 2026-10-31 | **Last Amended**: 2026-11-01
+**Version**: 1.0.2 | **Ratified**: 2026-10-31 | **Last Amended**: 2026-11-01

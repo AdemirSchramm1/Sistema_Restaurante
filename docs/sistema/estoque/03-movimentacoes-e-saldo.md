@@ -54,8 +54,9 @@ Uma movimentação só pode ser estornada uma vez (índice único em `reverses_i
 ## Saldo negativo
 
 - Saídas operacionais (perda, transferência, devolução): bloqueadas se o saldo ficaria negativo.
-- Vendas (`SALE_*`): *(a decidir na feature 003)* — proposta: permitir e gerar alerta, porque o PDV
-  não pode parar; a contagem corrige.
+- Vendas (`SALE_*`): *(a decidir na feature 004)* — proposta: permitir e gerar alerta, porque o
+  pedido não pode parar. Como não há contagem de estoque (decisão de novembro de 2026), a correção
+  é um **acerto manual** com motivo, feito pelo gerente.
 
 ## Reconstrução e verificação
 
@@ -63,11 +64,11 @@ Uma movimentação só pode ser estornada uma vez (índice único em `reverses_i
 - Teste de integração (propriedade): após qualquer sequência aleatória de movimentações válidas,
   `stock_balances` = soma de `stock_movements` por item e local.
 
-## Ajuste de inventário
+## Acerto manual
 
-1. Contagem fechada gera, por linha com diferença, uma **proposta** de ajuste.
-2. Gerente aprova (usuário ≠ quem contou e ≠ quem propôs, salvo modo operação pequena).
-3. Aprovação insere movimentações `ADJUSTMENT` com motivo e `document_ref` = contagem.
+Sem contagem de estoque, a diferença entre o sistema e a prateleira é corrigida por um **acerto
+manual**: o gerente informa a quantidade certa e o motivo, e o sistema insere uma movimentação
+`ADJUSTMENT` com a diferença. Detalhes na spec da feature 004.
 
 ## Auditoria
 

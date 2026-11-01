@@ -1,5 +1,11 @@
 # Implementation Plan: Cadastros base do estoque (grupos, unidades, locais, itens)
 
+> **Atualizado pela [feature 002](../002-simplificar-cadastro/plan.md).** O item passou a ter uma
+> medida e embalagem de compra opcional; saíram a unidade de receita, as conversões do item, os
+> campos sanitários, fiscais e de contagem, a temperatura e a folha de contagem dos locais e a
+> quarentena. A estrutura abaixo descreve a 001 como foi entregue; a página
+> `locais/[id]/folha` não existe mais.
+
 **Branch**: `001-cadastros-base` | **Date**: 2026-10-31 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/001-cadastros-base/spec.md`

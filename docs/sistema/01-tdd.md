@@ -15,7 +15,7 @@ Repita em passos pequenos. Commit sugerido a cada ciclo verde.
 
 | Nível | Ferramenta | O que testa | Onde | Velocidade |
 |---|---|---|---|---|
-| Unidade (domínio) | Vitest | Funções puras: conversão, custo médio, PP, CMV, validade | `src/domain/**/*.test.ts` | ms |
+| Unidade (domínio) | Vitest | Funções puras: conversão, custo médio, PP, CMV, custo do produto | `src/domain/**/*.test.ts` | ms |
 | Unidade (componentes) | Vitest + Testing Library | Componentes React com lógica (formulários, tabelas) | `src/components/**/*.test.tsx` | ms |
 | Integração | Vitest + PostgreSQL real (Testcontainers) | Casos de uso com banco: movimentação → saldo, isolamento de tenant, constraints | `tests/integration/` | s |
 | Ponta a ponta | Playwright | Fluxos críticos do usuário (cadastrar item, receber, contar) | `tests/e2e/` | dezenas de s |

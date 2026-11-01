@@ -1,5 +1,9 @@
 # 10. Indicadores
 
+> **Escopo simplificado (novembro de 2026).** Sem contagem física, o "real" vem do saldo do
+> sistema (compras − baixas por pedido − perdas ± acertos). Acurácia do inventário e divergência de
+> recebimento ficam fora. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+
 > Fonte: Manual de Referência, seção 8.
 
 **A variância entre CMV teórico e real é o indicador que mais pesa.** Os operadores mais

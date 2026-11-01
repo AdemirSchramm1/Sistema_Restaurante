@@ -44,4 +44,7 @@ O resto é refinamento. Essa ordem orienta o [roadmap do módulo](00-visao-geral
 
 ## Em aberto (próxima rodada de pesquisa)
 
+- **Acerto manual de estoque** (proposta): sem contagem, como corrigir quando o sistema e a
+  prateleira não batem? Proposta: o gerente informa a quantidade certa e o motivo. Decidir na
+  feature 004.
 - Comparação dos módulos de estoque de cada software.

@@ -1,5 +1,9 @@
 # 9. Controles contra perdas e furtos
 
+> **Escopo simplificado (novembro de 2026).** Sem conferência cega e sem contagem, as regras de
+> segregação ligadas a elas não se aplicam. Continuam: trilha de auditoria, papéis, perda separada
+> de consumo e acerto manual só pelo gerente. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+
 > Fonte: Manual de Referência, seção 7.
 
 Os controles reforçam uns aos outros:

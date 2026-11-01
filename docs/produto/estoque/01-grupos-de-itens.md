@@ -12,9 +12,7 @@ três eixos independentes:
 ## Regra: grupo ≠ local ("shelf-to-sheet")
 
 O **grupo** diz *o que o item é*. O **local** diz *onde ele está guardado*. A mesma categorização
-aparece na prateleira, na folha de contagem e no relatório. Um item fora da folha de contagem é um
-item que some do controle (caso das batatas-doces escondidas atrás de barris, citado pela
-[MarketMan](https://marketman.com/blog/restaurant-inventory-categories)).
+aparece na prateleira e no relatório.
 
 ## Tipos de item
 
@@ -25,8 +23,8 @@ O tipo define a **regra de baixa** e a contabilização.
 | Insumo | Entra no preparo (tomate, farinha, filé) | Pela ficha técnica, quando o prato é vendido |
 | Revenda | Vendido como chega (refrigerante, cerveja) | Baixa direta na venda |
 | Produzido | Preparação própria (molho, fundo, porcionado) | Entra por ordem de produção, sai pela venda |
-| Consumo | Usado na operação (luvas, filme, detergente) | Requisição ou contagem; vai para despesa |
-| Patrimônio | Durável (panela, louça) | Contagem periódica; ativo, não CMV |
+| Consumo | Usado na operação (luvas, filme, detergente) | Saída lançada; vai para despesa |
+| Patrimônio | Durável (panela, louça) | Saída lançada (quebra, descarte); ativo, não CMV |
 
 ## Árvore de grupos padrão
 
@@ -61,7 +59,7 @@ delivery; limpeza, aluguel, energia e salários são despesa
   item de *consumo*, fora do CMV.
 - **Chope:** rendimento real do barril fica entre 85% e 95% do teórico (espuma, limpeza de linha,
   excesso no serviço — [PourIQ](https://pouriq-website-drew.pages.dev/glossary/draft-yield/)). O
-  sistema deve permitir um fator de rendimento no item.
+  rendimento fica na tela de Produtos (feature 003), não no cadastro do item.
 
 ## Critérios de aceite (para a spec)
 

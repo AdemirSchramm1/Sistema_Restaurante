@@ -1,5 +1,10 @@
 # 8. Ciclo operacional: da ficha técnica ao ajuste
 
+> **Escopo simplificado (novembro de 2026).** O ciclo do sistema é: produtos com as quantidades →
+> compra → entrada → **baixa automática a cada pedido** → perdas → acerto manual quando preciso.
+> Ficam fora: conferência cega, temperatura e validade no recebimento, PVPS, quarentena e todo o
+> inventário (contagem). As seções abaixo vêm do manual e ficam como referência. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+
 > Fonte: Manual de Referência, seção 6.
 
 ## As doze etapas

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-31
 
-**Status**: Draft
+**Status**: Implementada (PR #2 e #3). **Parcialmente substituída pela [feature 002](../002-simplificar-cadastro/spec.md)**
 
 **Input**: User description: "feature 001 — cadastros base (grupos, unidades, locais, itens)."
 
@@ -12,13 +12,34 @@
 [01 — Grupos de itens](../../docs/produto/estoque/01-grupos-de-itens.md) ·
 [02 — Cadastro de itens](../../docs/produto/estoque/02-cadastro-de-itens.md) ·
 [05 — Locais](../../docs/produto/estoque/05-locais.md) ·
-[07 — Regras sanitárias](../../docs/produto/estoque/07-regras-sanitarias.md) ·
 [09 — Controles e permissões](../../docs/produto/estoque/09-controles-e-permissoes.md) ·
 [Roadmap](../../docs/produto/estoque/00-visao-geral.md#roadmap)
+
+> **Leia primeiro: o que mudou com a feature 002 (novembro de 2026).** O dono do produto achou o
+> cadastro complexo demais e a [feature 002](../002-simplificar-cadastro/spec.md) simplificou o
+> escopo. Esta spec fica como registro do que foi construído; nos trechos marcados com
+> **[002]**, vale a 002.
+>
+> | Parte desta spec | Situação |
+> |---|---|
+> | US1: três unidades, fator, conversão específica do item (cenários 1, 2 e 5) | **Mudou.** O item tem uma medida (kg, g, l, ml, un) e, opcionalmente, a embalagem de compra ("1 Caixa = 20 kg"). Quanto vai em cada prato fica na tela de Produtos (003) |
+> | US2: grupos e subgrupos | Mantida |
+> | US3: tipos técnicos, temperatura, responsável, rota e folha de contagem, quarentena, regra de químicos | **Mudou.** Local tem só nome e tipo; o item marca em quais locais fica e qual é o principal |
+> | US4: conservação, sanitário, alérgenos, fiscal, contagem | **Removida** |
+> | US5: conta e equipe | Mantida (o restaurante novo não ganha mais o local de quarentena) |
+> | FR-007, FR-013, FR-014 (quarentena), FR-016, FR-021, FR-025, FR-029 | **Removidos** |
+> | FR-012, FR-020, FR-022, FR-028, FR-030 | **Mudaram** (ver cada um) |
+> | SC-001, SC-002, SC-006 | **Mudaram** (ver cada um) |
+>
+> Os números de feature citados nesta spec (002 fornecedores, 003 movimentações… 012) são do
+> roadmap antigo. O roadmap atual está em [00-visao-geral](../../docs/produto/estoque/00-visao-geral.md#roadmap).
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cadastrar um item com as três unidades (Priority: P1)
+
+> **[002]** Agora: nome, grupo, tipo, **uma medida** e, se quiser, a embalagem de compra. Cenários
+> 1, 2 e 5 substituídos pelos cenários da [US1 da 002](../002-simplificar-cadastro/spec.md#us1--cadastrar-um-item-entendendo-cada-campo-de-primeira-p1).
 
 O gerente (ou chef) cadastra um item do estoque — por exemplo "Tomate italiano, caixa 20 kg, tipo
 AA" — escolhendo grupo, subgrupo e tipo, e informando a unidade de estoque (kg), a unidade de
@@ -88,6 +109,10 @@ o registro de quem alterou.
 
 ### User Story 3 - Cadastrar locais com nome real e rota de contagem (Priority: P2)
 
+> **[002]** Agora: local só com nome e tipo; sem temperatura, responsável, rota, folha de contagem,
+> quarentena automática nem regra de químicos. Ficam valendo só os cenários 5 (um local principal
+> por item) e a unicidade do nome. Ver [US2 da 002](../002-simplificar-cadastro/spec.md#us2--locais-sem-burocracia-p2).
+
 O gerente cadastra os locais com o nome que a equipe usa ("Câmara 1", "Estoque do bar", "Depósito
 dos fundos"), o tipo (seco, refrigerado, congelado, quarentena, trânsito, químicos, praça, bar, não
 alimentar), o responsável, a faixa de temperatura (quando refrigerado ou congelado) e a ordem na
@@ -121,6 +146,9 @@ refrigerado sem faixa e ver a recusa.
 ---
 
 ### User Story 4 - Registrar dados de conservação, sanitários e fiscais do item (Priority: P3)
+
+> **[002] Removida.** Nenhum desses campos existe mais no sistema (migração `0002_simplify_items`).
+> Custos e curva ABC (cenário 4) continuam só para leitura.
 
 O chef ou gerente completa o cadastro do item com temperatura de conservação e faixa de
 recebimento, validade fechado e após aberto, controle de lote, dias de alerta, alérgenos (lista da
@@ -166,6 +194,7 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
 
 1. **Given** uma pessoa sem conta, **When** ela cria a conta do restaurante, **Then** o restaurante é
    criado com a árvore padrão de grupos e o local de quarentena, e ela entra como gerente.
+   **[002]** Sem o local de quarentena.
 2. **Given** um gerente, **When** ele convida um e-mail com o papel chef, **Then** a pessoa recebe o
    convite, define a senha e entra só com as permissões de chef.
 3. **Given** um restaurante com um único gerente ativo, **When** alguém tenta remover o papel de
@@ -234,7 +263,7 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
   contagem) com fator para a unidade base da dimensão (g, ml, un).
 - **FR-006**: O sistema MUST converter quantidades entre unidades da mesma dimensão de forma exata
   (ex.: 1,5 kg = 1.500 g), sem perda por arredondamento intermediário.
-- **FR-007**: O sistema MUST permitir, por item, conversões específicas entre dimensões diferentes
+- **FR-007** **[002: removido]**: O sistema MUST permitir, por item, conversões específicas entre dimensões diferentes
   (ex.: 1 un de ovo = 50 g) e MUST recusar conversão entre dimensões sem essa conversão cadastrada.
 
 **Grupos e subgrupos**
@@ -250,16 +279,16 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
 
 **Locais**
 
-- **FR-012**: O gerente MUST poder cadastrar locais com nome, tipo (seco, refrigerado, congelado,
+- **FR-012** **[002: agora só nome e tipo — despensa, geladeira, freezer, bar, praça, limpeza, descartáveis]**: O gerente MUST poder cadastrar locais com nome, tipo (seco, refrigerado, congelado,
   quarentena, em trânsito, químicos, praça, bar, não alimentar), responsável, faixa de temperatura
   mínima e máxima e ordem na rota de contagem.
-- **FR-013**: Local refrigerado ou congelado MUST ter faixa de temperatura, com mínima menor ou igual
+- **FR-013** **[002: removido]**: Local refrigerado ou congelado MUST ter faixa de temperatura, com mínima menor ou igual
   à máxima; sem isso não pode ser salvo.
-- **FR-014**: Todo restaurante MUST ter o local "Recebimento / quarentena", criado automaticamente,
+- **FR-014** **[002: sem quarentena; os locais sugeridos continuam como modelo opcional]**: Todo restaurante MUST ter o local "Recebimento / quarentena", criado automaticamente,
   que não pode ser apagado nem inativado. Os demais locais sugeridos do documento 05 são oferecidos
   como modelo opcional no primeiro acesso.
 - **FR-015**: Nome de local MUST ser único entre os locais ativos do restaurante.
-- **FR-016**: O sistema MUST listar os locais na ordem da rota de contagem e, dentro de cada local, os
+- **FR-016** **[002: locais em ordem alfabética; sem posição na folha]**: O sistema MUST listar os locais na ordem da rota de contagem e, dentro de cada local, os
   itens vinculados na ordem da posição na folha.
 
 **Itens**
@@ -270,19 +299,19 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
   sequencial de 4 dígitos dentro do subgrupo), único e imutável.
 - **FR-019**: O sistema MUST recusar dois itens ativos com a mesma descrição normalizada (sem
   diferença de maiúsculas, acentos e espaços repetidos) no mesmo subgrupo.
-- **FR-020**: Todo item MUST ter unidade de estoque e unidade de receita; e MUST ter uma unidade de
+- **FR-020** **[002: uma medida; embalagem de compra opcional, com nome e quantidade juntos]**: Todo item MUST ter unidade de estoque e unidade de receita; e MUST ter uma unidade de
   compra padrão composta de nome da embalagem (ex.: "Caixa 12 un.") e fator de conversão maior que
   zero, expresso em unidades de estoque por unidade de compra.
-- **FR-021**: Quando a unidade de receita for de dimensão diferente da unidade de estoque, o item MUST
+- **FR-021** **[002: removido]**: Quando a unidade de receita for de dimensão diferente da unidade de estoque, o item MUST
   ter a conversão específica correspondente (FR-007) para ser salvo.
-- **FR-022**: O sistema MUST mostrar, no cadastro do item, a equivalência entre as três unidades
+- **FR-022** **[002: a tela mostra só a frase "1 Caixa = 20 kg"]**: O sistema MUST mostrar, no cadastro do item, a equivalência entre as três unidades
   (ex.: 1 caixa = 20 kg = 20.000 g) e permitir simular a conversão de uma quantidade qualquer,
   aceitando frações.
 - **FR-023**: A unidade de estoque MUST ficar bloqueada para edição depois da primeira movimentação do
   item; a tentativa é recusada com orientação para inativar o item e criar outro.
 - **FR-024**: A indicação "entra no CMV" do item MUST vir do grupo e MAY ser sobrescrita no item; a
   sobrescrita é registrada conforme FR-004 e pode ser desfeita (volta a seguir o grupo).
-- **FR-025**: O item MUST aceitar os campos opcionais: EAN/GTIN da unidade e da embalagem (ou "SEM
+- **FR-025** **[002: removido]**: O item MUST aceitar os campos opcionais: EAN/GTIN da unidade e da embalagem (ou "SEM
   GTIN"), categoria financeira, apresentação e peso líquido/drenado, peso variável, fator de correção
   padrão (≥ 1, padrão 1), fator de rendimento (> 0 e ≤ 1), temperatura máxima de conservação, faixa
   de temperatura de recebimento, validade fechado e após aberto (em dias), controle de lote, dias de
@@ -294,12 +323,12 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
 - **FR-027**: Itens e locais MUST NOT ser excluídos definitivamente; MUST poder ser inativados e
   reativados (respeitando FR-019 na reativação). Itens inativos não aparecem nas listas de seleção
   de novos lançamentos.
-- **FR-028**: O usuário MUST poder vincular um item a vários locais, com no máximo um local padrão e
+- **FR-028** **[002: sem posição na folha]**: O usuário MUST poder vincular um item a vários locais, com no máximo um local padrão e
   uma posição na folha por vínculo.
-- **FR-029**: O sistema MUST recusar vínculo de item do grupo "Higiene e limpeza" a local de
+- **FR-029** **[002: removido]**: O sistema MUST recusar vínculo de item do grupo "Higiene e limpeza" a local de
   alimentos (seco, refrigerado, congelado, praça, bar) e de item alimentar a local de químicos.
   Quarentena e em trânsito aceitam qualquer item.
-- **FR-030**: A lista de itens MUST permitir buscar por código, descrição e EAN, e filtrar por grupo,
+- **FR-030** **[002: busca por código e descrição; sem EAN]**: A lista de itens MUST permitir buscar por código, descrição e EAN, e filtrar por grupo,
   subgrupo, tipo, local e situação (ativo/inativo).
 - **FR-031**: Quando o usuário salva uma alteração em registro que outra pessoa alterou depois que ele
   abriu a tela, o sistema MUST avisar e não sobrescrever sem confirmação.
@@ -330,9 +359,9 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
 
 ### Measurable Outcomes
 
-- **SC-001**: Um usuário treinado cadastra um item completo nas três unidades (sem os campos
+- **SC-001** **[002: item com nome, grupo e medida]**: Um usuário treinado cadastra um item completo nas três unidades (sem os campos
   opcionais) em até 2 minutos.
-- **SC-002**: 100% dos casos de conversão do manual dão o resultado esperado exato (20 caixas × 12 =
+- **SC-002** **[002: vale só a conversão dentro da mesma família, ex.: 1,5 kg = 1.500 g]**: 100% dos casos de conversão do manual dão o resultado esperado exato (20 caixas × 12 =
   240 un; 2 caixas × 12 = 24 un; 1,5 kg = 1.500 g; 120 limões de caixa de 240 = 0,5 caixa; kg → un
   sem conversão do item = recusa).
 - **SC-003**: 0 casos de usuário de um restaurante vendo ou alterando dados de outro restaurante nos
@@ -341,7 +370,7 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
   subgrupo) são recusadas.
 - **SC-005**: Com um catálogo de 2.000 itens, a busca na lista de itens mostra resultados em até 1
   segundo para o usuário.
-- **SC-006**: Um restaurante novo consegue, no primeiro acesso, ter a árvore de grupos, a quarentena
+- **SC-006** **[002: sem quarentena]**: Um restaurante novo consegue, no primeiro acesso, ter a árvore de grupos, a quarentena
   e seus locais principais prontos em até 15 minutos, sem precisar de suporte.
 - **SC-007**: 100% das alterações de cadastro podem ser explicadas pelo histórico (quem, quando,
   antes e depois).

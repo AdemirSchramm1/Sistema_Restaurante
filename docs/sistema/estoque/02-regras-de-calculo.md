@@ -3,22 +3,24 @@
 Funções puras em `src/domain/inventory/`. Cada uma lista a fonte de produto e os **casos de teste
 obrigatórios** (vêm dos exemplos do manual). Todas operam com decimal exato.
 
-## Conversão de unidades — `units.ts`
+## Medida e embalagem — `units.ts`, `item.ts`
 
 ```ts
-convert(qty: Decimal, from: Unit, to: Unit, item?: ItemConversions): Result<Decimal, UnitError>
-toStockUnit(qty: Decimal, purchaseFactor: Decimal): Decimal  // compra → estoque
+convert(qty: Decimal, from: Unit, to: Unit): Result<Decimal>          // só dentro da mesma família
+toStockUnit(qty: Decimal, purchaseFactor: Decimal): Result<Decimal>  // embalagens → medida do item
+describePurchase({ purchaseUnitLabel, purchaseFactor, stockUnit })  // "1 Caixa = 20 kg"
 ```
 
-Fonte: [02-cadastro-de-itens](../../produto/estoque/02-cadastro-de-itens.md#as-três-unidades).
+Fonte: [02-cadastro-de-itens](../../produto/estoque/02-cadastro-de-itens.md). Desde a feature 002 o
+item tem uma medida só; não há unidade de receita nem conversão do item entre famílias.
 
 | Caso | Entrada | Esperado |
 |---|---|---|
-| Caixa com 12 | 20 caixas, fator 12 | 240 un |
-| NF-e | 2 caixas, fator 12 | 24 un |
+| Caixa com 12 | 20 caixas, 12 un cada | 240 un |
 | Massa | 1,5 kg → g | 1500 g |
-| Dimensões diferentes sem conversão do item | kg → un | erro `UNIT_DIMENSION_MISMATCH` |
-| Fração na contagem | 120 limões, caixa de 240 | 0,5 caixa |
+| Volume | 1000 ml → l | 1 l |
+| Famílias diferentes | kg → un | erro `UNIT_DIMENSION_MISMATCH` |
+| Frase da embalagem | Caixa, 20, kg | "1 Caixa = 20 kg" |
 
 ## Custo médio ponderado — `average-cost.ts`
 
@@ -36,12 +38,15 @@ alteram o custo médio. Fonte: [02-cadastro-de-itens](../../produto/estoque/02-c
 | Bonificação custo zero | 10 un a R$ 20 + 10 un a R$ 0 | R$ 10 |
 | Saldo negativo antes da entrada | −2 un + 10 un a R$ 5 | custo = custo da compra (regra a confirmar) |
 
-## Tolerância de custo no recebimento
+## Tolerância de custo na entrada
 
 `isCostOutOfTolerance(lastCost, newCost, tolerancePct): boolean` — |novo − último| ÷ último >
 tolerância. Caso: último 10,00, novo 10,60, tolerância 5% → `true`; novo 10,40 → `false`.
 
-## Ficha técnica — `recipe.ts`
+## Produtos (ficha técnica) — `recipe.ts`
+
+> Na primeira versão da tela de Produtos (feature 003) entram só a quantidade de cada item e o
+> custo. FC, IC e sub-receitas ficam para depois.
 
 ```ts
 grossQuantity(net, correctionFactor)          // líquida × FC
@@ -49,7 +54,6 @@ lineCost(line, item)                          // bruta (convertida p/ unid. esto
 recipeCost(version, resolver)                 // soma das linhas, recursivo em sub-receitas
 portionCost(version)                          // custo total ÷ porções
 cogsPercent(portionCost, salePrice)           // ÷ preço × 100
-inheritedAllergens(version, resolver)         // união
 detectCycle(recipeId, resolver)               // sub-receita não contém a si mesma
 correctionFactor(gross, net) / cookingIndex(cooked, netRaw)
 ```
@@ -60,7 +64,6 @@ correctionFactor(gross, net) / cookingIndex(cooked, netRaw)
 | Bruta | 8 kg líquido, FC 1,25 | 10 kg |
 | Custo kg limpo | R$ 30/kg bruto, FC 1,25 | R$ 37,50 |
 | Ciclo | A usa B, B usa A | erro `RECIPE_CYCLE` |
-| Alérgenos | molho (leite) + massa (trigo) | {leite, trigo} |
 
 ## Reposição — `reorder.ts`
 
@@ -93,27 +96,8 @@ Fonte: [10-indicadores](../../produto/estoque/10-indicadores.md).
 | `itemVariance` | (real − teórico) ÷ teórico | 11 vs 10 = 10% → não alerta; 11,1 → alerta (> 10%) |
 | `turnover` | CMV ÷ estoque médio | – |
 | `coverageDays` | estoque ÷ CMD | – |
-| `countAccuracy` | iguais ÷ auditados × 100 | 96 de 100 → 96% |
 | `stockoutRate` | em falta ÷ total × 100 | – |
 | `lossRate` | perdas ÷ compras alimentos × 100 | – |
 | `abcClassify` | ordena por valor consumido, % acumulado: A até 80%, B até 95%, C resto | caso UFMS: 3 itens = 62% → A |
 
 Faixas da variância: ≤ 1 excelente; < 2 bom; < 3 atenção; ≥ 3 investigar.
-
-## Validade — `expiry.ts`
-
-```ts
-labelExpiry(eventAt, rule): Date        // fabricante > Manual BP > tabela CVS (teto)
-frozenShelfLifeDays(tempC): number      // tabela de congelados
-receivingTempCheck(category, tempC): 'OK' | 'REJECT_SUGGESTED'
-fefoOrder(lots): Lot[]                  // PVPS: vence antes, sai antes; sem validade → PEPS
-```
-
-| Caso | Entrada | Esperado |
-|---|---|---|
-| Carne crua aberta | 2026-11-01 10:00, 3 dias | 2026-11-04 |
-| Congelado −8 °C | – | 20 dias |
-| Congelado −20 °C | – | 90 dias |
-| Carne refrigerada recebida a 8 °C | faixa 4–7 °C | `REJECT_SUGGESTED` |
-| Pescado a 3 °C | faixa 2–3 °C | `OK` |
-| Regra do Manual BP > teto CVS | 5 dias pedidos, teto 3 | 3 dias (aplica o teto) |

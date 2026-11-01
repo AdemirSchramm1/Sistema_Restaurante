@@ -1,6 +1,9 @@
 # Tarefas — 002 Simplificar cadastro
 
-Cada tarefa de código vem depois do teste que a exige (TDD).
+**Entrada**: [spec.md](spec.md), [plan.md](plan.md). Cada tarefa de código vem depois do teste que
+a exige (TDD).
+
+## Fase 1: Cadastro simplificado (PR #4)
 
 - [x] T001 Atualizar `docs/produto` (02, 05, 00, 04, 13) e `docs/sistema/estoque/01-modelo-de-dados.md`
 - [x] T002 [teste] Domínio do item: só medida e embalagem opcional (`item.test.ts`)
@@ -14,3 +17,18 @@ Cada tarefa de código vem depois do teste que a exige (TDD).
 - [x] T010 [teste] Integração: item sem embalagem, embalagem incompleta, locais sem temperatura
 - [x] T011 Migração `0002_simplify_items`, schema e repositórios
 - [x] T012 E2E e acessibilidade atualizados
+
+## Fase 2: Sincronizar specs, docs e tarefas antigas
+
+- [x] T013 Escrever o `plan.md` da 002 (faltava no fluxo Spec Kit)
+- [x] T014 Marcar em `specs/001-cadastros-base/` (spec, tasks, plan, data-model, research) o que a 002 mudou ou removeu
+- [x] T015 Atualizar `specs/001-cadastros-base/contracts/use-cases.md` e `quickstart.md` para o comportamento atual
+- [x] T016 Reescrever `docs/sistema/estoque/04-plano-de-testes.md` pelo roadmap novo (003 Produtos … 008 Painel)
+- [x] T017 Retirar validade, contagem, temperatura e unidade de receita de `docs/sistema` (regras de cálculo, movimentações, glossário, TDD, convenções)
+- [x] T018 Marcar o escopo simplificado em `docs/produto/estoque` 01, 03, 06, 08, 09 e 10; registrar o acerto manual como decisão em aberto em 13
+- [x] T019 Ajustar a constituição (v1.0.2): exemplos de II e IV sem validade e unidade de receita
+
+## Fase 3: Convergência
+
+- [x] T020 [teste] Textos da tela de grupos sem sigla solta (`src/components/groups/group-labels.test.ts`) per FR-005 (partial)
+- [x] T021 Tela de grupos usa "Que tipo de coisa é" e "Conta no custo dos pratos (CMV)" (`group-labels.ts`, `app/(app)/estoque/grupos/page.tsx`) per FR-005 (partial)
