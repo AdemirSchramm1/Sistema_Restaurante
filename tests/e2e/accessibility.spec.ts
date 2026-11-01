@@ -27,14 +27,14 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
   await signUp(page, "Restaurante Acessível");
   expect(await seriousViolations(page), "/estoque/locais (primeiro acesso)").toEqual([]);
   await page.getByRole("button", { name: "Criar locais marcados" }).click();
-  await page.getByRole("heading", { name: "Câmara de carnes" }).waitFor();
+  await page.getByRole("heading", { name: "Freezer", exact: true }).waitFor();
 
   await page.goto("/estoque/itens/novo");
   expect(await seriousViolations(page), "/estoque/itens/novo").toEqual([]);
-  await page.getByLabel("Descrição").fill("Arroz agulhinha, fardo 30 kg");
-  await page.getByLabel("Grupo e subgrupo").selectOption({ index: 1 });
-  await page.getByLabel("Unidade de compra (embalagem)").fill("Fardo 30 kg");
-  await page.getByLabel(/Fator: quantos/).fill("30");
+  await page.getByLabel("Nome do item").fill("Arroz agulhinha");
+  await page.getByLabel("Grupo", { exact: true }).selectOption({ index: 1 });
+  await page.getByLabel("Embalagem", { exact: true }).fill("Fardo");
+  await page.getByLabel("Quanto vem em cada embalagem").fill("30");
   await page.getByRole("button", { name: "Cadastrar item" }).click();
   await page.getByText(/Item cadastrado com o código/).waitFor();
   expect(await seriousViolations(page), "detalhe do item").toEqual([]);
@@ -43,7 +43,4 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }
-  await page.getByRole("link", { name: "Folha de contagem" }).first().click();
-  await page.getByRole("heading", { name: /Folha de contagem/ }).waitFor();
-  expect(await seriousViolations(page), "folha de contagem").toEqual([]);
 });

@@ -54,7 +54,10 @@ describe("como você compra é opcional (spec 002, US1)", () => {
       ctx,
       itemData({ subgroupId: await subgroupId(env, ctx, "01", "02"), purchaseFactor: null }),
     );
-    expect(r).toMatchObject({ ok: false, error: { code: "PURCHASE_FACTOR_REQUIRED", field: "purchaseFactor" } });
+    expect(r).toMatchObject({
+      ok: false,
+      error: { code: "PURCHASE_FACTOR_REQUIRED", field: "purchaseFactor" },
+    });
   });
 
   it("dá para tirar a embalagem depois", async () => {

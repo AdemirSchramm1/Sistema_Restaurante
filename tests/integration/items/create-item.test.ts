@@ -13,11 +13,7 @@ describe("cadastrar item (spec 001 US1, simplificado na 002)", () => {
     const sub = await subgroupId(env, ctx, "01", "02");
 
     const a = await createItem(env.deps, ctx, itemData({ subgroupId: sub }));
-    const b = await createItem(
-      env.deps,
-      ctx,
-      itemData({ subgroupId: sub, description: "Cebola branca" }),
-    );
+    const b = await createItem(env.deps, ctx, itemData({ subgroupId: sub, description: "Cebola branca" }));
     expect(a.ok && a.value.code).toBe("01.02.0001");
     expect(b.ok && b.value.code).toBe("01.02.0002");
 
@@ -120,5 +116,4 @@ describe("cadastrar item (spec 001 US1, simplificado na 002)", () => {
     expect(row.changes.description).toEqual([null, "Tomate italiano"]);
     expect(row.changes.purchaseFactor).toEqual([null, "20"]);
   });
-
 });

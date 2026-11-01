@@ -49,7 +49,9 @@ export function ItemLocations({
         <p className="text-muted-foreground">Cadastre os locais na tela Locais para escolher aqui.</p>
       ) : (
         <form {...formProps} className="grid gap-2" aria-label="Locais do item">
-          <p className="text-muted-foreground">Marque onde o item fica. Se ficar em mais de um, escolha o principal.</p>
+          <p className="text-muted-foreground">
+            Marque onde o item fica. Se ficar em mais de um, escolha o principal.
+          </p>
           <input type="hidden" name="itemId" value={itemId} />
           {options.map((o) => {
             const link = byId.get(o.id);

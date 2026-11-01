@@ -85,10 +85,14 @@ describe("onde o item fica guardado (spec 002, US2)", () => {
       itemData({ subgroupId: await subgroupId(env, ctx, "01", "02") }),
     );
     if (!item.ok) throw new Error();
-    const r = await setItemLocations(env.deps, chef, item.value.id, [{ locationId: geladeira, isDefault: true }]);
+    const r = await setItemLocations(env.deps, chef, item.value.id, [
+      { locationId: geladeira, isDefault: true },
+    ]);
     expect(!r.ok && r.error.code).toBe("FORBIDDEN");
     expect((await setLocationActive(env.deps, ctx, seco, 1, false)).ok).toBe(true);
-    const inactive = await setItemLocations(env.deps, ctx, item.value.id, [{ locationId: seco, isDefault: true }]);
+    const inactive = await setItemLocations(env.deps, ctx, item.value.id, [
+      { locationId: seco, isDefault: true },
+    ]);
     expect(!inactive.ok && inactive.error.code).toBe("LOCATION_INACTIVE");
   });
 });

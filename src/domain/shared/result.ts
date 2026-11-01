@@ -31,7 +31,6 @@ export type ErrorCode =
   | "PURCHASE_FACTOR_REQUIRED"
   | "PURCHASE_LABEL_REQUIRED";
 
-
 export type DomainError = {
   code: ErrorCode;
   field?: string;

@@ -63,7 +63,10 @@ describe("locais (spec 001 US3, simplificado na 002)", () => {
     const list = await listLocations(env.deps, ctx);
     expect(list.ok && list.value.map((l) => l.name)).toEqual(["Bar", "Despensa seca", "Freezer"]);
     const frozen = list.ok ? list.value.find((l) => l.kind === "FROZEN")! : null;
-    const upd = await updateLocation(env.deps, ctx, frozen!.id, 1, { name: "Freezer horizontal", kind: "FROZEN" });
+    const upd = await updateLocation(env.deps, ctx, frozen!.id, 1, {
+      name: "Freezer horizontal",
+      kind: "FROZEN",
+    });
     expect(upd.ok).toBe(true);
     const stale = await updateLocation(env.deps, ctx, frozen!.id, 1, { name: "Outro", kind: "FROZEN" });
     expect(!stale.ok && stale.error.code).toBe("STALE_RECORD");

@@ -29,7 +29,8 @@ export function CogsOverride({
     <Card className="grid gap-2 text-sm">
       <CardTitle>Conta no custo dos pratos?</CardTitle>
       <p className="text-muted-foreground">
-        Itens que vão nos pratos ou são revendidos entram no custo (CMV). Limpeza e descartáveis, em geral, não.
+        Itens que vão nos pratos ou são revendidos entram no custo (CMV). Limpeza e descartáveis, em geral,
+        não.
       </p>
       <p>
         Agora: <strong>{yesNo(effective)}</strong>

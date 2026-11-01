@@ -33,7 +33,9 @@ export default async function Page({ searchParams }: PageProps<"/estoque/locais"
     <div className="grid gap-6">
       <div className="grid gap-1">
         <h1 className="text-2xl font-semibold">Locais</h1>
-        <p className="text-sm text-muted-foreground">Os lugares onde você guarda os itens: despensa, geladeira, freezer…</p>
+        <p className="text-sm text-muted-foreground">
+          Os lugares onde você guarda os itens: despensa, geladeira, freezer…
+        </p>
       </div>
       {manage && suggestions.length > 0 && (firstAccess || locs.value.length === 0) && (
         <Card className="grid gap-3">

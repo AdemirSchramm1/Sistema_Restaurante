@@ -191,7 +191,10 @@ export function ItemForm({
             </Field>
           </div>
           <p className="rounded-md bg-muted p-3 text-sm" aria-live="polite" data-testid="purchase-summary">
-            {summary ?? "Sem embalagem: o item é comprado solto."}
+            {summary ??
+              (purchaseLabel.trim()
+                ? `Falta dizer quanto vem em cada ${purchaseLabel.trim()}.`
+                : "Sem embalagem: o item é comprado solto.")}
           </p>
         </Card>
       </fieldset>

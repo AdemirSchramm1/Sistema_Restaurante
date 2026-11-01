@@ -20,7 +20,14 @@ describe("formulário do item em três perguntas (docs/produto/estoque/02-cadast
 
   it("cada campo tem rótulo claro", () => {
     renderForm();
-    for (const label of ["Nome do item", "Grupo", "Tipo", "Medida", "Embalagem", "Quanto vem em cada embalagem"])
+    for (const label of [
+      "Nome do item",
+      "Grupo",
+      "Tipo",
+      "Medida",
+      "Embalagem",
+      "Quanto vem em cada embalagem",
+    ])
       expect(screen.getByLabelText(label), label).toBeTruthy();
   });
 
@@ -48,6 +55,12 @@ describe("formulário do item em três perguntas (docs/produto/estoque/02-cadast
   it("sem embalagem, explica que o item é comprado solto", () => {
     renderForm();
     expect(screen.getByTestId("purchase-summary").textContent).toMatch(/comprado solto/);
+  });
+
+  it("com embalagem e sem quantidade, avisa o que falta", () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText("Embalagem"), { target: { value: "Caixa" } });
+    expect(screen.getByTestId("purchase-summary").textContent).toBe("Falta dizer quanto vem em cada Caixa.");
   });
 
   it("bloqueia a medida quando o item já movimentou", () => {

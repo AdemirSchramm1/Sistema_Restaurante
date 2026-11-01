@@ -65,14 +65,7 @@ export type ItemFilter = {
 };
 export type ItemListRow = Pick<
   Item,
-  | "id"
-  | "code"
-  | "description"
-  | "type"
-  | "active"
-  | "stockUnit"
-  | "purchaseUnitLabel"
-  | "purchaseFactor"
+  "id" | "code" | "description" | "type" | "active" | "stockUnit" | "purchaseUnitLabel" | "purchaseFactor"
 > & {
   groupName: string;
   subgroupName: string;

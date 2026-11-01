@@ -57,9 +57,9 @@ describe("como você compra, opcional (docs/produto/estoque/02-cadastro-de-itens
 
   it("mostra a frase pronta: 1 Caixa = 20 kg", () => {
     expect(describePurchase(itemData())).toBe("1 Caixa = 20 kg");
-    expect(describePurchase(itemData({ stockUnit: "un", purchaseUnitLabel: "Fardo", purchaseFactor: d("12") }))).toBe(
-      "1 Fardo = 12 un",
-    );
+    expect(
+      describePurchase(itemData({ stockUnit: "un", purchaseUnitLabel: "Fardo", purchaseFactor: d("12") })),
+    ).toBe("1 Fardo = 12 un");
     expect(describePurchase(itemData({ stockUnit: "l", purchaseFactor: d("1.5") }))).toBe("1 Caixa = 1,5 l");
   });
 

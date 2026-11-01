@@ -1,7 +1,12 @@
 import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import { orderLocations, validateLocation, type Location, type LocationData } from "@/domain/inventory/location";
+import {
+  orderLocations,
+  validateLocation,
+  type Location,
+  type LocationData,
+} from "@/domain/inventory/location";
 import { SUGGESTED_LOCATIONS } from "@/domain/inventory/suggested-locations";
 import { diffFields } from "@/domain/shared/audit";
 import { err, ok, type Result } from "@/domain/shared/result";
