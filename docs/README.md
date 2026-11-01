@@ -39,6 +39,7 @@ E se liga ao fluxo **Spec Kit**:
 - [01 — Desenvolvimento guiado por testes (TDD)](sistema/01-tdd.md)
 - [02 — Convenções de código](sistema/02-convencoes.md)
 - [Glossário PT → código](sistema/glossario.md)
+- [ADRs (decisões de arquitetura)](sistema/adr/)
 - Módulo de Estoque
   - [01 — Modelo de dados](sistema/estoque/01-modelo-de-dados.md)
   - [02 — Regras de cálculo (domínio)](sistema/estoque/02-regras-de-calculo.md)

@@ -41,3 +41,9 @@
 | Etiqueta | – | `label` | |
 | Leitura de temperatura | – | `temperature_reading` | |
 | PVPS / PEPS | – | `FEFO` / `FIFO` | First expired / first in, first out |
+| Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE` | Gerente, chef, estoquista, comprador, administrativo |
+| Vínculo do usuário com o restaurante | – | `membership` | |
+| Convite | – | `invitation` | |
+| Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Regra item × local |
+| Unidade de compra padrão | – | `purchaseUnitLabel` + `purchaseFactor` | Fator por fornecedor fica em `supplier_item` |
+| Trilha de auditoria | – | `audit_log` | Só inserção |
