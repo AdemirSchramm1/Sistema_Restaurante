@@ -167,7 +167,7 @@ Validação de compatibilidade `checkItemLocation` (R12) no caso de uso.
 | shelf_life_days / opened_life_days | int null | ≥ 0 |
 | lot_control | boolean | |
 | expiry_alert_days | int null | ≥ 0 |
-| allergens | text[] | Subconjunto da lista RDC 26/2015 (R13) |
+| allergens | text[] | Subconjunto da lista RDC 727/2022, antiga RDC 26/2015 (R13) |
 | ncm | text null | 8 dígitos |
 | cest | text null | 7 dígitos |
 | origin | char(1) null | 0–8 (tabela de origem da NF-e) |

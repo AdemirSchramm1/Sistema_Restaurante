@@ -13,7 +13,7 @@
     "test:unit": "vitest run --project unit --coverage",
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
-    "db:up": "docker compose up -d db",
+    "db:up": "docker compose up -d --wait db",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.mts",
     "db:dev-login": "tsx scripts/db-dev-login.mts"
@@ -36,6 +36,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "1.63.0",
     "@tailwindcss/turbopack": "^4",
     "@testcontainers/postgresql": "^12.2.1",

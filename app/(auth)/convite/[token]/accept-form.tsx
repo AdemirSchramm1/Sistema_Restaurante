@@ -1,16 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { acceptInvitationAction } from "@/actions/access";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 
 export function AcceptForm({ token, email }: { token: string; email: string }) {
-  const [state, action, pending] = useActionState(acceptInvitationAction, null);
+  const { state, pending, formProps } = useFormAction(acceptInvitationAction);
   const error = state && !state.ok ? state.error : null;
   return (
-    <form action={action} className="grid gap-4">
+    <form {...formProps} className="grid gap-4">
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="email" value={email} />
       <FormError error={error} />

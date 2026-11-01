@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { setItemCogsOverrideAction } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,7 @@ export function CogsOverride({
   effective: boolean;
   canEdit: boolean;
 }) {
-  const [state, action, pending] = useActionState(setItemCogsOverrideAction, null);
+  const { state, pending, formProps } = useFormAction(setItemCogsOverrideAction);
   return (
     <Card className="grid gap-2 text-sm">
       <CardTitle>Entra no CMV</CardTitle>
@@ -33,7 +33,7 @@ export function CogsOverride({
         {override === null ? ` (segue o grupo: ${yesNo(groupInCogs)})` : " (definido no item)"}
       </p>
       {canEdit && (
-        <form action={action} className="grid gap-2">
+        <form {...formProps} className="grid gap-2">
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="version" value={version} />
           <label htmlFor="cogs-override" className="font-medium">

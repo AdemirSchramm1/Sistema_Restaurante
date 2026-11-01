@@ -1,15 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { signInAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FormError } from "@/components/forms/form-error";
 
 export function SignInForm() {
-  const [state, action, pending] = useActionState(signInAction, null);
+  const { state, pending, formProps } = useFormAction(signInAction);
   return (
-    <form action={action} className="grid gap-4">
+    <form {...formProps} className="grid gap-4">
       <FormError error={state && !state.ok ? state.error : null} />
       <Field label="E-mail" htmlFor="email">
         <Input id="email" name="email" type="email" autoComplete="email" required />

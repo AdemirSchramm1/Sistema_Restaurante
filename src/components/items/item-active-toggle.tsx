@@ -1,14 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { setItemActiveAction } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/forms/form-error";
 
 export function ItemActiveToggle({ id, version, active }: { id: string; version: number; active: boolean }) {
-  const [state, action, pending] = useActionState(setItemActiveAction, null);
+  const { state, pending, formProps } = useFormAction(setItemActiveAction);
   return (
-    <form action={action} className="flex items-center gap-2">
+    <form {...formProps} className="flex items-center gap-2">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="version" value={version} />
       <input type="hidden" name="active" value={String(!active)} />

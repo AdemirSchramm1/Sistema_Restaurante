@@ -30,6 +30,8 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | I | Busca na lista com 2.000 itens em até 1 s (SC-005) |
 | E | Criar conta, aceitar locais sugeridos, cadastrar item com três unidades, ligar a um local e ver na folha de contagem |
 | E | Gerente convida chef; chef aceita, não gerencia grupos e cadastra item |
+| E | Acessibilidade: nenhuma falha grave do axe (WCAG 2.1 AA) nas telas públicas, de estoque e de equipe |
+| U | Formulários mantêm o que foi digitado quando o servidor recusa |
 
 ## 002 — Fornecedores
 

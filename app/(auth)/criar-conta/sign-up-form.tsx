@@ -1,16 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { signUpAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 
 export function SignUpForm() {
-  const [state, action, pending] = useActionState(signUpAction, null);
+  const { state, pending, formProps } = useFormAction(signUpAction);
   const error = state && !state.ok ? state.error : null;
   return (
-    <form action={action} className="grid gap-4">
+    <form {...formProps} className="grid gap-4">
       <FormError error={error} />
       <Field label="Nome do restaurante" htmlFor="restaurantName" error={fieldError(error, "restaurantName")}>
         <Input id="restaurantName" name="restaurantName" required minLength={2} maxLength={120} />

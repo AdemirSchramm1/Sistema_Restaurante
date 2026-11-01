@@ -16,7 +16,7 @@ export default async function Page({ params }: PageProps<"/convite/[token]">) {
       <>
         <h1 className="text-2xl font-semibold">Convite</h1>
         <Alert>{messageFor(inv.error)}</Alert>
-        <Link className="text-sm text-primary hover:underline" href="/entrar">
+        <Link className="text-sm text-primary underline underline-offset-4" href="/entrar">
           Ir para o login
         </Link>
       </>

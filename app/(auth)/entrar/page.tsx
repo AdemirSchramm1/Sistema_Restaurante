@@ -13,10 +13,10 @@ export default async function Page({ searchParams }: PageProps<"/entrar">) {
       {sp["senha-redefinida"] && <Alert tone="success">Senha redefinida. Entre com a nova senha.</Alert>}
       <SignInForm />
       <div className="flex justify-between text-sm">
-        <Link className="text-primary hover:underline" href="/recuperar-senha">
+        <Link className="text-primary underline underline-offset-4" href="/recuperar-senha">
           Esqueci a senha
         </Link>
-        <Link className="text-primary hover:underline" href="/criar-conta">
+        <Link className="text-primary underline underline-offset-4" href="/criar-conta">
           Criar conta do restaurante
         </Link>
       </div>

@@ -52,7 +52,7 @@ O ponto técnico mais sensível do cadastro.
 | Locais (padrão e alternativos) e posição na folha | Câmara 1, prateleira B | Contagem da prateleira para a planilha |
 | Temperatura de conservação e faixa de recebimento | ≤ 4 °C; recebe entre 4 e 7 °C | Aceite ou recusa na doca |
 | Validade fechado e após aberto; controle de lote; dias de alerta | 3 dias após aberto | PVPS, etiqueta, rastreio |
-| Alérgenos (lista da RDC 26/2015) | leite, trigo, castanhas | Herdados pela ficha técnica |
+| Alérgenos (lista da RDC 727/2022, antiga RDC 26/2015) | leite, trigo, castanhas | Herdados pela ficha técnica |
 | NCM, CEST, origem, CST/CSOSN | 2202.10.00 | Erro de NCM gera multa de 1%; validar com contador |
 | Curva ABC/XYZ | A | **Calculada** pelo consumo, nunca digitada |
 | Flags: ativo, inventariável, frequência de contagem | contar diariamente | Monta as folhas de contagem por ciclo |

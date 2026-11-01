@@ -1,4 +1,4 @@
-/** Lista fechada do anexo da RDC Anvisa 26/2015 (research R13). */
+/** Lista fechada do Anexo III da RDC Anvisa 727/2022, que consolidou a RDC 26/2015 (research R13). */
 export const ALLERGEN_LABELS = {
   WHEAT_GLUTEN_CEREALS: "Trigo, centeio, cevada, aveia e suas estirpes hibridizadas",
   CRUSTACEANS: "Crustáceos",
@@ -6,7 +6,7 @@ export const ALLERGEN_LABELS = {
   FISH: "Peixes",
   PEANUT: "Amendoim",
   SOY: "Soja",
-  MILK: "Leites de todas as espécies de mamíferos",
+  MILK: "Leites de todas as espécies de animais mamíferos",
   ALMOND: "Amêndoa",
   HAZELNUT: "Avelãs",
   CASHEW: "Castanha-de-caju",

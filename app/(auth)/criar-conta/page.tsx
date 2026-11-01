@@ -16,7 +16,7 @@ export default function Page() {
       <SignUpForm />
       <p className="text-sm">
         Já tem conta?{" "}
-        <Link className="text-primary hover:underline" href="/entrar">
+        <Link className="text-primary underline underline-offset-4" href="/entrar">
           Entrar
         </Link>
       </p>

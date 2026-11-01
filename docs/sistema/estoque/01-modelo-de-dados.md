@@ -81,7 +81,7 @@ erDiagram
 | shelf_life_days / opened_life_days | int | |
 | lot_control | boolean | |
 | expiry_alert_days | int | |
-| allergens | text[] | Lista RDC 26/2015 |
+| allergens | text[] | Lista RDC 727/2022, antiga RDC 26/2015 |
 | ncm / cest / origin / tax_group | text | |
 | abc_class | char(1) null | **Escrita só pelo job de fechamento** |
 | in_cogs_override | boolean null | Sobrescreve o grupo |

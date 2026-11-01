@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
 import type { ActionState } from "@/actions/_session";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { FormError } from "./form-error";
+import { useFormAction } from "./use-form-action";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
@@ -27,10 +27,10 @@ export function ActionForm({
   children?: React.ReactNode;
   "aria-label"?: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, null);
+  const { state, pending, formProps } = useFormAction(action, { resetOnSuccess: true });
   return (
     <form
-      action={formAction}
+      {...formProps}
       className={className ?? "flex flex-wrap items-end gap-2"}
       aria-label={rest["aria-label"]}
     >
