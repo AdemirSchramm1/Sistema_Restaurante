@@ -53,3 +53,31 @@ describe("formulário do item (FR-021, FR-022)", () => {
     expect(screen.getByText(/inative o item e crie outro/)).toBeTruthy();
   });
 });
+
+describe("formulário do item depois de erro do servidor", () => {
+  it("não apaga a descrição digitada quando o servidor recusa", async () => {
+    const { act } = await import("@testing-library/react");
+    const failing = async () => ({
+      ok: false as const,
+      error: {
+        code: "MISSING_ITEM_CONVERSION" as const,
+        field: "conversions",
+        message: "Informe a conversão.",
+      },
+      at: 1,
+    });
+    render(
+      <ItemForm action={failing} subgroups={[]} initial={emptyItemValues} submitLabel="Cadastrar item" />,
+    );
+    fireEvent.change(screen.getByLabelText("Descrição"), {
+      target: { value: "Ovo branco, caixa 30 dúzias" },
+    });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("form", { name: "Cadastro do item" }));
+    });
+    expect((await screen.findAllByText("Informe a conversão.")).length).toBeGreaterThan(0);
+    expect((screen.getByLabelText("Descrição") as HTMLInputElement).value).toBe(
+      "Ovo branco, caixa 30 dúzias",
+    );
+  });
+});

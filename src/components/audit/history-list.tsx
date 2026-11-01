@@ -1,4 +1,5 @@
 import type { HistoryEntry } from "@/application/audit/get-audit-history";
+import { describeChange } from "./field-labels";
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: "Criou",
@@ -6,13 +7,6 @@ const ACTION_LABELS: Record<string, string> = {
   DEACTIVATE: "Inativou",
   REACTIVATE: "Reativou",
   DENIED: "Tentativa negada",
-};
-
-const show = (v: unknown) => {
-  if (v === null || v === undefined || v === "") return "—";
-  if (typeof v === "boolean") return v ? "sim" : "não";
-  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
-  return String(v);
 };
 
 export function HistoryList({ entries, timezone }: { entries: HistoryEntry[]; timezone: string }) {
@@ -32,9 +26,7 @@ export function HistoryList({ entries, timezone }: { entries: HistoryEntry[]; ti
             {e.action === "UPDATE" && changes.length > 0 && (
               <ul className="mt-1 grid gap-0.5 text-muted-foreground">
                 {changes.map(([field, [before, after]]) => (
-                  <li key={field}>
-                    {field}: {show(before)} → {show(after)}
-                  </li>
+                  <li key={field}>{describeChange(field, before, after)}</li>
                 ))}
               </ul>
             )}

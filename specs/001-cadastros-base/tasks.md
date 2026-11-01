@@ -233,9 +233,9 @@ posições 3, 1 e 2 e ver a folha na ordem 1, 2, 3.
 - [x] T087 [P] Teste de propriedade da RLS em `tests/integration/rls.test.ts`: falhar se surgir tabela com `restaurant_id` sem política ativa
 - [x] T088 [P] Atualizar [`docs/sistema/estoque/04-plano-de-testes.md`](../../docs/sistema/estoque/04-plano-de-testes.md#001--cadastros-base) com os testes acrescentados (permissões, convite, auditoria, concorrência) e conferir se `docs/produto/estoque/` precisa de ajuste pelas decisões da spec (código imutável ao mudar de subgrupo; item e local só inativam)
 - [x] T089 [P] Escrever `README.md` (seção "Rodar localmente" apontando para o [quickstart](quickstart.md)) e `CONTRIBUTING.md` curto (TDD, Conventional Commits, branch `NNN-nome`)
-- [ ] T090 Revisão de acessibilidade e textos: todos os formulários com rótulos, mensagens de erro em pt-BR, números com vírgula decimal (FR-032)
-- [ ] T091 Rodar o [quickstart](quickstart.md) completo, medir SC-001 (≤ 2 min por item) e SC-006 (≤ 15 min no primeiro acesso) e registrar o resultado na descrição do PR
-- [ ] T092 Conferir a lista de alérgenos com o texto vigente da Anvisa antes do merge (R13)
+- [x] T090 Revisão de acessibilidade e textos: todos os formulários com rótulos, mensagens de erro em pt-BR, números com vírgula decimal (FR-032)
+- [x] T091 Rodar o [quickstart](quickstart.md) completo, medir SC-001 (≤ 2 min por item) e SC-006 (≤ 15 min no primeiro acesso) e registrar o resultado na descrição do PR
+- [x] T092 Conferir a lista de alérgenos com o texto vigente da Anvisa antes do merge (R13)
 
 ---
 
@@ -338,6 +338,11 @@ Sugestão de PRs: um por fase (Setup, Fundação, cada história, Polish), todos
 - **T068**: o texto do convite está em `src/application/access/invitation-email.ts` (texto puro, sem
   dependência de infraestrutura). Para os testes ponta a ponta existe `MAILER=file`
   (`src/infra/mailer/file.ts`).
-- **Em aberto**: T090 (revisão completa de acessibilidade), T091 (rodar o roteiro manual e medir
-  SC-001/SC-006) e T092 (conferir alérgenos com a Anvisa) dependem de uma pessoa.
-
+- **T090 (01/11/2026)**: verificação automática com axe (WCAG 2.1 A e AA) em 11 telas, agora no teste
+  `tests/e2e/accessibility.spec.ts`. Corrigido: links dentro de frases só se distinguiam pela cor;
+  página 404 em inglês; histórico mostrava nomes internos dos campos; formulários apagavam o que a
+  pessoa digitou quando o servidor recusava (reset automático do React 19, agora `useFormAction`).
+- **T091 (01/11/2026)**: os 13 passos do roteiro rodaram no navegador por script (o passo 4 é o
+  teste `invite-chef.spec.ts`); todos passam. Os tempos SC-001 e SC-006 com uma pessoa real ainda
+  precisam ser medidos no primeiro uso com o restaurante.
+- **T092 (01/11/2026)**: lista conferida com o Anexo III da RDC 727/2022 (ver research R13).

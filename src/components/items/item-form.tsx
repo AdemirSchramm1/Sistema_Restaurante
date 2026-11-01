@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Alert, Card, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,7 @@ export function ItemForm({
   readOnly,
   submitLabel,
 }: Props) {
-  const [state, formAction, pending] = useActionState(action, null);
+  const { state, pending, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const [stockUnit, setStockUnit] = useState(String(initial.stockUnit) as UnitCode);
   const [recipeUnit, setRecipeUnit] = useState(String(initial.recipeUnit) as UnitCode);
@@ -82,7 +83,7 @@ export function ItemForm({
   const allergens = new Set((initial.allergens as string[]) ?? []);
 
   return (
-    <form action={formAction} className="grid gap-6" aria-label="Cadastro do item">
+    <form {...formProps} className="grid gap-6" aria-label="Cadastro do item">
       {meta && (
         <>
           <input type="hidden" name="id" value={meta.id} />
@@ -355,7 +356,7 @@ export function ItemForm({
             </label>
           </div>
           <fieldset className="mt-4">
-            <legend className="text-sm font-medium">Alérgenos (RDC 26/2015)</legend>
+            <legend className="text-sm font-medium">Alérgenos (lista da Anvisa, RDC 727/2022)</legend>
             {fe("allergens") && <p className="text-xs text-destructive">{fe("allergens")}</p>}
             <div className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
               {ALLERGENS.map((a) => (

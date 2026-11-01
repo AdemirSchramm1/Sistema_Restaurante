@@ -99,7 +99,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/locais"
               {!l.active && <Badge tone="warn">inativo</Badge>}
               <Link
                 href={`/estoque/locais/${l.id}/folha`}
-                className="ml-auto text-sm text-primary underline-offset-4 hover:underline"
+                className="ml-auto text-sm text-primary underline underline-offset-4"
               >
                 Folha de contagem
               </Link>

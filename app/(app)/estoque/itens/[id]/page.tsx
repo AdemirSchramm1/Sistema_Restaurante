@@ -74,9 +74,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         <aside className="grid content-start gap-6">
           <Card className="grid gap-2 text-sm">
             <CardTitle>Custos</CardTitle>
-            <p className="text-muted-foreground">
-              Calculados pelas movimentações (feature 003). Não editáveis.
-            </p>
+            <p className="text-muted-foreground">Calculados pelas movimentações de estoque. Não editáveis.</p>
             <dl className="grid grid-cols-2 gap-1">
               <dt>Custo médio</dt>
               <dd>{money(item.averageCost)}</dd>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { setItemLocationsAction } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export function ItemLocations({
   options: Option[];
   canEdit: boolean;
 }) {
-  const [state, action, pending] = useActionState(setItemLocationsAction, null);
+  const { state, pending, formProps } = useFormAction(setItemLocationsAction);
   const byId = new Map(links.map((l) => [l.locationId, l]));
   if (!canEdit) {
     return (
@@ -45,7 +45,7 @@ export function ItemLocations({
   return (
     <Card className="grid gap-2 text-sm">
       <CardTitle>Locais</CardTitle>
-      <form action={action} className="grid gap-2" aria-label="Locais do item">
+      <form {...formProps} className="grid gap-2" aria-label="Locais do item">
         <input type="hidden" name="itemId" value={itemId} />
         {options.map((o) => {
           const link = byId.get(o.id);

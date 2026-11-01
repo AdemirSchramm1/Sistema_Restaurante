@@ -114,7 +114,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
             <tr key={r.id}>
               <Td className="font-mono">{r.code}</Td>
               <Td>
-                <Link className="text-primary hover:underline" href={`/estoque/itens/${r.id}`}>
+                <Link className="text-primary underline underline-offset-4" href={`/estoque/itens/${r.id}`}>
                   {r.description}
                 </Link>{" "}
                 {!r.active && <Badge tone="muted">inativo</Badge>}
