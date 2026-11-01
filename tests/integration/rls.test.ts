@@ -66,8 +66,8 @@ describe("isolamento entre restaurantes com RLS (ADR 0004, constituição V)", (
     ).resolves.toBe(0);
 
     const insertError = await withTenantTx(testDb(), a.restaurantId, (tx) =>
-      tx.execute(sql`insert into locations (id, restaurant_id, created_at, updated_at, name, kind)
-        values (gen_random_uuid(), ${b.restaurantId}, now(), now(), 'x', 'DRY')`),
+      tx.execute(sql`insert into item_groups (id, restaurant_id, created_at, updated_at, code, name, storage_class, in_cogs)
+        values (gen_random_uuid(), ${b.restaurantId}, now(), now(), '99', 'x', 'FOOD', true)`),
     ).catch((e: Error) => e);
     expect(String((insertError as Error).cause)).toMatch(/row-level security/);
   });

@@ -17,7 +17,7 @@ export async function signUp(page: Page, restaurantName = "Restaurante E2E") {
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill(PASSWORD);
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(page).toHaveURL(/\/estoque\/locais/);
+  await expect(page).toHaveURL(/\/estoque\/itens/);
   return email;
 }
 

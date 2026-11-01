@@ -25,9 +25,7 @@ test("páginas públicas sem falhas graves de acessibilidade", async ({ page }) 
 
 test("telas do estoque e da equipe sem falhas graves de acessibilidade", async ({ page }) => {
   await signUp(page, "Restaurante Acessível");
-  expect(await seriousViolations(page), "/estoque/locais (primeiro acesso)").toEqual([]);
-  await page.getByRole("button", { name: "Criar locais marcados" }).click();
-  await page.getByRole("heading", { name: "Freezer", exact: true }).waitFor();
+  expect(await seriousViolations(page), "/estoque/itens (primeiro acesso)").toEqual([]);
 
   await page.goto("/estoque/itens/novo");
   expect(await seriousViolations(page), "/estoque/itens/novo").toEqual([]);
@@ -39,7 +37,7 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
   await page.getByText(/Item cadastrado com o código/).waitFor();
   expect(await seriousViolations(page), "detalhe do item").toEqual([]);
 
-  for (const path of ["/estoque/itens", "/estoque/grupos", "/equipe", "/estoque/locais"]) {
+  for (const path of ["/estoque/itens", "/estoque/grupos", "/equipe"]) {
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }

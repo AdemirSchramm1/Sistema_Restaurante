@@ -23,11 +23,9 @@ export async function closeTestDbs() {
 
 const TABLES = [
   "audit_log",
-  "item_locations",
   "items",
   "item_subgroups",
   "item_groups",
-  "locations",
   "invitations",
   "membership_roles",
   "memberships",

@@ -1,16 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { signUp } from "./helpers";
 
-test("gerente cria a conta, aceita os locais sugeridos e cadastra o tomate (spec 002, US1)", async ({
+test("gerente cria a conta e cadastra o tomate; não há mais tela de locais (spec 002, US1 e US3)", async ({
   page,
 }) => {
   await signUp(page);
 
-  await expect(page.getByRole("heading", { name: "Comece pelos locais sugeridos" })).toBeVisible();
-  await page.getByRole("button", { name: "Criar locais marcados" }).click();
-  await expect(page.getByRole("heading", { name: "Geladeira", exact: true })).toBeVisible();
+  const menu = page.getByRole("navigation", { name: "Menu principal" });
+  await expect(menu.getByRole("link", { name: "Itens" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Locais" })).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Itens" }).click();
   await page.getByRole("link", { name: "Novo item" }).click();
   await page.getByLabel("Nome do item").fill("Tomate italiano");
   await page
@@ -25,12 +24,7 @@ test("gerente cria a conta, aceita os locais sugeridos e cadastra o tomate (spec
   await expect(page.getByText("Item cadastrado com o código 01.02.0001.")).toBeVisible();
   await expect(page.getByLabel("Código do item")).toHaveText("01.02.0001");
 
-  // Diz onde o item fica guardado.
-  const locais = page.getByRole("form", { name: "Locais do item" });
-  await locais.getByRole("checkbox", { name: /^Geladeira/ }).check();
-  await locais.getByRole("radio", { name: "Local principal: Geladeira" }).check();
-  await locais.getByRole("button", { name: "Salvar locais" }).click();
-  await expect(locais.getByText("Locais salvos.")).toBeVisible();
+  await expect(page.getByText("Onde fica guardado")).toHaveCount(0);
 
   await page.getByRole("link", { name: "Itens" }).click();
   await page.getByLabel("Buscar").fill("tomate");

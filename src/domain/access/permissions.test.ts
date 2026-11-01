@@ -24,9 +24,14 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
   });
 
   it("assertCan devolve FORBIDDEN quando não pode", () => {
-    const r = assertCan(["CHEF"], "location.manage");
+    const r = assertCan(["CHEF"], "group.manage");
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.code).toBe("FORBIDDEN");
-    expect(assertCan(["MANAGER"], "location.manage").ok).toBe(true);
+    expect(assertCan(["MANAGER"], "group.manage").ok).toBe(true);
+  });
+
+  it("não existe mais permissão de locais (spec 002, US3)", () => {
+    expect(ACTIONS).not.toContain("location.manage" as never);
+    expect(ACTIONS).not.toContain("item_location.manage" as never);
   });
 });
