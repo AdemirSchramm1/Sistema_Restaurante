@@ -142,15 +142,19 @@ para "o `speckit plan` da feature 001". Cada decisão de arquitetura vira um ADR
   `CHEMICALS`; `OTHER_NON_FOOD` em qualquer tipo menos `CHEMICALS`. Isso substitui o booleano
   `is_food` do modelo inicial (ele passa a ser derivado: `storage_class = FOOD`).
 
-## R13. Alérgenos (lista fechada da RDC 26/2015)
+## R13. Alérgenos (lista fechada da Anvisa)
 
-- **Decision**: enum de 18 valores do anexo da RDC 26/2015: trigo/centeio/cevada/aveia e híbridos,
-  crustáceos, ovos, peixes, amendoim, soja, leites de mamíferos, amêndoa, avelã, castanha-de-caju,
-  castanha-do-brasil, macadâmia, nozes, pecã, pistache, pinoli, castanhas, látex natural. Guardado
-  como `text[]` com check contra a lista. Rótulos em português na interface; códigos em inglês no
-  código (`WHEAT_GLUTEN_CEREALS`, `CRUSTACEANS`, …), definidos em `src/domain/inventory/allergens.ts`.
-- **Note**: conferir a lista com o texto vigente da Anvisa antes do merge (pode ter havido inclusão
-  por norma posterior); a mudança é só no enum.
+- **Decision**: enum de 18 valores do Anexo III da RDC 727/2022, que consolidou a RDC 26/2015:
+  trigo/centeio/cevada/aveia e híbridos, crustáceos, ovos, peixes, amendoim, soja, leites de todas as
+  espécies de animais mamíferos, amêndoa, avelã, castanha-de-caju, castanha-do-brasil, macadâmia,
+  nozes, pecã, pistache, pinoli, castanhas, látex natural. Guardado como `text[]` com check contra a
+  lista. Rótulos em português na interface (texto do anexo); códigos em inglês no código
+  (`WHEAT_GLUTEN_CEREALS`, `CRUSTACEANS`, …), definidos em `src/domain/inventory/allergens.ts`.
+- **Conferência (T092, 01/11/2026)**: a lista bate com o Anexo III da RDC 727/2022; só o rótulo
+  do leite foi ajustado ao texto oficial. A Consulta Pública 1.357/2025 (contribuições até
+  09/03/2026) revisa a rotulagem geral e muda o formato do aviso ("Contém …"), sem incluir item na
+  lista até onde foi possível verificar. Se uma norma nova acrescentar alérgeno (por exemplo,
+  gergelim), a mudança é só no enum, no check do banco e no teste.
 
 ## R14. Interface e lista de itens
 

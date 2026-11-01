@@ -40,7 +40,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_CORRECTION_FACTOR: "O fator de correção precisa ser 1 ou maior.",
   INVALID_YIELD_FACTOR: "O rendimento precisa ser maior que 0 e no máximo 1.",
   INVALID_EAN: "Código de barras (EAN/GTIN) inválido.",
-  INVALID_ALLERGEN: "Alérgeno fora da lista da RDC 26/2015.",
+  INVALID_ALLERGEN: "Alérgeno fora da lista da Anvisa (RDC 727/2022).",
   INVALID_NCM: "O NCM precisa ter 8 dígitos.",
   INVALID_CEST: "O CEST precisa ter 7 dígitos.",
   INVALID_ORIGIN: "A origem precisa ser um dígito de 0 a 8.",

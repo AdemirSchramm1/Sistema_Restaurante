@@ -124,7 +124,7 @@ refrigerado sem faixa e ver a recusa.
 
 O chef ou gerente completa o cadastro do item com temperatura de conservação e faixa de
 recebimento, validade fechado e após aberto, controle de lote, dias de alerta, alérgenos (lista da
-RDC 26/2015), peso variável, fator de correção padrão, fator de rendimento, EAN/GTIN, NCM, CEST,
+RDC 727/2022, antiga RDC 26/2015), peso variável, fator de correção padrão, fator de rendimento, EAN/GTIN, NCM, CEST,
 origem, frequência de contagem e se o item é inventariável.
 
 **Why this priority**: são dados usados pelas features de recebimento (005), fichas técnicas (004),
@@ -137,7 +137,7 @@ salvar e conferir os dados.
 **Acceptance Scenarios**:
 
 1. **Given** um item, **When** o usuário seleciona alérgenos, **Then** só pode escolher da lista
-   fechada da RDC 26/2015.
+   fechada da RDC 727/2022, antiga RDC 26/2015.
 2. **Given** um item, **When** o usuário informa fator de correção menor que 1, **Then** o sistema
    recusa (FC ≥ 1).
 3. **Given** um item, **When** o usuário informa fator de rendimento fora do intervalo maior que 0 e
@@ -286,7 +286,7 @@ e verificar que nenhum dos dois usuários vê o item do outro restaurante.
   GTIN"), categoria financeira, apresentação e peso líquido/drenado, peso variável, fator de correção
   padrão (≥ 1, padrão 1), fator de rendimento (> 0 e ≤ 1), temperatura máxima de conservação, faixa
   de temperatura de recebimento, validade fechado e após aberto (em dias), controle de lote, dias de
-  alerta de validade, alérgenos (lista fechada da RDC 26/2015), NCM, CEST, origem e grupo
+  alerta de validade, alérgenos (lista fechada da RDC 727/2022, antiga RDC 26/2015), NCM, CEST, origem e grupo
   tributário, inventariável, frequência de contagem (por turno, diária, semanal, quinzenal, mensal,
   trimestral).
 - **FR-026**: Custo médio, último custo, data de atualização de custo e curva ABC MUST aparecer no item
