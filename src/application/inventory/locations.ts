@@ -1,9 +1,7 @@
-import type { Deps, Repos } from "../ports";
+import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import type { CountSheetRow } from "./ports";
 import {
-  orderCountSheet,
   orderLocations,
   validateLocation,
   type Location,
@@ -13,20 +11,7 @@ import { SUGGESTED_LOCATIONS } from "@/domain/inventory/suggested-locations";
 import { diffFields } from "@/domain/shared/audit";
 import { err, ok, type Result } from "@/domain/shared/result";
 
-async function checkResponsible(repos: Repos, l: LocationData): Promise<Result<void>> {
-  if (l.responsibleUserId && !(await repos.members.isActiveMember(l.responsibleUserId)))
-    return err("RESPONSIBLE_NOT_MEMBER", "responsibleUserId");
-  return ok(undefined);
-}
-
-const view = (l: LocationData) => ({
-  name: l.name.trim(),
-  kind: l.kind,
-  tempMinC: l.tempMinC,
-  tempMaxC: l.tempMaxC,
-  responsibleUserId: l.responsibleUserId,
-  countOrder: l.countOrder,
-});
+const view = (l: LocationData) => ({ name: l.name.trim(), kind: l.kind });
 
 export async function listLocations(
   deps: Deps,
@@ -50,8 +35,6 @@ export async function createLocation(
   const valid = validateLocation(data);
   if (!valid.ok) return valid;
   return deps.tenant(ctx.restaurantId, async (repos) => {
-    const resp = await checkResponsible(repos, data);
-    if (!resp.ok) return resp;
     const id = deps.ids.next();
     const r = await repos.locations.insert({ ...data, id, isSystem: false }, auditStamp(deps, ctx));
     if (!r.ok) return r;
@@ -82,8 +65,6 @@ export async function updateLocation(
     const current = await repos.locations.get(id);
     if (!current) return err("NOT_FOUND");
     if (current.isSystem && data.kind !== current.kind) return err("SYSTEM_RECORD", "kind");
-    const resp = await checkResponsible(repos, data);
-    if (!resp.ok) return resp;
     const r = await repos.locations.update(id, data, version, auditStamp(deps, ctx));
     if (!r.ok) return r;
     const changes = diffFields(view(current), view(data));
@@ -100,7 +81,7 @@ export async function updateLocation(
   });
 }
 
-/** Quarentena nunca inativa; local com itens vinculados também não (FR-014, FR-027). */
+/** Local com itens vinculados não inativa; registro de sistema (dados antigos) também não. */
 export async function setLocationActive(
   deps: Deps,
   ctx: RequestContext,
@@ -145,18 +126,4 @@ export async function applySuggestedLocations(
     else if (r.error.code !== "NAME_IN_USE") return r;
   }
   return ok({ created });
-}
-
-export async function getCountSheet(
-  deps: Deps,
-  ctx: RequestContext,
-  locationId: string,
-): Promise<Result<{ location: Location; rows: CountSheetRow[] }>> {
-  const allowed = await authorize(deps, ctx, "catalog.read", "location", locationId);
-  if (!allowed.ok) return allowed;
-  return deps.tenant(ctx.restaurantId, async (repos) => {
-    const location = await repos.locations.get(locationId);
-    if (!location) return err("NOT_FOUND");
-    return ok({ location, rows: orderCountSheet(await repos.itemLocations.countSheet(locationId)) });
-  });
 }

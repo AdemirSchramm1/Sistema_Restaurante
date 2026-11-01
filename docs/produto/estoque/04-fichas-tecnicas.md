@@ -1,4 +1,10 @@
-# 4. Fichas técnicas
+# 4. Produtos (fichas técnicas)
+
+> **Próxima feature (novembro de 2026).** Na tela de **Produtos** a pessoa cadastra o que o cliente
+> pede (ex.: "X-Burger") e quanto de cada item vai nele (ex.: pão 1 un, carne 150 g, queijo 30 g).
+> É com essas quantidades que o estoque baixa sozinho a cada pedido. A quantidade é digitada na
+> medida do item ou numa menor da mesma família (g para itens em kg). Alérgenos e índices abaixo
+> ficam como referência, fora da primeira versão.
 
 > Fonte: Manual de Referência, seção 3 ("A ficha técnica liga estoque, custo e venda").
 

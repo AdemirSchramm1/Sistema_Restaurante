@@ -57,19 +57,14 @@ export async function setItemCogsOverrideAction(_prev: ActionState, form: FormDa
   return state;
 }
 
-/** Campos: `loc` (ids marcados), `pos_<id>` (posição na folha) e `default` (id do local padrão). */
+/** Campos: `loc` (ids marcados) e `default` (id do local principal). */
 export async function setItemLocationsAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const itemId = String(form.get("itemId"));
   const defaultId = form.get("default");
-  const links = form.getAll("loc").map((v) => {
-    const locationId = String(v);
-    const pos = String(form.get(`pos_${locationId}`) ?? "");
-    return {
-      locationId,
-      isDefault: defaultId === locationId,
-      sheetPosition: /^\d+$/.test(pos) ? Number.parseInt(pos, 10) : 0,
-    };
-  });
+  const links = form.getAll("loc").map((v) => ({
+    locationId: String(v),
+    isDefault: defaultId === String(v),
+  }));
   const state = await withContext((ctx) => setItemLocations(serverDeps(), ctx, itemId, links));
   if (state?.ok) revalidatePath(`/estoque/itens/${itemId}`);
   return state;

@@ -40,7 +40,8 @@ describe("criar a conta do restaurante (spec 001, US5.1)", () => {
     );
 
     const q = await db.execute(sql`select name, kind, is_system from locations where restaurant_id = ${id}`);
-    expect(q.rows).toEqual([{ name: "Recebimento / quarentena", kind: "QUARANTINE", is_system: true }]);
+    // Spec 002: nenhum local é criado sozinho (sem quarentena); o gerente escolhe os sugeridos.
+    expect(q.rows).toEqual([]);
 
     const user = await db.execute(sql`select email from users where id = ${r.value.userId}`);
     expect(user.rows[0]).toEqual({ email: "ana@exemplo.com.br" });

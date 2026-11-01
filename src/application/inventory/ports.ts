@@ -65,15 +65,7 @@ export type ItemFilter = {
 };
 export type ItemListRow = Pick<
   Item,
-  | "id"
-  | "code"
-  | "description"
-  | "type"
-  | "active"
-  | "stockUnit"
-  | "recipeUnit"
-  | "purchaseUnitLabel"
-  | "purchaseFactor"
+  "id" | "code" | "description" | "type" | "active" | "stockUnit" | "purchaseUnitLabel" | "purchaseFactor"
 > & {
   groupName: string;
   subgroupName: string;
@@ -104,16 +96,7 @@ export interface ItemRepo {
   activeCountInSubgroup(subgroupId: string): Promise<number>;
 }
 
-export type ItemLocationLink = { locationId: string; isDefault: boolean; sheetPosition: number };
-export type CountSheetRow = {
-  itemId: string;
-  code: string;
-  description: string;
-  stockUnit: string;
-  sheetPosition: number;
-  isDefault: boolean;
-};
-
+export type ItemLocationLink = { locationId: string; isDefault: boolean };
 export interface ItemLocationRepo {
   replaceForItem(
     itemId: string,
@@ -122,7 +105,6 @@ export interface ItemLocationRepo {
     audit: Audit,
   ): Promise<Result<void>>;
   listForItem(itemId: string): Promise<(ItemLocationLink & { locationName: string; kind: LocationKind })[]>;
-  countSheet(locationId: string): Promise<CountSheetRow[]>;
 }
 
 export type CatalogRepos = {

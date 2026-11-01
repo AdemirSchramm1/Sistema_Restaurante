@@ -30,14 +30,6 @@ export const locationKindEnum = pgEnum("location_kind", [
   "NON_FOOD",
 ]);
 export const itemTypeEnum = pgEnum("item_type", ["INGREDIENT", "RESALE", "PRODUCED", "CONSUMABLE", "ASSET"]);
-export const countFrequencyEnum = pgEnum("count_frequency", [
-  "SHIFT",
-  "DAILY",
-  "WEEKLY",
-  "BIWEEKLY",
-  "MONTHLY",
-  "QUARTERLY",
-]);
 
 /** Catálogo global de unidades: sem restaurant_id, só leitura para a aplicação. */
 export const units = pgTable("units", {
@@ -97,10 +89,6 @@ export const locations = pgTable(
     ...editable,
     name: text("name").notNull(),
     kind: locationKindEnum("kind").notNull(),
-    tempMinC: numeric("temp_min_c", { precision: 4, scale: 1 }),
-    tempMaxC: numeric("temp_max_c", { precision: 4, scale: 1 }),
-    responsibleUserId: uuid("responsible_user_id"),
-    countOrder: integer("count_order").notNull().default(0),
     isSystem: boolean("is_system").notNull().default(false),
     active: boolean("active").notNull().default(true),
   },
@@ -108,15 +96,6 @@ export const locations = pgTable(
     uniqueIndex("locations_active_name")
       .on(t.restaurantId, sql`lower(${t.name})`)
       .where(sql`active`),
-    uniqueIndex("locations_one_system_quarantine")
-      .on(t.restaurantId)
-      .where(sql`kind = 'QUARANTINE' and is_system`),
-    check(
-      "locations_temp_required",
-      sql`kind not in ('CHILLED', 'FROZEN') or (temp_min_c is not null and temp_max_c is not null)`,
-    ),
-    check("locations_temp_order", sql`temp_min_c is null or temp_max_c is null or temp_min_c <= temp_max_c`),
-    check("locations_count_order", sql`count_order >= 0`),
   ],
 );
 
@@ -136,39 +115,9 @@ export const items = pgTable(
       .notNull()
       .references(() => units.id),
     stockUnitLockedAt: timestamp("stock_unit_locked_at", { withTimezone: true }),
-    recipeUnitId: uuid("recipe_unit_id")
-      .notNull()
-      .references(() => units.id),
-    purchaseUnitLabel: text("purchase_unit_label").notNull(),
-    purchaseFactor: numeric("purchase_factor", { precision: 14, scale: 4 }).notNull(),
+    purchaseUnitLabel: text("purchase_unit_label"),
+    purchaseFactor: numeric("purchase_factor", { precision: 14, scale: 4 }),
     inCogsOverride: boolean("in_cogs_override"),
-    eanUnit: text("ean_unit"),
-    eanPackage: text("ean_package"),
-    noGtin: boolean("no_gtin").notNull().default(false),
-    financialCategory: text("financial_category"),
-    presentation: text("presentation"),
-    netWeight: numeric("net_weight", { precision: 14, scale: 4 }),
-    drainedWeight: numeric("drained_weight", { precision: 14, scale: 4 }),
-    catchWeight: boolean("catch_weight").notNull().default(false),
-    correctionFactor: numeric("correction_factor", { precision: 8, scale: 4 }).notNull().default("1"),
-    yieldFactor: numeric("yield_factor", { precision: 8, scale: 4 }),
-    storageTempMaxC: numeric("storage_temp_max_c", { precision: 4, scale: 1 }),
-    receivingTempMinC: numeric("receiving_temp_min_c", { precision: 4, scale: 1 }),
-    receivingTempMaxC: numeric("receiving_temp_max_c", { precision: 4, scale: 1 }),
-    shelfLifeDays: integer("shelf_life_days"),
-    openedLifeDays: integer("opened_life_days"),
-    lotControl: boolean("lot_control").notNull().default(false),
-    expiryAlertDays: integer("expiry_alert_days"),
-    allergens: text("allergens")
-      .array()
-      .notNull()
-      .default(sql`'{}'::text[]`),
-    ncm: text("ncm"),
-    cest: text("cest"),
-    origin: char("origin", { length: 1 }),
-    taxGroup: text("tax_group"),
-    countable: boolean("countable").notNull().default(true),
-    countFrequency: countFrequencyEnum("count_frequency"),
     averageCost: numeric("average_cost", { precision: 14, scale: 4 }),
     lastCost: numeric("last_cost", { precision: 14, scale: 4 }),
     costUpdatedAt: timestamp("cost_updated_at", { withTimezone: true }),
@@ -182,27 +131,8 @@ export const items = pgTable(
       .where(sql`active`),
     index("items_description_trgm").using("gin", sql`${t.descriptionNormalized} gin_trgm_ops`),
     check("items_purchase_factor", sql`purchase_factor > 0`),
-    check("items_correction_factor", sql`correction_factor >= 1`),
-    check("items_yield_factor", sql`yield_factor is null or (yield_factor > 0 and yield_factor <= 1)`),
+    check("items_purchase_pair", sql`(purchase_unit_label is null) = (purchase_factor is null)`),
   ],
-);
-
-export const itemUnitConversions = pgTable(
-  "item_unit_conversions",
-  {
-    ...base,
-    itemId: uuid("item_id")
-      .notNull()
-      .references(() => items.id, { onDelete: "cascade" }),
-    fromUnitId: uuid("from_unit_id")
-      .notNull()
-      .references(() => units.id),
-    toUnitId: uuid("to_unit_id")
-      .notNull()
-      .references(() => units.id),
-    factor: numeric("factor", { precision: 14, scale: 4 }).notNull(),
-  },
-  () => [check("item_unit_conversions_factor", sql`factor > 0`)],
 );
 
 export const itemLocations = pgTable(
@@ -216,14 +146,12 @@ export const itemLocations = pgTable(
       .notNull()
       .references(() => locations.id),
     isDefault: boolean("is_default").notNull().default(false),
-    sheetPosition: integer("sheet_position").notNull(),
   },
   (t) => [
     uniqueIndex("item_locations_unique").on(t.itemId, t.locationId),
     uniqueIndex("item_locations_one_default")
       .on(t.itemId)
       .where(sql`is_default`),
-    check("item_locations_position", sql`sheet_position >= 1`),
   ],
 );
 

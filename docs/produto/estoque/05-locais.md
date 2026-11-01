@@ -1,36 +1,25 @@
 # 5. Locais de armazenamento
 
-> Fonte: Manual de Referência, seção 3 ("Locais devem ter o nome do espaço físico real").
+> Revisado em novembro de 2026: local é só **onde o item fica guardado**. Saíram temperatura,
+> responsável, ordem e folha de contagem, quarentena e a regra de produtos de limpeza.
 
-Cada local recebe o nome que a equipe usa (câmara, estoque do bar, depósito dos fundos), e a folha
-de contagem segue a ordem das prateleiras. Um item pode estar em vários locais, com um local padrão
-e uma posição na folha.
+Cada local recebe o nome que a equipe usa (geladeira, freezer, despensa, bar). Um item pode estar
+em vários locais; um deles pode ser marcado como **principal**.
 
-## Locais sugeridos no cadastro inicial
+## Campos
 
-| Local | Função | Atributos |
+| Campo na tela | O que pede | Exemplo |
 |---|---|---|
-| Recebimento / quarentena | Itens em conferência e reprovados aguardando devolução (RDC 216, 4.7.4) | Identificado e segregado |
-| Almoxarifado ou despensa seca | Secos, enlatados, bebidas não refrigeradas | Ventilado, sem sol direto, telado |
-| Câmara/geladeira de carnes | Proteínas cruas | Temperatura-alvo, termômetro externo |
-| Câmara/geladeira de hortifrúti e laticínios | FLV, laticínios, ovos | Temperatura-alvo |
-| Freezer ou câmara de congelados | Congelados | ≤ -18 °C |
-| Geladeiras de praça (quente, fria, confeitaria) | Estoque de uso do turno | Só se houver requisição registrada |
-| Bar (adega, geladeira, chopeira) | Bebidas | Separado do estoque da cozinha |
-| Armário de limpeza e químicos | Saneantes | Exclusivo, fora da área de alimentos |
-| Depósito de descartáveis e embalagens | Não alimentares | – |
-| Redes: cozinha central, cada filial, "em trânsito" | Transferências | Status da transferência |
+| Nome do local | Como a equipe chama o espaço | "Geladeira da cozinha" |
+| Tipo | Que espaço é | Despensa (seco), Geladeira, Freezer, Bar, Praça, Outros |
 
-## Atributos de todo local
+## Locais sugeridos no primeiro acesso
 
-- Nome, tipo (seco, refrigerado, congelado, quarentena, trânsito, químicos).
-- **Responsável.**
-- **Faixa de temperatura** (obrigatória para refrigerados e congelados).
-- **Ordem de contagem** (rota física: câmara → seco → bar).
+Despensa seca, Geladeira, Freezer, Bar, Armário de limpeza e Depósito de descartáveis. Dá para
+renomear, inativar e criar outros.
 
 ## Critérios de aceite (para a spec)
 
-- Local refrigerado ou congelado sem faixa de temperatura não pode ser salvo.
-- Item do grupo "Higiene e limpeza" não pode ter como local um espaço de alimentos (e vice-versa).
-- A folha de contagem lista os itens de cada local na ordem definida.
-- O local "Quarentena" existe sempre e não pode ser apagado.
+- Nome entre 2 e 80 caracteres, sem repetir entre locais ativos.
+- Local com itens vinculados não pode ser inativado.
+- No item, no máximo um local é o principal.

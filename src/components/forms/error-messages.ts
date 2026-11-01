@@ -22,36 +22,23 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SUBGROUP_HAS_ACTIVE_ITEMS: "Mova ou inative os itens deste subgrupo antes.",
   SUBGROUP_INACTIVE: "O subgrupo escolhido está inativo.",
   SUBGROUP_SEQUENCE_EXHAUSTED: "Este subgrupo chegou a 9.999 itens. Crie outro subgrupo.",
-  TEMPERATURE_RANGE_REQUIRED: "Locais refrigerados e congelados precisam de faixa de temperatura.",
-  TEMPERATURE_RANGE_INVALID: "A temperatura mínima não pode ser maior que a máxima.",
-  RESPONSIBLE_NOT_MEMBER: "O responsável precisa ser um membro ativo da equipe.",
   LOCATION_IN_USE: "Retire os itens deste local antes de inativá-lo.",
   LOCATION_INACTIVE: "O local escolhido está inativo.",
-  LOCATION_INCOMPATIBLE:
-    "Produtos de limpeza só podem ficar em local de químicos, e alimentos não podem ficar nele.",
-  MULTIPLE_DEFAULTS: "Escolha só um local padrão para o item.",
-  ITEM_DUPLICATE_DESCRIPTION: "Já existe um item ativo com esta descrição neste subgrupo.",
+  MULTIPLE_DEFAULTS: "Escolha só um local principal para o item.",
+  ITEM_DUPLICATE_DESCRIPTION: "Já existe um item ativo com este nome neste grupo.",
   ITEM_UNIT_LOCKED:
-    "A unidade de estoque não pode mudar depois da primeira movimentação. Inative o item e crie outro.",
-  MISSING_ITEM_CONVERSION: "Informe a conversão entre a unidade de estoque e a de receita para este item.",
-  UNIT_DIMENSION_MISMATCH: "Não há conversão entre essas unidades para este item.",
-  UNKNOWN_UNIT: "Unidade desconhecida.",
-  INVALID_FACTOR: "O fator precisa ser maior que zero.",
-  INVALID_CORRECTION_FACTOR: "O fator de correção precisa ser 1 ou maior.",
-  INVALID_YIELD_FACTOR: "O rendimento precisa ser maior que 0 e no máximo 1.",
-  INVALID_EAN: "Código de barras (EAN/GTIN) inválido.",
-  INVALID_ALLERGEN: "Alérgeno fora da lista da Anvisa (RDC 727/2022).",
-  INVALID_NCM: "O NCM precisa ter 8 dígitos.",
-  INVALID_CEST: "O CEST precisa ter 7 dígitos.",
-  INVALID_ORIGIN: "A origem precisa ser um dígito de 0 a 8.",
-  INVALID_DESCRIPTION: "A descrição precisa ter entre 3 e 200 caracteres.",
-  INVALID_RANGE: "O valor mínimo não pode ser maior que o máximo.",
-  INVALID_DAYS: "Informe um número inteiro de dias, zero ou maior.",
+    "A medida não pode mudar depois que o item já teve entrada ou saída. Inative o item e crie outro.",
+  UNIT_DIMENSION_MISMATCH: "Essas medidas não se convertem (ex.: quilo e unidade).",
+  UNKNOWN_UNIT: "Escolha uma medida da lista.",
+  INVALID_FACTOR: "A quantidade em cada embalagem precisa ser maior que zero.",
+  INVALID_DESCRIPTION: "O nome do item precisa ter entre 3 e 200 letras.",
+  PURCHASE_FACTOR_REQUIRED: "Diga quanto vem em cada embalagem (ex.: 20) ou deixe a embalagem em branco.",
+  PURCHASE_LABEL_REQUIRED: "Diga o nome da embalagem (ex.: Caixa) ou deixe a quantidade em branco.",
 };
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
-    return `Já existe um item ativo com esta descrição neste subgrupo (${String(error.details.existingCode)}).`;
+    return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
   return base;
 }

@@ -6,18 +6,14 @@ import { createItem } from "../../../src/application/inventory/create-item";
 import { getItem } from "../../../src/application/inventory/get-item";
 import { listItems } from "../../../src/application/inventory/list-items";
 
-describe("cadastrar item com as três unidades (spec 001, US1)", () => {
+describe("cadastrar item (spec 001 US1, simplificado na 002)", () => {
   it("gera 01.02.0001 e 01.02.0002 no subgrupo Hortifrúti > Legumes (cenário 1.1)", async () => {
     const env = testEnv();
     const ctx = await newRestaurant(env);
     const sub = await subgroupId(env, ctx, "01", "02");
 
     const a = await createItem(env.deps, ctx, itemData({ subgroupId: sub }));
-    const b = await createItem(
-      env.deps,
-      ctx,
-      itemData({ subgroupId: sub, description: "Cebola branca, saco 20 kg" }),
-    );
+    const b = await createItem(env.deps, ctx, itemData({ subgroupId: sub, description: "Cebola branca" }));
     expect(a.ok && a.value.code).toBe("01.02.0001");
     expect(b.ok && b.value.code).toBe("01.02.0002");
 
@@ -25,9 +21,8 @@ describe("cadastrar item com as três unidades (spec 001, US1)", () => {
     expect(got.ok).toBe(true);
     if (got.ok) {
       expect(got.value.item.stockUnit).toBe("kg");
-      expect(got.value.item.recipeUnit).toBe("g");
-      expect(got.value.item.purchaseFactor.toString()).toBe("20");
-      expect(got.value.equivalence?.recipe.toString()).toBe("20000");
+      expect(got.value.item.purchaseFactor?.toString()).toBe("20");
+      expect(got.value.purchaseSummary).toBe("1 Caixa = 20 kg");
     }
 
     const list = await listItems(env.deps, ctx, { q: "tomate", page: 1 });
@@ -55,7 +50,7 @@ describe("cadastrar item com as três unidades (spec 001, US1)", () => {
     const dup = await createItem(
       env.deps,
       ctx,
-      itemData({ subgroupId: sub, description: "tomate  ITALIANO, caixa 20 kg, tipo aa" }),
+      itemData({ subgroupId: sub, description: "tomate  ITALIANO" }),
     );
     expect(dup.ok).toBe(false);
     if (!dup.ok) {
@@ -118,32 +113,7 @@ describe("cadastrar item com as três unidades (spec 001, US1)", () => {
     const row = rows.rows[0] as { action: string; user_id: string; changes: Record<string, unknown> };
     expect(row.action).toBe("CREATE");
     expect(row.user_id).toBe(ctx.userId);
-    expect(row.changes.description).toEqual([null, "Tomate italiano, caixa 20 kg, tipo AA"]);
+    expect(row.changes.description).toEqual([null, "Tomate italiano"]);
     expect(row.changes.purchaseFactor).toEqual([null, "20"]);
-  });
-
-  it("guarda a conversão específica do ovo (1 un = 50 g)", async () => {
-    const env = testEnv();
-    const ctx = await newRestaurant(env);
-    const { d } = await import("../../../src/domain/shared/decimal");
-    const r = await createItem(
-      env.deps,
-      ctx,
-      itemData({
-        subgroupId: await subgroupId(env, ctx, "04", "04"),
-        description: "Ovo branco, bandeja 30 un",
-        stockUnit: "un",
-        recipeUnit: "g",
-        purchaseUnitLabel: "Bandeja 30 un",
-        purchaseFactor: d("30"),
-        conversions: [{ fromUnit: "un", toUnit: "g", factor: d("50") }],
-      }),
-    );
-    expect(r.ok).toBe(true);
-    const got = await getItem(env.deps, ctx, r.ok ? r.value.id : "");
-    expect(
-      got.ok && got.value.item.conversions.map((c) => `${c.fromUnit}=${c.factor.toString()}${c.toUnit}`),
-    ).toEqual(["un=50g"]);
-    expect(got.ok && got.value.equivalence?.recipe.toString()).toBe("1500");
   });
 });

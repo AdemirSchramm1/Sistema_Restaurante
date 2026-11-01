@@ -13,7 +13,6 @@ const detergente = (subgroupId: string) =>
     description: "Detergente neutro 5 l",
     type: "CONSUMABLE",
     stockUnit: "l",
-    recipeUnit: "ml",
     purchaseUnitLabel: "Galão 5 l",
     purchaseFactor: d(5),
   });

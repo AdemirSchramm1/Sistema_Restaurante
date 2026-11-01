@@ -35,15 +35,13 @@ test("gerente convida chef; chef aceita, não gerencia grupos e cadastra item (U
 
   await chef.getByRole("link", { name: "Itens" }).click();
   await chef.getByRole("link", { name: "Novo item" }).click();
-  await chef.getByLabel("Descrição").fill("Ovo branco, caixa com 30 dúzias");
+  await chef.getByLabel("Nome do item").fill("Ovo branco");
   await chef
-    .getByLabel("Grupo e subgrupo")
+    .getByLabel("Grupo", { exact: true })
     .selectOption({ label: "04.04 · Laticínios, frios e ovos › Ovos" });
-  await chef.getByLabel("Unidade de estoque (contagem)").selectOption("un");
-  await chef.getByLabel("Unidade de receita (ficha técnica)").selectOption("g");
-  await chef.getByLabel("Unidade de compra (embalagem)").fill("Caixa 30 dúzias");
-  await chef.getByLabel(/Fator: quantos un cabem/).fill("360");
-  await chef.getByLabel(/Conversão do item/).fill("50");
+  await chef.getByLabel("Medida").selectOption("un");
+  await chef.getByLabel("Embalagem", { exact: true }).fill("Caixa");
+  await chef.getByLabel("Quanto vem em cada embalagem").fill("360");
   await chef.getByRole("button", { name: "Cadastrar item" }).click();
   await expect(chef.getByText(/Item cadastrado com o código 04\.04\.0001/)).toBeVisible();
   await chefContext.close();
