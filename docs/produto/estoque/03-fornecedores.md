@@ -1,5 +1,9 @@
 # 3. Fornecedores
 
+> **Escopo simplificado (novembro de 2026).** Na feature de fornecedores entram só os dados
+> comerciais (contato, entrega, pagamento, itens e preços). Os blocos sanitário e fiscal e o de-para
+> da NF-e ficam fora. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+
 > Fonte: Manual de Referência, seção 3 ("Fornecedor é requisito sanitário, não só comercial").
 
 A RDC 216/2004 (item 4.7.1) obriga o restaurante a **especificar critérios de avaliação e seleção

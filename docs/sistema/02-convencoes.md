@@ -19,7 +19,7 @@
 
 ## Datas
 
-- Banco: `timestamptz` (UTC). Datas sem hora (validade, data do fato contábil): `date`.
+- Banco: `timestamptz` (UTC). Datas sem hora (data do fato contábil): `date`.
 - Fuso de apresentação: configurado por restaurante (padrão `America/Sao_Paulo`).
 
 ## Banco
@@ -27,7 +27,7 @@
 - Tabelas no plural, `snake_case`. Chave primária `id uuid` (gerado na aplicação, UUID v7).
 - Toda tabela de negócio: `restaurant_id`, `created_at`, `created_by`.
 - Migrações versionadas no repositório; nunca alterar migração já aplicada em produção.
-- Tabelas de livro (movimentações, registros sanitários) **não têm `updated_at`**: são só inserção.
+- Tabelas de livro (movimentações, auditoria) **não têm `updated_at`**: são só inserção.
 
 ## Erros
 

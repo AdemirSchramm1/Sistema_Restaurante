@@ -1,5 +1,8 @@
 # Quickstart: validar a feature 001 (cadastros base)
 
+> Atualizado com a [feature 002](../002-simplificar-cadastro/spec.md): cadastro simples, sem
+> quarentena, temperatura, unidade de receita nem folha de contagem.
+
 Guia para provar, de ponta a ponta, que a feature funciona. Detalhes de dados em
 [data-model.md](data-model.md) e de entradas/erros em [contracts/use-cases.md](contracts/use-cases.md).
 
@@ -29,7 +32,7 @@ pnpm dev            # http://localhost:3000
 ```bash
 pnpm lint && pnpm typecheck
 pnpm test:unit          # domínio: conversões, código, normalização, permissões (cobertura ≥ 90% em src/domain)
-pnpm test:integration   # banco real: duplicidade, RLS, quarentena, unidade bloqueada, auditoria
+pnpm test:integration   # banco real: duplicidade, RLS, embalagem incompleta, medida bloqueada, auditoria
 pnpm test:e2e           # Playwright: cadastro de item e convite do chef (MAILER=file)
 ```
 
@@ -40,16 +43,16 @@ Todos devem passar. Os testes obrigatórios estão em
 
 | # | Passo | Resultado esperado | Spec |
 |---|---|---|---|
-| 1 | Criar conta "Restaurante Teste" | Entra como gerente; árvore padrão de grupos e local "Recebimento / quarentena" existem | US5.1, US2.1, US3.1 |
-| 2 | Tentar inativar o grupo "Bebidas" e a quarentena | Recusado nos dois casos | US2.2, US3.1 |
-| 3 | Aplicar locais sugeridos; criar "Câmara de carnes" refrigerada sem faixa | Recusa pedindo a faixa; com 0 a 4 °C salva | US3.2 |
+| 1 | Criar conta "Restaurante Teste" | Entra como gerente; árvore padrão de grupos existe | US5.1, US2.1 |
+| 2 | Tentar inativar o grupo "Bebidas" | Recusado | US2.2 |
+| 3 | Aplicar locais sugeridos; criar "Câmara de carnes" do tipo Geladeira | Salva só com nome e tipo | 002 US2.1 |
 | 4 | Convidar um chef (ver e-mail no log do mailer em memória) e aceitar em janela anônima | Chef entra; não vê botões de grupos/locais; tentar a ação direto devolve `FORBIDDEN` | US5.2, FR-003 |
-| 5 | Como chef, cadastrar "Tomate italiano, caixa 20 kg, tipo AA" (kg / g / Caixa 20 kg, fator 20) cronometrando | Código `01.xx.0001`, equivalência 1 caixa = 20 kg = 20.000 g; tempo ≤ 2 min | US1.1, SC-001 |
-| 6 | Simular 2 caixas e 0,5 caixa | 40 kg e 10 kg | FR-022 |
-| 7 | Cadastrar de novo "tomate  ITALIANO, caixa 20 kg, tipo aa" no mesmo subgrupo | Recusa mostrando o código do item existente | US1.4 |
-| 8 | Cadastrar "Ovo branco" em un com receita em g sem conversão; depois com 1 un = 50 g | Primeiro recusa, depois salva | US1.5 |
-| 9 | Como gerente, vincular "Detergente" à câmara | Recusa `LOCATION_INCOMPATIBLE` | US3.4 |
-| 10 | Abrir a folha da câmara com itens nas posições 3, 1, 2 | Lista em 1, 2, 3 | US3.6 |
+| 5 | Como chef, cadastrar "Tomate italiano" em kg, sem embalagem, cronometrando | Código `01.xx.0001`; tempo ≤ 2 min | 002 US1.2, SC-001 |
+| 6 | Cadastrar "Arroz" em kg comprado em "Saco" com 5 | A tela mostra "1 Saco = 5 kg" e salva | 002 US1.3 |
+| 7 | Cadastrar de novo "tomate  ITALIANO" no mesmo subgrupo | Recusa mostrando o código do item existente | US1.4 |
+| 8 | Preencher embalagem "Caixa" sem a quantidade | Erro no campo da quantidade; o resto do que foi digitado continua na tela | 002 US1.4 |
+| 9 | Como gerente, ligar o arroz a dois locais e marcar um como principal | Só um fica principal | US3.5 |
+| 10 | Abrir o formulário de item e de local | Não aparece temperatura, validade, alérgeno, EAN, NCM, contagem, receita nem fator | 002 US1.5, US2 |
 | 11 | Abrir o mesmo item em duas abas, salvar nas duas | A segunda avisa que o registro mudou | FR-031 |
 | 12 | Ver o histórico do item | Mostra quem criou, quem alterou, antes e depois | FR-004, SC-007 |
 | 13 | Criar um segundo restaurante e abrir o link do item do primeiro | "Registro não encontrado" | SC-003 |

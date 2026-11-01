@@ -1,5 +1,8 @@
 # Research: Cadastros base do estoque (feature 001)
 
+> **Nota da [feature 002](../002-simplificar-cadastro/spec.md).** R13 (alérgenos) deixou de valer:
+> o sistema não guarda mais alérgenos. As demais decisões técnicas continuam em vigor.
+
 **Data**: 2026-10-31 · **Spec**: [spec.md](spec.md) · **Plano**: [plan.md](plan.md)
 
 Esta é a primeira feature do projeto, então ela fecha as decisões que

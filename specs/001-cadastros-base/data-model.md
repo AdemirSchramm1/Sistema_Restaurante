@@ -1,5 +1,10 @@
 # Data Model: Cadastros base do estoque (feature 001)
 
+> **Atualizado pela [feature 002](../002-simplificar-cadastro/spec.md).** A migração
+> `0002_simplify_items` removeu a tabela `item_unit_conversions` e as colunas marcadas com
+> **[removido na 002]**. O modelo vigente está em
+> [docs/sistema/estoque/01-modelo-de-dados.md](../../docs/sistema/estoque/01-modelo-de-dados.md).
+
 **Spec**: [spec.md](spec.md) · **Decisões**: [research.md](research.md) · **Modelo geral**:
 [`docs/sistema/estoque/01-modelo-de-dados.md`](../../docs/sistema/estoque/01-modelo-de-dados.md)
 
@@ -20,7 +25,6 @@ erDiagram
   ITEM_GROUP ||--o{ ITEM_SUBGROUP : tem
   ITEM_SUBGROUP ||--o{ ITEM : classifica
   UNIT ||--o{ ITEM : "estoque / receita"
-  ITEM ||--o{ ITEM_UNIT_CONVERSION : converte
   ITEM ||--o{ ITEM_LOCATION : "guardado em"
   LOCATION ||--o{ ITEM_LOCATION : guarda
   RESTAURANT ||--o{ LOCATION : tem
@@ -78,7 +82,7 @@ Sem RLS por `restaurant_id` (a política é `id = app.restaurant_id`).
 
 Seed por migração. Novas unidades só por migração.
 
-### `item_unit_conversions`
+### ~~`item_unit_conversions`~~ **[tabela removida na 002]**
 | Coluna | Tipo | Regras |
 |---|---|---|
 | item_id | uuid fk | |
@@ -121,22 +125,22 @@ no caso de uso "criar restaurante", a partir de uma constante em `src/domain/inv
 |---|---|---|
 | name | text | Único entre ativos no restaurante (FR-015) |
 | kind | enum | `DRY`, `CHILLED`, `FROZEN`, `QUARANTINE`, `IN_TRANSIT`, `CHEMICALS`, `STATION`, `BAR`, `NON_FOOD` |
-| temp_min_c / temp_max_c | numeric(4,1) null | Obrigatórios se `CHILLED`/`FROZEN`; `min ≤ max` (check) |
-| responsible_user_id | uuid fk null | Membro ativo do restaurante |
-| count_order | int | ≥ 0; empate desempata por nome |
-| is_system | boolean | Quarentena: não apaga nem inativa (FR-014) |
+| ~~temp_min_c / temp_max_c~~ | **[removido na 002]** numeric(4,1) null | Obrigatórios se `CHILLED`/`FROZEN`; `min ≤ max` (check) |
+| ~~responsible_user_id~~ | **[removido na 002]** uuid fk null | Membro ativo do restaurante |
+| ~~count_order~~ | **[removido na 002]** int | ≥ 0; empate desempata por nome |
+| is_system | boolean | **[002]** Sempre `false`; a quarentena antiga virou local comum |
 | active | boolean | Inativar exige nenhum vínculo item-local (`LOCATION_IN_USE`) |
 
-Único `(restaurant_id) where kind = 'QUARANTINE' and is_system`.
+~~Único `(restaurant_id) where kind = 'QUARANTINE' and is_system`.~~ **[removido na 002]**
 
 ### `item_locations`
 | Coluna | Tipo | Regras |
 |---|---|---|
 | item_id, location_id | uuid fk | Único juntos |
 | is_default | boolean | No máximo um por item: único parcial `(item_id) where is_default` |
-| sheet_position | int | ≥ 1; ordem na folha do local |
+| ~~sheet_position~~ | **[removido na 002]** int | ≥ 1; ordem na folha do local |
 
-Validação de compatibilidade `checkItemLocation` (R12) no caso de uso.
+~~Validação de compatibilidade `checkItemLocation` (R12) no caso de uso.~~ **[removido na 002]**
 
 ## Itens
 
@@ -150,30 +154,30 @@ Validação de compatibilidade `checkItemLocation` (R12) no caso de uso.
 | subgroup_id | uuid fk | Subgrupo ativo; grupo derivado |
 | stock_unit_id | uuid fk | Trigger bloqueia mudança se `stock_unit_locked_at` (R8) |
 | stock_unit_locked_at | timestamptz null | Preenchido pela feature 003 |
-| recipe_unit_id | uuid fk | Se dimensão ≠ estoque, exige `item_unit_conversions` (FR-021) |
-| purchase_unit_label | text | Ex.: "Caixa 20 kg" |
-| purchase_factor | numeric(14,4) | > 0, em unidades de estoque (FR-020) |
+| ~~recipe_unit_id~~ | **[removido na 002]** uuid fk | Se dimensão ≠ estoque, exige `item_unit_conversions` (FR-021) |
+| purchase_unit_label | text null | **[002]** Opcional; ex.: "Caixa". Anda junto com `purchase_factor` (check `items_purchase_pair`) |
+| purchase_factor | numeric(14,4) null | **[002]** Opcional; > 0, quanto vem na embalagem, na medida do item |
 | in_cogs_override | boolean null | `null` = segue o grupo (FR-024) |
-| ean_unit / ean_package | text null | 8, 12, 13 ou 14 dígitos com dígito verificador |
-| no_gtin | boolean | Se `true`, EANs nulos |
-| financial_category | text null | |
-| presentation | text null | "lata 2,8 kg" |
-| net_weight / drained_weight | numeric(14,4) null | Na unidade de estoque se massa |
-| catch_weight | boolean | Peso variável |
-| correction_factor | numeric(8,4) | ≥ 1, padrão 1 |
-| yield_factor | numeric(8,4) null | > 0 e ≤ 1 |
-| storage_temp_max_c | numeric(4,1) null | |
-| receiving_temp_min_c / max_c | numeric(4,1) null | min ≤ max |
-| shelf_life_days / opened_life_days | int null | ≥ 0 |
-| lot_control | boolean | |
-| expiry_alert_days | int null | ≥ 0 |
-| allergens | text[] | Subconjunto da lista RDC 727/2022, antiga RDC 26/2015 (R13) |
-| ncm | text null | 8 dígitos |
-| cest | text null | 7 dígitos |
-| origin | char(1) null | 0–8 (tabela de origem da NF-e) |
-| tax_group | text null | |
-| countable | boolean | Padrão `true` |
-| count_frequency | enum null | `SHIFT`, `DAILY`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY` |
+| ~~ean_unit / ean_package~~ | **[removido na 002]** text null | 8, 12, 13 ou 14 dígitos com dígito verificador |
+| ~~no_gtin~~ | **[removido na 002]** boolean | Se `true`, EANs nulos |
+| ~~financial_category~~ | **[removido na 002]** text null | |
+| ~~presentation~~ | **[removido na 002]** text null | "lata 2,8 kg" |
+| ~~net_weight / drained_weight~~ | **[removido na 002]** numeric(14,4) null | Na unidade de estoque se massa |
+| ~~catch_weight~~ | **[removido na 002]** boolean | Peso variável |
+| ~~correction_factor~~ | **[removido na 002]** numeric(8,4) | ≥ 1, padrão 1 |
+| ~~yield_factor~~ | **[removido na 002]** numeric(8,4) null | > 0 e ≤ 1 |
+| ~~storage_temp_max_c~~ | **[removido na 002]** numeric(4,1) null | |
+| ~~receiving_temp_min_c / max_c~~ | **[removido na 002]** numeric(4,1) null | min ≤ max |
+| ~~shelf_life_days / opened_life_days~~ | **[removido na 002]** int null | ≥ 0 |
+| ~~lot_control~~ | **[removido na 002]** boolean | |
+| ~~expiry_alert_days~~ | **[removido na 002]** int null | ≥ 0 |
+| ~~allergens~~ | **[removido na 002]** text[] | Subconjunto da lista RDC 727/2022, antiga RDC 26/2015 (R13) |
+| ~~ncm~~ | **[removido na 002]** text null | 8 dígitos |
+| ~~cest~~ | **[removido na 002]** text null | 7 dígitos |
+| ~~origin~~ | **[removido na 002]** char(1) null | 0–8 (tabela de origem da NF-e) |
+| ~~tax_group~~ | **[removido na 002]** text null | |
+| ~~countable~~ | **[removido na 002]** boolean | Padrão `true` |
+| ~~count_frequency~~ | **[removido na 002]** enum null | `SHIFT`, `DAILY`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY` |
 | average_cost / last_cost | numeric(14,4) null | **Só leitura** nesta feature (FR-026) |
 | cost_updated_at | timestamptz null | Só leitura |
 | abc_class | char(1) null | Só leitura; escrito pelo job da feature 009 |
@@ -211,17 +215,17 @@ Papel da aplicação: `INSERT`/`SELECT` apenas; trigger recusa `UPDATE`/`DELETE`
 
 | Função | Arquivo | Requisito | Erros |
 |---|---|---|---|
-| `convert(qty, from, to, itemConversions?)` | `inventory/units.ts` | FR-006, FR-007, FR-022 | `UNIT_DIMENSION_MISMATCH` |
+| `convert(qty, from, to)` **[002: sem conversões do item]** | `inventory/units.ts` | FR-006 | `UNIT_DIMENSION_MISMATCH` |
 | `toStockUnit(qty, purchaseFactor)` / `fromStockUnit` | `inventory/units.ts` | FR-020, FR-022 | `INVALID_FACTOR` |
 | `formatItemCode(g, s, seq)` | `inventory/item-code.ts` | FR-018 | `SUBGROUP_SEQUENCE_EXHAUSTED` |
 | `nextTwoDigitCode(counter)` | `inventory/item-code.ts` | FR-009 | `GROUP_CODES_EXHAUSTED` |
 | `normalizeDescription(text)` | `inventory/description.ts` | FR-019 | – |
-| `validateItem(input, units)` | `inventory/item.ts` | FR-020, FR-021, FR-025 | `MISSING_ITEM_CONVERSION`, `INVALID_CORRECTION_FACTOR`, `INVALID_YIELD_FACTOR`, `INVALID_EAN`, … |
+| `validateItem(data)` **[002]** | `inventory/item.ts` | FR-020 | `INVALID_DESCRIPTION`, `UNKNOWN_UNIT`, `PURCHASE_FACTOR_REQUIRED`, `PURCHASE_LABEL_REQUIRED`, `INVALID_FACTOR` |
+| `describePurchase(label, factor, unit)` **[002]** | `inventory/item.ts` | 002 FR-001 | – ("1 Caixa = 20 kg") |
 | `canChangeStockUnit(item)` | `inventory/item.ts` | FR-023 | `ITEM_UNIT_LOCKED` |
 | `effectiveInCogs(group, item)` | `inventory/item.ts` | FR-024 | – |
-| `validateLocation(input)` | `inventory/location.ts` | FR-013 | `TEMPERATURE_RANGE_REQUIRED`, `TEMPERATURE_RANGE_INVALID` |
-| `checkItemLocation(storageClass, kind)` | `inventory/location.ts` | FR-029 | `LOCATION_INCOMPATIBLE` |
-| `orderCountSheet(links)` | `inventory/location.ts` | FR-016 | – |
+| `validateLocation(input)` **[002: só nome e tipo]** | `inventory/location.ts` | FR-012 | `VALIDATION` |
+| `orderLocations(rows)` **[002: ordem alfabética]** | `inventory/location.ts` | FR-016 | – |
 | `can(roles, action)` | `access/permissions.ts` | FR-003 | `FORBIDDEN` |
 | `assertKeepsManager(memberships, change)` | `access/memberships.ts` | FR-002 | `LAST_MANAGER` |
 | `diffFields(before, after)` | `shared/audit.ts` | FR-004 | – |

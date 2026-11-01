@@ -6,12 +6,12 @@
 | Item | – | `item` | Insumo, revenda, produzido, consumo, patrimônio |
 | Tipo de item | – | `ItemType`: `INGREDIENT`, `RESALE`, `PRODUCED`, `CONSUMABLE`, `ASSET` | |
 | Grupo / subgrupo | – | `item_group` / `item_subgroup` | |
-| Unidade de compra / estoque / receita | – | `purchaseUnit` / `stockUnit` / `recipeUnit` | |
-| Fator de conversão | – | `conversionFactor` | Unidades de estoque por unidade de compra |
+| Medida do item | – | `stockUnit` | kg, g, l, ml ou un. O saldo fica e baixa nela |
+| Embalagem de compra | – | `purchaseUnitLabel` + `purchaseFactor` | Opcional: "Caixa" com 20 (na medida do item). Fator por fornecedor fica em `supplier_item` |
 | Fornecedor | – | `supplier` | |
 | Vínculo item-fornecedor | – | `supplier_item` | Guarda código do fornecedor e fator |
 | Local | – | `location` | |
-| Ficha técnica | – | `recipe` | Versionada: `recipe_version` |
+| Produto (ficha técnica) | – | `recipe` | O que o cliente pede e quanto de cada item usa. Versionada: `recipe_version` |
 | Linha da ficha | – | `recipe_line` | |
 | Sub-receita | – | `recipe` com `kind = SUB_RECIPE` | Gera item `PRODUCED` |
 | Ordem de produção | OP | `production_order` | |
@@ -34,16 +34,13 @@
 | CMV teórico | – | `theoreticalCogs` | |
 | Variância | – | `variance` | |
 | Recebimento | – | `receiving` | |
-| Conferência cega | – | `blindCount` | |
-| Contagem / inventário | – | `stock_count` | |
-| Ajuste de inventário | – | `MovementType.ADJUSTMENT` | |
-| Quarentena | – | `location.kind = QUARANTINE` | |
-| Etiqueta | – | `label` | |
-| Leitura de temperatura | – | `temperature_reading` | |
-| PVPS / PEPS | – | `FEFO` / `FIFO` | First expired / first in, first out |
+| Acerto manual de estoque | – | `MovementType.ADJUSTMENT` | Substitui o ajuste de inventário (sem contagem) |
 | Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE` | Gerente, chef, estoquista, comprador, administrativo |
 | Vínculo do usuário com o restaurante | – | `membership` | |
 | Convite | – | `invitation` | |
-| Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Regra item × local |
-| Unidade de compra padrão | – | `purchaseUnitLabel` + `purchaseFactor` | Fator por fornecedor fica em `supplier_item` |
+| Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Informativa desde a 002 (não bloqueia local) |
 | Trilha de auditoria | – | `audit_log` | Só inserção |
+
+Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
+conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de
+temperatura, PVPS/FEFO, etiqueta de validade.

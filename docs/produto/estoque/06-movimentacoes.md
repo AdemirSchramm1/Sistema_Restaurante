@@ -1,5 +1,9 @@
 # 6. Movimentações: para onde foi cada grama
 
+> **Escopo simplificado (novembro de 2026).** Lote, validade, temperatura, NF-e e ajuste de
+> inventário ficam fora. Não há contagem: a diferença entre o sistema e a prateleira é corrigida
+> por um **acerto manual** com motivo, feito pelo gerente (proposta, a confirmar na feature 004). Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+
 > Fonte: Manual de Referência, seção 4.
 
 Separar as saídas é o que torna o estoque gerencial. Se tudo que sai vira "consumo", a diferença
@@ -7,7 +11,7 @@ entre o **teórico** (vendas × fichas) e o **real** (EI + compras − EF) vira 
 impossível distinguir erro de ficha, desperdício e furto.
 
 - **Perda (waste):** perda conhecida e registrada.
-- **Variância:** diferença não explicada, descoberta na contagem.
+- **Variância:** diferença não explicada, corrigida com acerto manual.
 
 ## Os treze tipos
 
@@ -25,12 +29,12 @@ impossível distinguir erro de ficha, desperdício e furto.
 | 10 | Consumo interno / refeição de funcionários | Lançamento no PDV | Quem consumiu | − |
 | 11 | Cortesia | Mesa ou pedido | Quem autorizou | − |
 | 12 | Degustação, marketing ou doação | Registro | Finalidade | − |
-| 13 | Ajuste de inventário (sobra ou falta) | Contagem de referência | Justificativa e aprovador | ± |
+| 13 | Acerto manual (sobra ou falta) | – | Motivo e quem acertou | ± |
 
 ## Campos mínimos de todo registro
 
 ID; tipo; data e hora **do fato** e **do lançamento**; usuário que lançou e que aprovou; item;
-quantidade e unidade (convertida para a unidade de estoque); lote e validade (quando controlados);
+quantidade na medida do item (embalagens convertidas);
 custo unitário e total no momento; local de origem e destino; **motivo em lista fechada** com campo
 de observação; documento de referência; centro de custo.
 
@@ -41,7 +45,7 @@ de observação; documento de referência; centro de custo.
 Três famílias (Altametrics), com motivos:
 
 - **Perda de preparo:** apara acima do FC, erro de preparo, queimado, devolvido pelo cliente.
-- **Deterioração:** vencido, estragado, temperatura fora da faixa, praga.
+- **Deterioração:** vencido, estragado, praga.
 - **Erro operacional:** queda/quebra, pedido errado, porcionamento excessivo, outros.
 
 ## Regras
@@ -52,7 +56,7 @@ Três famílias (Altametrics), com motivos:
   original.
 - Saída que deixaria saldo negativo: permitida apenas para vendas (o PDV não pode parar), gerando
   alerta para investigação. Demais saídas são bloqueadas. *(Decisão a confirmar na spec.)*
-- Ajuste de inventário exige aprovador diferente de quem lançou (ver [controles](09-controles-e-permissoes.md)).
+- Acerto manual só pelo gerente, sempre com motivo.
 
 ## Critérios de aceite (para a spec)
 
