@@ -12,6 +12,7 @@ import { serverDeps } from "@/infra/server";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { can } from "@/domain/access/permissions";
 import { STORAGE_CLASS_LABELS, type StorageClass } from "@/domain/inventory/default-tree";
+import { GROUP_FIELD_LABELS, groupSummary } from "@/components/groups/group-labels";
 import { ActionForm } from "@/components/forms/action-form";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input, Select } from "@/components/ui/input";
@@ -45,7 +46,7 @@ export default async function Page() {
             />
             <Select
               name="storageClass"
-              aria-label="Classe de armazenagem"
+              aria-label={GROUP_FIELD_LABELS.storageClass}
               className="w-48"
               defaultValue="FOOD"
             >
@@ -56,7 +57,7 @@ export default async function Page() {
               ))}
             </Select>
             <label className="flex h-9 items-center gap-2 text-sm">
-              <Checkbox name="inCogs" defaultChecked /> Entra no CMV
+              <Checkbox name="inCogs" defaultChecked /> {GROUP_FIELD_LABELS.inCogs}
             </label>
           </ActionForm>
         </Card>
@@ -67,9 +68,7 @@ export default async function Page() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="font-mono">{g.code}</Badge>
               <h2 className="text-lg font-semibold">{g.name}</h2>
-              <span className="text-sm text-muted-foreground">
-                {STORAGE_CLASS_LABELS[g.storageClass]} · {g.inCogs ? "entra no CMV" : "fora do CMV"}
-              </span>
+              <span className="text-sm text-muted-foreground">{groupSummary(g)}</span>
               {g.isSystem && <Badge tone="muted">padrão</Badge>}
               {!g.active && <Badge tone="warn">inativo</Badge>}
             </div>
