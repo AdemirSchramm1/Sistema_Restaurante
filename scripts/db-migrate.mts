@@ -1,3 +1,4 @@
+import "./load-env";
 import { runMigrations } from "../src/infra/db/migrate";
 
 const url = process.env.DATABASE_MIGRATION_URL;

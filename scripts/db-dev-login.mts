@@ -1,3 +1,4 @@
+import "./load-env";
 import { Client } from "pg";
 
 /**

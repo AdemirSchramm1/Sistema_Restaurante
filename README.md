@@ -31,11 +31,41 @@ A ordem das features do módulo de estoque está no
 
 ## Rodar localmente
 
+Precisa de Node 22 ou mais novo, pnpm 10 e Docker (para o PostgreSQL).
+
 ```bash
 pnpm install
 cp .env.example .env.local   # ajuste segredos se quiser
 pnpm db:up && pnpm db:migrate && pnpm db:dev-login
 pnpm dev                     # http://localhost:3000 → "Criar conta"
+```
+
+Os scripts de banco leem o `.env.local`. Em desenvolvimento os e-mails (convite, recuperação de
+senha) aparecem no terminal do `pnpm dev`.
+
+### No Windows (Prompt de Comando)
+
+Instale as ferramentas uma vez e depois **feche e abra o Prompt de novo**:
+
+```bat
+winget install --id Git.Git -e
+winget install --id OpenJS.NodeJS.LTS -e
+winget install --id Docker.DockerDesktop -e
+```
+
+Abra o Docker Desktop e espere aparecer "Engine running" (na primeira vez ele pode pedir para
+reiniciar o computador ou instalar o WSL). Depois, num Prompt novo:
+
+```bat
+npm install -g pnpm@10
+git clone https://github.com/AdemirSchramm1/Sistema_Restaurante.git
+cd Sistema_Restaurante
+pnpm install
+copy .env.example .env.local
+pnpm db:up
+pnpm db:migrate
+pnpm db:dev-login
+pnpm dev
 ```
 
 Testes: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:e2e`.
