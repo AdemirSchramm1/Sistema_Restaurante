@@ -22,15 +22,12 @@ E se liga ao fluxo **Spec Kit**:
   - [01 — Grupos de itens](produto/estoque/01-grupos-de-itens.md)
   - [02 — Cadastro de itens](produto/estoque/02-cadastro-de-itens.md)
   - [03 — Fornecedores](produto/estoque/03-fornecedores.md)
-  - [04 — Fichas técnicas](produto/estoque/04-fichas-tecnicas.md)
+  - [04 — Produtos (fichas técnicas)](produto/estoque/04-fichas-tecnicas.md)
   - [05 — Locais](produto/estoque/05-locais.md)
   - [06 — Movimentações](produto/estoque/06-movimentacoes.md)
-  - [07 — Regras sanitárias](produto/estoque/07-regras-sanitarias.md)
   - [08 — Ciclo operacional](produto/estoque/08-ciclo-operacional.md)
   - [09 — Controles e permissões](produto/estoque/09-controles-e-permissoes.md)
   - [10 — Indicadores](produto/estoque/10-indicadores.md)
-  - [11 — Fiscal](produto/estoque/11-fiscal.md)
-  - [12 — Rotinas](produto/estoque/12-rotinas.md)
   - [13 — Decisões adotadas](produto/estoque/13-decisoes-adotadas.md)
 
 ### Sistema

@@ -12,7 +12,7 @@ Todo comportamento novo nasce de um teste que falha. O ciclo é Vermelho → Ver
 - Testes nunca são desligados, pulados (`skip`) ou apagados para deixar a CI verde.
 - Cada regra de negócio do manual em `docs/produto/` tem pelo menos um teste nomeado pela regra.
 
-Motivo: estoque mexe com dinheiro (CMV) e com segurança sanitária; erro silencioso custa caro.
+Motivo: estoque mexe com dinheiro (CMV) e com o saldo que a cozinha usa para comprar; erro silencioso custa caro.
 
 ### II. Domínio Puro e Isolado
 
@@ -69,8 +69,9 @@ justificativa escrita no `plan.md` da feature.
   variáveis, funções, tabelas) em inglês, com termos de domínio mapeados no glossário
   (`docs/sistema/glossario.md`).
 - Datas e horas guardadas em UTC (`timestamptz`); apresentação no fuso do restaurante.
-- Normas sanitárias de referência: RDC Anvisa 216/2004 como obrigatória; CVS 5/2013 e CVS 3/2026
-  como referência numérica (ver `docs/produto/estoque/07-regras-sanitarias.md`).
+- Controles sanitários (temperatura, validade, alérgenos) e fiscais (NCM, CEST, inventário fiscal)
+  estão fora do escopo do produto por decisão do dono (ver
+  `docs/produto/estoque/13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026`).
 
 ## Fluxo de Desenvolvimento
 
@@ -89,4 +90,4 @@ ou redefinir princípio, MINOR para adicionar princípio ou seção, PATCH para 
 e revisão verificam conformidade; violação justificada fica registrada na tabela "Complexity
 Tracking" do `plan.md` da feature.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-31 | **Last Amended**: 2026-10-31
+**Version**: 1.0.1 | **Ratified**: 2026-10-31 | **Last Amended**: 2026-11-01

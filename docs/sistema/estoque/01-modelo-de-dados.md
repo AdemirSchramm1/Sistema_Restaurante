@@ -16,7 +16,6 @@ erDiagram
   ITEM_GROUP ||--o{ ITEM_SUBGROUP : tem
   ITEM_SUBGROUP ||--o{ ITEM : classifica
   UNIT ||--o{ ITEM : "unidade de estoque"
-  ITEM ||--o{ ITEM_UNIT_CONVERSION : converte
   ITEM ||--o{ SUPPLIER_ITEM : "fornecido por"
   SUPPLIER ||--o{ SUPPLIER_ITEM : fornece
   ITEM ||--o{ ITEM_LOCATION : "guardado em"
@@ -30,8 +29,6 @@ erDiagram
   RECIPE_VERSION ||--o{ RECIPE_LINE : contém
   ITEM ||--o{ RECIPE_LINE : "usado em"
   RECIPE ||--o| ITEM : "produz (sub-receita)"
-  STOCK_COUNT ||--o{ STOCK_COUNT_LINE : contém
-  RECEIVING ||--o{ RECEIVING_LINE : contém
 ```
 
 ## Cadastros
@@ -54,42 +51,25 @@ erDiagram
 | next_subgroup_code / next_item_seq | int | Contadores de código (feature 001) |
 
 ### `items`
+> Simplificado na feature 002 (migração `0002_simplify_items`).
+
 | Coluna | Tipo | Notas |
 |---|---|---|
 | code | text | `GG.SS.NNNN`, gerado, imutável, único |
-| description | text | Padronizada |
+| description | text | Nome do item |
 | description_normalized | text | Índice único parcial (subgroup, normalizada) onde `active` |
 | type | enum | `INGREDIENT`, `RESALE`, `PRODUCED`, `CONSUMABLE`, `ASSET` |
 | subgroup_id | uuid fk | |
-| financial_category | text | |
-| stock_unit_id | uuid fk | **Bloqueado** após a 1ª movimentação (trigger + `stock_unit_locked_at`) |
-| stock_unit_locked_at | timestamptz null | Preenchido pela feature 003 na 1ª movimentação |
-| purchase_unit_label / purchase_factor | text / numeric(14,4) | Unidade de compra padrão; `supplier_items` sobrescreve por fornecedor |
-| recipe_unit_id | uuid fk | |
-| ean | text null | |
-| catch_weight | boolean | Peso variável |
-| correction_factor | numeric(8,4) | FC padrão, ≥ 1 |
-| yield_factor | numeric(8,4) null | Ex.: chope 0,90 |
-| average_cost | numeric(14,4) | Por unidade de estoque; mantido pelo livro |
-| last_cost | numeric(14,4) | |
-| cost_updated_at | timestamptz | |
-| cost_tolerance_pct | numeric(5,2) | Ex.: 5,00 |
-| safety_margin | numeric(5,4) | 0,10–0,25 |
-| reorder_point / par_level | numeric(14,4) | Calculados ou manuais (flag `reorder_manual`) |
-| storage_temp_max_c | numeric(4,1) | |
-| receiving_temp_min_c / max_c | numeric(4,1) | |
-| shelf_life_days / opened_life_days | int | |
-| lot_control | boolean | |
-| expiry_alert_days | int | |
-| allergens | text[] | Lista RDC 727/2022, antiga RDC 26/2015 |
-| ncm / cest / origin / tax_group | text | |
-| abc_class | char(1) null | **Escrita só pelo job de fechamento** |
+| stock_unit_id | uuid fk | A medida do item. **Bloqueada** após a 1ª movimentação (`stock_unit_locked_at`) |
+| stock_unit_locked_at | timestamptz null | Preenchido na 1ª movimentação |
+| purchase_unit_label / purchase_factor | text null / numeric(14,4) null | Embalagem de compra e quanto vem nela, na medida do item. Os dois nulos ou os dois preenchidos (`factor > 0`) |
+| average_cost / last_cost / cost_updated_at | numeric / numeric / timestamptz | Mantidos pelo livro |
+| abc_class | char(1) null | Reservado; não aparece na tela |
 | in_cogs_override | boolean null | Sobrescreve o grupo |
-| active / countable | boolean | |
-| count_frequency | enum | `SHIFT`, `DAILY`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY` |
+| active | boolean | |
 
-### `item_unit_conversions`
-Conversões específicas do item (ex.: 1 `un` de ovo = 50 `g`), quando a dimensão muda.
+Removidos na feature 002: `recipe_unit_id`, `item_unit_conversions`, EAN/GTIN, fiscais, sanitários,
+pesos, FC, rendimento, alérgenos, `countable`, `count_frequency`.
 
 ### `suppliers`
 Campos de [03-fornecedores](../../produto/estoque/03-fornecedores.md): legal, contato, sanitário,
@@ -110,14 +90,13 @@ logística (`lead_time_days`, `delivery_days int[]`, `min_order_value`), finance
 | Coluna | Tipo | Notas |
 |---|---|---|
 | name | text | Nome real do espaço |
-| kind | enum | `DRY`, `CHILLED`, `FROZEN`, `QUARANTINE`, `IN_TRANSIT`, `CHEMICALS`, `STATION`, `BAR`, `NON_FOOD` |
-| temp_min_c / temp_max_c | numeric(4,1) null | Obrigatório se `CHILLED`/`FROZEN` (check constraint) |
-| responsible_user_id | uuid | |
-| count_order | int | Rota de contagem |
-| is_system | boolean | Quarentena: não apaga nem inativa |
+| kind | enum | `DRY`, `CHILLED`, `FROZEN`, `STATION`, `BAR`, `CHEMICALS`, `NON_FOOD` (valores antigos `QUARANTINE`/`IN_TRANSIT` seguem no enum só por compatibilidade) |
+| is_system | boolean | Reservado; nenhum local novo é de sistema |
+
+Removidos na feature 002: `temp_min_c`, `temp_max_c`, `responsible_user_id`, `count_order`.
 
 ### `item_locations`
-`item_id`, `location_id`, `is_default`, `sheet_position`.
+`item_id`, `location_id`, `is_default` (local principal). `sheet_position` removido na feature 002.
 
 ## Livro e projeções
 
@@ -156,17 +135,6 @@ Proteções:
 movimentação. Pode ser reconstruída a qualquer momento somando o livro (teste de integração verifica
 que projeção = soma do livro).
 
-### `stock_counts` / `stock_count_lines`
-Cabeçalho (local, tipo: `CYCLE`, `WEEKLY`, `MONTHLY`, `ANNUAL_FISCAL`, status, contadores). Linhas
-com `counted_quantity`, `system_quantity_snapshot` (gravado no fechamento, **nunca enviado à tela de
-contagem**), `recount_quantity`.
-
-### `receivings` / `receiving_lines`
-Linhas com `blind_quantity`, `weighed_quantity`, `invoice_quantity`, `ordered_quantity`,
-`temperature_c`, `expiry_date`, `lot`, `packaging_ok`, `decision` (`ACCEPTED`, `REJECTED`),
-`divergence_type`. A API de conferência não devolve `invoice_quantity`/`ordered_quantity` ao
-estoquista.
-
 ### Fichas técnicas
 - `recipes`: `code`, `name`, `kind` (`DISH`, `SUB_RECIPE`), `produced_item_id` (sub-receita).
 - `recipe_versions`: `valid_from`, `yield_quantity`, `portions`, `portion_weight`, `cooking_index`,
@@ -174,8 +142,3 @@ estoquista.
 - `recipe_lines`: `item_id` **ou** `sub_recipe_id`, `net_quantity`, `recipe_unit_id`,
   `correction_factor` (copiado do item, editável).
 
-### Sanitário
-- `temperature_readings`: `location_id`, `read_at`, `temperature_c`, `read_by`, `out_of_range`.
-- `labels`: `item_id`, `event` (`OPENED`, `PORTIONED`, `PREPARED`, `THAWING`), `event_at`,
-  `expires_at` (calculado, imutável), `brand`, `supplier`, `storage`, `responsible`, `lot`.
-- Retenção mínima: 180 dias (job de limpeza não apaga antes disso).
