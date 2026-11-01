@@ -6,8 +6,8 @@ import { createItem } from "../../../src/application/inventory/create-item";
 import { listItems } from "../../../src/application/inventory/list-items";
 
 const COLS = sql.raw(
-  `restaurant_id, created_at, created_by, updated_at, updated_by, version, type, subgroup_id, stock_unit_id, recipe_unit_id,
-   purchase_unit_label, purchase_factor, no_gtin, catch_weight, correction_factor, lot_control, allergens, countable, active`,
+  `restaurant_id, created_at, created_by, updated_at, updated_by, version, type, subgroup_id, stock_unit_id,
+   purchase_unit_label, purchase_factor, active`,
 );
 
 describe("lista de itens com 2.000 itens (SC-005)", () => {

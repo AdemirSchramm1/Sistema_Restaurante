@@ -24,7 +24,7 @@ describe("unidade de estoque bloqueada após a 1ª movimentação (FR-023, resea
       ctx,
       created.value.id,
       1,
-      itemData({ subgroupId: sub, stockUnit: "un", recipeUnit: "un" }),
+      itemData({ subgroupId: sub, stockUnit: "un" }),
     );
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.code).toBe("ITEM_UNIT_LOCKED");
@@ -46,7 +46,7 @@ describe("unidade de estoque bloqueada após a 1ª movimentação (FR-023, resea
       ctx,
       created.value.id,
       1,
-      itemData({ subgroupId: sub, stockUnit: "un", recipeUnit: "un" }),
+      itemData({ subgroupId: sub, stockUnit: "un" }),
     );
     expect(r.ok).toBe(true);
   });

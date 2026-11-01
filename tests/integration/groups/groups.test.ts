@@ -98,7 +98,6 @@ describe("grupos e subgrupos (spec 001, US2)", () => {
         description: "Botijão P13",
         type: "CONSUMABLE",
         stockUnit: "un",
-        recipeUnit: "un",
         purchaseUnitLabel: "Botijão",
         purchaseFactor: (await import("../../../src/domain/shared/decimal")).d(1),
       }),
