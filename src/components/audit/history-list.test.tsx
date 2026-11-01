@@ -22,25 +22,37 @@ describe("histórico (FR-004)", () => {
         timezone="America/Sao_Paulo"
         entries={[
           entry({
-            presentation: [null, "caixa de madeira"],
-            correctionFactor: ["1", "1.25"],
-            lotControl: [false, true],
+            description: ["Tomate", "Tomate italiano"],
+            purchaseUnitLabel: [null, "Caixa"],
+            purchaseFactor: [null, "12.5"],
+            stockUnit: ["kg", "un"],
           }),
         ]}
       />,
     );
-    expect(screen.getByText("Apresentação: — → caixa de madeira")).toBeTruthy();
+    expect(screen.getByText("Nome do item: Tomate → Tomate italiano")).toBeTruthy();
+    expect(screen.getByText("Embalagem: — → Caixa")).toBeTruthy();
+    expect(screen.getByText("Quanto vem na embalagem: — → 12,5")).toBeTruthy();
+    expect(screen.getByText("Medida: kg → un")).toBeTruthy();
+  });
+
+  it("campos antigos, já retirados do cadastro, ainda aparecem com nome em português", () => {
+    render(
+      <HistoryList
+        timezone="America/Sao_Paulo"
+        entries={[entry({ correctionFactor: ["1", "1.25"], lotControl: [false, true] })]}
+      />,
+    );
     expect(screen.getByText("Fator de correção: 1 → 1,25")).toBeTruthy();
     expect(screen.getByText("Controla lote: não → sim")).toBeTruthy();
   });
 
-  it("traduz alérgenos, tipo e quem está no CMV; ids aparecem só como alterados", () => {
+  it("traduz tipo e quem está no CMV; ids aparecem só como alterados", () => {
     render(
       <HistoryList
         timezone="America/Sao_Paulo"
         entries={[
           entry({
-            allergens: [[], ["MILK"]],
             type: ["INGREDIENT", "RESALE"],
             subgroupId: ["a", "b"],
             inCogsOverride: [null, false],
@@ -48,14 +60,13 @@ describe("histórico (FR-004)", () => {
         ]}
       />,
     );
-    expect(screen.getByText("Alérgenos: — → Leites de todas as espécies de animais mamíferos")).toBeTruthy();
-    expect(screen.getByText("Tipo: Insumo → Revenda")).toBeTruthy();
+    expect(screen.getByText("Tipo: Ingrediente → Revenda")).toBeTruthy();
     expect(screen.getByText("Subgrupo: alterado")).toBeTruthy();
     expect(screen.getByText("Entra no CMV: segue o grupo → não")).toBeTruthy();
   });
 
   it("data e hora no fuso do restaurante", () => {
-    render(<HistoryList timezone="America/Sao_Paulo" entries={[entry({ presentation: ["a", "b"] })]} />);
+    render(<HistoryList timezone="America/Sao_Paulo" entries={[entry({ description: ["abc", "abcd"] })]} />);
     expect(screen.getByText(/01\/11\/2026, 14:30:00/)).toBeTruthy();
   });
 });

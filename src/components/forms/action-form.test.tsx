@@ -8,7 +8,7 @@ afterEach(cleanup);
 
 const failing = async (): Promise<ActionState> => ({
   ok: false,
-  error: { code: "TEMPERATURE_RANGE_REQUIRED", field: "tempMinC", message: "Informe a faixa." },
+  error: { code: "NAME_IN_USE", field: "name", message: "Já existe um local com este nome." },
   at: 1,
 });
 const succeeding = async (): Promise<ActionState> => ({ ok: true, data: null, at: 1 });
@@ -28,7 +28,7 @@ describe("ActionForm", () => {
     );
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Câmara de laticínios" } });
     await submit("Criar local");
-    expect(await screen.findByText("Informe a faixa.")).toBeTruthy();
+    expect(await screen.findByText("Já existe um local com este nome.")).toBeTruthy();
     expect((screen.getByLabelText("Nome") as HTMLInputElement).value).toBe("Câmara de laticínios");
   });
 

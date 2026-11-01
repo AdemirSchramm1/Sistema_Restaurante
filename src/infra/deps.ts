@@ -34,7 +34,7 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     invitations: invitationRepository(tx, restaurantId),
     groups: groupRepository(tx, restaurantId),
     locations: locationRepository(tx, restaurantId),
-    items: itemRepository(tx, restaurantId, uuidIds.next),
+    items: itemRepository(tx, restaurantId),
     itemLocations: itemLocationRepository(tx, restaurantId),
   };
 }

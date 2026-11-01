@@ -1,12 +1,10 @@
 import { and, asc, eq, ilike, ne, or, sql, type SQL } from "drizzle-orm";
 import type { ItemListRow, ItemRepo } from "@/application/inventory/ports";
 import type { Item, ItemData } from "@/domain/inventory/item";
-import type { Allergen } from "@/domain/inventory/allergens";
 import { normalizeDescription } from "@/domain/inventory/description";
-import { d } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
-import { itemGroups, itemSubgroups, itemUnitConversions, items } from "../schema";
+import { itemGroups, itemSubgroups, items } from "../schema";
 import { dec, isUniqueViolation, str, UNIT_CODE_BY_ID, UNIT_IDS, withSavepoint } from "./util";
 
 type Audit = { at: Date; by: string | null };
@@ -18,54 +16,12 @@ function toRow(data: ItemData & { descriptionNormalized: string }) {
     type: data.type,
     subgroupId: data.subgroupId,
     stockUnitId: UNIT_IDS[data.stockUnit],
-    recipeUnitId: UNIT_IDS[data.recipeUnit],
-    purchaseUnitLabel: data.purchaseUnitLabel.trim(),
-    purchaseFactor: data.purchaseFactor.toString(),
-    eanUnit: data.eanUnit,
-    eanPackage: data.eanPackage,
-    noGtin: data.noGtin,
-    financialCategory: data.financialCategory,
-    presentation: data.presentation,
-    netWeight: str(data.netWeight),
-    drainedWeight: str(data.drainedWeight),
-    catchWeight: data.catchWeight,
-    correctionFactor: data.correctionFactor.toString(),
-    yieldFactor: str(data.yieldFactor),
-    storageTempMaxC: str(data.storageTempMaxC),
-    receivingTempMinC: str(data.receivingTempMinC),
-    receivingTempMaxC: str(data.receivingTempMaxC),
-    shelfLifeDays: data.shelfLifeDays,
-    openedLifeDays: data.openedLifeDays,
-    lotControl: data.lotControl,
-    expiryAlertDays: data.expiryAlertDays,
-    allergens: data.allergens,
-    ncm: data.ncm,
-    cest: data.cest,
-    origin: data.origin,
-    taxGroup: data.taxGroup,
-    countable: data.countable,
-    countFrequency: data.countFrequency,
+    purchaseUnitLabel: data.purchaseUnitLabel?.trim() || null,
+    purchaseFactor: str(data.purchaseFactor),
   };
 }
 
-export function itemRepository(tx: Tx, restaurantId: string, ids: () => string): ItemRepo {
-  async function writeConversions(itemId: string, data: ItemData, audit: Audit) {
-    await tx.delete(itemUnitConversions).where(eq(itemUnitConversions.itemId, itemId));
-    if (data.conversions.length)
-      await tx.insert(itemUnitConversions).values(
-        data.conversions.map((c) => ({
-          id: ids(),
-          restaurantId,
-          itemId,
-          fromUnitId: UNIT_IDS[c.fromUnit],
-          toUnitId: UNIT_IDS[c.toUnit],
-          factor: c.factor.toString(),
-          createdAt: audit.at,
-          createdBy: audit.by,
-        })),
-      );
-  }
-
+export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
   async function guarded(
     fn: () => Promise<Result<void>>,
     subgroupId: string,
@@ -122,7 +78,6 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
             updatedAt: audit.at,
             updatedBy: audit.by,
           });
-          await writeConversions(item.id, item, audit);
           return ok(undefined);
         },
         item.subgroupId,
@@ -131,12 +86,7 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
 
     update: (id, data, version, audit) =>
       guarded(
-        async () => {
-          const r = await optimistic(id, version, toRow(data), audit);
-          if (!r.ok) return r;
-          await writeConversions(id, data, audit);
-          return ok(undefined);
-        },
+        () => optimistic(id, version, toRow(data), audit),
         data.subgroupId,
         data.descriptionNormalized,
         id,
@@ -150,11 +100,6 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
         .innerJoin(itemGroups, eq(itemGroups.id, itemSubgroups.groupId))
         .where(eq(items.id, id));
       if (!row) return null;
-      const conv = await tx
-        .select()
-        .from(itemUnitConversions)
-        .where(eq(itemUnitConversions.itemId, id))
-        .orderBy(asc(itemUnitConversions.createdAt));
       const i = row.i;
       const item: Item = {
         id: i.id,
@@ -163,38 +108,8 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
         type: i.type,
         subgroupId: i.subgroupId,
         stockUnit: UNIT_CODE_BY_ID[i.stockUnitId]!,
-        recipeUnit: UNIT_CODE_BY_ID[i.recipeUnitId]!,
         purchaseUnitLabel: i.purchaseUnitLabel,
-        purchaseFactor: d(i.purchaseFactor),
-        conversions: conv.map((c) => ({
-          fromUnit: UNIT_CODE_BY_ID[c.fromUnitId]!,
-          toUnit: UNIT_CODE_BY_ID[c.toUnitId]!,
-          factor: d(c.factor),
-        })),
-        eanUnit: i.eanUnit,
-        eanPackage: i.eanPackage,
-        noGtin: i.noGtin,
-        financialCategory: i.financialCategory,
-        presentation: i.presentation,
-        netWeight: dec(i.netWeight),
-        drainedWeight: dec(i.drainedWeight),
-        catchWeight: i.catchWeight,
-        correctionFactor: d(i.correctionFactor),
-        yieldFactor: dec(i.yieldFactor),
-        storageTempMaxC: dec(i.storageTempMaxC),
-        receivingTempMinC: dec(i.receivingTempMinC),
-        receivingTempMaxC: dec(i.receivingTempMaxC),
-        shelfLifeDays: i.shelfLifeDays,
-        openedLifeDays: i.openedLifeDays,
-        lotControl: i.lotControl,
-        expiryAlertDays: i.expiryAlertDays,
-        allergens: i.allergens as Allergen[],
-        ncm: i.ncm,
-        cest: i.cest,
-        origin: i.origin,
-        taxGroup: i.taxGroup,
-        countable: i.countable,
-        countFrequency: i.countFrequency,
+        purchaseFactor: dec(i.purchaseFactor),
         active: i.active,
         version: i.version,
         inCogsOverride: i.inCogsOverride,
@@ -202,7 +117,6 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
         averageCost: dec(i.averageCost),
         lastCost: dec(i.lastCost),
         costUpdatedAt: i.costUpdatedAt,
-        abcClass: i.abcClass,
         groupId: row.g.id,
         groupName: row.g.name,
         subgroupName: row.s.name,
@@ -229,8 +143,6 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
           or(
             ilike(items.descriptionNormalized, `%${norm}%`),
             ilike(items.code, `${q.replace(/[%_\\]/g, "\\$&")}%`),
-            eq(items.eanUnit, q),
-            eq(items.eanPackage, q),
           )!,
         );
       }
@@ -243,7 +155,6 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
           type: items.type,
           active: items.active,
           stockUnitId: items.stockUnitId,
-          recipeUnitId: items.recipeUnitId,
           purchaseUnitLabel: items.purchaseUnitLabel,
           purchaseFactor: items.purchaseFactor,
           groupName: itemGroups.name,
@@ -271,9 +182,8 @@ export function itemRepository(tx: Tx, restaurantId: string, ids: () => string):
           type: r.type,
           active: r.active,
           stockUnit: UNIT_CODE_BY_ID[r.stockUnitId]!,
-          recipeUnit: UNIT_CODE_BY_ID[r.recipeUnitId]!,
           purchaseUnitLabel: r.purchaseUnitLabel,
-          purchaseFactor: d(r.purchaseFactor),
+          purchaseFactor: dec(r.purchaseFactor),
           groupName: r.groupName,
           subgroupName: r.subgroupName,
         })),

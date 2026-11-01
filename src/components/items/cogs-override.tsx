@@ -27,7 +27,10 @@ export function CogsOverride({
   const { state, pending, formProps } = useFormAction(setItemCogsOverrideAction);
   return (
     <Card className="grid gap-2 text-sm">
-      <CardTitle>Entra no CMV</CardTitle>
+      <CardTitle>Conta no custo dos pratos?</CardTitle>
+      <p className="text-muted-foreground">
+        Itens que vão nos pratos ou são revendidos entram no custo (CMV). Limpeza e descartáveis, em geral, não.
+      </p>
       <p>
         Agora: <strong>{yesNo(effective)}</strong>
         {override === null ? ` (segue o grupo: ${yesNo(groupInCogs)})` : " (definido no item)"}

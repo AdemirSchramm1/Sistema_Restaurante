@@ -19,7 +19,7 @@ describe("histórico do registro (FR-004, SC-007)", () => {
       chef,
       created.value.id,
       1,
-      itemData({ subgroupId: sub, presentation: "caixa de madeira" }),
+      itemData({ subgroupId: sub, purchaseUnitLabel: "Saco" }),
     );
 
     const h = await getAuditHistory(env.deps, chef, "item", created.value.id);
@@ -29,7 +29,7 @@ describe("histórico do registro (FR-004, SC-007)", () => {
       ["CREATE", "Gerente"],
       ["UPDATE", "Chef Bia"],
     ]);
-    expect(h.value[1]!.changes).toEqual({ presentation: [null, "caixa de madeira"] });
+    expect(h.value[1]!.changes).toEqual({ purchaseUnitLabel: ["Caixa", "Saco"] });
     expect(h.value[1]!.occurredAt.getTime() - h.value[0]!.occurredAt.getTime()).toBe(60_000);
   });
 });

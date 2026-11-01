@@ -2,14 +2,13 @@ import type { Deps } from "../ports";
 import type { Origin } from "../context";
 import { err, ok, type Result } from "@/domain/shared/result";
 import { DEFAULT_GROUP_TREE, NEXT_GROUP_CODE_AFTER_DEFAULT } from "@/domain/inventory/default-tree";
-import { QUARANTINE_LOCATION_NAME } from "@/domain/inventory/location";
 
 export type SignUpInput = { restaurantName: string; userName: string; email: string; password: string };
 export type SignUpOutput = { restaurantId: string; userId: string; membershipId: string };
 
 export const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 
-/** Cria a conta do restaurante: login do gerente, restaurante, árvore padrão e quarentena (US5.1, FR-008, FR-014). */
+/** Cria a conta do restaurante: login do gerente, restaurante e árvore padrão de grupos (US5.1, FR-008). */
 export async function signUpRestaurant(
   deps: Deps,
   input: SignUpInput,
@@ -46,21 +45,6 @@ export async function signUpRestaurant(
       );
       await repos.members.create({ id: membershipId, userId, roles: ["MANAGER"] }, audit);
       await repos.groups.seedDefaultTree(DEFAULT_GROUP_TREE, () => deps.ids.next(), audit);
-      const quarantineId = deps.ids.next();
-      const q = await repos.locations.insert(
-        {
-          id: quarantineId,
-          name: QUARANTINE_LOCATION_NAME,
-          kind: "QUARANTINE",
-          tempMinC: null,
-          tempMaxC: null,
-          responsibleUserId: userId,
-          countOrder: 0,
-          isSystem: true,
-        },
-        audit,
-      );
-      if (!q.ok) return q;
       await repos.audit.record({
         entity: "restaurant",
         entityId: restaurantId,

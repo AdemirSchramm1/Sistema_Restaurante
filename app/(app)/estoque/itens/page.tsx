@@ -5,9 +5,8 @@ import { serverDeps } from "@/infra/server";
 import { listItems } from "@/application/inventory/list-items";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { listLocations } from "@/application/inventory/locations";
-import { ITEM_TYPES, ITEM_TYPE_LABELS, type ItemType } from "@/domain/inventory/item";
+import { ITEM_TYPES, ITEM_TYPE_LABELS, describePurchase, type ItemType } from "@/domain/inventory/item";
 import { can } from "@/domain/access/permissions";
-import { formatBrDecimal } from "@/domain/shared/decimal";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/card";
@@ -58,7 +57,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
       <form className="grid gap-2 sm:grid-cols-6" role="search">
         <Input
           name="q"
-          placeholder="Buscar por código, descrição ou EAN"
+          placeholder="Buscar por nome ou código"
           defaultValue={filter.q}
           aria-label="Buscar"
           className="sm:col-span-2"
@@ -103,10 +102,11 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
         <thead>
           <tr>
             <Th>Código</Th>
-            <Th>Descrição</Th>
-            <Th>Grupo › Subgrupo</Th>
+            <Th>Nome</Th>
+            <Th>Grupo</Th>
             <Th>Tipo</Th>
-            <Th>Unidades (compra → estoque → receita)</Th>
+            <Th>Medida</Th>
+            <Th>Como compra</Th>
           </tr>
         </thead>
         <tbody>
@@ -123,15 +123,13 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
                 {r.groupName} › {r.subgroupName}
               </Td>
               <Td>{ITEM_TYPE_LABELS[r.type]}</Td>
-              <Td>
-                {r.purchaseUnitLabel} ({formatBrDecimal(r.purchaseFactor)} {r.stockUnit}) → {r.stockUnit} →{" "}
-                {r.recipeUnit}
-              </Td>
+              <Td>{r.stockUnit}</Td>
+              <Td>{describePurchase(r) ?? <span className="text-muted-foreground">solto</span>}</Td>
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <Td colSpan={5} className="text-center text-muted-foreground">
+              <Td colSpan={6} className="text-center text-muted-foreground">
                 Nenhum item encontrado.
               </Td>
             </tr>

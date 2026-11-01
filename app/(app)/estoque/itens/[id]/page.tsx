@@ -28,7 +28,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const deps = serverDeps();
   const view = await getItem(deps, ctx, id);
   if (!view.ok) notFound();
-  const { item, equivalence, effectiveInCogs, locations } = view.value;
+  const { item, purchaseSummary, effectiveInCogs, locations } = view.value;
   const [tree, locs, history, restaurant] = await Promise.all([
     listGroupTree(deps, ctx),
     listLocations(deps, ctx),
@@ -54,12 +54,10 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         </span>
         {canWrite && <ItemActiveToggle id={item.id} version={item.version} active={item.active} />}
       </div>
-      {equivalence && (
-        <p className="text-sm">
-          Equivalência: 1 {item.purchaseUnitLabel} = {formatBrDecimal(equivalence.stock)} {item.stockUnit} ={" "}
-          {formatBrDecimal(equivalence.recipe)} {item.recipeUnit}
-        </p>
-      )}
+      <p className="text-sm">
+        Controlado em <strong>{item.stockUnit}</strong>
+        {purchaseSummary ? ` · compra: ${purchaseSummary}` : " · comprado solto"}
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <ItemForm
@@ -74,7 +72,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         <aside className="grid content-start gap-6">
           <Card className="grid gap-2 text-sm">
             <CardTitle>Custos</CardTitle>
-            <p className="text-muted-foreground">Calculados pelas movimentações de estoque. Não editáveis.</p>
+            <p className="text-muted-foreground">Calculados sozinhos pelas compras. Não dá para editar.</p>
             <dl className="grid grid-cols-2 gap-1">
               <dt>Custo médio</dt>
               <dd>{money(item.averageCost)}</dd>
@@ -86,8 +84,6 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
                   ? item.costUpdatedAt.toLocaleDateString("pt-BR", { timeZone: timezone })
                   : "—"}
               </dd>
-              <dt>Curva ABC</dt>
-              <dd>{item.abcClass ?? "—"}</dd>
             </dl>
           </Card>
           <CogsOverride
@@ -103,7 +99,6 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             links={locations.map((l) => ({
               locationId: l.locationId,
               isDefault: l.isDefault,
-              sheetPosition: l.sheetPosition,
             }))}
             options={locs.ok ? locs.value.map((l) => ({ id: l.id, name: l.name, kind: l.kind })) : []}
             canEdit={can(ctx.roles, "item_location.manage")}

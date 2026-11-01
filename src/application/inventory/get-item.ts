@@ -2,15 +2,15 @@ import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize } from "../shared";
 import type { ItemLocationLink } from "./ports";
-import { effectiveInCogs, stockUnitEquivalence, type Item } from "@/domain/inventory/item";
+import { describePurchase, effectiveInCogs, type Item } from "@/domain/inventory/item";
 import type { LocationKind } from "@/domain/inventory/location";
-import { d, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 export type ItemView = {
   item: Item;
   effectiveInCogs: boolean;
-  equivalence: { purchase: Decimal; stock: Decimal; recipe: Decimal } | null;
+  /** "1 Caixa = 20 kg", ou null quando o item é comprado solto. */
+  purchaseSummary: string | null;
   locations: (ItemLocationLink & { locationName: string; kind: LocationKind })[];
 };
 
@@ -23,11 +23,10 @@ export async function getItem(deps: Deps, ctx: RequestContext, id: string): Prom
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const item = await repos.items.get(id);
     if (!item) return err("NOT_FOUND");
-    const eq = stockUnitEquivalence(item, d(1));
     return ok({
       item,
       effectiveInCogs: effectiveInCogs(item),
-      equivalence: eq.ok ? eq.value : null,
+      purchaseSummary: describePurchase(item),
       locations: await repos.itemLocations.listForItem(id),
     });
   });

@@ -4,29 +4,18 @@ import type { Location, LocationData } from "@/domain/inventory/location";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { itemLocations, locations } from "../schema";
-import { dec, isUniqueViolation, str, withSavepoint } from "./util";
+import { isUniqueViolation, withSavepoint } from "./util";
 
 type Row = typeof locations.$inferSelect;
 const toLocation = (r: Row): Location => ({
   id: r.id,
   name: r.name,
   kind: r.kind,
-  tempMinC: dec(r.tempMinC),
-  tempMaxC: dec(r.tempMaxC),
-  responsibleUserId: r.responsibleUserId,
-  countOrder: r.countOrder,
   isSystem: r.isSystem,
   active: r.active,
   version: r.version,
 });
-const toRow = (l: LocationData) => ({
-  name: l.name.trim(),
-  kind: l.kind,
-  tempMinC: str(l.tempMinC),
-  tempMaxC: str(l.tempMaxC),
-  responsibleUserId: l.responsibleUserId,
-  countOrder: l.countOrder,
-});
+const toRow = (l: LocationData) => ({ name: l.name.trim(), kind: l.kind });
 
 export function locationRepository(tx: Tx, restaurantId: string): LocationRepo {
   async function guarded(fn: () => Promise<Result<void>>): Promise<Result<void>> {
@@ -80,7 +69,7 @@ export function locationRepository(tx: Tx, restaurantId: string): LocationRepo {
         .select()
         .from(locations)
         .where(includeInactive ? undefined : eq(locations.active, true))
-        .orderBy(asc(locations.countOrder), asc(locations.name));
+        .orderBy(asc(locations.name));
       return rows.map(toLocation);
     },
     setActive: (id, active, version, audit) => optimistic(id, version, { active }, audit),

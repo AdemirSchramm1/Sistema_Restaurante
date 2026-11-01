@@ -16,14 +16,14 @@ describe("edição concorrente do mesmo item (FR-031)", () => {
       ctx,
       created.value.id,
       1,
-      itemData({ subgroupId: sub, presentation: "caixa" }),
+      itemData({ subgroupId: sub, purchaseUnitLabel: "Saco" }),
     );
     const second = await updateItem(
       env.deps,
       ctx,
       created.value.id,
       1,
-      itemData({ subgroupId: sub, presentation: "saco" }),
+      itemData({ subgroupId: sub, purchaseUnitLabel: "Fardo" }),
     );
     expect(first.ok).toBe(true);
     expect(!second.ok && second.error.code).toBe("STALE_RECORD");
