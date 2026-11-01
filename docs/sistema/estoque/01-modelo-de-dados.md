@@ -18,10 +18,7 @@ erDiagram
   UNIT ||--o{ ITEM : "unidade de estoque"
   ITEM ||--o{ SUPPLIER_ITEM : "fornecido por"
   SUPPLIER ||--o{ SUPPLIER_ITEM : fornece
-  ITEM ||--o{ ITEM_LOCATION : "guardado em"
-  LOCATION ||--o{ ITEM_LOCATION : guarda
   ITEM ||--o{ STOCK_MOVEMENT : movimenta
-  LOCATION ||--o{ STOCK_MOVEMENT : "origem/destino"
   MOVEMENT_REASON ||--o{ STOCK_MOVEMENT : justifica
   STOCK_MOVEMENT ||--o| STOCK_MOVEMENT : estorna
   ITEM ||--o{ STOCK_BALANCE : saldo
@@ -86,17 +83,8 @@ logística (`lead_time_days`, `delivery_days int[]`, `min_order_value`), finance
 | current_price | numeric(14,4) | Por unidade de compra |
 | preferred | boolean | No máximo um por item |
 
-### `locations`
-| Coluna | Tipo | Notas |
-|---|---|---|
-| name | text | Nome real do espaço |
-| kind | enum | `DRY`, `CHILLED`, `FROZEN`, `STATION`, `BAR`, `CHEMICALS`, `NON_FOOD` (valores antigos `QUARANTINE`/`IN_TRANSIT` seguem no enum só por compatibilidade) |
-| is_system | boolean | Reservado; nenhum local novo é de sistema |
-
-Removidos na feature 002: `temp_min_c`, `temp_max_c`, `responsible_user_id`, `count_order`.
-
-### `item_locations`
-`item_id`, `location_id`, `is_default` (local principal). `sheet_position` removido na feature 002.
+### `locations` / `item_locations`
+Removidas na feature 002 (migração `0003_remove_locations`). O saldo é um só por item.
 
 ## Livro e projeções
 
@@ -109,7 +97,6 @@ vem de [06-movimentacoes](../../produto/estoque/06-movimentacoes.md#motivos-de-p
 |---|---|---|
 | type | enum | Os 13 tipos (ver [03-movimentacoes-e-saldo](03-movimentacoes-e-saldo.md)) |
 | item_id | uuid fk | |
-| location_id | uuid fk | Local afetado por esta linha |
 | quantity | numeric(14,4) | **Com sinal**, na unidade de estoque (+ entra, − sai) |
 | original_quantity / original_unit | numeric / text | Como foi digitado (rastreio) |
 | unit_cost | numeric(14,4) | Custo no momento |
@@ -131,7 +118,7 @@ Proteções:
 - Trigger que rejeita `UPDATE`/`DELETE` como segunda barreira.
 
 ### `stock_balances` (projeção)
-`item_id`, `location_id`, `quantity`, `updated_at`. Atualizada **na mesma transação** que insere a
+`item_id`, `quantity`, `updated_at`. Atualizada **na mesma transação** que insere a
 movimentação. Pode ser reconstruída a qualquer momento somando o livro (teste de integração verifica
 que projeção = soma do livro).
 

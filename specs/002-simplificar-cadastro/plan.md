@@ -1,4 +1,4 @@
-# Plano técnico: 002 — Simplificar o cadastro de itens e locais
+# Plano técnico: 002 — Simplificar o cadastro de itens e retirar os locais
 
 **Branch**: `002-simplificar-cadastro` | **Data**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 
@@ -59,3 +59,14 @@ tests/                       integração e E2E atualizados
 
 - Migração apaga dados: aceitável porque ainda não há restaurante em produção. Testada sobre um
   banco com dados da 001.
+
+## US3 — Retirada dos locais
+
+- Migração `0003_remove_locations`: apaga `item_locations`, `locations` e o enum `location_kind`.
+  Nenhuma outra tabela aponta para elas.
+- Saem `location.ts`, `suggested-locations.ts`, `location-input.ts`, `locations.ts`,
+  `set-item-locations.ts`, os repositórios, `actions/locations.ts`, a tela `estoque/locais`, o
+  quadro "Onde fica guardado" do item, o filtro por local da lista e as permissões
+  `location.manage` e `item_location.manage`.
+- Depois de criar a conta, a pessoa vai para `/estoque/itens`.
+- O livro de movimentações (feature 004) terá um saldo por item, sem `location_id`.

@@ -4,7 +4,6 @@ import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { listItems } from "@/application/inventory/list-items";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
-import { listLocations } from "@/application/inventory/locations";
 import { ITEM_TYPES, ITEM_TYPE_LABELS, describePurchase, type ItemType } from "@/domain/inventory/item";
 import { can } from "@/domain/access/permissions";
 import { buttonVariants } from "@/components/ui/button";
@@ -24,15 +23,10 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
     q: one(sp.q),
     groupId: one(sp.grupo),
     type: ITEM_TYPES.includes(one(sp.tipo) as ItemType) ? (one(sp.tipo) as ItemType) : undefined,
-    locationId: one(sp.local),
     status: (one(sp.situacao) as "active" | "inactive" | "all") ?? "active",
     page: Number.parseInt(one(sp.pagina) ?? "1", 10),
   };
-  const [list, tree, locs] = await Promise.all([
-    listItems(deps, ctx, filter),
-    listGroupTree(deps, ctx),
-    listLocations(deps, ctx),
-  ]);
+  const [list, tree] = await Promise.all([listItems(deps, ctx, filter), listGroupTree(deps, ctx)]);
   const rows = list.ok ? list.value.rows : [];
   const total = list.ok ? list.value.total : 0;
   const pages = list.ok ? Math.max(1, Math.ceil(total / list.value.pageSize)) : 1;
@@ -54,7 +48,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
           </Link>
         )}
       </div>
-      <form className="grid gap-2 sm:grid-cols-6" role="search">
+      <form className="grid gap-2 sm:grid-cols-5" role="search">
         <Input
           name="q"
           placeholder="Buscar por nome ou código"
@@ -74,15 +68,6 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
               {ITEM_TYPE_LABELS[t]}
             </option>
           ))}
-        </Select>
-        <Select name="local" defaultValue={filter.locationId ?? ""} aria-label="Local">
-          <option value="">Todos os locais</option>
-          {locs.ok &&
-            locs.value.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
         </Select>
         <div className="flex gap-2">
           <Select name="situacao" defaultValue={filter.status} aria-label="Situação">

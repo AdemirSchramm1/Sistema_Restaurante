@@ -25,7 +25,6 @@ A faixa de CMV mais citada no Brasil vai de 25% a 35% do faturamento (até 40% �
 | Itens (nome, grupo, medida, embalagem de compra, custos) | [01-grupos-de-itens](01-grupos-de-itens.md), [02-cadastro-de-itens](02-cadastro-de-itens.md) |
 | Fornecedores | [03-fornecedores](03-fornecedores.md) |
 | Produtos (o que o cliente pede e quanto de cada item usa) | [04-fichas-tecnicas](04-fichas-tecnicas.md) |
-| Locais | [05-locais](05-locais.md) |
 | Movimentações | [06-movimentacoes](06-movimentacoes.md) |
 
 ## O ciclo fechado
@@ -48,7 +47,7 @@ Spec Kit (`specs/NNN-nome/`).
 | # | Feature | Depende de | Entrega |
 |---|---|---|---|
 | 001 | Cadastros base: grupos, locais, itens | – | Feito |
-| 002 | Simplificar o cadastro de itens e locais | 001 | Feito: só nome, grupo, medida e embalagem |
+| 002 | Simplificar o cadastro e retirar os locais | 001 | Feito: só nome, grupo, medida e embalagem; sem locais |
 | 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Tela de produtos com a lista de itens e quantidades |
 | 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Compra entra, perda sai com motivo |
 | 005 | Baixa automática por pedido (manual primeiro; PDV depois) | 003, 004 | Estoque diminui conforme os clientes pedem |
@@ -57,4 +56,4 @@ Spec Kit (`specs/NNN-nome/`).
 | 008 | Painel de custo dos produtos | 003, 004 | Quanto custa cada produto vendido |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,
-conferência cega e fiscal.
+conferência cega, fiscal e locais de armazenamento (o saldo é um só por item).

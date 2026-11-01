@@ -1,5 +1,4 @@
 import { ITEM_TYPE_LABELS, type ItemType } from "@/domain/inventory/item";
-import { LOCATION_KIND_LABELS, type LocationKind } from "@/domain/inventory/location";
 import { STORAGE_CLASS_LABELS, type StorageClass } from "@/domain/inventory/default-tree";
 import { ROLE_LABELS, type Role } from "@/domain/access/permissions";
 
@@ -69,7 +68,6 @@ function one(field: string, v: unknown): string {
   if (typeof v === "number") return String(v);
   if (typeof v !== "string") return String(v);
   if (field === "type" && v in ITEM_TYPE_LABELS) return ITEM_TYPE_LABELS[v as ItemType];
-  if (field === "kind" && v in LOCATION_KIND_LABELS) return LOCATION_KIND_LABELS[v as LocationKind];
   if (field === "storageClass" && v in STORAGE_CLASS_LABELS) return STORAGE_CLASS_LABELS[v as StorageClass];
   if (field === "roles" && v in ROLE_LABELS) return ROLE_LABELS[v as Role];
   if (DECIMAL.test(v)) return v.replace(".", ",");

@@ -10,9 +10,7 @@ import {
   restaurantRepository,
 } from "./db/repositories/access-repositories";
 import { groupRepository } from "./db/repositories/group-repository";
-import { locationRepository } from "./db/repositories/location-repository";
 import { itemRepository } from "./db/repositories/item-repository";
-import { itemLocationRepository } from "./db/repositories/item-location-repository";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
 import { cryptoTokens } from "./tokens";
@@ -33,9 +31,7 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     members: memberRepository(tx, restaurantId, uuidIds.next),
     invitations: invitationRepository(tx, restaurantId),
     groups: groupRepository(tx, restaurantId),
-    locations: locationRepository(tx, restaurantId),
     items: itemRepository(tx, restaurantId),
-    itemLocations: itemLocationRepository(tx, restaurantId),
   };
 }
 

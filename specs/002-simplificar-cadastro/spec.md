@@ -1,4 +1,4 @@
-# Feature 002 — Simplificar o cadastro de itens e locais
+# Feature 002 — Simplificar o cadastro de itens e retirar os locais
 
 **Branch**: `002-simplificar-cadastro` · **Criada**: 2026-11-01 · **Status**: em revisão
 
@@ -10,7 +10,7 @@ receita, fator, conversão) era confusa. Decisão registrada em
 [13-decisoes-adotadas](../../docs/produto/estoque/13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
 
 Regras de negócio: [02-cadastro-de-itens](../../docs/produto/estoque/02-cadastro-de-itens.md) e
-[05-locais](../../docs/produto/estoque/05-locais.md).
+[13-decisoes-adotadas](../../docs/produto/estoque/13-decisoes-adotadas.md).
 
 ## Histórias
 
@@ -30,11 +30,20 @@ precisar saber termos técnicos.
 5. O formulário não tem temperatura, validade, alérgenos, EAN, NCM, CEST, origem, contagem,
    unidade de receita nem fator de conversão.
 
-### US2 — Locais sem burocracia (P2)
+### US2 — Locais sem burocracia (P2) — substituída pela US3
 
 1. O local tem só nome e tipo.
 2. No item, marco em quais locais ele fica e qual é o principal. Não há posição na folha.
 3. Não existe mais a folha de contagem impressa nem o local de quarentena criado sozinho.
+
+### US3 — Sem locais (P1, pedida depois do primeiro teste)
+
+O dono viu que locais não eram usados para nada: o estoque baixa pelos pedidos e não há contagem
+por local.
+
+1. O menu não tem "Locais"; depois de criar a conta, a pessoa cai em Itens.
+2. A tela do item não pergunta onde ele fica guardado; a lista de itens não filtra por local.
+3. O banco não tem mais `locations` nem `item_locations` (migração `0003_remove_locations`).
 
 ## Requisitos
 

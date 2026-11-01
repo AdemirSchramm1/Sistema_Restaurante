@@ -32,3 +32,6 @@ a exige (TDD).
 
 - [x] T020 [teste] Textos da tela de grupos sem sigla solta (`src/components/groups/group-labels.test.ts`) per FR-005 (partial)
 - [x] T021 Tela de grupos usa "Que tipo de coisa é" e "Conta no custo dos pratos (CMV)" (`group-labels.ts`, `app/(app)/estoque/grupos/page.tsx`) per FR-005 (partial)
+- [x] T013 [teste] US3: sem permissões de locais, banco sem tabelas de locais, menu sem Locais (e2e)
+- [x] T014 US3: remover tela, casos de uso, repositórios e tabelas de locais (migração `0003_remove_locations`)
+- [x] T015 US3: docs (`05-locais` removido; 00, 01, 13, modelo de dados, plano de testes, glossário)

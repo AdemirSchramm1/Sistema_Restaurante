@@ -2,17 +2,13 @@
 
 > Fonte: Manual de Referência "Estoque de Restaurante" (out/2026), seção 1.
 
-O estoque de um restaurante guarda muito mais do que comida. O sistema classifica cada item em
-três eixos independentes:
+O estoque de um restaurante guarda muito mais do que comida. O sistema classifica cada item por:
 
 1. **Alimentar ou não alimentar.**
 2. **Grupo e subgrupo pela natureza do produto** (proteínas, hortifrúti, laticínios, secos, bebidas…).
-3. **Condição de armazenamento** (seco, refrigerado, congelado), que vem do **local**, não do grupo.
 
-## Regra: grupo ≠ local ("shelf-to-sheet")
-
-O **grupo** diz *o que o item é*. O **local** diz *onde ele está guardado*. A mesma categorização
-aparece na prateleira e no relatório.
+O grupo diz *o que o item é*. Onde o item fica guardado não é controlado pelo sistema (decisão de
+novembro de 2026, ver [13-decisoes-adotadas](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026)).
 
 ## Tipos de item
 
