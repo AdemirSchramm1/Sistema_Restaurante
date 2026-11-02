@@ -89,7 +89,7 @@ function ShareCell({ p }: { p: ProductCost }) {
 function MarginCell({ p }: { p: ProductCost }) {
   if (!p.margin) return <span className="text-muted-foreground">—</span>;
   if (p.margin.isNegative()) return <strong className="text-red-800">Prejuízo de {money(p.margin)}</strong>;
-  return <span className="tabular-nums">{money(p.margin)}</span>;
+  return <span className="whitespace-nowrap tabular-nums">{money(p.margin)}</span>;
 }
 
 function HeaviestCell({ p }: { p: ProductCost }) {
@@ -136,10 +136,10 @@ export function ProductCostTable({ panel }: { panel: ProductCostPanel }) {
                   {p.name}
                 </Link>
               </Td>
-              <Td className="tabular-nums">
+              <Td className="whitespace-nowrap tabular-nums">
                 {p.cost ? money(p.cost) : <span className="text-muted-foreground">Sem custo ainda</span>}
               </Td>
-              <Td className="tabular-nums">
+              <Td className="whitespace-nowrap tabular-nums">
                 {p.salePrice ? (
                   money(p.salePrice)
                 ) : (

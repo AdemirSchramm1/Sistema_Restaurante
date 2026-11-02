@@ -18,6 +18,7 @@ export const FIELD_LABELS: Record<string, string> = {
   purchaseFactor: "Quanto vem na embalagem",
   reorderPoint: "Avisar quando chegar em",
   parLevel: "Comprar até",
+  salePrice: "Preço de venda",
   recipeUnit: "Unidade de receita",
   conversions: "Conversão do item",
   eanUnit: "EAN da unidade",
