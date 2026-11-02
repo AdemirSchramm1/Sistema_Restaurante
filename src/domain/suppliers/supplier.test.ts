@@ -132,12 +132,10 @@ describe("preço por medida (FR-005, US3)", () => {
     expect(pricePerUnit({ price: d("4.5"), packageQuantity: null }).toString()).toBe("4.5");
   });
 
-  it("é exato: R$ 10,00 por 3 kg não vira número de ponto flutuante", () => {
-    expect(
-      pricePerUnit({ price: d(10), packageQuantity: d(3) })
-        .times(3)
-        .toString(),
-    ).toBe("10");
+  it("é decimal: R$ 10,00 por 3 kg = 3,3333… (sem ponto flutuante)", () => {
+    const p = pricePerUnit({ price: d(10), packageQuantity: d(3) });
+    expect(p.toDecimalPlaces(4).toString()).toBe("3.3333");
+    expect(p.times(3).toDecimalPlaces(10).toString()).toBe("10");
   });
 
   it("mais barato por medida, comparando caixas de tamanhos diferentes", () => {

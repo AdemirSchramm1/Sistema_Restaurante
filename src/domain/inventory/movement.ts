@@ -51,8 +51,16 @@ function checkReason(reason: MovementReason | undefined, type: ReasonMovementTyp
   return reason && reason.movementType === type ? ok(reason) : err("INVALID_REASON", "reasonId");
 }
 
+/** Embalagem de um fornecedor (spec 007): nome e quanto vem, na medida do item. */
+export type SupplierPackage = { packageLabel: string; packageQuantity: Decimal };
+type PurchaseUnit = UnitCode | "PACKAGE" | SupplierPackage;
+
 /** Quantidade digitada (na medida do item, numa da mesma família ou em embalagens) → medida do item. */
-function toItemUnit(item: StockItem, qty: Decimal, unit: UnitCode | "PACKAGE"): Result<Decimal> {
+function toItemUnit(item: StockItem, qty: Decimal, unit: PurchaseUnit): Result<Decimal> {
+  if (typeof unit === "object") {
+    const r = toStockUnit(qty, unit.packageQuantity);
+    return r.ok ? r : err(r.error.code, "unit");
+  }
   if (unit === "PACKAGE") {
     if (!item.purchaseFactor) return err("UNKNOWN_UNIT", "unit");
     const r = toStockUnit(qty, item.purchaseFactor);
@@ -76,7 +84,7 @@ function outflow(item: StockItem, qty: Decimal): Result<{ unitCost: Decimal; tot
 
 export type PurchaseInput = {
   quantity: Decimal;
-  unit: UnitCode | "PACKAGE";
+  unit: PurchaseUnit;
   totalPaid: Decimal;
   occurredAt: Date;
 };
@@ -100,7 +108,12 @@ export function planPurchase(
     unitCost,
     totalCost: input.totalPaid,
     enteredQuantity: input.quantity,
-    enteredUnit: input.unit === "PACKAGE" ? item.purchaseUnitLabel! : input.unit,
+    enteredUnit:
+      typeof input.unit === "object"
+        ? input.unit.packageLabel
+        : input.unit === "PACKAGE"
+          ? item.purchaseUnitLabel!
+          : input.unit,
     newAverageCost: avg8(
       applyPurchase({ qty: item.balance, avgCost: item.averageCost }, { qty: qty.value, unitCost }),
     ),

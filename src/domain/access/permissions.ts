@@ -21,6 +21,7 @@ export const ACTIONS = [
   "adjustment.request",
   "adjustment.approve",
   "movement.reverse",
+  "supplier.write",
   "group.manage",
   "user.invite",
   "user.manage",
@@ -31,7 +32,7 @@ const MATRIX: Record<Role, readonly Action[]> = {
   MANAGER: ACTIONS,
   CHEF: ["catalog.read", "item.write", "recipe.write", "movement.loss", "adjustment.request"],
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
-  BUYER: ["catalog.read", "movement.purchase", "adjustment.request"],
+  BUYER: ["catalog.read", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
 };
 

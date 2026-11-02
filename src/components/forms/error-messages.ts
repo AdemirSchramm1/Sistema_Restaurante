@@ -51,6 +51,12 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   REQUEST_NOT_PENDING: "Este pedido de acerto já foi decidido.",
   ALREADY_REVERSED: "Este lançamento já foi estornado.",
   CANNOT_REVERSE_REVERSAL: "Estorno não se estorna. Lance de novo o que for certo.",
+  INVALID_CNPJ: "CNPJ inválido. Confira os números (ex.: 11.222.333/0001-81).",
+  CNPJ_IN_USE: "Já existe um fornecedor com este CNPJ.",
+  INVALID_EMAIL: "E-mail inválido (ex.: vendas@fornecedor.com.br).",
+  INVALID_PRICE: "Preço inválido. Precisa ser maior que zero (ex.: 90,00).",
+  SUPPLIER_ITEM_DUPLICATE: "Este item já está na lista deste fornecedor.",
+  SUPPLIER_BLOCKED: "Este fornecedor está bloqueado. Desbloqueie ou escolha outro.",
 };
 
 export function messageFor(error: DomainError): string {
@@ -61,5 +67,7 @@ export function messageFor(error: DomainError): string {
     return `Não há estoque suficiente: só há ${String(error.details.available).replace(".", ",")} ${String(error.details.unit)}.`;
   if (error.code === "RECIPE_IN_USE" && Array.isArray(error.details?.usedBy))
     return `Este preparo está em uso em: ${(error.details.usedBy as string[]).join(", ")}. Tire dele primeiro.`;
+  if (error.code === "CNPJ_IN_USE" && error.details?.existingName)
+    return `Já existe um fornecedor com este CNPJ: ${String(error.details.existingName)}.`;
   return base;
 }
