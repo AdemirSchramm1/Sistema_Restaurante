@@ -67,3 +67,10 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
 
   return ok({ name: text(raw.name), kind, yieldQuantity, yieldUnit, lines });
 }
+
+/** Esqueleto (spec 008, US1). */
+export function parseSalePriceForm(
+  _raw: Record<string, unknown>,
+): Result<{ id: string; version: number; salePrice: Decimal | null }> {
+  return err("NOT_IMPLEMENTED" as never);
+}

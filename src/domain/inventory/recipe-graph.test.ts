@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { explode, findCycle, recipeCost, type RecipeNode, type ItemCostInfo } from "./recipe-graph";
+import { explode, findCycle, recipeCost, usesItem, type RecipeNode, type ItemCostInfo } from "./recipe-graph";
 import { d } from "../shared/decimal";
 import { dishData, itemLine, prepData, prepLine } from "../../../tests/builders/recipe-data";
 
@@ -102,5 +102,22 @@ describe("custo do produto (FR-005)", () => {
     expect(c.lines[1]!.missingItemIds).toEqual(["semcusto"]);
     expect(c.total).toBeNull();
     expect(c.missingItemIds).toEqual(["semcusto"]);
+  });
+});
+
+describe("produtos em que o item entra (spec 008, US3)", () => {
+  it("usa o item direto numa linha", () => {
+    expect(usesItem(dishData().lines, "carne", graphOf())).toBe(true);
+  });
+
+  it("usa o item dentro de um preparo, em qualquer nível", () => {
+    const base = node("base", prepData({ name: "Base", lines: [prepLine("molho", "1", "kg")] }));
+    const lines = [itemLine("pao", "1", "un"), prepLine("base", "100", "g")];
+    expect(usesItem(lines, "cebola", graphOf(MOLHO, base))).toBe(true);
+  });
+
+  it("não usa o item", () => {
+    const lines = [itemLine("pao", "1", "un"), prepLine("molho", "50", "g")];
+    expect(usesItem(lines, "queijo", graphOf(MOLHO))).toBe(false);
   });
 });

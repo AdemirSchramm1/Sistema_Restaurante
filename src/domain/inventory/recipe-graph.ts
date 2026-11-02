@@ -106,3 +106,12 @@ export function recipeCost(
   const total = complete ? out.reduce((s, l) => s.plus(l.cost!), d(0)) : null;
   return { lines: out, total, missingItemIds };
 }
+
+/** Esqueleto (spec 008, US3). */
+export function usesItem(
+  _lines: readonly RecipeLineData[],
+  _itemId: string,
+  _graph: Map<string, RecipeNode>,
+): boolean {
+  return false;
+}
