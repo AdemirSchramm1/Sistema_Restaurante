@@ -92,7 +92,9 @@ Decisão do dono (2026-11-02): **acerto com aprovação** de outra pessoa.
   estoquista; pedir acerto = gerente, chef, estoquista, comprador; aprovar acerto e estornar =
   gerente, e quem aprova não pode ser quem pediu. Tentativa negada vai para a auditoria.
 - **FR-007** Lançamento repetido (mesma chave do formulário) não duplica (`idempotency_key`).
-- **FR-008** Dinheiro e quantidade em decimal exato; custo unitário com 4 casas, total com 2.
+- **FR-008** Dinheiro e quantidade em decimal exato. Arredondamento só ao gravar: custo unitário da
+  movimentação com 4 casas, total com 2, custo médio do item com 8 (para o estorno de compra
+  voltar à média de antes sem erro acumulado). A tela mostra 2 casas.
 - **FR-009** Motivos em lista fechada por tipo, com família; texto livre só na observação.
 - **FR-010** Item inativo não recebe lançamento novo (estorno de lançamento antigo continua possível).
 

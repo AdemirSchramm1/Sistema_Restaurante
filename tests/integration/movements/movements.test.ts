@@ -20,7 +20,7 @@ import {
   reverseMovement,
 } from "../../../src/application/inventory/movements";
 import type { RequestContext } from "../../../src/application/context";
-import { reasonByCode } from "../../../src/domain/inventory/movement-reasons";
+import { MOVEMENT_REASONS, reasonByCode } from "../../../src/domain/inventory/movement-reasons";
 import { d } from "../../../src/domain/shared/decimal";
 import { withTenantTx } from "../../../src/infra/db/db";
 
@@ -76,7 +76,8 @@ async function stock(env: TestEnv, ctx: RequestContext, itemId: string) {
   const v = unwrap(await getItem(env.deps, ctx, itemId));
   return {
     balance: v.balance.toString(),
-    avg: v.item.averageCost?.toString() ?? null,
+    // Custo médio comparado com 4 casas (é guardado com 8, spec 004 FR-008).
+    avg: v.item.averageCost?.toDecimalPlaces(4).toString() ?? null,
     last: v.item.lastCost?.toString() ?? null,
   };
 }
@@ -380,6 +381,15 @@ describe("estorno (spec 004, US5)", () => {
 });
 
 describe("livro imutável e segurança (constituição III e V)", () => {
+  it("motivos do banco são os mesmos do domínio", async () => {
+    const r = await ownerTestDb().$client.query<{ id: string; code: string; movement_type: string }>(
+      "select id, code, movement_type from movement_reasons order by position",
+    );
+    expect(r.rows.map((x) => [x.id, x.movement_type, x.code])).toEqual(
+      MOVEMENT_REASONS.map((x) => [x.id, x.movementType, x.code]),
+    );
+  });
+
   it("movimentação não muda nem some, nem pela aplicação nem pelo dono", async () => {
     const env = testEnv();
     const ctx = await newRestaurant(env);

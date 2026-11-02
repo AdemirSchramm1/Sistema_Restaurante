@@ -90,7 +90,8 @@ export const items = pgTable(
     purchaseUnitLabel: text("purchase_unit_label"),
     purchaseFactor: numeric("purchase_factor", { precision: 14, scale: 4 }),
     inCogsOverride: boolean("in_cogs_override"),
-    averageCost: numeric("average_cost", { precision: 14, scale: 4 }),
+    // 8 casas: o estorno de compra refaz a média sem acumular erro de arredondamento (spec 004).
+    averageCost: numeric("average_cost", { precision: 18, scale: 8 }),
     lastCost: numeric("last_cost", { precision: 14, scale: 4 }),
     costUpdatedAt: timestamp("cost_updated_at", { withTimezone: true }),
     abcClass: char("abc_class", { length: 1 }),

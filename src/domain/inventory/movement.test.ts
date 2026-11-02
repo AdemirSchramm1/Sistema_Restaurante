@@ -53,7 +53,7 @@ describe("compra (spec 004, US1)", () => {
     expect(r.value.unitCost.toString()).toBe("4");
     expect(r.value.totalCost.toString()).toBe("240");
     expect(r.value.enteredUnit).toBe("Caixa");
-    expect(r.value.newAverageCost.toString()).toBe("3.8571");
+    expect(r.value.newAverageCost.toString()).toBe("3.85714286");
   });
 
   it("compra na medida do item ou numa da mesma família (500 g de item em kg)", () => {
@@ -187,13 +187,15 @@ describe("estorno (spec 004, US5)", () => {
   };
 
   it("estorno de compra tira o que entrou e recalcula a média", () => {
-    const item = tomato({ balance: d(70), averageCost: d("3.857142857142857142857") });
+    const item = tomato({ balance: d(70), averageCost: d("3.85714286") });
     const r = planReversal(purchase, item, reversal);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.value.quantity.toString()).toBe("-60");
     expect(r.value.totalCost.toString()).toBe("-240");
     expect(r.value.newAverageCost?.toDecimalPlaces(4).toString()).toBe("3");
+    expect(r.value.newAverageCost?.decimalPlaces()).toBeLessThanOrEqual(8);
+    expect(r.value.newAverageCost?.decimalPlaces()).toBeLessThanOrEqual(8);
   });
 
   it("estorno de perda devolve a quantidade e não mexe na média", () => {
