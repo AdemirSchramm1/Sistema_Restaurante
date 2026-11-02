@@ -57,6 +57,13 @@
       "when": 1793642171225,
       "tag": "0007_reorder_levels",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793645538478,
+      "tag": "0008_sale_price",
+      "breakpoints": true
     }
   ]
 }

@@ -116,6 +116,8 @@ export type RecipeRecord = {
   kind: RecipeKind;
   active: boolean;
   version: number;
+  /** Preço de venda (só produto vendido; spec 008). */
+  salePrice: Decimal | null;
   current: RecipeVersionRecord;
 };
 export type RecipeListRow = {
@@ -142,6 +144,7 @@ export interface RecipeRepo {
     audit: Audit,
   ): Promise<Result<void>>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
+  setSalePrice(id: string, salePrice: Decimal | null, version: number, audit: Audit): Promise<Result<void>>;
   insertVersion(
     v: Omit<RecipeVersionRecord, "id"> & { id: string; recipeId: string },
     lineIds: () => string,
@@ -154,6 +157,8 @@ export interface RecipeRepo {
   findActiveByName(normalized: string, exceptId?: string): Promise<{ id: string } | null>;
   /** Versão mais nova de cada preparo do restaurante (ativos e inativos). */
   subRecipeGraph(): Promise<Map<string, RecipeNode>>;
+  /** Produtos ativos (vendidos e preparos) com a versão mais nova, em ordem de nome. */
+  activeWithLatest(): Promise<RecipeRecord[]>;
   /** Nomes dos produtos ativos cuja versão mais nova usa este preparo. */
   usedBy(recipeId: string): Promise<string[]>;
   /** Itens e preparos pelos ids (só os do restaurante, pelo RLS). */

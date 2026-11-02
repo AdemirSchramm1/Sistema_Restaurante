@@ -288,7 +288,7 @@ export async function getRecipe(deps: Deps, ctx: RequestContext, id: string): Pr
         yieldQuantity: v.yieldQuantity,
         yieldUnit: v.yieldUnit,
       },
-      salePrice: null,
+      salePrice: r.salePrice,
       versionNumber: v.number,
       validFrom: v.validFrom,
       lines: v.lines.map((l: RecipeLineData, i): RecipeLineView => {
