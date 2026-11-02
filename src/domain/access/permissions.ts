@@ -15,6 +15,7 @@ export const ACTIONS = [
   "catalog.read",
   "item.write",
   "item.cogs_override",
+  "item.reorder",
   "recipe.write",
   "movement.purchase",
   "movement.loss",
@@ -30,9 +31,9 @@ export type Action = (typeof ACTIONS)[number];
 
 const MATRIX: Record<Role, readonly Action[]> = {
   MANAGER: ACTIONS,
-  CHEF: ["catalog.read", "item.write", "recipe.write", "movement.loss", "adjustment.request"],
+  CHEF: ["catalog.read", "item.write", "item.reorder", "recipe.write", "movement.loss", "adjustment.request"],
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
-  BUYER: ["catalog.read", "movement.purchase", "adjustment.request", "supplier.write"],
+  BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
 };
 
