@@ -109,7 +109,10 @@ export const items = pgTable(
     check("items_purchase_factor", sql`purchase_factor > 0`),
     check("items_purchase_pair", sql`(purchase_unit_label is null) = (purchase_factor is null)`),
     check("items_reorder_point", sql`reorder_point >= 0`),
-    check("items_par_level", sql`par_level is null or (reorder_point is not null and par_level > reorder_point)`),
+    check(
+      "items_par_level",
+      sql`par_level is null or (reorder_point is not null and par_level > reorder_point)`,
+    ),
   ],
 );
 

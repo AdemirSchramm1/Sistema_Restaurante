@@ -64,30 +64,28 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
              where i.restaurant_id = ${restaurantId} and ${sql.join(where, sql` and `)}
              order by i.description`,
       );
-      return r.map(
-        (x): ReorderRow => ({
-          itemId: x.id,
-          code: x.code,
-          name: x.description,
-          unit: UNIT_CODE_BY_ID[x.stock_unit_id]!,
-          active: x.active,
-          balance: d(x.balance ?? "0"),
-          reorderPoint: dec(x.reorder_point),
-          parLevel: dec(x.par_level),
-          purchaseUnitLabel: x.purchase_unit_label,
-          purchaseFactor: dec(x.purchase_factor),
-          supplier: x.s_name
-            ? {
-                name: x.s_name,
-                phone: x.s_phone,
-                leadTimeDays: x.s_lead,
-                deliveryDays: x.s_days ?? [],
-                packageLabel: x.s_label,
-                packageQuantity: dec(x.s_qty),
-              }
-            : null,
-        }),
-      );
+      return r.map((x): ReorderRow => ({
+        itemId: x.id,
+        code: x.code,
+        name: x.description,
+        unit: UNIT_CODE_BY_ID[x.stock_unit_id]!,
+        active: x.active,
+        balance: d(x.balance ?? "0"),
+        reorderPoint: dec(x.reorder_point),
+        parLevel: dec(x.par_level),
+        purchaseUnitLabel: x.purchase_unit_label,
+        purchaseFactor: dec(x.purchase_factor),
+        supplier: x.s_name
+          ? {
+              name: x.s_name,
+              phone: x.s_phone,
+              leadTimeDays: x.s_lead,
+              deliveryDays: x.s_days ?? [],
+              packageLabel: x.s_label,
+              packageQuantity: dec(x.s_qty),
+            }
+          : null,
+      }));
     },
 
     async countAtReorderPoint() {
@@ -131,16 +129,14 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
              where i.restaurant_id = ${restaurantId} and i.active
                and (o.item_id is not null or coalesce(b.quantity, 0) > 0) ${only}`,
       );
-      return r.map(
-        (x): OutflowByItem => ({
-          itemId: x.id,
-          name: x.description,
-          unit: UNIT_CODE_BY_ID[x.stock_unit_id]!,
-          quantity: d(x.qty),
-          value: d(x.value),
-          balance: d(x.balance ?? "0"),
-        }),
-      );
+      return r.map((x): OutflowByItem => ({
+        itemId: x.id,
+        name: x.description,
+        unit: UNIT_CODE_BY_ID[x.stock_unit_id]!,
+        quantity: d(x.qty),
+        value: d(x.value),
+        balance: d(x.balance ?? "0"),
+      }));
     },
 
     async outflowByReason(from, to) {

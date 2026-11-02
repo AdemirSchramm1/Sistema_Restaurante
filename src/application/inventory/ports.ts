@@ -310,7 +310,11 @@ export interface ReportRepo {
   outflowByReason(from: Date, to: Date): Promise<{ reasonId: string; value: Decimal }[]>;
   totals(from: Date, to: Date): Promise<{ inflow: Decimal; outflow: Decimal; losses: Decimal }>;
   /** Entradas e saídas por semana (segunda a domingo, no fuso dado); semanas sem movimento vêm zeradas. */
-  weekly(from: Date, to: Date, timezone: string): Promise<{ weekStart: string; inflow: Decimal; outflow: Decimal }[]>;
+  weekly(
+    from: Date,
+    to: Date,
+    timezone: string,
+  ): Promise<{ weekStart: string; inflow: Decimal; outflow: Decimal }[]>;
 }
 
 export type CatalogRepos = {

@@ -108,7 +108,12 @@ describe("sugestão pelo consumo (spec 006, FR-005)", () => {
   });
 
   it("180 kg em 30 dias, entrega 1 dia depois, a cada 3,5 dias: PP 10,2 e comprar até 25,2", () => {
-    const r = suggestReorderLevels({ consumed: d(180), periodDays: 30, leadTimeDays: 1, deliveryDaysCount: 2 });
+    const r = suggestReorderLevels({
+      consumed: d(180),
+      periodDays: 30,
+      leadTimeDays: 1,
+      deliveryDaysCount: 2,
+    });
     expect(r).not.toBeNull();
     expect(s(r!.averageDailyUsage)).toBe("6");
     // ES = 6 × 3,5 × 0,2 = 4,2; PP = 6 × 1 + 4,2; Par = 6 × 3,5 + 4,2
@@ -117,14 +122,21 @@ describe("sugestão pelo consumo (spec 006, FR-005)", () => {
   });
 
   it("sem fornecedor preferido usa prazo de 1 dia e ciclo de 7 dias", () => {
-    const r = suggestReorderLevels({ consumed: d(30), periodDays: 30, leadTimeDays: null, deliveryDaysCount: 0 });
+    const r = suggestReorderLevels({
+      consumed: d(30),
+      periodDays: 30,
+      leadTimeDays: null,
+      deliveryDaysCount: 0,
+    });
     // CMD 1; ES = 1 × 7 × 0,2 = 1,4; PP = 1 + 1,4; Par = 7 + 1,4
     expect(s(r!.reorderPoint)).toBe("2.4");
     expect(s(r!.parLevel)).toBe("8.4");
   });
 
   it("sem consumo não há sugestão", () => {
-    expect(suggestReorderLevels({ consumed: d(0), periodDays: 30, leadTimeDays: 1, deliveryDaysCount: 2 })).toBeNull();
+    expect(
+      suggestReorderLevels({ consumed: d(0), periodDays: 30, leadTimeDays: 1, deliveryDaysCount: 2 }),
+    ).toBeNull();
   });
 });
 
@@ -142,13 +154,25 @@ describe("quanto comprar na lista Repor (spec 006, FR-006)", () => {
   });
 
   it("sem embalagem fica na medida do item", () => {
-    const r = planOrder({ balance: d(2), parLevel: d(10), averageDailyUsage: d(0), leadTimeDays: 1, package: null });
+    const r = planOrder({
+      balance: d(2),
+      parLevel: d(10),
+      averageDailyUsage: d(0),
+      leadTimeDays: 1,
+      package: null,
+    });
     expect(s(r.quantity)).toBe("8");
     expect(r.packages).toBeNull();
   });
 
   it("sem comprar até não calcula quantidade", () => {
-    const r = planOrder({ balance: d(2), parLevel: null, averageDailyUsage: d(1), leadTimeDays: 1, package: null });
+    const r = planOrder({
+      balance: d(2),
+      parLevel: null,
+      averageDailyUsage: d(1),
+      leadTimeDays: 1,
+      package: null,
+    });
     expect(r.quantity).toBeNull();
     expect(r.packages).toBeNull();
   });

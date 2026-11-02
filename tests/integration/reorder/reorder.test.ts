@@ -47,7 +47,13 @@ async function item(env: TestEnv, ctx: RequestContext, description: string, unit
   const data =
     unit === "kg"
       ? itemData({ subgroupId: sub, description })
-      : itemData({ subgroupId: sub, description, stockUnit: "un", purchaseUnitLabel: null, purchaseFactor: null });
+      : itemData({
+          subgroupId: sub,
+          description,
+          stockUnit: "un",
+          purchaseUnitLabel: null,
+          purchaseFactor: null,
+        });
   return unwrap(await createItem(env.deps, ctx, data)).id;
 }
 
@@ -110,7 +116,9 @@ describe("aviso do item (spec 006, US1)", () => {
     const env = testEnv();
     const ctx = await newRestaurant(env);
     const id = await item(env, ctx, "Tomate italiano");
-    expect(code(await setReorderLevels(env.deps, ctx, id, 1, levels("20", "10")))).toBe("INVALID_REORDER_LEVELS");
+    expect(code(await setReorderLevels(env.deps, ctx, id, 1, levels("20", "10")))).toBe(
+      "INVALID_REORDER_LEVELS",
+    );
     unwrap(await setReorderLevels(env.deps, ctx, id, 1, levels("20", null)));
     expect(code(await setReorderLevels(env.deps, ctx, id, 1, levels("5", null)))).toBe("STALE_RECORD");
 
@@ -287,9 +295,17 @@ describe("gráficos do estoque (spec 006, US3)", () => {
     const tomato = await item(env, ctx, "Tomate italiano");
     unwrap(await buy(env, ctx, tomato, "20", "80"));
     const wrongBuy = unwrap(await buy(env, ctx, tomato, "5", "20")).movementId;
-    unwrap(await reverseMovement(env.deps, ctx, wrongBuy, { reasonId: WRONG, notes: null, idempotencyKey: key() }));
+    unwrap(
+      await reverseMovement(env.deps, ctx, wrongBuy, { reasonId: WRONG, notes: null, idempotencyKey: key() }),
+    );
     const wrongLoss = unwrap(await lose(env, ctx, tomato, "3")).movementId;
-    unwrap(await reverseMovement(env.deps, ctx, wrongLoss, { reasonId: WRONG, notes: null, idempotencyKey: key() }));
+    unwrap(
+      await reverseMovement(env.deps, ctx, wrongLoss, {
+        reasonId: WRONG,
+        notes: null,
+        idempotencyKey: key(),
+      }),
+    );
     const req = unwrap(
       await requestAdjustment(env.deps, ctx, {
         itemId: tomato,

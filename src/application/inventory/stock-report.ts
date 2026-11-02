@@ -33,7 +33,10 @@ export async function stockReport(
     return ok({
       period,
       timezone,
-      summary: { ...(await repos.reports.totals(from, to)), reorderCount: await repos.reports.countAtReorderPoint() },
+      summary: {
+        ...(await repos.reports.totals(from, to)),
+        reorderCount: await repos.reports.countAtReorderPoint(),
+      },
       most,
       least,
       byReason: byReason.map((r) => ({ label: reasonById(r.reasonId)?.label ?? "Outro", value: r.value })),

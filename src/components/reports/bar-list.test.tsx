@@ -27,7 +27,9 @@ describe("gráfico de barras (spec 006, FR-007)", () => {
     expect(items[0]!.textContent).toContain("10 kg");
     expect(width(within(items[0]!).getByTestId("bar"))).toBe("100%");
     expect(width(within(items[1]!).getByTestId("bar"))).toBe("50%");
-    expect(within(items[1]!).getByRole("link", { name: "Tomate" }).getAttribute("href")).toBe("/estoque/itens/b");
+    expect(within(items[1]!).getByRole("link", { name: "Tomate" }).getAttribute("href")).toBe(
+      "/estoque/itens/b",
+    );
   });
 
   it("sem dados diz que não há nada no período", () => {
@@ -43,12 +45,28 @@ describe("gráfico de barras (spec 006, FR-007)", () => {
         firstLabel="Entradas"
         secondLabel="Saídas"
         rows={[
-          { key: "w1", label: "27/10", first: d(200), second: d(50), firstText: "R$ 200,00", secondText: "R$ 50,00" },
-          { key: "w2", label: "03/11", first: d(0), second: d(100), firstText: "R$ 0,00", secondText: "R$ 100,00" },
+          {
+            key: "w1",
+            label: "27/10",
+            first: d(200),
+            second: d(50),
+            firstText: "R$ 200,00",
+            secondText: "R$ 50,00",
+          },
+          {
+            key: "w2",
+            label: "03/11",
+            first: d(0),
+            second: d(100),
+            firstText: "R$ 0,00",
+            secondText: "R$ 100,00",
+          },
         ]}
       />,
     );
-    const items = within(screen.getByRole("list", { name: "Entradas e saídas por semana" })).getAllByRole("listitem");
+    const items = within(screen.getByRole("list", { name: "Entradas e saídas por semana" })).getAllByRole(
+      "listitem",
+    );
     const bars = (i: number) => within(items[i]!).getAllByTestId("bar").map(width);
     expect(bars(0)).toEqual(["100%", "25%"]);
     expect(bars(1)).toEqual(["0%", "50%"]);

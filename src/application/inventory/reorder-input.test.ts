@@ -25,7 +25,9 @@ describe("formulário do aviso de reposição (spec 006, US1)", () => {
     const r = parseReorderForm({ id: ITEM, version: "1", reorderPoint: "dez", parLevel: "" });
     expect(code(r)).toBe("INVALID_NUMBER");
     expect(field(r)).toBe("reorderPoint");
-    expect(field(parseReorderForm({ id: ITEM, version: "1", reorderPoint: "1", parLevel: "x" }))).toBe("parLevel");
+    expect(field(parseReorderForm({ id: ITEM, version: "1", reorderPoint: "1", parLevel: "x" }))).toBe(
+      "parLevel",
+    );
   });
 
   it("id ou versão inválidos", () => {

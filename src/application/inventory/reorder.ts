@@ -79,7 +79,8 @@ export type ReorderAlert = {
 function packageOf(r: ReorderRow) {
   if (r.supplier?.packageLabel && r.supplier.packageQuantity)
     return { label: r.supplier.packageLabel, quantity: r.supplier.packageQuantity };
-  if (r.purchaseUnitLabel && r.purchaseFactor) return { label: r.purchaseUnitLabel, quantity: r.purchaseFactor };
+  if (r.purchaseUnitLabel && r.purchaseFactor)
+    return { label: r.purchaseUnitLabel, quantity: r.purchaseFactor };
   return null;
 }
 
@@ -99,7 +100,13 @@ export async function listReorderAlerts(deps: Deps, ctx: RequestContext): Promis
     if (!rows.length) return ok([]);
     const { from, to } = usageWindow(deps);
     const usage = new Map(
-      (await repos.reports.outflowByItem(from, to, rows.map((r) => r.itemId))).map((o) => [o.itemId, o.quantity]),
+      (
+        await repos.reports.outflowByItem(
+          from,
+          to,
+          rows.map((r) => r.itemId),
+        )
+      ).map((o) => [o.itemId, o.quantity]),
     );
     const alerts = rows.map((r): ReorderAlert => {
       const cmd = averageDailyUsage(usage.get(r.itemId) ?? d(0), USAGE_WINDOW_DAYS);
@@ -151,7 +158,11 @@ export type ReorderView = {
 };
 
 /** Quadro "Aviso de reposição" da página do item (US1, FR-005). */
-export async function getReorderView(deps: Deps, ctx: RequestContext, itemId: string): Promise<Result<ReorderView>> {
+export async function getReorderView(
+  deps: Deps,
+  ctx: RequestContext,
+  itemId: string,
+): Promise<Result<ReorderView>> {
   const allowed = await authorize(deps, ctx, "catalog.read", "item", itemId);
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, async (repos) => {

@@ -45,7 +45,13 @@ describe("quadro do aviso de reposição (spec 006, US1)", () => {
         {...base}
         reorderPoint={null}
         parLevel={null}
-        suggestion={{ reorderPoint: "2,55", parLevel: "6,3", averageDailyUsage: "1,5", leadTimeDays: 1, cycleDays: "3,5" }}
+        suggestion={{
+          reorderPoint: "2,55",
+          parLevel: "6,3",
+          averageDailyUsage: "1,5",
+          leadTimeDays: 1,
+          cycleDays: "3,5",
+        }}
       />,
     );
     expect(screen.getByText(/1,5 kg por dia/)).toBeTruthy();

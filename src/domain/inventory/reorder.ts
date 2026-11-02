@@ -60,7 +60,11 @@ export function roundUpToPackage(quantity: Decimal, packageQuantity: Decimal) {
 }
 
 /** Item no ponto (FR-003): ativo, com ponto definido e saldo ≤ ponto. */
-export function isAtReorderPoint(i: { active: boolean; balance: Decimal; reorderPoint: Decimal | null }): boolean {
+export function isAtReorderPoint(i: {
+  active: boolean;
+  balance: Decimal;
+  reorderPoint: Decimal | null;
+}): boolean {
   return i.active && i.reorderPoint !== null && i.balance.lte(i.reorderPoint);
 }
 

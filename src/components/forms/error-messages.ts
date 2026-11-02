@@ -58,7 +58,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SUPPLIER_ITEM_DUPLICATE: "Este item já está na lista deste fornecedor.",
   SUPPLIER_BLOCKED: "Este fornecedor está bloqueado. Desbloqueie ou escolha outro.",
   INVALID_REORDER_LEVELS:
-    "\"Comprar até\" precisa ser maior que \"Avisar quando chegar em\" (e só vale com ele preenchido).",
+    '"Comprar até" precisa ser maior que "Avisar quando chegar em" (e só vale com ele preenchido).',
 };
 
 export function messageFor(error: DomainError): string {

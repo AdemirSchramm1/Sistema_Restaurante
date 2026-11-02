@@ -11,7 +11,7 @@ const CHART_LIMIT = 10;
 
 /** Período escolhido na tela (`?dias=`); qualquer outro valor vira 30 dias. */
 export function parsePeriod(raw: string | undefined, now: Date) {
-  const n = Number(raw);
+  const n = raw && /^\d+$/.test(raw) ? Number.parseInt(raw, 10) : 0;
   const days = (PERIOD_OPTIONS as readonly number[]).includes(n) ? (n as PeriodDays) : DEFAULT_PERIOD;
   return { days, from: new Date(now.getTime() - days * DAY_MS), to: new Date(now) };
 }

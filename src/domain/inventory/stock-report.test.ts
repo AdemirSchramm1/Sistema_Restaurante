@@ -28,7 +28,13 @@ describe("período dos gráficos (spec 006, US3)", () => {
 });
 
 describe("itens que mais e menos saíram (spec 006, US3)", () => {
-  const rows = [row("Tomate", "50"), row("Carne", "300"), row("Sal", "2"), row("Arroz", "0", "10"), row("Açúcar", "0", "0")];
+  const rows = [
+    row("Tomate", "50"),
+    row("Carne", "300"),
+    row("Sal", "2"),
+    row("Arroz", "0", "10"),
+    row("Açúcar", "0", "0"),
+  ];
 
   it("mais saíram: só quem saiu, do maior valor para o menor", () => {
     expect(rankOutflow(rows).most.map((r) => r.name)).toEqual(["Carne", "Tomate", "Sal"]);
@@ -56,7 +62,10 @@ describe("itens que mais e menos saíram (spec 006, US3)", () => {
   });
 
   it("empate fica em ordem alfabética", () => {
-    expect(rankOutflow([row("Batata", "5"), row("Alho", "5")]).most.map((r) => r.name)).toEqual(["Alho", "Batata"]);
+    expect(rankOutflow([row("Batata", "5"), row("Alho", "5")]).most.map((r) => r.name)).toEqual([
+      "Alho",
+      "Batata",
+    ]);
   });
 });
 
