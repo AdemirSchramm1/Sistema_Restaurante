@@ -36,6 +36,17 @@ describe("histórico (FR-004)", () => {
     expect(screen.getByText("Medida: kg → un")).toBeTruthy();
   });
 
+  it("mostra o aviso de reposição em português (spec 006)", () => {
+    render(
+      <HistoryList
+        timezone="America/Sao_Paulo"
+        entries={[entry({ reorderPoint: [null, "20"], parLevel: ["40", "50.5"] })]}
+      />,
+    );
+    expect(screen.getByText("Avisar quando chegar em: — → 20")).toBeTruthy();
+    expect(screen.getByText("Comprar até: 40 → 50,5")).toBeTruthy();
+  });
+
   it("campos antigos, já retirados do cadastro, ainda aparecem com nome em português", () => {
     render(
       <HistoryList
