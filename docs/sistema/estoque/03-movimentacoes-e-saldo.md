@@ -3,6 +3,10 @@
 Princípio III da constituição: **o saldo é a soma do livro.** Este documento descreve como o código
 garante isso.
 
+> **Implementado na feature 004:** `PURCHASE`, `LOSS`, `ADJUSTMENT` (só via pedido aprovado) e
+> `REVERSAL`. Migração `0005_stock_ledger`; casos de uso em
+> `src/application/inventory/movements.ts`. Os outros tipos desta tabela ainda não existem.
+
 ## Tipos de movimentação
 
 | `MovementType` | # no manual | Linhas geradas | Altera custo médio? |
@@ -36,7 +40,8 @@ Server Action
      tudo em UMA transação
 ```
 
-- **Concorrência:** `SELECT … FOR UPDATE` nas linhas de `stock_balances` envolvidas evita duas
+- **Concorrência:** `lockItem` cria a linha de saldo se faltar (`ON CONFLICT DO NOTHING`) e trava
+  item e saldo com `SELECT … FOR UPDATE` antes de calcular, o que evita duas
   saídas simultâneas calcularem sobre o mesmo saldo. Teste de integração dispara operações em
   paralelo e confere o saldo final.
 - **Idempotência:** cada comando traz um `idempotency_key` (gerado no cliente); índice único evita
@@ -53,7 +58,8 @@ Uma movimentação só pode ser estornada uma vez (índice único em `reverses_i
 
 ## Saldo negativo
 
-- Saídas operacionais (perda, transferência, devolução): bloqueadas se o saldo ficaria negativo.
+- Saídas operacionais (perda, acerto para menos, estorno): bloqueadas se o saldo ficaria negativo
+  (`INSUFFICIENT_STOCK`).
 - Vendas (`SALE_*`): *(a decidir na feature 004)* — proposta: permitir e gerar alerta, porque o
   pedido não pode parar. Como não há contagem de estoque (decisão de novembro de 2026), a correção
   é um **acerto manual** com motivo, feito pelo gerente.
@@ -66,9 +72,15 @@ Uma movimentação só pode ser estornada uma vez (índice único em `reverses_i
 
 ## Acerto manual
 
-Sem contagem de estoque, a diferença entre o sistema e a prateleira é corrigida por um **acerto
-manual**: o gerente informa a quantidade certa e o motivo, e o sistema insere uma movimentação
-`ADJUSTMENT` com a diferença. Detalhes na spec da feature 004.
+Sem contagem de estoque, a diferença entre o sistema e a prateleira é corrigida por um **acerto com
+aprovação** (decisão do dono, spec 004 US3):
+
+1. `requestAdjustment`: quem lança informa quanto tem de verdade e o motivo; grava em
+   `adjustment_requests` o saldo do sistema e a diferença. O livro não muda.
+2. `decideAdjustment`: um gerente que **não** seja quem pediu (`SELF_APPROVAL`; check
+   `adjustment_requests_other_decider` no banco) aprova ou recusa. Aprovar insere `ADJUSTMENT` com a
+   diferença do pedido, `created_by` = quem pediu e `approved_by` = quem aprovou.
+3. `cancelAdjustment`: quem pediu cancela enquanto está pendente.
 
 ## Auditoria
 

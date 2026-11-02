@@ -37,7 +37,11 @@
 | CMV teórico | – | `theoreticalCogs` | |
 | Variância | – | `variance` | |
 | Recebimento | – | `receiving` | |
-| Acerto manual de estoque | – | `MovementType.ADJUSTMENT` | Substitui o ajuste de inventário (sem contagem) |
+| Acerto de estoque | – | `MovementType.ADJUSTMENT` | Substitui o ajuste de inventário (sem contagem). Só nasce de pedido aprovado |
+| Pedido de acerto | – | `adjustment_request` (`AdjustmentStatus`: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`) | Quem pediu não aprova |
+| Estorno | – | `MovementType.REVERSAL` (`reverses_id`) | Uma vez por movimentação |
+| Lançamento | – | `stock_movement` | Nome na tela do menu "Lançamentos" |
+| Permissões de lançamento | – | `movement.purchase`, `movement.loss`, `adjustment.request`, `adjustment.approve`, `movement.reverse` | Ver spec 004, FR-006 |
 | Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE` | Gerente, chef, estoquista, comprador, administrativo |
 | Vínculo do usuário com o restaurante | – | `membership` | |
 | Convite | – | `invitation` | |

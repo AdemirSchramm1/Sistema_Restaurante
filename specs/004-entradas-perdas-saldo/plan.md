@@ -37,7 +37,7 @@ adjustment_requests  id, restaurant_id, item_id, counted_quantity, system_quanti
                   check: decided_by <> requested_by
 ```
 
-- `items.average_cost`, `last_cost`, `cost_updated_at` passam a ser escritos pela compra.
+- `items.average_cost` vira `numeric(18,8)`; com `last_cost` e `cost_updated_at` passa a ser escrito pela compra.
 - `items.stock_unit_locked_at` é preenchido na primeira movimentação.
 - Concorrência: `SELECT … FOR UPDATE` na linha do item (cria o saldo com `INSERT … ON CONFLICT`
   antes de travar), assim duas saídas simultâneas não passam do saldo.
@@ -64,7 +64,7 @@ src/domain/access/           permissions.ts (movement.purchase, movement.loss, m
 src/application/inventory/   movements.ts, movement-input.ts
 src/infra/db/                schema/ledger.ts, migrations/0005_stock_ledger.sql, movement-repository.ts
 src/actions/                 movements.ts
-src/components/movements/    movement-form.tsx, reverse-button.tsx
+src/components/movements/    movement-form.tsx, movement-table.tsx (com Estornar)
 app/(app)/estoque/           lancamentos/page.tsx; itens (saldo); itens/[id] (quadro Estoque)
 ```
 

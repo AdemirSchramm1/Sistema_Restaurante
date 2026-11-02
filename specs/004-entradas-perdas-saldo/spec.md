@@ -1,6 +1,6 @@
 # Feature 004 — Compras, perdas e saldo (livro de movimentações)
 
-**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em implementação
+**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em revisão
 
 ## Contexto
 

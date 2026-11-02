@@ -70,9 +70,13 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | I | Estorno único por movimentação |
 | I | Duas saídas concorrentes não deixam saldo inconsistente |
 | I | `idempotency_key` repetido não duplica lançamento |
-| I | Acerto manual exige motivo e grava a diferença como `ADJUSTMENT` |
+| U | Pedido de acerto calcula a diferença; quem pediu não aprova (`SELF_APPROVAL`) |
+| I | Acerto: pedir não muda o saldo; outro gerente aprova e grava `ADJUSTMENT`; recusar e cancelar |
+| I | Estorno de compra recalcula o custo médio; estorno que deixaria saldo negativo é recusado |
+| I | Custo do produto (003) aparece depois da primeira compra |
 | I | Primeira movimentação trava a medida do item |
-| E | Lançar compra, depois perda com motivo, e ver o saldo |
+| E | Lançar compra em caixas, perda com motivo, estornar a perda e ver o saldo |
+| E | Chef pede acerto; gerente aprova; saldo muda |
 
 ## 005 — Baixa automática por pedido
 
