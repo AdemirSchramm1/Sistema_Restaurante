@@ -83,7 +83,9 @@ describe("histórico (FR-004)", () => {
         ]}
       />,
     );
-    expect(screen.getByText("Tipo: Vendido ao cliente → Preparo (usado dentro de outros produtos)")).toBeTruthy();
+    expect(
+      screen.getByText("Tipo: Vendido ao cliente → Preparo (usado dentro de outros produtos)"),
+    ).toBeTruthy();
     expect(screen.getByText("Quanto rende: — → 2 kg")).toBeTruthy();
     expect(screen.getByText("O que vai nele: Pão: 1 un → Pão: 2 un")).toBeTruthy();
   });
