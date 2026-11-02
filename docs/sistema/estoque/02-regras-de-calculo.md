@@ -36,7 +36,14 @@ alteram o custo médio. Fonte: [02-cadastro-de-itens](../../produto/estoque/02-c
 | Exemplo do manual | 10 un a R$ 20 + 20 un a R$ 25 | R$ 23,3333… (exibe 23,33) |
 | Estoque zerado | 0 un + 5 un a R$ 10 | R$ 10 |
 | Bonificação custo zero | 10 un a R$ 20 + 10 un a R$ 0 | R$ 10 |
-| Saldo negativo antes da entrada | −2 un + 10 un a R$ 5 | custo = custo da compra (regra a confirmar) |
+| Saldo negativo antes da entrada | −2 un + 10 un a R$ 5 | custo = custo da compra |
+| Estorno de compra | 70 kg a 3,857… − 60 kg a R$ 4 | volta a R$ 3 (`removePurchase`) |
+| Estorno que zera o saldo | 60 kg a R$ 4 − 60 kg a R$ 4 | mantém R$ 4 |
+
+Arredondamento (spec 004, FR-008): custo unitário da movimentação com 4 casas, total com 2, custo
+médio com 8 (`items.average_cost numeric(18,8)`). Planejamento das linhas em `movement.ts`
+(`planPurchase`, `planLoss`, `planAdjustmentRequest`, `checkAdjustmentDecision`,
+`planAdjustmentApproval`, `planReversal`).
 
 ## Tolerância de custo na entrada
 

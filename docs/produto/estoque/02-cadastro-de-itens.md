@@ -55,7 +55,9 @@ Preencha só se o item chega em embalagem fechada.
 ## Custo do item
 
 - **Custo médio** e **último custo** são calculados pelas entradas de estoque e só aparecem na
-  tela, sem edição.
+  tela, sem edição. Desde a feature 004: a compra (valor total pago ÷ quantidade) recalcula o custo
+  médio ponderado; perdas e acertos saem pelo custo médio e não o mudam; estorno de compra desfaz
+  a compra na média.
 
 ## Fora do cadastro
 

@@ -25,6 +25,15 @@ Decisões da feature 003 (Produtos), 2026-11-02:
 | Ordem de produção / estoque de preparo pronto | Fora por enquanto |
 | Preço de venda e % do custo no preço | Fora por enquanto |
 
+Decisões da feature 004 (compras, perdas e saldo), 2026-11-02:
+
+| Tema | Decisão |
+|---|---|
+| Acerto manual (sistema × prateleira) | **Com aprovação.** Quem lança pede o acerto (quanto tem de verdade + motivo); um gerente que não seja quem pediu aprova ou recusa. O saldo só muda na aprovação |
+| Saldo negativo | Compra, perda, acerto e estorno nunca deixam saldo negativo. A exceção para vendas será decidida na 005 |
+| Valor da compra | Digita-se o **valor total pago**; o custo por medida é calculado |
+| Custo médio | Guardado com 8 casas para o estorno de compra voltar exatamente à média anterior; tela mostra 2 |
+
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.
 
@@ -52,7 +61,4 @@ O resto é refinamento. Essa ordem orienta o [roadmap do módulo](00-visao-geral
 
 ## Em aberto (próxima rodada de pesquisa)
 
-- **Acerto manual de estoque** (proposta): sem contagem, como corrigir quando o sistema e a
-  prateleira não batem? Proposta: o gerente informa a quantidade certa e o motivo. Decidir na
-  feature 004.
 - Comparação dos módulos de estoque de cada software.

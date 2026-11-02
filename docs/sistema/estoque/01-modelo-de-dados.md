@@ -88,39 +88,43 @@ Removidas na feature 002 (migração `0003_remove_locations`). O saldo é um só
 
 ## Livro e projeções
 
-### `movement_reasons`
-Lista fechada por tipo de movimentação (`movement_type`, `code`, `label`, `family`). Seed inicial
-vem de [06-movimentacoes](../../produto/estoque/06-movimentacoes.md#motivos-de-perda-lista-fechada-inicial).
+### `movement_reasons` (feature 004)
+Lista fechada **global** (sem `restaurant_id`, só leitura): `movement_type`, `code`, `label`,
+`family`, `position`. Seed na migração `0005_stock_ledger`, igual a
+`src/domain/inventory/movement-reasons.ts` (teste de integração compara).
 
-### `stock_movements` (só inserção)
+### `stock_movements` (só inserção, feature 004)
 | Coluna | Tipo | Notas |
 |---|---|---|
-| type | enum | Os 13 tipos (ver [03-movimentacoes-e-saldo](03-movimentacoes-e-saldo.md)) |
+| type | enum `movement_type` | `PURCHASE`, `LOSS`, `ADJUSTMENT`, `REVERSAL` nesta versão |
 | item_id | uuid fk | |
-| quantity | numeric(14,4) | **Com sinal**, na unidade de estoque (+ entra, − sai) |
-| original_quantity / original_unit | numeric / text | Como foi digitado (rastreio) |
+| quantity | numeric(14,4) | **Com sinal**, na medida do item (+ entra, − sai); nunca zero |
+| entered_quantity / entered_unit | numeric / text | Como foi digitado ("3" "Caixa"; "500" "g") |
 | unit_cost | numeric(14,4) | Custo no momento |
-| total_cost | numeric(14,2) | |
-| reason_id | uuid fk | Obrigatório |
+| total_cost | numeric(14,2) | Com sinal |
+| reason_id | uuid fk null | Obrigatório, menos na compra (check `stock_movements_reason`) |
 | notes | text null | Observação livre |
 | occurred_at | timestamptz | Data do fato |
-| recorded_at | timestamptz | Data do lançamento |
-| recorded_by / approved_by | uuid | `approved_by <> recorded_by` salvo modo operação pequena |
-| lot / expiry_date | text / date null | |
-| document_type / document_ref | text null | NF-e, OP, requisição… |
-| group_id | uuid | Agrupa as linhas de uma mesma operação (ex.: transferência = 2 linhas) |
-| reverses_id | uuid null fk | Estorno aponta para a original |
-| cost_center | text null | |
+| created_at / created_by | timestamptz / uuid | Lançamento e quem lançou (no acerto, quem pediu) |
+| approved_by | uuid null | Quem aprovou o acerto |
+| reverses_id | uuid null fk | Estorno aponta para a original; índice único (estorno único) |
+| idempotency_key | text null | Único por restaurante |
 
-Proteções:
-
-- Permissão de banco do usuário da aplicação: `INSERT` e `SELECT` apenas (sem `UPDATE`/`DELETE`).
-- Trigger que rejeita `UPDATE`/`DELETE` como segunda barreira.
+Proteções: `app_user` só `SELECT, INSERT`; gatilho `app_reject_change` em `UPDATE`/`DELETE`; RLS.
 
 ### `stock_balances` (projeção)
-`item_id`, `quantity`, `updated_at`. Atualizada **na mesma transação** que insere a
-movimentação. Pode ser reconstruída a qualquer momento somando o livro (teste de integração verifica
-que projeção = soma do livro).
+`item_id` (pk), `restaurant_id`, `quantity`, `updated_at`. Atualizada **na mesma transação** que
+insere a movimentação; o teste de propriedade confere que projeção = soma do livro.
+
+### `adjustment_requests` (feature 004)
+`item_id`, `counted_quantity`, `system_quantity`, `difference` (≠ 0), `reason_id`, `notes`,
+`status` (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `created_by` (quem pediu), `decided_by`,
+`decided_at`, `decision_notes`, `movement_id`. Check: quem decide não é quem pediu (salvo
+cancelamento pelo próprio).
+
+### `items` (custos, feature 004)
+`average_cost numeric(18,8)`, `last_cost numeric(14,4)` e `cost_updated_at` passam a ser escritos
+pela compra e pelo estorno de compra; `stock_unit_locked_at` na primeira movimentação.
 
 ### Produtos (feature 003, migração `0004_recipes`)
 - `recipes`: `name`, `name_normalized`, `kind` (`DISH` = vendido, `SUB_RECIPE` = preparo), `active`,

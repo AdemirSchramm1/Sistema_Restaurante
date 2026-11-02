@@ -22,6 +22,9 @@ export async function closeTestDbs() {
 }
 
 const TABLES = [
+  "adjustment_requests",
+  "stock_movements",
+  "stock_balances",
   "recipe_lines",
   "recipe_versions",
   "recipes",

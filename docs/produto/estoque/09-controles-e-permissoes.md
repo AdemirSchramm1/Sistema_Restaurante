@@ -2,7 +2,7 @@
 
 > **Escopo simplificado (novembro de 2026).** Sem conferência cega e sem contagem, as regras de
 > segregação ligadas a elas não se aplicam. Continuam: trilha de auditoria, papéis, perda separada
-> de consumo e acerto manual só pelo gerente. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+> de consumo e acerto que só vale com aprovação de um gerente que não seja quem pediu (feature 004). Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
 
 > Fonte: Manual de Referência, seção 7.
 

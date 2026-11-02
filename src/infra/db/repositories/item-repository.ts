@@ -4,7 +4,8 @@ import type { Item, ItemData } from "@/domain/inventory/item";
 import { normalizeDescription } from "@/domain/inventory/description";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
-import { itemGroups, itemSubgroups, items } from "../schema";
+import { itemGroups, itemSubgroups, items, stockBalances } from "../schema";
+import { d } from "@/domain/shared/decimal";
 import { dec, isUniqueViolation, str, UNIT_CODE_BY_ID, UNIT_IDS, withSavepoint } from "./util";
 
 type Audit = { at: Date; by: string | null };
@@ -155,10 +156,12 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
           purchaseFactor: items.purchaseFactor,
           groupName: itemGroups.name,
           subgroupName: itemSubgroups.name,
+          balance: stockBalances.quantity,
         })
         .from(items)
         .innerJoin(itemSubgroups, eq(itemSubgroups.id, items.subgroupId))
         .innerJoin(itemGroups, eq(itemGroups.id, itemSubgroups.groupId))
+        .leftJoin(stockBalances, eq(stockBalances.itemId, items.id))
         .where(cond);
       const rows = await base
         .orderBy(asc(items.code))
@@ -182,6 +185,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
           purchaseFactor: dec(r.purchaseFactor),
           groupName: r.groupName,
           subgroupName: r.subgroupName,
+          balance: d(r.balance ?? "0"),
         })),
       };
     },
@@ -211,6 +215,14 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
     },
 
     setCogsOverride: (id, value, version, audit) => optimistic(id, version, { inCogsOverride: value }, audit),
+
+    async balance(id) {
+      const [r] = await tx
+        .select({ q: stockBalances.quantity })
+        .from(stockBalances)
+        .where(eq(stockBalances.itemId, id));
+      return d(r?.q ?? "0");
+    },
 
     async activeCountInSubgroup(subgroupId) {
       const [r] = await tx

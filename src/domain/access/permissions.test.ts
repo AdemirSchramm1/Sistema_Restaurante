@@ -6,13 +6,33 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
     for (const action of ACTIONS) expect(can(["MANAGER"], action), action).toBe(true);
   });
 
-  it("chef consulta e escreve itens e produtos (spec 003, FR-006)", () => {
+  it("chef consulta, escreve itens e produtos, lança perda e pede acerto (specs 003 e 004)", () => {
     const allowed = ACTIONS.filter((a) => can(["CHEF"], a));
-    expect(allowed.sort()).toEqual(["catalog.read", "item.write", "recipe.write"]);
+    expect(allowed.sort()).toEqual([
+      "adjustment.request",
+      "catalog.read",
+      "item.write",
+      "movement.loss",
+      "recipe.write",
+    ]);
   });
 
-  it.each<Role>(["STOCKKEEPER", "BUYER", "ADMINISTRATIVE"])("%s só consulta", (role) => {
-    expect(ACTIONS.filter((a) => can([role], a))).toEqual(["catalog.read"]);
+  it("lançamentos por papel (spec 004, FR-006)", () => {
+    const allowed = (role: Role) => ACTIONS.filter((a) => can([role], a)).sort();
+    expect(allowed("STOCKKEEPER")).toEqual([
+      "adjustment.request",
+      "catalog.read",
+      "movement.loss",
+      "movement.purchase",
+    ]);
+    expect(allowed("BUYER")).toEqual(["adjustment.request", "catalog.read", "movement.purchase"]);
+    expect(allowed("ADMINISTRATIVE")).toEqual(["catalog.read"]);
+    expect(can(["MANAGER"], "adjustment.approve")).toBe(true);
+    expect(can(["MANAGER"], "movement.reverse")).toBe(true);
+    for (const r of ["CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE"] as Role[]) {
+      expect(can([r], "adjustment.approve"), r).toBe(false);
+      expect(can([r], "movement.reverse"), r).toBe(false);
+    }
   });
 
   it("usuário com vários papéis soma as permissões", () => {

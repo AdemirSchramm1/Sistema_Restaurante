@@ -2,7 +2,11 @@
 
 > **Escopo simplificado (novembro de 2026).** Lote, validade, temperatura, NF-e e ajuste de
 > inventário ficam fora. Não há contagem: a diferença entre o sistema e a prateleira é corrigida
-> por um **acerto manual** com motivo, feito pelo gerente (proposta, a confirmar na feature 004). Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+> por um **acerto** pedido por quem lança e **aprovado por outro gerente**. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
+>
+> **Primeira versão (feature 004).** Existem: entrada por compra (valor total pago), perda com
+> motivo da lista abaixo, acerto com aprovação e estorno. Os demais tipos da tabela vêm depois
+> (venda na 005). Menu **Lançamentos**; saldo na lista de itens e na página do item.
 
 > Fonte: Manual de Referência, seção 4.
 
@@ -54,13 +58,19 @@ Três famílias (Altametrics), com motivos:
   lança a proteína queimada, o sistema superestima o lucro."
 - Movimentação lançada **não é editada nem apagada**. Correção = movimentação de estorno vinculada à
   original.
-- Saída que deixaria saldo negativo: permitida apenas para vendas (o PDV não pode parar), gerando
-  alerta para investigação. Demais saídas são bloqueadas. *(Decisão a confirmar na spec.)*
-- Acerto manual só pelo gerente, sempre com motivo.
+- Saída que deixaria saldo negativo é bloqueada (perda, acerto, estorno). Para vendas, a decisão
+  fica para a feature 005 (proposta: permitir com alerta, o pedido não pode parar).
+- Acerto: qualquer pessoa que lança pode pedir, sempre com motivo; só um gerente que não seja quem
+  pediu aprova. O saldo muda só na aprovação.
+- Motivos implementados (lista fechada): perda de preparo (limpeza acima do normal, erro no
+  preparo, queimou, cliente devolveu), estragou (venceu, estragou, praga), erro na operação (caiu
+  ou quebrou, pedido feito errado, porção maior que a do produto, outro). Acerto: conferi na
+  prateleira, lançamento esquecido, sumiu (possível furto), outro. Estorno: lançado errado,
+  lançado em dobro, outro.
 
 ## Critérios de aceite (para a spec)
 
 - Toda movimentação tem tipo e motivo de listas fechadas.
-- Saldo de um item em um local = soma das movimentações daquele item naquele local.
+- Saldo de um item = soma das movimentações daquele item (não há locais).
 - Valor da saída = quantidade × custo médio no momento da saída.
 - Entrada de compra recalcula o custo médio; saídas não alteram o custo médio.

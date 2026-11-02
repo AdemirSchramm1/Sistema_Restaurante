@@ -5,6 +5,7 @@ import type { Decimal } from "@/domain/shared/decimal";
 import type { UnitCode } from "@/domain/inventory/units";
 import type { ComponentInfo, ComponentRef, RecipeKind, RecipeLineData } from "@/domain/inventory/recipe";
 import type { RecipeNode } from "@/domain/inventory/recipe-graph";
+import type { AdjustmentStatus, MovementType, StockItem } from "@/domain/inventory/movement";
 import type { Audit } from "../access/ports";
 
 export type GroupRecord = {
@@ -62,6 +63,8 @@ export type ItemListRow = Pick<
 > & {
   groupName: string;
   subgroupName: string;
+  /** Saldo na medida do item (soma do livro). */
+  balance: Decimal;
 };
 
 export interface ItemRepo {
@@ -87,6 +90,8 @@ export interface ItemRepo {
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   setCogsOverride(id: string, value: boolean | null, version: number, audit: Audit): Promise<Result<void>>;
   activeCountInSubgroup(subgroupId: string): Promise<number>;
+  /** Saldo do item na sua medida (0 sem movimentação). */
+  balance(id: string): Promise<Decimal>;
 }
 
 export type RecipeVersionRecord = {
@@ -149,8 +154,110 @@ export interface RecipeRepo {
   activeComponents(): Promise<ComponentRecord[]>;
 }
 
+export type MovementRecord = {
+  id: string;
+  type: MovementType;
+  itemId: string;
+  itemName: string;
+  stockUnit: UnitCode;
+  quantity: Decimal;
+  enteredQuantity: Decimal;
+  enteredUnit: string;
+  unitCost: Decimal;
+  totalCost: Decimal;
+  reasonId: string | null;
+  notes: string | null;
+  occurredAt: Date;
+  recordedAt: Date;
+  recordedBy: string | null;
+  recordedByName: string | null;
+  approvedBy: string | null;
+  approvedByName: string | null;
+  reversesId: string | null;
+  reversedById: string | null;
+};
+export type NewMovement = {
+  id: string;
+  type: MovementType;
+  itemId: string;
+  quantity: Decimal;
+  enteredQuantity: Decimal;
+  enteredUnit: string;
+  unitCost: Decimal;
+  totalCost: Decimal;
+  reasonId: string | null;
+  notes: string | null;
+  occurredAt: Date;
+  recordedBy: string | null;
+  recordedAt: Date;
+  reversesId: string | null;
+  approvedBy: string | null;
+  idempotencyKey: string | null;
+};
+export type MovementFilter = { itemId?: string; type?: MovementType; limit?: number };
+
+export type AdjustmentRequestRecord = {
+  id: string;
+  itemId: string;
+  itemName: string;
+  stockUnit: UnitCode;
+  countedQuantity: Decimal;
+  systemQuantity: Decimal;
+  difference: Decimal;
+  reasonId: string;
+  notes: string | null;
+  status: AdjustmentStatus;
+  requestedBy: string;
+  requestedByName: string | null;
+  requestedAt: Date;
+  decidedBy: string | null;
+  decidedByName: string | null;
+  decidedAt: Date | null;
+  decisionNotes: string | null;
+  movementId: string | null;
+};
+
+export interface MovementRepo {
+  /** Item com saldo, travado até o fim da transação (SELECT … FOR UPDATE). */
+  lockItem(itemId: string): Promise<StockItem | null>;
+  insert(m: NewMovement): Promise<void>;
+  /** Soma `delta` ao saldo do item (a linha já está travada por `lockItem`). */
+  addToBalance(itemId: string, delta: Decimal, at: Date): Promise<void>;
+  setCosts(itemId: string, costs: { averageCost: Decimal; lastCost?: Decimal; at: Date }): Promise<void>;
+  /** Trava a medida do item na primeira movimentação. */
+  lockStockUnit(itemId: string, at: Date): Promise<void>;
+  findByIdempotencyKey(key: string): Promise<string | null>;
+  get(id: string): Promise<MovementRecord | null>;
+  list(filter: MovementFilter): Promise<MovementRecord[]>;
+  insertRequest(r: {
+    id: string;
+    itemId: string;
+    countedQuantity: Decimal;
+    systemQuantity: Decimal;
+    difference: Decimal;
+    reasonId: string;
+    notes: string | null;
+    by: string;
+    at: Date;
+  }): Promise<void>;
+  /** Pedido travado até o fim da transação. */
+  lockRequest(id: string): Promise<AdjustmentRequestRecord | null>;
+  closeRequest(
+    id: string,
+    d: {
+      status: Exclude<AdjustmentStatus, "PENDING">;
+      by: string;
+      at: Date;
+      notes: string | null;
+      movementId: string | null;
+    },
+  ): Promise<void>;
+  listRequests(status: AdjustmentStatus | "ALL"): Promise<AdjustmentRequestRecord[]>;
+}
+
 export type CatalogRepos = {
   groups: GroupRepo;
   items: ItemRepo;
   recipes: RecipeRepo;
+  movements: MovementRepo;
 };
