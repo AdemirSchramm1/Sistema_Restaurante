@@ -22,6 +22,8 @@ import { ItemOffers } from "@/components/suppliers/item-offers";
 import { ReorderLevels } from "@/components/items/reorder-levels";
 import { getReorderView } from "@/application/inventory/reorder";
 import { setReorderLevelsAction } from "@/actions/reorder";
+import { itemUsage } from "@/application/inventory/product-costs";
+import { ItemUsage } from "@/components/costs/item-usage";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Item" };
@@ -34,13 +36,14 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const view = await getItem(deps, ctx, id);
   if (!view.ok) notFound();
   const { item, purchaseSummary, effectiveInCogs, balance } = view.value;
-  const [tree, history, restaurant, movements, offers, reorder] = await Promise.all([
+  const [tree, history, restaurant, movements, offers, reorder, usage] = await Promise.all([
     listGroupTree(deps, ctx),
     getAuditHistory(deps, ctx, "item", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
     listMovements(deps, ctx, { itemId: id, limit: 20 }),
     listItemOffers(deps, ctx, id),
     getReorderView(deps, ctx, id),
+    itemUsage(deps, ctx, id),
   ]);
   const timezone = restaurant.ok ? (restaurant.value?.timezone ?? "America/Sao_Paulo") : "America/Sao_Paulo";
   const canWrite = can(ctx.roles, "item.write");
@@ -139,6 +142,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             canEdit={item.active && can(ctx.roles, "item.reorder")}
             action={setReorderLevelsAction}
           />
+          <ItemUsage rows={usage.ok ? usage.value : []} />
           <CogsOverride
             id={item.id}
             version={item.version}

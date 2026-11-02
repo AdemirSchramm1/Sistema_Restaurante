@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { updateRecipeAction } from "@/actions/recipes";
+import { setSalePriceAction, updateRecipeAction } from "@/actions/recipes";
 import { serverDeps } from "@/infra/server";
 import { getRecipe, recipeFormOptions } from "@/application/inventory/recipes";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
@@ -12,6 +12,9 @@ import { RecipeForm, type ComponentOption } from "@/components/recipes/recipe-fo
 import { recipeToValues } from "@/components/recipes/recipe-form-values";
 import { RecipeActiveToggle } from "@/components/recipes/recipe-active-toggle";
 import { HistoryList } from "@/components/audit/history-list";
+import { SalePrice } from "@/components/recipes/sale-price";
+import { money as moneyText, percent } from "@/components/costs/format";
+import { COST_BAND_LABELS, evaluateProductCost } from "@/domain/inventory/product-cost";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Produto" };
@@ -45,6 +48,14 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   };
   const formOptions = { items: keep("ITEM", opts.items), preps: keep("RECIPE", opts.preps) };
   const isPrep = v.recipe.kind === "SUB_RECIPE";
+  const priced = evaluateProductCost({
+    id: v.recipe.id,
+    name: v.recipe.name,
+    salePrice: v.salePrice,
+    cost: v.total,
+    lines: v.lines.map((l) => ({ name: l.name, cost: l.cost })),
+    missingCostNames: v.missingCostNames,
+  });
 
   return (
     <div className="grid gap-6">
@@ -77,6 +88,20 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
           submitLabel="Salvar alterações"
         />
         <aside className="grid content-start gap-6">
+          {!isPrep && (
+            <SalePrice
+              id={v.recipe.id}
+              version={v.recipe.version}
+              salePrice={v.salePrice ? formatBrDecimal(v.salePrice, { minPlaces: 2, maxPlaces: 2 }) : null}
+              costText={v.total ? moneyText(v.total) : null}
+              shareText={priced.share ? percent(priced.share) : null}
+              bandLabel={priced.band ? COST_BAND_LABELS[priced.band] : null}
+              marginText={priced.margin ? moneyText(priced.margin) : null}
+              marginNegative={!!priced.margin?.isNegative()}
+              canEdit={canWrite && v.recipe.active}
+              action={setSalePriceAction}
+            />
+          )}
           <Card className="grid gap-2 text-sm" aria-label="Quanto custa">
             <CardTitle>Quanto custa</CardTitle>
             <p className="text-muted-foreground">
