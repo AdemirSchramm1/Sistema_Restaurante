@@ -103,3 +103,36 @@ describe("formulário de lançamento (spec 004)", () => {
     ).toBe("unit");
   });
 });
+
+describe("compra com fornecedor (spec 007, US4)", () => {
+  const SUPPLIER = "0193a000-0000-7000-8000-000000000999";
+  const base = {
+    type: "PURCHASE",
+    itemId: ITEM,
+    quantity: "2",
+    totalPaid: "180",
+    occurredAt: "2026-11-02",
+  };
+
+  it("fornecedor opcional e embalagem do fornecedor", () => {
+    const r = parseMovementForm({ ...base, supplierId: SUPPLIER, unit: "SUPPLIER_PACKAGE" }, NOW);
+    expect(r.ok && r.value.type === "PURCHASE" && [r.value.cmd.supplierId, r.value.cmd.unit]).toEqual([
+      SUPPLIER,
+      "SUPPLIER_PACKAGE",
+    ]);
+    const none = parseMovementForm({ ...base, supplierId: "", unit: "kg" }, NOW);
+    expect(none.ok && none.value.type === "PURCHASE" && none.value.cmd.supplierId).toBe(null);
+  });
+
+  it("fornecedor com id estranho é recusado no campo", () => {
+    expect(field(parseMovementForm({ ...base, supplierId: "x", unit: "kg" }, NOW))).toBe("supplierId");
+  });
+
+  it("perda não aceita embalagem de fornecedor", () => {
+    const r = parseMovementForm(
+      { type: "LOSS", itemId: ITEM, quantity: "1", unit: "SUPPLIER_PACKAGE", reasonId: REASON },
+      NOW,
+    );
+    expect(code(r)).toBe("UNKNOWN_UNIT");
+  });
+});
