@@ -196,7 +196,7 @@ describe("editar produto e versões (spec 003, US2, FR-004)", () => {
         withTenantTx(testDb(), ctx.restaurantId, (tx) => tx.execute(sql.raw(stmt))),
         stmt,
       ).rejects.toThrow();
-      await expect(ownerTestDb().execute(sql.raw(stmt)), `${stmt} (dono)`).rejects.toThrow(/APPEND_ONLY/);
+      await expect(ownerTestDb().$client.query(stmt), `${stmt} (dono)`).rejects.toThrow(/APPEND_ONLY/);
     }
   });
 });
@@ -292,8 +292,8 @@ describe("segurança (FR-006, FR-007)", () => {
 
   it("restaurante B não vê o produto de A nem usa os itens de A", async () => {
     const env = testEnv();
-    const a = await newRestaurant(env, "A");
-    const b = await newRestaurant(env, "B");
+    const a = await newRestaurant(env, "Restaurante A");
+    const b = await newRestaurant(env, "Restaurante B");
     const ids = await kitchen(env, a);
     const { id } = unwrap(await createRecipe(env.deps, a, withIds(dishData(), ids)));
     expect(code(await getRecipe(env.deps, b, id))).toBe("NOT_FOUND");

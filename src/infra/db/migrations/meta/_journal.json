@@ -29,6 +29,13 @@
       "when": 1793570866951,
       "tag": "0003_remove_locations",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793589549016,
+      "tag": "0004_recipes",
+      "breakpoints": true
     }
   ]
 }

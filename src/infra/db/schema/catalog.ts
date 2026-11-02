@@ -107,6 +107,76 @@ export const items = pgTable(
   ],
 );
 
+export const recipeKindEnum = pgEnum("recipe_kind", ["DISH", "SUB_RECIPE"]);
+
+/** Produto (o que o cliente pede) ou preparo usado dentro de outros produtos (feature 003). */
+export const recipes = pgTable(
+  "recipes",
+  {
+    ...base,
+    ...editable,
+    name: text("name").notNull(),
+    nameNormalized: text("name_normalized").notNull(),
+    kind: recipeKindEnum("kind").notNull(),
+    active: boolean("active").notNull().default(true),
+  },
+  (t) => [
+    uniqueIndex("recipes_active_name")
+      .on(t.restaurantId, t.nameNormalized)
+      .where(sql`active`),
+  ],
+);
+
+/** Versão do produto: só inserção. O rendimento só existe no preparo. */
+export const recipeVersions = pgTable(
+  "recipe_versions",
+  {
+    ...base,
+    recipeId: uuid("recipe_id")
+      .notNull()
+      .references(() => recipes.id),
+    number: integer("number").notNull(),
+    validFrom: timestamp("valid_from", { withTimezone: true }).notNull(),
+    yieldQuantity: numeric("yield_quantity", { precision: 14, scale: 4 }),
+    yieldUnitId: uuid("yield_unit_id").references(() => units.id),
+  },
+  (t) => [
+    uniqueIndex("recipe_versions_number").on(t.recipeId, t.number),
+    check("recipe_versions_yield_pair", sql`(yield_quantity is null) = (yield_unit_id is null)`),
+    check("recipe_versions_yield_positive", sql`yield_quantity > 0`),
+  ],
+);
+
+/** Linha da versão: um item ou um preparo, com quantidade e medida. Só inserção. */
+export const recipeLines = pgTable(
+  "recipe_lines",
+  {
+    ...base,
+    recipeVersionId: uuid("recipe_version_id")
+      .notNull()
+      .references(() => recipeVersions.id),
+    position: integer("position").notNull(),
+    itemId: uuid("item_id").references(() => items.id),
+    subRecipeId: uuid("sub_recipe_id").references(() => recipes.id),
+    quantity: numeric("quantity", { precision: 14, scale: 4 }).notNull(),
+    unitId: uuid("unit_id")
+      .notNull()
+      .references(() => units.id),
+  },
+  (t) => [
+    uniqueIndex("recipe_lines_position").on(t.recipeVersionId, t.position),
+    uniqueIndex("recipe_lines_item")
+      .on(t.recipeVersionId, t.itemId)
+      .where(sql`item_id is not null`),
+    uniqueIndex("recipe_lines_sub_recipe")
+      .on(t.recipeVersionId, t.subRecipeId)
+      .where(sql`sub_recipe_id is not null`),
+    index("recipe_lines_sub_recipe_lookup").on(t.subRecipeId),
+    check("recipe_lines_one_component", sql`(item_id is null) <> (sub_recipe_id is null)`),
+    check("recipe_lines_quantity_positive", sql`quantity > 0`),
+  ],
+);
+
 export const auditActionEnum = pgEnum("audit_action", [
   "CREATE",
   "UPDATE",

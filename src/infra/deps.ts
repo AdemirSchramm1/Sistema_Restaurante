@@ -11,6 +11,7 @@ import {
 } from "./db/repositories/access-repositories";
 import { groupRepository } from "./db/repositories/group-repository";
 import { itemRepository } from "./db/repositories/item-repository";
+import { recipeRepository } from "./db/repositories/recipe-repository";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
 import { cryptoTokens } from "./tokens";
@@ -32,6 +33,7 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     invitations: invitationRepository(tx, restaurantId),
     groups: groupRepository(tx, restaurantId),
     items: itemRepository(tx, restaurantId),
+    recipes: recipeRepository(tx, restaurantId),
   };
 }
 
