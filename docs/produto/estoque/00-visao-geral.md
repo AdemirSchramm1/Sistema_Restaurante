@@ -49,10 +49,10 @@ Spec Kit (`specs/NNN-nome/`).
 | 001 | Cadastros base: grupos, locais, itens | – | Feito |
 | 002 | Simplificar o cadastro e retirar os locais | 001 | Feito: só nome, grupo, medida e embalagem; sem locais |
 | 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Feito: produtos vendidos e preparos, versões e custo |
-| 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Em revisão ([specs/004](../../../specs/004-entradas-perdas-saldo/spec.md)): compra entra, perda sai com motivo, acerto com aprovação, estorno |
-| 005 | Baixa automática por pedido (manual primeiro; PDV depois) | 003, 004 | Estoque diminui conforme os clientes pedem |
+| 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Feito: compra entra, perda sai com motivo, acerto com aprovação, estorno |
+| 005 | Baixa automática por pedido | 003, 004 | Estoque diminui conforme os clientes pedem. **Espera o cardápio do cliente** (QR code na mesa) |
 | 006 | Alerta de reposição | 004, 005 | Aviso quando o item está acabando |
-| 007 | Fornecedores | 004 | Quem vende cada item e por quanto |
+| 007 | Fornecedores | 004 | Em revisão ([specs/007](../../../specs/007-fornecedores/spec.md)): cadastro comercial, itens e preços, preferido, compra com fornecedor, bloqueio |
 | 008 | Painel de custo dos produtos | 003, 004 | Quanto custa cada produto vendido |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,

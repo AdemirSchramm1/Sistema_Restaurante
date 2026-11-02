@@ -1,6 +1,6 @@
 # Feature 007 — Fornecedores
 
-**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em andamento
+**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em revisão
 
 ## Contexto
 

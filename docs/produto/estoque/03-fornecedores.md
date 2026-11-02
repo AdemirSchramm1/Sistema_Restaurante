@@ -12,6 +12,17 @@ A CVS 3/2026 (SP) exige critérios formais que incluem a licença sanitária. Cr
 preço, prazo, credibilidade, qualidade, conformidade fiscal, capacidade de entrega e atendimento.
 Boa prática: **cotar com no mínimo três fornecedores** antes de cada pedido.
 
+> **Primeira versão (feature 007).** Menu **Fornecedores**. Só o nome é obrigatório; o resto é
+> opcional: razão social, CNPJ (validado, aceita o CNPJ com letras), vendedor, telefone, e-mail,
+> dias de entrega, prazo de entrega em dias, pedido mínimo e como paga. Em "Itens que vende" entra
+> cada item com o preço e, se houver, a embalagem desse fornecedor ("Caixa" com 18 kg); a tela
+> mostra o preço por medida para comparar, e cada item tem no máximo um fornecedor **preferido**.
+> A página do item mostra quem vende e quem é o mais barato por medida. A compra pode dizer de
+> qual fornecedor foi e ser lançada na embalagem dele; o preço cadastrado não muda sozinho. O
+> fornecedor pode ser **bloqueado** (some da compra) e nunca é apagado. Cadastram: gerente e
+> comprador. Status "em avaliação", indicadores de desempenho, sanitário, fiscal e de-para da NF-e
+> ficam fora.
+
 ## Campos do cadastro
 
 | Bloco | Campos |

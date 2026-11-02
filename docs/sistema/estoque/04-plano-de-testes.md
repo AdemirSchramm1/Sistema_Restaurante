@@ -99,10 +99,17 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 
 | Nível | Teste |
 |---|---|
-| U | Validação de CNPJ (dígitos verificadores) |
-| U | No máximo um fornecedor preferencial por item |
-| I | CNPJ único por restaurante |
-| I | Embalagem e preço por fornecedor |
+| U | Validação de CNPJ (dígitos verificadores), numérico e alfanumérico |
+| U | Fornecedor: só o nome obrigatório; e-mail, dias, prazo, pedido mínimo |
+| U | Item do fornecedor: preço > 0, embalagem em par; preço por medida; mais barato |
+| U | Compra na embalagem do fornecedor (2 caixas de 18 kg = 36 kg) |
+| U | `supplier.write` só para gerente e comprador |
+| U | Formulário do fornecedor e itens que vende (mantém o digitado no erro) |
+| I | CNPJ único por restaurante; nome único entre ativos; trava otimista |
+| I | Embalagem e preço por fornecedor; um preferido por item (caso de uso e banco) |
+| I | Compra com fornecedor e na embalagem dele; fornecedor bloqueado recusado |
+| I | Fornecedor só na compra (check no banco); isolamento; permissões e auditoria |
+| E | Cadastrar fornecedor com CNPJ, item em caixa, comprar na caixa dele e comparar no item |
 
 ## 008 — Painel de custo dos produtos
 

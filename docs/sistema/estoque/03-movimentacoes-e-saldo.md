@@ -47,6 +47,11 @@ Server Action
 - **Idempotência:** cada comando traz um `idempotency_key` (gerado no cliente); índice único evita
   lançamento duplicado em reenvio de formulário ou rede instável.
 
+- **Fornecedor na compra (feature 007):** opcional. O caso de uso confere que o fornecedor existe
+  e não está bloqueado (`SUPPLIER_BLOCKED`). A medida `SUPPLIER_PACKAGE` busca a embalagem do
+  fornecedor para o item em `supplier_items` e entra no domínio como embalagem com quantidade. O
+  preço cadastrado em `supplier_items` não muda com a compra.
+
 ## Correção de erros
 
 Nada de `UPDATE`/`DELETE` em movimentações. Para corrigir:

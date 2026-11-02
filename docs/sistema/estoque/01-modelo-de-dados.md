@@ -68,20 +68,33 @@ erDiagram
 Removidos na feature 002: `recipe_unit_id`, `item_unit_conversions`, EAN/GTIN, fiscais, sanitários,
 pesos, FC, rendimento, alérgenos, `countable`, `count_frequency`.
 
-### `suppliers`
-Campos de [03-fornecedores](../../produto/estoque/03-fornecedores.md): legal, contato, sanitário,
-logística (`lead_time_days`, `delivery_days int[]`, `min_order_value`), financeiro, `status`
-(`APPROVED`, `UNDER_REVIEW`, `BLOCKED`). CNPJ único por restaurante.
+### `suppliers` (feature 007, migração `0006_suppliers`)
+Só dados comerciais (sem sanitário, fiscal nem bancário).
 
-### `supplier_items`
 | Coluna | Tipo | Notas |
 |---|---|---|
-| supplier_id, item_id | uuid fk | único juntos + `supplier_code` |
-| supplier_code | text | Código na NF-e (de-para) |
-| purchase_unit_label | text | "Caixa 12 un." |
-| conversion_factor | numeric(14,4) | Unidades de estoque por unidade de compra, > 0 |
-| current_price | numeric(14,4) | Por unidade de compra |
-| preferred | boolean | No máximo um por item |
+| name / name_normalized | text | Único entre ativos (`suppliers_active_name`) |
+| legal_name | text null | Razão social |
+| cnpj | char(14) null | Sem pontuação, maiúsculas; numérico ou alfanumérico. Único por restaurante (`suppliers_cnpj`) |
+| contact_name, phone, email | text null | |
+| delivery_days | smallint[] | 0 = domingo … 6 = sábado (check) |
+| lead_time_days | smallint null | 0 a 90 |
+| min_order_value | numeric(14,2) null | ≥ 0 |
+| payment_terms, notes | text null | Texto livre |
+| active | boolean | Falso = **bloqueado**; nunca é apagado |
+| version | int | Trava otimista |
+
+### `supplier_items` (feature 007)
+| Coluna | Tipo | Notas |
+|---|---|---|
+| supplier_id, item_id | uuid fk | Únicos juntos (`supplier_items_supplier_item`) |
+| package_label / package_quantity | text / numeric(14,4) null | Embalagem do fornecedor e quanto vem, na medida do item. Os dois juntos, quantidade > 0 |
+| price | numeric(14,4) | Pela embalagem (ou por medida sem embalagem), > 0 |
+| preferred | boolean | No máximo um por item (`supplier_items_preferred`, índice único parcial) |
+| version | int | Trava otimista |
+
+Configuração, não livro: `app_user` pode `DELETE` (tirar o item da lista); a remoção fica na
+auditoria do fornecedor. Código do fornecedor na NF-e (de-para) fica fora.
 
 ### `locations` / `item_locations`
 Removidas na feature 002 (migração `0003_remove_locations`). O saldo é um só por item.
@@ -109,6 +122,7 @@ Lista fechada **global** (sem `restaurant_id`, só leitura): `movement_type`, `c
 | approved_by | uuid null | Quem aprovou o acerto |
 | reverses_id | uuid null fk | Estorno aponta para a original; índice único (estorno único) |
 | idempotency_key | text null | Único por restaurante |
+| supplier_id | uuid null fk | De quem foi a compra (feature 007). Só em `PURCHASE` (check `stock_movements_supplier_purchase`) |
 
 Proteções: `app_user` só `SELECT, INSERT`; gatilho `app_reject_change` em `UPDATE`/`DELETE`; RLS.
 

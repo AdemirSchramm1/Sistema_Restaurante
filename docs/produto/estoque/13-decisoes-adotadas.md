@@ -34,6 +34,16 @@ Decisões da feature 004 (compras, perdas e saldo), 2026-11-02:
 | Valor da compra | Digita-se o **valor total pago**; o custo por medida é calculado |
 | Custo médio | Guardado com 8 casas para o estorno de compra voltar exatamente à média anterior; tela mostra 2 |
 
+Decisões da feature 007 (Fornecedores), 2026-11-02:
+
+| Tema | Decisão |
+|---|---|
+| Ordem | O dono escolheu fazer a 007 enquanto a 005 espera o cardápio do cliente (QR code na mesa, cardápio aberto por 10 minutos, entrega na mesa) |
+| CNPJ | Opcional (feirante e produtor podem não ter); se informado, validado e único. Aceita o CNPJ alfanumérico |
+| Situação | Ativo ou **bloqueado**; sem "em avaliação" |
+| Preço | O preço combinado fica no cadastro; a compra não muda o preço, só mostra a última compra ao lado |
+| Embalagem | Cada fornecedor pode ter a sua para o mesmo item; a compra pode ser lançada nela |
+
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.
 
