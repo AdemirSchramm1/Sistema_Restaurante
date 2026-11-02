@@ -104,6 +104,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
                   {r.description}
                 </Link>{" "}
                 {!r.active && <Badge tone="muted">inativo</Badge>}
+                {r.atReorderPoint && <Badge tone="warn">Repor</Badge>}
               </Td>
               <Td>
                 {r.groupName} › {r.subgroupName}

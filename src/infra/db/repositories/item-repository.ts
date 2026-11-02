@@ -118,6 +118,8 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
         averageCost: dec(i.averageCost),
         lastCost: dec(i.lastCost),
         costUpdatedAt: i.costUpdatedAt,
+        reorderPoint: dec(i.reorderPoint),
+        parLevel: dec(i.parLevel),
         groupId: row.g.id,
         groupName: row.g.name,
         subgroupName: row.s.name,
@@ -157,6 +159,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
           groupName: itemGroups.name,
           subgroupName: itemSubgroups.name,
           balance: stockBalances.quantity,
+          atReorderPoint: sql<boolean>`(${items.active} and ${items.reorderPoint} is not null and coalesce(${stockBalances.quantity}, 0) <= ${items.reorderPoint})`,
         })
         .from(items)
         .innerJoin(itemSubgroups, eq(itemSubgroups.id, items.subgroupId))
@@ -186,6 +189,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
           groupName: r.groupName,
           subgroupName: r.subgroupName,
           balance: d(r.balance ?? "0"),
+          atReorderPoint: r.atReorderPoint === true,
         })),
       };
     },
@@ -215,6 +219,9 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
     },
 
     setCogsOverride: (id, value, version, audit) => optimistic(id, version, { inCogsOverride: value }, audit),
+
+    setReorderLevels: (id, l, version, audit) =>
+      optimistic(id, version, { reorderPoint: str(l.reorderPoint), parLevel: str(l.parLevel) }, audit),
 
     async balance(id) {
       const [r] = await tx

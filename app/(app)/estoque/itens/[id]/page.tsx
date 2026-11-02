@@ -7,7 +7,7 @@ import { getItem } from "@/application/inventory/get-item";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
-import { formatBrDecimal } from "@/domain/shared/decimal";
+import { Decimal, formatBrDecimal } from "@/domain/shared/decimal";
 import { ITEM_TYPE_LABELS } from "@/domain/inventory/item";
 import { ItemForm } from "@/components/items/item-form";
 import { itemToValues } from "@/components/items/item-form-values";
@@ -19,6 +19,9 @@ import { MovementTable } from "@/components/movements/movement-table";
 import { listMovements } from "@/application/inventory/movements";
 import { listItemOffers } from "@/application/suppliers/suppliers";
 import { ItemOffers } from "@/components/suppliers/item-offers";
+import { ReorderLevels } from "@/components/items/reorder-levels";
+import { getReorderView } from "@/application/inventory/reorder";
+import { setReorderLevelsAction } from "@/actions/reorder";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Item" };
@@ -31,15 +34,20 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const view = await getItem(deps, ctx, id);
   if (!view.ok) notFound();
   const { item, purchaseSummary, effectiveInCogs, balance } = view.value;
-  const [tree, history, restaurant, movements, offers] = await Promise.all([
+  const [tree, history, restaurant, movements, offers, reorder] = await Promise.all([
     listGroupTree(deps, ctx),
     getAuditHistory(deps, ctx, "item", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
     listMovements(deps, ctx, { itemId: id, limit: 20 }),
     listItemOffers(deps, ctx, id),
+    getReorderView(deps, ctx, id),
   ]);
   const timezone = restaurant.ok ? (restaurant.value?.timezone ?? "America/Sao_Paulo") : "America/Sao_Paulo";
   const canWrite = can(ctx.roles, "item.write");
+  const qty = (v: Decimal | null) => (v === null ? null : formatBrDecimal(v, { maxPlaces: 4 }));
+  // Sugestão arredondada para cima em 2 casas só na tela (spec 006, FR-005).
+  const up = (v: Decimal) => formatBrDecimal(v.toDecimalPlaces(2, Decimal.ROUND_CEIL), { maxPlaces: 2 });
+  const suggestion = reorder.ok ? reorder.value.suggestion : null;
   const money = (v: typeof item.averageCost) =>
     v ? `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 4 })}` : "—";
 
@@ -112,6 +120,25 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
               </dd>
             </dl>
           </Card>
+          <ReorderLevels
+            id={item.id}
+            version={item.version}
+            unit={item.stockUnit}
+            reorderPoint={qty(item.reorderPoint)}
+            parLevel={qty(item.parLevel)}
+            atReorderPoint={reorder.ok && reorder.value.atReorderPoint}
+            suggestion={
+              suggestion && {
+                reorderPoint: up(suggestion.reorderPoint),
+                parLevel: up(suggestion.parLevel),
+                averageDailyUsage: formatBrDecimal(suggestion.averageDailyUsage, { maxPlaces: 2 }),
+                leadTimeDays: suggestion.leadTimeDays,
+                cycleDays: formatBrDecimal(suggestion.cycleDays, { maxPlaces: 1 }),
+              }
+            }
+            canEdit={item.active && can(ctx.roles, "item.reorder")}
+            action={setReorderLevelsAction}
+          />
           <CogsOverride
             id={item.id}
             version={item.version}

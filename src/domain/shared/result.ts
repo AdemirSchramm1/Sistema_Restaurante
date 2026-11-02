@@ -52,7 +52,8 @@ export type ErrorCode =
   | "INVALID_EMAIL"
   | "INVALID_PRICE"
   | "SUPPLIER_ITEM_DUPLICATE"
-  | "SUPPLIER_BLOCKED";
+  | "SUPPLIER_BLOCKED"
+  | "INVALID_REORDER_LEVELS";
 
 export type DomainError = {
   code: ErrorCode;

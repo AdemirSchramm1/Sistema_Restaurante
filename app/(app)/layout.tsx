@@ -4,11 +4,14 @@ import { signOutAction } from "@/actions/auth";
 import { serverDeps } from "@/infra/server";
 import { ok } from "@/domain/shared/result";
 import { ROLE_LABELS } from "@/domain/access/permissions";
+import { countReorderAlerts } from "@/application/inventory/reorder";
 
 const NAV = [
   { href: "/estoque/itens", label: "Itens" },
   { href: "/estoque/produtos", label: "Produtos" },
   { href: "/estoque/lancamentos", label: "Lançamentos" },
+  { href: "/estoque/repor", label: "Repor" },
+  { href: "/estoque/graficos", label: "Gráficos" },
   { href: "/estoque/fornecedores", label: "Fornecedores" },
   { href: "/estoque/grupos", label: "Grupos" },
   { href: "/equipe", label: "Equipe" },
@@ -19,6 +22,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
   const r = await serverDeps().tenant(ctx.restaurantId, async (repos) => ok(await repos.restaurants.get()));
   const restaurant = r.ok ? r.value : null;
+  const reorder = await countReorderAlerts(serverDeps(), ctx);
+  const toReorder = reorder.ok ? reorder.value : 0;
   return (
     <div className="min-h-screen">
       <header className="no-print border-b border-border">
@@ -28,6 +33,14 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} className="hover:text-primary">
                 {n.label}
+                {n.href === "/estoque/repor" && toReorder > 0 && (
+                  <span
+                    className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-900"
+                    aria-label={`${toReorder} ${toReorder === 1 ? "item" : "itens"} para repor`}
+                  >
+                    {toReorder}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

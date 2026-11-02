@@ -95,6 +95,9 @@ export const items = pgTable(
     lastCost: numeric("last_cost", { precision: 14, scale: 4 }),
     costUpdatedAt: timestamp("cost_updated_at", { withTimezone: true }),
     abcClass: char("abc_class", { length: 1 }),
+    /** Aviso de reposição (feature 006), na medida do item: "avisar quando chegar em" e "comprar até". */
+    reorderPoint: numeric("reorder_point", { precision: 14, scale: 4 }),
+    parLevel: numeric("par_level", { precision: 14, scale: 4 }),
     active: boolean("active").notNull().default(true),
   },
   (t) => [
@@ -105,6 +108,11 @@ export const items = pgTable(
     index("items_description_trgm").using("gin", sql`${t.descriptionNormalized} gin_trgm_ops`),
     check("items_purchase_factor", sql`purchase_factor > 0`),
     check("items_purchase_pair", sql`(purchase_unit_label is null) = (purchase_factor is null)`),
+    check("items_reorder_point", sql`reorder_point >= 0`),
+    check(
+      "items_par_level",
+      sql`par_level is null or (reorder_point is not null and par_level > reorder_point)`,
+    ),
   ],
 );
 

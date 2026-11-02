@@ -46,6 +46,18 @@ eficientes mantêm essa diferença em ~1 p.p. ou menos; 3 p.p. já pede investig
 Em restaurante a curva ABC é mais concentrada que 80/20: num brunch de Campo Grande, 3 itens (8,8%)
 responderam por 62% do consumo. Um punhado de proteínas e bebidas define o resultado.
 
+## Gráficos do estoque (feature 006)
+
+Menu "Gráficos", período de 7, 30 ou 90 dias:
+
+- Resumo: entrou (compras), saiu, perdas (R$) e itens para repor.
+- Itens que mais saíram e que menos saíram (inclui os **parados**: com estoque e sem saída).
+- Saídas por motivo e entradas × saídas por semana.
+
+Tudo em R$ (custo gravado na movimentação), porque kg, l e un não se comparam. **Saída** é o que
+diminuiu o estoque, sem contar estornos nem o que foi estornado: hoje perdas e acertos para menos;
+com a 005, também os pedidos. Barras simples (HTML e CSS), sem biblioteca de gráficos.
+
 ## Investigação quando a variância sobe
 
 O painel guia esta sequência:

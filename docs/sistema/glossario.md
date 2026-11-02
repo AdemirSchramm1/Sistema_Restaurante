@@ -35,7 +35,11 @@
 | Ciclo de reposição | C | `reorderCycleDays` | |
 | Estoque de segurança | ES | `safetyStock` | |
 | Ponto de pedido | PP | `reorderPoint` | Também é o "mínimo" exibido |
-| Par / máximo | – | `parLevel` | |
+| Par / máximo | – | `parLevel` | Na tela: "Comprar até" (feature 006) |
+| Aviso de reposição | – | `reorder` (`item.reorder`) | Tela "Repor"; na tela o PP é "Avisar quando chegar em" |
+| Saída (gráficos) | – | `outflow` | Movimentação negativa, não estorno, não estornada |
+| Entrada (gráficos) | – | `inflow` | Compra não estornada |
+| Gráficos do estoque | – | `stockReport` | Menu "Gráficos" |
 | Custo da mercadoria vendida | CMV | `cogs` | Cost of goods sold |
 | CMV teórico | – | `theoreticalCogs` | |
 | Variância | – | `variance` | |
