@@ -40,6 +40,41 @@ describe("motivos em lista fechada (06-movimentacoes, FR-009)", () => {
   });
 });
 
+describe("compra na embalagem do fornecedor (spec 007, US4)", () => {
+  it("2 caixas de 18 kg do fornecedor por R$ 180,00: entram 36 kg a R$ 5,00/kg", () => {
+    const r = planPurchase(
+      tomato(),
+      {
+        quantity: d(2),
+        unit: { packageLabel: "Caixa", packageQuantity: d(18) },
+        totalPaid: d(180),
+        occurredAt: NOW,
+      },
+      NOW,
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.quantity.toString()).toBe("36");
+    expect(r.value.unitCost.toString()).toBe("5");
+    expect(r.value.enteredQuantity.toString()).toBe("2");
+    expect(r.value.enteredUnit).toBe("Caixa");
+  });
+
+  it("vale também para item sem embalagem própria", () => {
+    const r = planPurchase(
+      tomato({ purchaseUnitLabel: null, purchaseFactor: null }),
+      {
+        quantity: d(1),
+        unit: { packageLabel: "Saco", packageQuantity: d(25) },
+        totalPaid: d(50),
+        occurredAt: NOW,
+      },
+      NOW,
+    );
+    expect(r.ok && r.value.quantity.toString()).toBe("25");
+  });
+});
+
 describe("compra (spec 004, US1)", () => {
   it("3 caixas de 20 kg por R$ 240,00: entram 60 kg a R$ 4,00/kg; média vai a R$ 3,857…", () => {
     const r = planPurchase(

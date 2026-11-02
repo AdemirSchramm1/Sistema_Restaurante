@@ -25,7 +25,12 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
       "movement.loss",
       "movement.purchase",
     ]);
-    expect(allowed("BUYER")).toEqual(["adjustment.request", "catalog.read", "movement.purchase"]);
+    expect(allowed("BUYER")).toEqual([
+      "adjustment.request",
+      "catalog.read",
+      "movement.purchase",
+      "supplier.write",
+    ]);
     expect(allowed("ADMINISTRATIVE")).toEqual(["catalog.read"]);
     expect(can(["MANAGER"], "adjustment.approve")).toBe(true);
     expect(can(["MANAGER"], "movement.reverse")).toBe(true);
@@ -33,6 +38,13 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
       expect(can([r], "adjustment.approve"), r).toBe(false);
       expect(can([r], "movement.reverse"), r).toBe(false);
     }
+  });
+
+  it("fornecedores: só gerente e comprador cadastram (spec 007, FR-006)", () => {
+    expect(can(["MANAGER"], "supplier.write")).toBe(true);
+    expect(can(["BUYER"], "supplier.write")).toBe(true);
+    for (const r of ["CHEF", "STOCKKEEPER", "ADMINISTRATIVE"] as Role[])
+      expect(can([r], "supplier.write"), r).toBe(false);
   });
 
   it("usuário com vários papéis soma as permissões", () => {
