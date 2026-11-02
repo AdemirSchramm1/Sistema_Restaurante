@@ -36,7 +36,17 @@ export type ErrorCode =
   | "COMPONENT_INACTIVE"
   | "NOT_A_SUB_RECIPE"
   | "RECIPE_CYCLE"
-  | "RECIPE_IN_USE";
+  | "RECIPE_IN_USE"
+  | "ITEM_INACTIVE"
+  | "INVALID_AMOUNT"
+  | "INVALID_REASON"
+  | "INSUFFICIENT_STOCK"
+  | "FUTURE_DATE"
+  | "NO_CHANGE"
+  | "SELF_APPROVAL"
+  | "REQUEST_NOT_PENDING"
+  | "ALREADY_REVERSED"
+  | "CANNOT_REVERSE_REVERSAL";
 
 export type DomainError = {
   code: ErrorCode;

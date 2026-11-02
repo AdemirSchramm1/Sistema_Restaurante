@@ -41,12 +41,24 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   NOT_A_SUB_RECIPE: "Só preparos podem ser usados dentro de outro produto.",
   RECIPE_CYCLE: "Este preparo acabaria usando a si mesmo.",
   RECIPE_IN_USE: "Este preparo está em uso em outros produtos.",
+  ITEM_INACTIVE: "Este item está inativo. Reative o item para lançar.",
+  INVALID_AMOUNT: "Valor inválido. Use até 2 casas depois da vírgula (ex.: 240,50).",
+  INVALID_REASON: "Escolha um motivo da lista.",
+  INSUFFICIENT_STOCK: "Não há estoque suficiente para essa saída.",
+  FUTURE_DATE: "A data não pode ser no futuro.",
+  NO_CHANGE: "O saldo já é esse. Não há o que acertar.",
+  SELF_APPROVAL: "Quem pediu o acerto não pode aprová-lo. Peça a outro gerente.",
+  REQUEST_NOT_PENDING: "Este pedido de acerto já foi decidido.",
+  ALREADY_REVERSED: "Este lançamento já foi estornado.",
+  CANNOT_REVERSE_REVERSAL: "Estorno não se estorna. Lance de novo o que for certo.",
 };
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
+  if (error.code === "INSUFFICIENT_STOCK" && error.details?.available !== undefined)
+    return `Não há estoque suficiente: só há ${String(error.details.available).replace(".", ",")} ${String(error.details.unit)}.`;
   if (error.code === "RECIPE_IN_USE" && Array.isArray(error.details?.usedBy))
     return `Este preparo está em uso em: ${(error.details.usedBy as string[]).join(", ")}. Tire dele primeiro.`;
   return base;
