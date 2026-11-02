@@ -6,9 +6,9 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
     for (const action of ACTIONS) expect(can(["MANAGER"], action), action).toBe(true);
   });
 
-  it("chef só consulta e escreve itens", () => {
+  it("chef consulta e escreve itens e produtos (spec 003, FR-006)", () => {
     const allowed = ACTIONS.filter((a) => can(["CHEF"], a));
-    expect(allowed.sort()).toEqual(["catalog.read", "item.write"]);
+    expect(allowed.sort()).toEqual(["catalog.read", "item.write", "recipe.write"]);
   });
 
   it.each<Role>(["STOCKKEEPER", "BUYER", "ADMINISTRATIVE"])("%s só consulta", (role) => {
