@@ -64,6 +64,12 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
   `it("bloqueia ajuste aprovado pelo mesmo usuário que lançou")`.
 - **Builders de dados de teste** (`tests/builders/`) para criar itens, fornecedores e movimentações
   sem repetir código.
+- **Vermelho pelo motivo certo.** Rode o teste antes do código e veja a **asserção** falhar. Se o
+  módulo ainda não existe, crie um esqueleto vazio (ex.: componente que devolve `null`) para o teste
+  falhar no comportamento, não no `import`.
+- **Tela nova também tem teste antes.** A lógica de exibição de uma página (textos condicionais,
+  plural, estado vazio) vai para um componente com teste de unidade escrito antes; o E2E do fluxo
+  também vem antes da página, vermelho.
 - **Bug → teste primeiro.** Todo bug corrigido ganha um teste que falhava antes da correção.
 - **Nunca** usar `.skip`, `.only` ou apagar teste para passar na CI (lint bloqueia `.only`).
 
