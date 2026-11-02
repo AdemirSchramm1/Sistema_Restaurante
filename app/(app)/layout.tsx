@@ -8,7 +8,6 @@ import { ROLE_LABELS } from "@/domain/access/permissions";
 const NAV = [
   { href: "/estoque/itens", label: "Itens" },
   { href: "/estoque/grupos", label: "Grupos" },
-  { href: "/estoque/locais", label: "Locais" },
   { href: "/equipe", label: "Equipe" },
 ] as const;
 

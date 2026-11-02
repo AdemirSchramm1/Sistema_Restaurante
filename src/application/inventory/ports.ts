@@ -1,7 +1,6 @@
 import type { Result } from "@/domain/shared/result";
 import type { DefaultGroup, StorageClass } from "@/domain/inventory/default-tree";
 import type { Item, ItemData, ItemType } from "@/domain/inventory/item";
-import type { Location, LocationData, LocationKind } from "@/domain/inventory/location";
 import type { Audit } from "../access/ports";
 
 export type GroupRecord = {
@@ -44,21 +43,11 @@ export interface GroupRepo {
   setSubgroupActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
 }
 
-export interface LocationRepo {
-  insert(l: LocationData & { id: string; isSystem: boolean }, audit: Audit): Promise<Result<void>>;
-  update(id: string, l: LocationData, version: number, audit: Audit): Promise<Result<void>>;
-  get(id: string): Promise<Location | null>;
-  list(includeInactive: boolean): Promise<Location[]>;
-  setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
-  linkCount(id: string): Promise<number>;
-}
-
 export type ItemFilter = {
   q?: string;
   groupId?: string;
   subgroupId?: string;
   type?: ItemType;
-  locationId?: string;
   status?: "active" | "inactive" | "all";
   page: number;
   pageSize: number;
@@ -96,20 +85,7 @@ export interface ItemRepo {
   activeCountInSubgroup(subgroupId: string): Promise<number>;
 }
 
-export type ItemLocationLink = { locationId: string; isDefault: boolean };
-export interface ItemLocationRepo {
-  replaceForItem(
-    itemId: string,
-    links: ItemLocationLink[],
-    ids: () => string,
-    audit: Audit,
-  ): Promise<Result<void>>;
-  listForItem(itemId: string): Promise<(ItemLocationLink & { locationName: string; kind: LocationKind })[]>;
-}
-
 export type CatalogRepos = {
   groups: GroupRepo;
-  locations: LocationRepo;
   items: ItemRepo;
-  itemLocations: ItemLocationRepo;
 };

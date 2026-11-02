@@ -22,9 +22,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SUBGROUP_HAS_ACTIVE_ITEMS: "Mova ou inative os itens deste subgrupo antes.",
   SUBGROUP_INACTIVE: "O subgrupo escolhido está inativo.",
   SUBGROUP_SEQUENCE_EXHAUSTED: "Este subgrupo chegou a 9.999 itens. Crie outro subgrupo.",
-  LOCATION_IN_USE: "Retire os itens deste local antes de inativá-lo.",
-  LOCATION_INACTIVE: "O local escolhido está inativo.",
-  MULTIPLE_DEFAULTS: "Escolha só um local principal para o item.",
   ITEM_DUPLICATE_DESCRIPTION: "Já existe um item ativo com este nome neste grupo.",
   ITEM_UNIT_LOCKED:
     "A medida não pode mudar depois que o item já teve entrada ou saída. Inative o item e crie outro.",

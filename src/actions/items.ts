@@ -7,7 +7,6 @@ import { createItem } from "@/application/inventory/create-item";
 import { updateItem } from "@/application/inventory/update-item";
 import { setItemActive } from "@/application/inventory/set-item-active";
 import { setItemCogsOverride } from "@/application/inventory/set-item-cogs-override";
-import { setItemLocations } from "@/application/inventory/set-item-locations";
 import { formDataToObject, parseItemForm } from "@/application/inventory/item-input";
 import { withContext, type ActionState } from "./_session";
 
@@ -54,18 +53,5 @@ export async function setItemCogsOverrideAction(_prev: ActionState, form: FormDa
   const value = raw === "true" ? true : raw === "false" ? false : null;
   const state = await withContext((ctx) => setItemCogsOverride(serverDeps(), ctx, id, version, value));
   if (state?.ok) revalidatePath(`/estoque/itens/${id}`);
-  return state;
-}
-
-/** Campos: `loc` (ids marcados) e `default` (id do local principal). */
-export async function setItemLocationsAction(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const itemId = String(form.get("itemId"));
-  const defaultId = form.get("default");
-  const links = form.getAll("loc").map((v) => ({
-    locationId: String(v),
-    isDefault: defaultId === String(v),
-  }));
-  const state = await withContext((ctx) => setItemLocations(serverDeps(), ctx, itemId, links));
-  if (state?.ok) revalidatePath(`/estoque/itens/${itemId}`);
   return state;
 }

@@ -5,7 +5,6 @@ import { updateItemAction } from "@/actions/items";
 import { serverDeps } from "@/infra/server";
 import { getItem } from "@/application/inventory/get-item";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
-import { listLocations } from "@/application/inventory/locations";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
 import { formatBrDecimal } from "@/domain/shared/decimal";
@@ -15,7 +14,6 @@ import { itemToValues } from "@/components/items/item-form-values";
 import { subgroupOptions } from "@/components/items/subgroup-options";
 import { ItemActiveToggle } from "@/components/items/item-active-toggle";
 import { CogsOverride } from "@/components/items/cogs-override";
-import { ItemLocations } from "@/components/items/item-locations";
 import { HistoryList } from "@/components/audit/history-list";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 
@@ -28,10 +26,9 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const deps = serverDeps();
   const view = await getItem(deps, ctx, id);
   if (!view.ok) notFound();
-  const { item, purchaseSummary, effectiveInCogs, locations } = view.value;
-  const [tree, locs, history, restaurant] = await Promise.all([
+  const { item, purchaseSummary, effectiveInCogs } = view.value;
+  const [tree, history, restaurant] = await Promise.all([
     listGroupTree(deps, ctx),
-    listLocations(deps, ctx),
     getAuditHistory(deps, ctx, "item", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
   ]);
@@ -93,15 +90,6 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             groupInCogs={item.groupInCogs}
             effective={effectiveInCogs}
             canEdit={can(ctx.roles, "item.cogs_override")}
-          />
-          <ItemLocations
-            itemId={item.id}
-            links={locations.map((l) => ({
-              locationId: l.locationId,
-              isDefault: l.isDefault,
-            }))}
-            options={locs.ok ? locs.value.map((l) => ({ id: l.id, name: l.name, kind: l.kind })) : []}
-            canEdit={can(ctx.roles, "item_location.manage")}
           />
           <Card className="grid gap-2">
             <CardTitle>Histórico</CardTitle>

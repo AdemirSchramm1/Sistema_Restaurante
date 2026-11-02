@@ -18,17 +18,6 @@ import { base, editable } from "./common";
 
 export const dimensionEnum = pgEnum("dimension", ["MASS", "VOLUME", "COUNT"]);
 export const storageClassEnum = pgEnum("storage_class", ["FOOD", "CHEMICAL", "OTHER_NON_FOOD"]);
-export const locationKindEnum = pgEnum("location_kind", [
-  "DRY",
-  "CHILLED",
-  "FROZEN",
-  "QUARANTINE",
-  "IN_TRANSIT",
-  "CHEMICALS",
-  "STATION",
-  "BAR",
-  "NON_FOOD",
-]);
 export const itemTypeEnum = pgEnum("item_type", ["INGREDIENT", "RESALE", "PRODUCED", "CONSUMABLE", "ASSET"]);
 
 /** Catálogo global de unidades: sem restaurant_id, só leitura para a aplicação. */
@@ -82,23 +71,6 @@ export const itemSubgroups = pgTable(
   ],
 );
 
-export const locations = pgTable(
-  "locations",
-  {
-    ...base,
-    ...editable,
-    name: text("name").notNull(),
-    kind: locationKindEnum("kind").notNull(),
-    isSystem: boolean("is_system").notNull().default(false),
-    active: boolean("active").notNull().default(true),
-  },
-  (t) => [
-    uniqueIndex("locations_active_name")
-      .on(t.restaurantId, sql`lower(${t.name})`)
-      .where(sql`active`),
-  ],
-);
-
 export const items = pgTable(
   "items",
   {
@@ -132,26 +104,6 @@ export const items = pgTable(
     index("items_description_trgm").using("gin", sql`${t.descriptionNormalized} gin_trgm_ops`),
     check("items_purchase_factor", sql`purchase_factor > 0`),
     check("items_purchase_pair", sql`(purchase_unit_label is null) = (purchase_factor is null)`),
-  ],
-);
-
-export const itemLocations = pgTable(
-  "item_locations",
-  {
-    ...base,
-    itemId: uuid("item_id")
-      .notNull()
-      .references(() => items.id, { onDelete: "cascade" }),
-    locationId: uuid("location_id")
-      .notNull()
-      .references(() => locations.id),
-    isDefault: boolean("is_default").notNull().default(false),
-  },
-  (t) => [
-    uniqueIndex("item_locations_unique").on(t.itemId, t.locationId),
-    uniqueIndex("item_locations_one_default")
-      .on(t.itemId)
-      .where(sql`is_default`),
   ],
 );
 

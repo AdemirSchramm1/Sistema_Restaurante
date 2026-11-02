@@ -10,7 +10,7 @@
 | Embalagem de compra | – | `purchaseUnitLabel` + `purchaseFactor` | Opcional: "Caixa" com 20 (na medida do item). Fator por fornecedor fica em `supplier_item` |
 | Fornecedor | – | `supplier` | |
 | Vínculo item-fornecedor | – | `supplier_item` | Guarda código do fornecedor e fator |
-| Local | – | `location` | |
+| Local | – | – | Retirado na 002; não existe mais |
 | Produto (ficha técnica) | – | `recipe` | O que o cliente pede e quanto de cada item usa. Versionada: `recipe_version` |
 | Linha da ficha | – | `recipe_line` | |
 | Sub-receita | – | `recipe` com `kind = SUB_RECIPE` | Gera item `PRODUCED` |
@@ -38,7 +38,7 @@
 | Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE` | Gerente, chef, estoquista, comprador, administrativo |
 | Vínculo do usuário com o restaurante | – | `membership` | |
 | Convite | – | `invitation` | |
-| Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Informativa desde a 002 (não bloqueia local) |
+| Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Informativa desde a 002 |
 | Trilha de auditoria | – | `audit_log` | Só inserção |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),

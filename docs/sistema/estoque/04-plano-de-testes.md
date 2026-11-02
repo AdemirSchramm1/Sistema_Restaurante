@@ -35,11 +35,11 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | U | Embalagem e quantidade andam juntas (`PURCHASE_FACTOR_REQUIRED`, `PURCHASE_LABEL_REQUIRED`); quantidade > 0 |
 | U | Frase "1 Caixa = 20 kg" |
 | U | Formulário do item: três blocos, sem temperatura, validade, alérgeno, EAN, NCM, contagem, receita nem fator |
-| U | Local só com nome e tipo; tela não oferece quarentena nem trânsito |
+| U | Não existem permissões de locais |
 | I | Item sem embalagem; embalagem incompleta recusada também pelo banco (`items_purchase_pair`) |
-| I | Local sem temperatura; no máximo um local principal por item |
+| I | Banco sem as tabelas `locations` e `item_locations` (migração `0003`) |
 | I | Migração `0002` aplicada sobre banco com dados antigos |
-| E | Criar conta, aceitar locais sugeridos, cadastrar item com embalagem e ligar a um local |
+| E | Criar conta (cai direto em Itens, menu sem Locais) e cadastrar item com embalagem |
 
 ## 003 — Produtos
 
@@ -104,7 +104,7 @@ contagem de estoque e fiscal.
 
 ## Dados de teste
 
-- `tests/builders/`: `anItem()`, `aSupplier()`, `aLocation()`, `aMovement()` com padrões sensatos.
+- `tests/builders/`: `anItem()`, `aSupplier()`, `aMovement()` com padrões sensatos.
 - `tests/fixtures/manual/`: os exemplos numéricos do manual (filé mignon, CMV Sebrae PR, FC
   Aracaju) como dados reutilizáveis.
 - Banco de integração: um container por execução, migrações aplicadas no início, transação com

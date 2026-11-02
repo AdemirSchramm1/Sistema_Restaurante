@@ -15,9 +15,7 @@ export const ACTIONS = [
   "catalog.read",
   "item.write",
   "item.cogs_override",
-  "item_location.manage",
   "group.manage",
-  "location.manage",
   "user.invite",
   "user.manage",
 ] as const;

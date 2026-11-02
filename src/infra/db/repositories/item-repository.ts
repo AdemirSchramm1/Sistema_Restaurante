@@ -132,10 +132,6 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       if (f.groupId) where.push(eq(itemSubgroups.groupId, f.groupId));
       if (f.subgroupId) where.push(eq(items.subgroupId, f.subgroupId));
       if (f.type) where.push(eq(items.type, f.type));
-      if (f.locationId)
-        where.push(
-          sql`exists (select 1 from item_locations il where il.item_id = "items"."id" and il.location_id = ${f.locationId})`,
-        );
       const q = f.q?.trim();
       if (q) {
         const norm = normalizeDescription(q).replace(/[%_\\]/g, "\\$&");

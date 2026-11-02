@@ -14,7 +14,7 @@ O dono do produto testou a primeira versão e achou o cadastro complexo demais. 
 | Contagem de estoque | Folhas de contagem, frequência, "inventariável" | **Fora do escopo.** O estoque baixa sozinho conforme os pedidos |
 | Unidades do item | Três unidades (compra, estoque, receita), fator e conversão do item | **Uma medida** (kg, g, l, ml, un) e, opcionalmente, a embalagem de compra com a quantidade |
 | Quanto se usa em cada produto | Unidade de receita e fator no item | Tela de **Produtos** (próxima feature) |
-| Locais | Tipo, temperatura, responsável, ordem de contagem, regra de químicos | Só nome e tipo; item pode ter um local principal |
+| Locais | Tipo, temperatura, responsável, ordem de contagem, regra de químicos | **Fora do escopo.** O estoque tem um saldo só por item, sem dizer onde ele está guardado |
 | Textos da tela | Termos técnicos (fator, FC, GTIN) | Rótulos do dia a dia, com exemplo em cada campo |
 
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em

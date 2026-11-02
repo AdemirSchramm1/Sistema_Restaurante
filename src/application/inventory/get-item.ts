@@ -1,9 +1,7 @@
 import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize } from "../shared";
-import type { ItemLocationLink } from "./ports";
 import { describePurchase, effectiveInCogs, type Item } from "@/domain/inventory/item";
-import type { LocationKind } from "@/domain/inventory/location";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 export type ItemView = {
@@ -11,7 +9,6 @@ export type ItemView = {
   effectiveInCogs: boolean;
   /** "1 Caixa = 20 kg", ou null quando o item é comprado solto. */
   purchaseSummary: string | null;
-  locations: (ItemLocationLink & { locationName: string; kind: LocationKind })[];
 };
 
 export const effectiveInCogsOf = (item: Pick<Item, "inCogsOverride" | "groupInCogs">) =>
@@ -27,7 +24,6 @@ export async function getItem(deps: Deps, ctx: RequestContext, id: string): Prom
       item,
       effectiveInCogs: effectiveInCogs(item),
       purchaseSummary: describePurchase(item),
-      locations: await repos.itemLocations.listForItem(id),
     });
   });
 }

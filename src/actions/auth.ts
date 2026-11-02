@@ -23,7 +23,7 @@ export async function signUpAction(_prev: ActionState, form: FormData): Promise<
     await requestOrigin(),
   );
   if (!r.ok) return toState(r);
-  redirect("/estoque/locais?primeiro-acesso=1");
+  redirect("/estoque/itens");
 }
 
 export async function signInAction(_prev: ActionState, form: FormData): Promise<ActionState> {

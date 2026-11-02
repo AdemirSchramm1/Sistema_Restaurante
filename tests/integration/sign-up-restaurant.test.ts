@@ -39,9 +39,11 @@ describe("criar a conta do restaurante (spec 001, US5.1)", () => {
       DEFAULT_GROUP_TREE.reduce((n, g) => n + g.subgroups.length, 0),
     );
 
-    const q = await db.execute(sql`select name, kind, is_system from locations where restaurant_id = ${id}`);
-    // Spec 002: nenhum local é criado sozinho (sem quarentena); o gerente escolhe os sugeridos.
-    expect(q.rows).toEqual([]);
+    // Spec 002, US3: a tela de locais saiu e as tabelas também.
+    const q = await db.execute(
+      sql`select to_regclass('locations') as l, to_regclass('item_locations') as il`,
+    );
+    expect(q.rows[0]).toEqual({ l: null, il: null });
 
     const user = await db.execute(sql`select email from users where id = ${r.value.userId}`);
     expect(user.rows[0]).toEqual({ email: "ana@exemplo.com.br" });
