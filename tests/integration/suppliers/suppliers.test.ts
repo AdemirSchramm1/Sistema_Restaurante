@@ -5,7 +5,11 @@ import { supplierData, supplierItemData } from "../../builders/supplier-data";
 import { createItem } from "../../../src/application/inventory/create-item";
 import { getItem } from "../../../src/application/inventory/get-item";
 import { setItemActive } from "../../../src/application/inventory/set-item-active";
-import { listMovements, registerPurchase } from "../../../src/application/inventory/movements";
+import {
+  listMovements,
+  movementItemOptions,
+  registerPurchase,
+} from "../../../src/application/inventory/movements";
 import {
   addSupplierItem,
   createSupplier,
@@ -355,5 +359,18 @@ describe("permissões e auditoria (spec 007, FR-006, FR-008)", () => {
     unwrap(await setSupplierActive(env.deps, ctx, s.id, 2, true));
     const history = unwrap(await getAuditHistory(env.deps, ctx, "supplier", s.id));
     expect(history.map((h) => h.action)).toEqual(["CREATE", "DEACTIVATE", "REACTIVATE"]);
+  });
+});
+
+describe("opções da tela de lançamento", () => {
+  it("oferece todos os itens ativos, não só os 50 da primeira página da lista", async () => {
+    const env = testEnv();
+    const ctx = await newRestaurant(env);
+    const sub = await subgroupId(env, ctx, "01", "02");
+    for (let i = 1; i <= 51; i++)
+      unwrap(await createItem(env.deps, ctx, itemData({ subgroupId: sub, description: `Item ${i}` })));
+    const options = unwrap(await movementItemOptions(env.deps, ctx));
+    expect(options).toHaveLength(51);
+    expect(options[0]).toMatchObject({ stockUnit: "kg", purchaseUnitLabel: "Caixa" });
   });
 });
