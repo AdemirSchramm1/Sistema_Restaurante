@@ -39,15 +39,23 @@ ficarem certos.
 3. A perda sai pelo custo médio do momento e não muda o custo médio.
 4. Perda maior que o saldo é recusada: "Só há 2 kg de Tomate em estoque".
 
-### US3 — Acertar o saldo quando a prateleira não bate (P2)
+### US3 — Acertar o saldo quando a prateleira não bate, com aprovação (P2)
 
-*(Decisão do dono pendente: proposta = o gerente acerta sozinho, com registro.)*
+Decisão do dono (2026-11-02): **acerto com aprovação** de outra pessoa.
 
-1. O gerente escolhe "Acerto", o item, informa **quanto tem de verdade** e o motivo (lista
-   fechada) com observação opcional.
-2. O sistema lança a diferença (sobra ou falta) como `ADJUSTMENT` pelo custo médio. Sem diferença,
-   aparece "O saldo já é esse".
-3. Só o gerente acerta.
+1. Quem lança compras ou perdas (gerente, chef, estoquista, comprador) escolhe "Pedir acerto", o
+   item, informa **quanto tem de verdade** e o motivo (lista fechada), com observação opcional.
+2. O pedido guarda o saldo do sistema naquele momento e a diferença (ex.: sistema 10 kg,
+   prateleira 8 kg → faltam 2 kg). Sem diferença, aparece "O saldo já é esse". O saldo **não muda**
+   ainda.
+3. A página Lançamentos mostra os "Acertos esperando aprovação". Um **gerente que não seja quem
+   pediu** aprova ou recusa (com motivo da recusa opcional).
+4. Ao aprovar, o sistema lança a diferença do pedido como `ADJUSTMENT` pelo custo médio, com quem
+   pediu e quem aprovou. Se a falta for maior que o saldo atual, a aprovação é recusada
+   (`INSUFFICIENT_STOCK`): peça um acerto novo.
+5. Quem pediu não aprova o próprio acerto (`SELF_APPROVAL`), mesmo sendo gerente. Num restaurante
+   com um só gerente, os acertos pedidos por ele precisam de outro gerente; os da equipe ele aprova.
+6. Pedido aprovado ou recusado não muda mais; pedido pendente pode ser cancelado por quem pediu.
 
 ### US4 — Ver o saldo e o que aconteceu com o item (P1)
 
@@ -81,7 +89,8 @@ ficarem certos.
 - **FR-005** Saídas (perda, acerto para menos, estorno) nunca deixam saldo negativo nesta feature
   (`INSUFFICIENT_STOCK`). A exceção para vendas fica para a 005.
 - **FR-006** Permissões: compra = gerente, estoquista, comprador; perda = gerente, chef,
-  estoquista; acerto e estorno = gerente. Tentativa negada vai para a auditoria.
+  estoquista; pedir acerto = gerente, chef, estoquista, comprador; aprovar acerto e estornar =
+  gerente, e quem aprova não pode ser quem pediu. Tentativa negada vai para a auditoria.
 - **FR-007** Lançamento repetido (mesma chave do formulário) não duplica (`idempotency_key`).
 - **FR-008** Dinheiro e quantidade em decimal exato; custo unitário com 4 casas, total com 2.
 - **FR-009** Motivos em lista fechada por tipo, com família; texto livre só na observação.

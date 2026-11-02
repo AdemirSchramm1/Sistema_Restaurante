@@ -16,7 +16,7 @@ nenhuma dependência nova.
 | II. Domínio puro | `average-cost.ts`, `movement.ts` sem banco; data e ids por parâmetro |
 | III. Livro imutável | `app_user` só `SELECT, INSERT` em `stock_movements`; gatilho `app_reject_change`; estorno único por `reverses_id` |
 | IV. Precisão | `numeric(14,4)` em quantidade e custo unitário, `numeric(14,2)` no total; conversão só por `units.ts` |
-| V. Rastreabilidade | Quem lançou e quando em cada linha; tentativa negada na auditoria; acerto pelo gerente registrado |
+| V. Rastreabilidade | Quem lançou e quando em cada linha; tentativa negada na auditoria; acerto pedido por um e aprovado por outro gerente |
 | VI. Docs vivas | 06-movimentacoes, 02-cadastro (custo), 13-decisões, modelo de dados, 03-movimentações, glossário |
 | VII. Simplicidade | Saldo único por item (sem local), quatro tipos, motivos globais (sem cadastro por restaurante) |
 
@@ -30,6 +30,11 @@ stock_movements   id, restaurant_id, type, item_id, quantity (com sinal), entere
                   idempotency_key unique por restaurante
                   check: perda/acerto/estorno têm motivo; compra tem quantidade > 0
 stock_balances    restaurant_id, item_id (pk), quantity, updated_at
+adjustment_requests  id, restaurant_id, item_id, counted_quantity, system_quantity, difference,
+                  reason_id, notes, status (PENDING | APPROVED | REJECTED | CANCELLED),
+                  requested_by/at, decided_by/at, decision_notes, movement_id null,
+                  version (trava otimista)
+                  check: decided_by <> requested_by
 ```
 
 - `items.average_cost`, `last_cost`, `cost_updated_at` passam a ser escritos pela compra.
@@ -43,7 +48,9 @@ stock_balances    restaurant_id, item_id (pk), quantity, updated_at
   medida do item, guardado com 4 casas.
 - **Motivos globais** semeados na migração (iguais para todos os restaurantes) — sem tela de
   cadastro de motivo.
-- **Acerto** informa a quantidade certa; o domínio calcula a diferença.
+- **Acerto com aprovação** (decisão do dono): o pedido guarda a quantidade certa, o saldo do
+  sistema e a diferença; a aprovação lança a diferença do pedido. Segregação no domínio
+  (`SELF_APPROVAL`) e no banco (check `decided_by <> requested_by`).
 - **Estorno de compra** recalcula o custo médio: (saldo × médio − qtd × custo) ÷ (saldo − qtd);
   saldo restante zero mantém o médio.
 - Telas: `/estoque/lancamentos` (formulário com tipo + lista com filtro e "Estornar"), saldo na
