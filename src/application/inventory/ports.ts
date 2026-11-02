@@ -1,6 +1,10 @@
 import type { Result } from "@/domain/shared/result";
 import type { DefaultGroup, StorageClass } from "@/domain/inventory/default-tree";
 import type { Item, ItemData, ItemType } from "@/domain/inventory/item";
+import type { Decimal } from "@/domain/shared/decimal";
+import type { UnitCode } from "@/domain/inventory/units";
+import type { ComponentInfo, ComponentRef, RecipeKind, RecipeLineData } from "@/domain/inventory/recipe";
+import type { RecipeNode } from "@/domain/inventory/recipe-graph";
 import type { Audit } from "../access/ports";
 
 export type GroupRecord = {
@@ -85,7 +89,68 @@ export interface ItemRepo {
   activeCountInSubgroup(subgroupId: string): Promise<number>;
 }
 
+export type RecipeVersionRecord = {
+  id: string;
+  number: number;
+  validFrom: Date;
+  yieldQuantity: Decimal | null;
+  yieldUnit: UnitCode | null;
+  lines: RecipeLineData[];
+};
+export type RecipeRecord = {
+  id: string;
+  name: string;
+  kind: RecipeKind;
+  active: boolean;
+  version: number;
+  current: RecipeVersionRecord;
+};
+export type RecipeListRow = {
+  id: string;
+  name: string;
+  kind: RecipeKind;
+  active: boolean;
+  lineCount: number;
+  versionNumber: number;
+};
+export type RecipeFilter = { q?: string; kind?: RecipeKind; status?: "active" | "inactive" | "all" };
+/** Item ou preparo com o que a tela e o custo precisam. */
+export type ComponentRecord = ComponentInfo & { averageCost: Decimal | null };
+
+export interface RecipeRepo {
+  insert(
+    r: { id: string; name: string; nameNormalized: string; kind: RecipeKind },
+    audit: Audit,
+  ): Promise<Result<void>>;
+  update(
+    id: string,
+    r: { name: string; nameNormalized: string; kind: RecipeKind },
+    version: number,
+    audit: Audit,
+  ): Promise<Result<void>>;
+  setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
+  insertVersion(
+    v: Omit<RecipeVersionRecord, "id"> & { id: string; recipeId: string },
+    lineIds: () => string,
+    audit: Audit,
+  ): Promise<void>;
+  /** Produto com a versão mais nova. */
+  get(id: string): Promise<RecipeRecord | null>;
+  versionAt(recipeId: string, at: Date): Promise<RecipeVersionRecord | null>;
+  list(filter: RecipeFilter): Promise<RecipeListRow[]>;
+  findActiveByName(normalized: string, exceptId?: string): Promise<{ id: string } | null>;
+  /** Versão mais nova de cada preparo do restaurante (ativos e inativos). */
+  subRecipeGraph(): Promise<Map<string, RecipeNode>>;
+  /** Nomes dos produtos ativos cuja versão mais nova usa este preparo. */
+  usedBy(recipeId: string): Promise<string[]>;
+  /** Itens e preparos pelos ids (só os do restaurante, pelo RLS). */
+  components(refs: readonly ComponentRef[]): Promise<ComponentRecord[]>;
+  /** Itens e preparos ativos para escolher no formulário. */
+  activeComponents(): Promise<ComponentRecord[]>;
+}
+
 export type CatalogRepos = {
   groups: GroupRepo;
   items: ItemRepo;
+  recipes: RecipeRepo;
 };

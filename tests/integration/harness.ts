@@ -22,6 +22,9 @@ export async function closeTestDbs() {
 }
 
 const TABLES = [
+  "recipe_lines",
+  "recipe_versions",
+  "recipes",
   "audit_log",
   "items",
   "item_subgroups",

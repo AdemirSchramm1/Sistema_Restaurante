@@ -37,7 +37,16 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
   await page.getByText(/Item cadastrado com o código/).waitFor();
   expect(await seriousViolations(page), "detalhe do item").toEqual([]);
 
-  for (const path of ["/estoque/itens", "/estoque/grupos", "/equipe"]) {
+  await page.goto("/estoque/produtos/novo");
+  expect(await seriousViolations(page), "/estoque/produtos/novo").toEqual([]);
+  await page.getByLabel("Nome do produto").fill("Arroz pronto");
+  await page.getByLabel("Item ou preparo da linha 1").selectOption({ index: 1 });
+  await page.getByLabel("Quanto vai (linha 1)").fill("200");
+  await page.getByRole("button", { name: "Cadastrar produto" }).click();
+  await page.getByText("Produto cadastrado.").waitFor();
+  expect(await seriousViolations(page), "detalhe do produto").toEqual([]);
+
+  for (const path of ["/estoque/itens", "/estoque/produtos", "/estoque/grupos", "/equipe"]) {
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }

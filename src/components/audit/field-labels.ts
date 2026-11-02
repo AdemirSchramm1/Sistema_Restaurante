@@ -1,6 +1,7 @@
 import { ITEM_TYPE_LABELS, type ItemType } from "@/domain/inventory/item";
 import { STORAGE_CLASS_LABELS, type StorageClass } from "@/domain/inventory/default-tree";
 import { ROLE_LABELS, type Role } from "@/domain/access/permissions";
+import { RECIPE_KIND_LABELS, type RecipeKind } from "@/domain/inventory/recipe";
 
 /**
  * Nome em português de cada campo que aparece no histórico.
@@ -46,7 +47,9 @@ export const FIELD_LABELS: Record<string, string> = {
   storageClass: "Classe de armazenagem",
   locations: "Onde fica guardado",
   active: "Ativo",
-  kind: "Tipo de local",
+  kind: "Tipo",
+  yield: "Quanto rende",
+  lines: "O que vai nele",
   tempMinC: "Temperatura mín.",
   tempMaxC: "Temperatura máx.",
   responsibleUserId: "Responsável",
@@ -69,6 +72,7 @@ function one(field: string, v: unknown): string {
   if (typeof v !== "string") return String(v);
   if (field === "type" && v in ITEM_TYPE_LABELS) return ITEM_TYPE_LABELS[v as ItemType];
   if (field === "storageClass" && v in STORAGE_CLASS_LABELS) return STORAGE_CLASS_LABELS[v as StorageClass];
+  if (field === "kind" && v in RECIPE_KIND_LABELS) return RECIPE_KIND_LABELS[v as RecipeKind];
   if (field === "roles" && v in ROLE_LABELS) return ROLE_LABELS[v as Role];
   if (DECIMAL.test(v)) return v.replace(".", ",");
   return v;

@@ -43,27 +43,35 @@ alteram o custo médio. Fonte: [02-cadastro-de-itens](../../produto/estoque/02-c
 `isCostOutOfTolerance(lastCost, newCost, tolerancePct): boolean` — |novo − último| ÷ último >
 tolerância. Caso: último 10,00, novo 10,60, tolerância 5% → `true`; novo 10,40 → `false`.
 
-## Produtos (ficha técnica) — `recipe.ts`
+## Produtos e preparos — `recipe.ts`, `recipe-graph.ts`
 
-> Na primeira versão da tela de Produtos (feature 003) entram só a quantidade de cada item e o
-> custo. FC, IC e sub-receitas ficam para depois.
+Fonte: [04-fichas-tecnicas](../../produto/estoque/04-fichas-tecnicas.md). Feature 003.
 
 ```ts
-grossQuantity(net, correctionFactor)          // líquida × FC
-lineCost(line, item)                          // bruta (convertida p/ unid. estoque) × custo médio
-recipeCost(version, resolver)                 // soma das linhas, recursivo em sub-receitas
-portionCost(version)                          // custo total ÷ porções
-cogsPercent(portionCost, salePrice)           // ÷ preço × 100
-detectCycle(recipeId, resolver)               // sub-receita não contém a si mesma
-correctionFactor(gross, net) / cookingIndex(cooked, netRaw)
+validateRecipe(data, lookup, { previous, selfId, graph })  // nome, rendimento, linhas, medidas, ciclo
+compatibleUnits(unit)                                      // g/kg, ml/l, un
+checkSubRecipeChange(current, next | null, usedBy)          // preparo em uso (RECIPE_IN_USE)
+hasVersionChanges(current, next)                            // rendimento ou linhas mudaram?
+versionAt(versions, at)                                     // versão vigente na data
+findCycle(selfId, lines, graph)                             // caminho do ciclo ou null
+explode(lines, times, graph, items)                         // itens e quantidades na medida do item
+recipeCost(lines, graph, items)                             // custo por linha e total (via explode)
 ```
+
+Linha de preparo: quantidade convertida para a medida do rendimento ÷ rendimento = fração do
+preparo; cada ingrediente do preparo entra multiplicado por essa fração (recursivo).
 
 | Caso | Entrada | Esperado |
 |---|---|---|
-| FC | 10 kg bruto, 8 kg limpo | 1,25 |
-| Bruta | 8 kg líquido, FC 1,25 | 10 kg |
-| Custo kg limpo | R$ 30/kg bruto, FC 1,25 | R$ 37,50 |
-| Ciclo | A usa B, B usa A | erro `RECIPE_CYCLE` |
+| Medida da linha | carne em kg, linha em un | `UNIT_DIMENSION_MISMATCH` |
+| Explosão | 2 × X-Burger (pão 1 un, carne 150 g, queijo 30 g) | pão 2, carne 0,3 kg, queijo 0,06 kg |
+| Preparo | 50 g de molho que rende 2 kg (2,5 kg tomate, 200 g cebola) | tomate 0,0625 kg, cebola 0,005 kg |
+| Custo da linha | 150 g de carne a R$ 40,00/kg | R$ 6,00 |
+| Custo de preparo | 50 g do molho acima (tomate R$ 8, cebola R$ 5) | R$ 0,525 |
+| Sem custo | um item sem custo médio | total `null` e o item listado |
+| Ciclo | A usa B, B usa A | `RECIPE_CYCLE` com o caminho [A, B, A] |
+
+Ficam para depois (fora da 003): FC, IC, porções, preço de venda e % de custo no preço.
 
 ## Reposição — `reorder.ts`
 

@@ -1,10 +1,19 @@
 # 4. Produtos (fichas técnicas)
 
-> **Próxima feature (novembro de 2026).** Na tela de **Produtos** a pessoa cadastra o que o cliente
-> pede (ex.: "X-Burger") e quanto de cada item vai nele (ex.: pão 1 un, carne 150 g, queijo 30 g).
-> É com essas quantidades que o estoque baixa sozinho a cada pedido. A quantidade é digitada na
-> medida do item ou numa menor da mesma família (g para itens em kg). Alérgenos e índices abaixo
-> ficam como referência, fora da primeira versão.
+> **Primeira versão (feature 003, novembro de 2026).** Na tela de **Produtos** a pessoa cadastra o
+> que o cliente pede (ex.: "X-Burger") e quanto de cada item vai nele (ex.: pão 1 un, carne 150 g,
+> queijo 30 g). É com essas quantidades que o estoque baixa sozinho a cada pedido. A quantidade é
+> digitada na medida do item ou numa menor da mesma família (g para itens em kg).
+>
+> **Preparos** (molho, massa, hambúrguer porcionado) são produtos do tipo "Preparo" com "quanto
+> rende" (ex.: 2 kg). Outro produto usa uma parte do preparo (ex.: 50 g) e, no pedido, o estoque
+> baixa a parte proporcional dos ingredientes do preparo. Não existe ordem de produção nem estoque
+> de preparo pronto nesta versão.
+>
+> Cada edição das linhas ou do rendimento cria uma **versão** com data; o pedido usa a versão do
+> dia. A tela mostra o custo pelo custo médio dos itens ("Sem custo ainda" antes da primeira
+> compra). Ficam fora da primeira versão: preço de venda e % do custo no preço, FC, IC, porções,
+> alérgenos, modo de preparo e foto. O resto deste documento é a referência do manual.
 
 > Fonte: Manual de Referência, seção 3 ("A ficha técnica liga estoque, custo e venda").
 

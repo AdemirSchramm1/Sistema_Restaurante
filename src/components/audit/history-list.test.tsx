@@ -69,4 +69,24 @@ describe("histórico (FR-004)", () => {
     render(<HistoryList timezone="America/Sao_Paulo" entries={[entry({ description: ["abc", "abcd"] })]} />);
     expect(screen.getByText(/01\/11\/2026, 14:30:00/)).toBeTruthy();
   });
+
+  it("mostra as mudanças do produto em português (spec 003)", () => {
+    render(
+      <HistoryList
+        timezone="America/Sao_Paulo"
+        entries={[
+          entry({
+            kind: ["DISH", "SUB_RECIPE"],
+            yield: [null, "2 kg"],
+            lines: ["Pão: 1 un", "Pão: 2 un"],
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.getByText("Tipo: Vendido ao cliente → Preparo (usado dentro de outros produtos)"),
+    ).toBeTruthy();
+    expect(screen.getByText("Quanto rende: — → 2 kg")).toBeTruthy();
+    expect(screen.getByText("O que vai nele: Pão: 1 un → Pão: 2 un")).toBeTruthy();
+  });
 });
