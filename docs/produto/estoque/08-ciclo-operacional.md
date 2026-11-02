@@ -37,6 +37,11 @@ As fontes divergem sobre o que é "estoque mínimo". O sistema adota as definiç
 | **Par / máximo** | CMD × C + ES | Nível desejado logo após a entrega |
 | Quantidade a pedir | Par − (saldo atual − CMD × LT) − pedidos em trânsito | Converter para unidade de compra; se par em peso limpo, × FC |
 
+**No sistema (feature 006):** cada item tem "Avisar quando chegar em" (PP) e "Comprar até" (par),
+digitados pela equipe. O sistema sugere os dois pelo consumo dos últimos 30 dias, pelo prazo e pelos
+dias de entrega do fornecedor preferido, com margem de 20%. Itens no ponto aparecem em **Repor**,
+com quanto comprar (arredondado para cima na embalagem) e de quem. Não há pedido em trânsito.
+
 **Exemplo (caso de teste):** filé mignon, CMD 6 kg, LT 1 dia, entregas a cada 3 dias, margem 20%.
 
 - ES = 6 × 3 × 0,2 = **3,6 kg**

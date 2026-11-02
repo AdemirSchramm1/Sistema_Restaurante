@@ -63,6 +63,7 @@ erDiagram
 | average_cost / last_cost / cost_updated_at | numeric / numeric / timestamptz | Mantidos pelo livro |
 | abc_class | char(1) null | Reservado; não aparece na tela |
 | in_cogs_override | boolean null | Sobrescreve o grupo |
+| reorder_point / par_level | numeric(14,4) null | Aviso de reposição (feature 006, migração `0007_reorder_levels`): "avisar quando chegar em" e "comprar até", na medida do item. Checks: ponto ≥ 0; `par_level` só com ponto e maior que ele |
 | active | boolean | |
 
 Removidos na feature 002: `recipe_unit_id`, `item_unit_conversions`, EAN/GTIN, fiscais, sanitários,
@@ -135,6 +136,12 @@ insere a movimentação; o teste de propriedade confere que projeção = soma do
 `status` (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `created_by` (quem pediu), `decided_by`,
 `decided_at`, `decision_notes`, `movement_id`. Check: quem decide não é quem pediu (salvo
 cancelamento pelo próprio).
+
+### Relatórios (feature 006, só leitura)
+Sem tabela nova. `report-repository.ts` agrega `stock_movements`, `stock_balances`, `items` e o
+fornecedor preferido (`supplier_items.preferred`). **Saída** = `quantity < 0`, `type <> 'REVERSAL'`
+e sem estorno apontando para ela; **entrada** = `PURCHASE` sem estorno. Período pela data do fato
+(`occurred_at`); semanas de segunda a domingo no fuso do restaurante (`generate_series`).
 
 ### `items` (custos, feature 004)
 `average_cost numeric(18,8)`, `last_cost numeric(14,4)` e `cost_updated_at` passam a ser escritos

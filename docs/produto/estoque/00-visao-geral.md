@@ -51,7 +51,7 @@ Spec Kit (`specs/NNN-nome/`).
 | 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Feito: produtos vendidos e preparos, versões e custo |
 | 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Feito: compra entra, perda sai com motivo, acerto com aprovação, estorno |
 | 005 | Baixa automática por pedido | 003, 004 | Estoque diminui conforme os clientes pedem. **Espera o cardápio do cliente** (QR code na mesa) |
-| 006 | Alerta de reposição | 004, 005 | Aviso quando o item está acabando |
+| 006 | Alerta de reposição e gráficos | 004 | Em revisão ([specs/006](../../../specs/006-alerta-reposicao/spec.md)): aviso por item, tela Repor com quanto comprar e de quem, gráficos do que mais e menos saiu |
 | 007 | Fornecedores | 004 | Em revisão ([specs/007](../../../specs/007-fornecedores/spec.md)): cadastro comercial, itens e preços, preferido, compra com fornecedor, bloqueio |
 | 008 | Painel de custo dos produtos | 003, 004 | Quanto custa cada produto vendido |
 

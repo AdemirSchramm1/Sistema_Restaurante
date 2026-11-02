@@ -44,6 +44,16 @@ Decisões da feature 007 (Fornecedores), 2026-11-02:
 | Preço | O preço combinado fica no cadastro; a compra não muda o preço, só mostra a última compra ao lado |
 | Embalagem | Cada fornecedor pode ter a sua para o mesmo item; a compra pode ser lançada nela |
 
+Decisões da feature 006 (Alerta de reposição e gráficos), 2026-11-02:
+
+| Tema | Decisão |
+|---|---|
+| Ordem | Feita antes da 005; até lá o consumo é só perda e acerto para menos |
+| Ponto e "comprar até" | Digitados no item; o sistema sugere pela conta do manual e o botão "Usar sugestão" preenche |
+| Sem "comprar até" | O item avisa, mas não diz quanto comprar |
+| Gráficos | Pedido do dono: o que mais e menos saiu, por motivo e por semana. Leves: conta no banco, barras em HTML e CSS |
+| Ordem dos gráficos | Por valor em R$ |
+
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.
 

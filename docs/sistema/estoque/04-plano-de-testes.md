@@ -93,7 +93,13 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | Nível | Teste |
 |---|---|
 | U | ES, PP e par (caso do filé mignon em [02-regras-de-calculo](02-regras-de-calculo.md#reposição--reorderts)) |
-| I | Item abaixo do ponto de pedido aparece no aviso |
+| U | Item no ponto; campos do aviso; ciclo pelos dias de entrega; sugestão; quanto comprar na embalagem |
+| U | Gráficos: período, mais e menos saíram (parados), largura das barras |
+| U | `item.reorder` só gerente, chef e comprador; quadro do aviso e "Usar sugestão"; barras |
+| I | Item abaixo do ponto de pedido aparece no aviso, com quanto comprar e fornecedor preferido; contador |
+| I | Aviso com trava otimista, auditoria, permissão e check no banco; isolamento |
+| I | Gráficos: estorno e estornado fora, acerto para menos conta, período pela data do fato |
+| E | Definir aviso, perder até o ponto, ver em Repor e nos gráficos; acessibilidade |
 
 ## 007 — Fornecedores
 

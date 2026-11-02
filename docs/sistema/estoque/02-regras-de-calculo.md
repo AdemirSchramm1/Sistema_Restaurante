@@ -123,6 +123,23 @@ Pedir = Par − (saldo − CMD × LT) − em trânsito   (mín. 0; converter p/ 
 | Acima do par | saldo 30 | pedir 0 |
 | Arredondar p/ embalagem | pedir 18 kg, caixa 5 kg | 4 caixas (arredonda para cima) |
 
+Implementado na feature 006 (`calculateReorder`, `orderQuantity`, `roundUpToPackage`,
+`isAtReorderPoint`, `validateReorderLevels`, `suggestReorderLevels`, `planOrder`). Sem pedido de
+compra, "em trânsito" é sempre 0. Sugestão (`suggestReorderLevels`): CMD = saídas dos últimos 30
+dias ÷ 30; LT = prazo do fornecedor preferido (sem: 1); C = 7 ÷ dias de entrega do preferido (sem:
+7); margem 20%. Ex.: 45 kg em 30 dias, LT 1, entrega seg e qui → PP 2,55 e par 6,3. Sem consumo,
+sem sugestão.
+
+## Gráficos do estoque — `stock-report.ts` (feature 006)
+
+| Função | Regra | Caso |
+|---|---|---|
+| `parsePeriod` | 7, 30 ou 90 dias para trás; outro valor → 30 | `"15"` → 30 |
+| `rankOutflow` | Mais saíram: só com saída, maior R$ primeiro. Menos saíram: com saída ou com estoque parado, menor R$ primeiro; 10 por gráfico; empate em ordem alfabética | Arroz parado vem antes do Sal (R$ 2) |
+| `barPercents` | % do maior, meio para cima; valor > 0 tem no mínimo 2% | 300, 150, 30 → 100, 50, 10 |
+
+Ordena por R$ porque medidas diferentes não se comparam.
+
 ## CMV e indicadores — `cogs.ts`, `indicators.ts`
 
 Fonte: [10-indicadores](../../produto/estoque/10-indicadores.md).
