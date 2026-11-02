@@ -15,6 +15,8 @@ import { subgroupOptions } from "@/components/items/subgroup-options";
 import { ItemActiveToggle } from "@/components/items/item-active-toggle";
 import { CogsOverride } from "@/components/items/cogs-override";
 import { HistoryList } from "@/components/audit/history-list";
+import { MovementTable } from "@/components/movements/movement-table";
+import { listMovements } from "@/application/inventory/movements";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Item" };
@@ -26,11 +28,12 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const deps = serverDeps();
   const view = await getItem(deps, ctx, id);
   if (!view.ok) notFound();
-  const { item, purchaseSummary, effectiveInCogs } = view.value;
-  const [tree, history, restaurant] = await Promise.all([
+  const { item, purchaseSummary, effectiveInCogs, balance } = view.value;
+  const [tree, history, restaurant, movements] = await Promise.all([
     listGroupTree(deps, ctx),
     getAuditHistory(deps, ctx, "item", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
+    listMovements(deps, ctx, { itemId: id, limit: 20 }),
   ]);
   const timezone = restaurant.ok ? (restaurant.value?.timezone ?? "America/Sao_Paulo") : "America/Sao_Paulo";
   const canWrite = can(ctx.roles, "item.write");
@@ -56,6 +59,16 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         {purchaseSummary ? ` · compra: ${purchaseSummary}` : " · comprado solto"}
       </p>
 
+      <section className="grid gap-2" aria-label="Lançamentos do item">
+        <h2 className="text-lg font-semibold">Últimos lançamentos</h2>
+        <MovementTable
+          rows={movements.ok ? movements.value : []}
+          timezone={timezone}
+          canReverse={can(ctx.roles, "movement.reverse")}
+          showItem={false}
+        />
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <ItemForm
           action={updateItemAction}
@@ -68,8 +81,16 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         />
         <aside className="grid content-start gap-6">
           <Card className="grid gap-2 text-sm">
-            <CardTitle>Custos</CardTitle>
-            <p className="text-muted-foreground">Calculados sozinhos pelas compras. Não dá para editar.</p>
+            <CardTitle>Estoque e custos</CardTitle>
+            <p className="text-base" data-testid="item-balance">
+              Em estoque:{" "}
+              <strong>
+                {formatBrDecimal(balance, { maxPlaces: 4 })} {item.stockUnit}
+              </strong>
+            </p>
+            <p className="text-muted-foreground">
+              Custos calculados sozinhos pelas compras. Não dá para editar.
+            </p>
             <dl className="grid grid-cols-2 gap-1">
               <dt>Custo médio</dt>
               <dd>{money(item.averageCost)}</dd>

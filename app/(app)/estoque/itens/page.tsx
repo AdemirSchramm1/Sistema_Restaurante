@@ -6,6 +6,7 @@ import { listItems } from "@/application/inventory/list-items";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { ITEM_TYPES, ITEM_TYPE_LABELS, describePurchase, type ItemType } from "@/domain/inventory/item";
 import { can } from "@/domain/access/permissions";
+import { formatBrDecimal } from "@/domain/shared/decimal";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/card";
@@ -90,7 +91,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
             <Th>Nome</Th>
             <Th>Grupo</Th>
             <Th>Tipo</Th>
-            <Th>Medida</Th>
+            <Th>Saldo</Th>
             <Th>Como compra</Th>
           </tr>
         </thead>
@@ -108,7 +109,9 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
                 {r.groupName} › {r.subgroupName}
               </Td>
               <Td>{ITEM_TYPE_LABELS[r.type]}</Td>
-              <Td>{r.stockUnit}</Td>
+              <Td>
+                {formatBrDecimal(r.balance, { maxPlaces: 4 })} {r.stockUnit}
+              </Td>
               <Td>{describePurchase(r) ?? <span className="text-muted-foreground">solto</span>}</Td>
             </tr>
           ))}

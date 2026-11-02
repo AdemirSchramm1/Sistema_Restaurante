@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
@@ -55,11 +55,9 @@ export function MovementForm({ action, items, types, today }: Props) {
   const [unit, setUnit] = useState<string>("");
   const [quantity, setQuantity] = useState("");
   const [total, setTotal] = useState("");
-  const [key, setKey] = useState(newKey);
-
-  useEffect(() => {
-    if (state?.ok) setKey(newKey());
-  }, [state]);
+  // Chave nova a cada lançamento aceito: reenviar o mesmo formulário não duplica (FR-007).
+  const [baseKey] = useState(newKey);
+  const key = `${baseKey}-${state?.ok ? state.at : 0}`;
 
   const item = items.find((i) => i.id === itemId);
   const units: { value: string; label: string }[] = item
