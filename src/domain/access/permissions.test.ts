@@ -11,6 +11,7 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
     expect(allowed.sort()).toEqual([
       "adjustment.request",
       "catalog.read",
+      "item.reorder",
       "item.write",
       "movement.loss",
       "recipe.write",
@@ -28,6 +29,7 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
     expect(allowed("BUYER")).toEqual([
       "adjustment.request",
       "catalog.read",
+      "item.reorder",
       "movement.purchase",
       "supplier.write",
     ]);
@@ -65,5 +67,14 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
   it("não existe mais permissão de locais (spec 002, US3)", () => {
     expect(ACTIONS).not.toContain("location.manage" as never);
     expect(ACTIONS).not.toContain("item_location.manage" as never);
+  });
+});
+
+describe("aviso de reposição (spec 006, FR-002)", () => {
+  it("item.reorder só para gerente, chef e comprador", () => {
+    const who = (["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE"] as Role[]).filter((r) =>
+      can([r], "item.reorder"),
+    );
+    expect(who).toEqual(["MANAGER", "CHEF", "BUYER"]);
   });
 });
