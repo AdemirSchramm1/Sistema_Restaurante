@@ -46,10 +46,18 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
   await page.getByText("Produto cadastrado.").waitFor();
   expect(await seriousViolations(page), "detalhe do produto").toEqual([]);
 
+  await page.goto("/estoque/fornecedores/novo");
+  expect(await seriousViolations(page), "/estoque/fornecedores/novo").toEqual([]);
+  await page.getByLabel("Nome do fornecedor").fill("Hortifruti Axe");
+  await page.getByRole("button", { name: "Cadastrar fornecedor" }).click();
+  await page.getByText(/Fornecedor cadastrado/).waitFor();
+  expect(await seriousViolations(page), "detalhe do fornecedor").toEqual([]);
+
   for (const path of [
     "/estoque/itens",
     "/estoque/produtos",
     "/estoque/lancamentos",
+    "/estoque/fornecedores",
     "/estoque/grupos",
     "/equipe",
   ]) {

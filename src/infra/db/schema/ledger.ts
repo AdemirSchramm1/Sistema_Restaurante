@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { base, editable } from "./common";
 import { items } from "./catalog";
+import { suppliers } from "./suppliers";
 
 /** Livro de movimentações (feature 004, docs/sistema/estoque/03-movimentacoes-e-saldo.md). */
 export const movementTypeEnum = pgEnum("movement_type", ["PURCHASE", "LOSS", "ADJUSTMENT", "REVERSAL"]);
@@ -53,6 +54,8 @@ export const stockMovements = pgTable(
     reversesId: uuid("reverses_id"),
     approvedBy: uuid("approved_by"),
     idempotencyKey: text("idempotency_key"),
+    /** De quem foi a compra (feature 007). Só na compra. */
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
   },
   (t) => [
     uniqueIndex("stock_movements_reverses")
@@ -68,6 +71,8 @@ export const stockMovements = pgTable(
     check("stock_movements_purchase_in", sql`type <> 'PURCHASE' or quantity > 0`),
     check("stock_movements_loss_out", sql`type <> 'LOSS' or quantity < 0`),
     check("stock_movements_not_zero", sql`quantity <> 0`),
+    check("stock_movements_supplier_purchase", sql`supplier_id is null or type = 'PURCHASE'`),
+    index("stock_movements_supplier").on(t.restaurantId, t.supplierId, t.itemId, t.createdAt),
   ],
 );
 

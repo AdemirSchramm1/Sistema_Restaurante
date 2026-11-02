@@ -7,9 +7,12 @@
 | Tipo de item | – | `ItemType`: `INGREDIENT`, `RESALE`, `PRODUCED`, `CONSUMABLE`, `ASSET` | |
 | Grupo / subgrupo | – | `item_group` / `item_subgroup` | |
 | Medida do item | – | `stockUnit` | kg, g, l, ml ou un. O saldo fica e baixa nela |
-| Embalagem de compra | – | `purchaseUnitLabel` + `purchaseFactor` | Opcional: "Caixa" com 20 (na medida do item). Fator por fornecedor fica em `supplier_item` |
-| Fornecedor | – | `supplier` | |
-| Vínculo item-fornecedor | – | `supplier_item` | Guarda código do fornecedor e fator |
+| Embalagem de compra | – | `purchaseUnitLabel` + `purchaseFactor` | Opcional: "Caixa" com 20 (na medida do item). A embalagem de cada fornecedor fica em `supplier_item` |
+| Fornecedor | – | `supplier` | Só dados comerciais. Bloqueado = `active` falso |
+| Item do fornecedor | – | `supplier_item` | Embalagem dele (`packageLabel`, `packageQuantity`), preço e preferido |
+| Preço por medida | – | `pricePerUnit` | Preço ÷ quantidade da embalagem |
+| Embalagem do fornecedor na compra | – | `SUPPLIER_PACKAGE` | Medida do formulário de compra |
+| Permissão de fornecedores | – | `supplier.write` | Gerente e comprador |
 | Local | – | – | Retirado na 002; não existe mais |
 | Produto (ficha técnica) | – | `recipe` | O que o cliente pede e quanto de cada item usa. Versionada: `recipe_version` |
 | Linha da ficha | – | `recipe_line` | |

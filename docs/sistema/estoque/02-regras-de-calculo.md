@@ -45,6 +45,31 @@ médio com 8 (`items.average_cost numeric(18,8)`). Planejamento das linhas em `m
 (`planPurchase`, `planLoss`, `planAdjustmentRequest`, `checkAdjustmentDecision`,
 `planAdjustmentApproval`, `planReversal`).
 
+## Fornecedores — `cnpj.ts`, `supplier.ts` (feature 007)
+
+**CNPJ** (`isValidCnpj`): 14 caracteres, os 12 primeiros `0-9A-Z` e os 2 últimos dígitos. Cada
+caractere vale o código ASCII − 48 (0–9 → 0–9, A → 17 … Z → 42). Dígito: soma dos valores × pesos
+(5,4,3,2,9,8,7,6,5,4,3,2 no primeiro; 6,5,4,3,2,9,8,7,6,5,4,3,2 no segundo) módulo 11; resto < 2 →
+0, senão 11 − resto. Todos iguais é inválido. O mesmo cálculo serve para o CNPJ só de números.
+
+| Caso | CNPJ | Esperado |
+|---|---|---|
+| Numérico | 11.222.333/0001-81 | válido |
+| Dígito errado | 11.222.333/0001-80 | `INVALID_CNPJ` |
+| Alfanumérico (exemplo da Receita) | 12.ABC.345/01DE-35 | válido |
+
+**Preço por medida** (`pricePerUnit`): preço ÷ quantidade da embalagem; sem embalagem, o próprio
+preço. Exato (decimal); a tela mostra 2 casas. **Mais barato** (`cheapestOffer`): menor preço por
+medida entre duas ou mais ofertas; empate fica com a primeira.
+
+| Oferta | Preço por medida |
+|---|---|
+| Caixa de 18 kg a R$ 90,00 | R$ 5,00/kg |
+| Solto a R$ 4,80/kg | R$ 4,80/kg (mais barato) |
+
+Compra na embalagem do fornecedor: `planPurchase` recebe `{ packageLabel, packageQuantity }` como
+medida; 2 caixas de 18 kg = 36 kg.
+
 ## Tolerância de custo na entrada
 
 `isCostOutOfTolerance(lastCost, newCost, tolerancePct): boolean` — |novo − último| ÷ último >

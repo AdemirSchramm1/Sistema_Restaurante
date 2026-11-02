@@ -32,6 +32,17 @@ O sistema usa estes papéis. Um usuário pode ter mais de um, mas o sistema impe
 | Chef | Fichas técnicas, porcionamento, perdas, produção | Aprovação dos próprios ajustes |
 | Gerente / proprietário | Aprovação de ajustes, análise de CMV e variância | – |
 
+Na primeira versão (features 004 e 007) os papéis fazem:
+
+| Ação | Quem pode |
+|---|---|
+| Lançar compra | Gerente, estoquista, comprador |
+| Lançar perda | Gerente, chef, estoquista |
+| Pedir acerto | Gerente, chef, estoquista, comprador |
+| Aprovar acerto e estornar | Gerente (nunca o próprio pedido) |
+| Cadastrar fornecedor, itens e preços, bloquear | Gerente e comprador |
+| Ver estoque, produtos e fornecedores | Todos os papéis |
+
 ## Operação pequena
 
 Quando não dá para separar todas as funções, o restaurante liga o **modo operação pequena**: o

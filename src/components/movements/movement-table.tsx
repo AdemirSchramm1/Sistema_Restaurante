@@ -34,7 +34,7 @@ export function MovementTable({
           <Th>Tipo</Th>
           <Th>Quantidade</Th>
           <Th>Valor</Th>
-          <Th>Motivo</Th>
+          <Th>Motivo ou fornecedor</Th>
           <Th>Quem</Th>
           {canReverse && <Th>Corrigir</Th>}
         </tr>
@@ -58,7 +58,7 @@ export function MovementTable({
             </Td>
             <Td>{money(m.totalCost)}</Td>
             <Td>
-              {m.reasonLabel ?? "—"}
+              {m.reasonLabel ?? (m.supplierName ? `De ${m.supplierName}` : "—")}
               {m.notes && <span className="block text-xs text-muted-foreground">{m.notes}</span>}
             </Td>
             <Td>

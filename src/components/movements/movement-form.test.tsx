@@ -88,3 +88,41 @@ describe("formulário de lançamento (spec 004)", () => {
     expect(screen.getByLabelText("Quantidade").getAttribute("aria-invalid")).toBe("true");
   });
 });
+
+describe("fornecedor na compra (spec 007, US4)", () => {
+  const SUPPLIERS = [
+    {
+      id: "s1",
+      name: "Hortifruti do João",
+      packages: [{ itemId: "tomate", packageLabel: "Caixa", packageQuantity: "18" }],
+    },
+    { id: "s2", name: "Mercado", packages: [] },
+  ];
+
+  it("compra tem o campo Fornecedor (opcional); perda não", () => {
+    renderForm({ suppliers: SUPPLIERS });
+    const select = screen.getByLabelText("Fornecedor (opcional)") as HTMLSelectElement;
+    expect([...select.options].map((o) => o.textContent)).toEqual([
+      "Sem fornecedor",
+      "Hortifruti do João",
+      "Mercado",
+    ]);
+    fireEvent.change(screen.getByLabelText("Tipo de lançamento"), { target: { value: "LOSS" } });
+    expect(screen.queryByLabelText("Fornecedor (opcional)")).toBeNull();
+  });
+
+  it("fornecedor com caixa própria acrescenta a medida e calcula quanto entra", () => {
+    renderForm({ suppliers: SUPPLIERS });
+    fireEvent.change(screen.getByLabelText("Item"), { target: { value: "tomate" } });
+    fireEvent.change(screen.getByLabelText("Fornecedor (opcional)"), { target: { value: "s1" } });
+    const unit = screen.getByLabelText("Medida") as HTMLSelectElement;
+    expect(values(unit)).toEqual(["g", "kg", "PACKAGE", "SUPPLIER_PACKAGE"]);
+    expect([...unit.options].at(-1)!.textContent).toBe("Caixa do fornecedor (18 kg)");
+    fireEvent.change(unit, { target: { value: "SUPPLIER_PACKAGE" } });
+    fireEvent.change(screen.getByLabelText("Quantidade"), { target: { value: "2" } });
+    expect(screen.getByTestId("movement-preview").textContent).toBe("Vai entrar: 36 kg");
+
+    fireEvent.change(screen.getByLabelText("Fornecedor (opcional)"), { target: { value: "s2" } });
+    expect(values(screen.getByLabelText("Medida"))).toEqual(["g", "kg", "PACKAGE"]);
+  });
+});

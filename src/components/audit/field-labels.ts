@@ -59,6 +59,16 @@ export const FIELD_LABELS: Record<string, string> = {
   status: "Situação",
   userId: "Usuário",
   invitationId: "Convite",
+  legalName: "Razão social",
+  cnpj: "CNPJ",
+  contactName: "Vendedor",
+  phone: "Telefone",
+  deliveryDays: "Dias de entrega",
+  leadTimeDays: "Entrega em (dias)",
+  minOrderValue: "Pedido mínimo (R$)",
+  paymentTerms: "Pagamento",
+  notes: "Observação",
+  item: "Item vendido",
 };
 
 /** Campos cujo valor é um id interno ou uma lista técnica: o histórico só diz que mudou. */

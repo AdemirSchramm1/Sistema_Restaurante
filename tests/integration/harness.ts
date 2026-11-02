@@ -22,6 +22,8 @@ export async function closeTestDbs() {
 }
 
 const TABLES = [
+  "supplier_items",
+  "suppliers",
   "adjustment_requests",
   "stock_movements",
   "stock_balances",

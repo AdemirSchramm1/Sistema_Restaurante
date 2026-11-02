@@ -175,6 +175,8 @@ export type MovementRecord = {
   approvedByName: string | null;
   reversesId: string | null;
   reversedById: string | null;
+  supplierId: string | null;
+  supplierName: string | null;
 };
 export type NewMovement = {
   id: string;
@@ -193,6 +195,8 @@ export type NewMovement = {
   reversesId: string | null;
   approvedBy: string | null;
   idempotencyKey: string | null;
+  /** Só na compra (spec 007). */
+  supplierId?: string | null;
 };
 export type MovementFilter = { itemId?: string; type?: MovementType; limit?: number };
 

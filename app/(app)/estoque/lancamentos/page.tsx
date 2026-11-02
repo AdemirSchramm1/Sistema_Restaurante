@@ -2,12 +2,20 @@ import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { cancelAdjustmentAction, decideAdjustmentAction, registerMovementAction } from "@/actions/movements";
 import { serverDeps } from "@/infra/server";
-import { listItems } from "@/application/inventory/list-items";
-import { listAdjustmentRequests, listMovements } from "@/application/inventory/movements";
+import {
+  listAdjustmentRequests,
+  listMovements,
+  movementItemOptions,
+} from "@/application/inventory/movements";
+import { purchaseSupplierOptions } from "@/application/suppliers/suppliers";
 import { can } from "@/domain/access/permissions";
 import { MOVEMENT_TYPES, MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { MovementForm, type MovementItemOption } from "@/components/movements/movement-form";
+import {
+  MovementForm,
+  type MovementItemOption,
+  type MovementSupplierOption,
+} from "@/components/movements/movement-form";
 import { MovementTable } from "@/components/movements/movement-table";
 import { ActionForm } from "@/components/forms/action-form";
 import { buttonVariants } from "@/components/ui/button";
@@ -37,12 +45,18 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
     .map(([t]) => t);
   const canApprove = can(ctx.roles, "adjustment.approve");
 
-  const [items, movements, pending] = await Promise.all([
-    listItems(deps, ctx, { page: 1, status: "active" }),
+  const [items, movements, pending, supplierList] = await Promise.all([
+    movementItemOptions(deps, ctx),
     listMovements(deps, ctx, { type: typeFilter, limit: 100 }),
     listAdjustmentRequests(deps, ctx, { status: "PENDING" }),
+    purchaseSupplierOptions(deps, ctx),
   ]);
-  const options: MovementItemOption[] = (items.ok ? items.value.rows : []).map((i) => ({
+  const suppliers: MovementSupplierOption[] = (supplierList.ok ? supplierList.value : []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    packages: s.packages.map((p) => ({ ...p, packageQuantity: p.packageQuantity.toString() })),
+  }));
+  const options: MovementItemOption[] = (items.ok ? items.value : []).map((i) => ({
     id: i.id,
     label: i.description,
     unit: i.stockUnit,
@@ -63,7 +77,13 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
       {types.length > 0 && (
         <Card className="grid gap-4">
           <CardTitle>Novo lançamento</CardTitle>
-          <MovementForm action={registerMovementAction} items={options} types={types} today={today} />
+          <MovementForm
+            action={registerMovementAction}
+            items={options}
+            types={types}
+            today={today}
+            suppliers={suppliers}
+          />
         </Card>
       )}
 

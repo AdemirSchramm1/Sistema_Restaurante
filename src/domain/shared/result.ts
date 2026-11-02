@@ -46,7 +46,13 @@ export type ErrorCode =
   | "SELF_APPROVAL"
   | "REQUEST_NOT_PENDING"
   | "ALREADY_REVERSED"
-  | "CANNOT_REVERSE_REVERSAL";
+  | "CANNOT_REVERSE_REVERSAL"
+  | "INVALID_CNPJ"
+  | "CNPJ_IN_USE"
+  | "INVALID_EMAIL"
+  | "INVALID_PRICE"
+  | "SUPPLIER_ITEM_DUPLICATE"
+  | "SUPPLIER_BLOCKED";
 
 export type DomainError = {
   code: ErrorCode;

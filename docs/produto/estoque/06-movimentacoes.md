@@ -7,6 +7,9 @@
 > **Primeira versão (feature 004).** Existem: entrada por compra (valor total pago), perda com
 > motivo da lista abaixo, acerto com aprovação e estorno. Os demais tipos da tabela vêm depois
 > (venda na 005). Menu **Lançamentos**; saldo na lista de itens e na página do item.
+>
+> **Fornecedor na compra (feature 007).** A compra pode dizer de qual fornecedor foi e ser lançada
+> na embalagem dele ("2 Caixas do fornecedor de 18 kg" = 36 kg). Fornecedor bloqueado não aparece.
 
 > Fonte: Manual de Referência, seção 4.
 

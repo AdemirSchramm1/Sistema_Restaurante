@@ -29,9 +29,13 @@ function decimal(v: unknown, field: string, code: ErrorCode = "INVALID_NUMBER"):
   return r.ok ? r : err(code, field);
 }
 
-function unit(v: unknown, allowPackage: boolean): Result<UnitCode | "PACKAGE"> {
+type FormUnit = UnitCode | "PACKAGE" | "SUPPLIER_PACKAGE";
+
+/** Embalagens (do item ou do fornecedor) só na compra. */
+function unit(v: unknown, allowPackage: boolean): Result<FormUnit> {
   const t = text(v);
-  if (UNIT_CODES.includes(t) || (allowPackage && t === "PACKAGE")) return ok(t as UnitCode | "PACKAGE");
+  if (UNIT_CODES.includes(t) || (allowPackage && (t === "PACKAGE" || t === "SUPPLIER_PACKAGE")))
+    return ok(t as FormUnit);
   return err("UNKNOWN_UNIT", "unit");
 }
 
@@ -70,12 +74,15 @@ export function parseMovementForm(raw: Record<string, unknown>, now: Date): Resu
   if (!occurredAt) return err("VALIDATION", "occurredAt");
 
   if (type === "PURCHASE") {
+    const supplierId = optText(raw.supplierId);
+    if (supplierId && !UUID.test(supplierId)) return err("VALIDATION", "supplierId");
     const totalPaid = decimal(raw.totalPaid, "totalPaid", "INVALID_AMOUNT");
     if (!totalPaid.ok) return totalPaid;
     return ok({
       type,
       cmd: {
         itemId,
+        supplierId,
         quantity: quantity.value,
         unit: u.value,
         totalPaid: totalPaid.value,
