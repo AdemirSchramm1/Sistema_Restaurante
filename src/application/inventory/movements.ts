@@ -1,7 +1,13 @@
 import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize } from "../shared";
-import type { AdjustmentRequestRecord, MovementFilter, MovementRecord, NewMovement } from "./ports";
+import type {
+  AdjustmentRequestRecord,
+  ItemListRow,
+  MovementFilter,
+  MovementRecord,
+  NewMovement,
+} from "./ports";
 import {
   checkAdjustmentDecision,
   planAdjustmentApproval,
@@ -344,6 +350,17 @@ export async function reverseMovement(
     return ok({ movementId: id });
   });
 }
+
+/** Itens ativos para o formulário de lançamento: todos, sem paginação. */
+export async function movementItemOptions(deps: Deps, ctx: RequestContext): Promise<Result<ItemListRow[]>> {
+  const allowed = await authorize(deps, ctx, "catalog.read", ENTITY);
+  if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const r = await repos.items.list({ status: "active", page: 1, pageSize: OPTIONS_LIMIT });
+    return ok(r.rows);
+  });
+}
+const OPTIONS_LIMIT = 10_000;
 
 export type MovementView = MovementRecord & { reasonLabel: string | null };
 

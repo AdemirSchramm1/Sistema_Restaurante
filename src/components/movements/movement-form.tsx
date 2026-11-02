@@ -28,6 +28,13 @@ export type MovementItemOption = {
   balance: string;
 };
 
+/** Fornecedor ativo com as embalagens dele por item (spec 007). */
+export type MovementSupplierOption = {
+  id: string;
+  name: string;
+  packages: { itemId: string; packageLabel: string; packageQuantity: string }[];
+};
+
 type FormType = Exclude<MovementType, "REVERSAL">;
 
 type Props = {
@@ -37,6 +44,7 @@ type Props = {
   types: FormType[];
   /** Data de hoje no fuso do restaurante (aaaa-mm-dd). */
   today: string;
+  suppliers?: MovementSupplierOption[];
 };
 
 const newKey = () =>
@@ -45,7 +53,7 @@ const br = (v: Decimal) => formatBrDecimal(v, { maxPlaces: 4 });
 const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
 
 /** Lançamento de compra, perda ou pedido de acerto (spec 004). */
-export function MovementForm({ action, items, types, today }: Props) {
+export function MovementForm({ action, items, types, today, suppliers = [] }: Props) {
   const { state, pending, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
@@ -55,16 +63,29 @@ export function MovementForm({ action, items, types, today }: Props) {
   const [unit, setUnit] = useState<string>("");
   const [quantity, setQuantity] = useState("");
   const [total, setTotal] = useState("");
+  const [supplierId, setSupplierId] = useState("");
   // Chave nova a cada lançamento aceito: reenviar o mesmo formulário não duplica (FR-007).
   const [baseKey] = useState(newKey);
   const key = `${baseKey}-${state?.ok ? state.at : 0}`;
 
   const item = items.find((i) => i.id === itemId);
+  const supplierPackage =
+    type === "PURCHASE"
+      ? suppliers.find((s) => s.id === supplierId)?.packages.find((p) => p.itemId === itemId)
+      : undefined;
   const units: { value: string; label: string }[] = item
     ? [
         ...compatibleUnits(item.unit).map((u) => ({ value: u, label: u })),
         ...(type === "PURCHASE" && item.packageLabel
           ? [{ value: "PACKAGE", label: `${item.packageLabel} (${br(d(item.packageFactor!))} ${item.unit})` }]
+          : []),
+        ...(supplierPackage
+          ? [
+              {
+                value: "SUPPLIER_PACKAGE",
+                label: `${supplierPackage.packageLabel} do fornecedor (${br(d(supplierPackage.packageQuantity))} ${item.unit})`,
+              },
+            ]
           : []),
       ]
     : [];
@@ -76,11 +97,13 @@ export function MovementForm({ action, items, types, today }: Props) {
     const q = parseBrDecimal(quantity);
     if (!q.ok) return null;
     if (currentUnit === "PACKAGE") return item.packageFactor ? q.value.times(d(item.packageFactor)) : null;
+    if (currentUnit === "SUPPLIER_PACKAGE")
+      return supplierPackage ? q.value.times(d(supplierPackage.packageQuantity)) : null;
     const from = unitByCode(currentUnit);
     if (!from) return null;
     const r = convert(q.value, from, unitByCode(item.unit)!);
     return r.ok ? r.value : null;
-  }, [item, quantity, currentUnit]);
+  }, [item, quantity, currentUnit, supplierPackage]);
 
   let preview: string | null = null;
   if (item && inItemUnit) {
@@ -139,6 +162,29 @@ export function MovementForm({ action, items, types, today }: Props) {
           </Select>
         </Field>
       </div>
+      {type === "PURCHASE" && suppliers.length > 0 && (
+        <Field
+          label="Fornecedor (opcional)"
+          htmlFor="supplierId"
+          hint="De quem foi a compra. Fornecedor bloqueado não aparece."
+          error={fe("supplierId")}
+        >
+          <Select
+            id="supplierId"
+            name="supplierId"
+            value={supplierId}
+            onChange={(e) => setSupplierId(e.target.value)}
+            className="sm:w-80"
+          >
+            <option value="">Sem fornecedor</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
       {item && (
         <p className="text-sm text-muted-foreground" data-testid="movement-balance">
           Em estoque: {br(d(item.balance))} {item.unit}
