@@ -1,6 +1,6 @@
 # Feature 003 — Produtos (o que o cliente pede e quanto de cada item usa)
 
-**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em implementação
+**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em revisão
 
 ## Contexto
 
@@ -43,7 +43,8 @@ quando o cliente pedir.
 
 ### US3 — Ver quanto custa o produto (P2)
 
-1. Cada linha mostra o custo (quantidade convertida para a medida do item × custo médio do item).
+1. O quadro "Quanto custa" mostra o custo de cada linha (quantidade convertida para a medida do
+   item × custo médio do item), pela versão salva.
 2. O produto mostra o custo total, a soma das linhas.
 3. Se algum item ainda não tem custo (as compras só entram na feature 004), o total aparece como
    "Sem custo ainda" e a linha diz qual item falta.

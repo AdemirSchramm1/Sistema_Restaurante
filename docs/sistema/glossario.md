@@ -13,7 +13,10 @@
 | Local | – | – | Retirado na 002; não existe mais |
 | Produto (ficha técnica) | – | `recipe` | O que o cliente pede e quanto de cada item usa. Versionada: `recipe_version` |
 | Linha da ficha | – | `recipe_line` | |
-| Sub-receita | – | `recipe` com `kind = SUB_RECIPE` | Gera item `PRODUCED` |
+| Tipo de produto | – | `RecipeKind`: `DISH` (vendido), `SUB_RECIPE` (preparo) | |
+| Preparo (sub-receita) | – | `recipe` com `kind = SUB_RECIPE` | Tem rendimento; é usado dentro de outros produtos e baixa pelos ingredientes. Item `PRODUCED` e ordem de produção ainda não existem |
+| Explodir o produto | – | `explode` (`recipe-graph.ts`) | Produto → itens e quantidades na medida do item |
+| Permissão de produtos | – | `recipe.write` | Gerente e chef |
 | Ordem de produção | OP | `production_order` | |
 | Movimentação | – | `stock_movement` | Livro imutável |
 | Tipo de movimentação | – | `MovementType` | Ver `estoque/03-movimentacoes-e-saldo.md` |

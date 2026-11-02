@@ -69,11 +69,10 @@ recipe_lines     id, restaurant_id, recipe_version_id, position, item_id null, s
 ```text
 src/domain/inventory/        recipe.ts, recipe-graph.ts (ciclo, explosão e custo) (+ testes)
 src/domain/access/           permissions.ts (recipe.write)
-src/application/inventory/   recipe-input.ts, create-recipe.ts, update-recipe.ts,
-                             set-recipe-active.ts, list-recipes.ts, get-recipe.ts
+src/application/inventory/   recipe-input.ts, recipes.ts (todos os casos de uso de produto)
 src/infra/db/                schema/catalog.ts, migrations/0004_recipes.sql, recipe-repository.ts
 src/actions/                 recipes.ts
-src/components/recipes/      recipe-form.tsx (linhas dinâmicas, busca de item, medida filtrada)
+src/components/recipes/      recipe-form.tsx (linhas dinâmicas, medida filtrada), recipe-active-toggle.tsx
 app/(app)/estoque/produtos/  page.tsx, novo/page.tsx, [id]/page.tsx
 tests/                       integração e E2E
 ```

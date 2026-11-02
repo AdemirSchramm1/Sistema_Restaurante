@@ -48,9 +48,15 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | U | Quantidade de cada item na medida do item ou numa menor da mesma família (g para kg) |
 | U | Família diferente (un num item em kg) é recusada |
 | U | Custo do produto = Σ quantidade × custo médio do item; produto sem custo quando falta custo |
+| U | Explodir produto com preparo (50 g de molho que rende 2 kg = 1/40 dos ingredientes) |
+| U | Ciclo direto e indireto entre preparos (`RECIPE_CYCLE`); vendido dentro de outro (`NOT_A_SUB_RECIPE`) |
+| U | Preparo em uso não inativa, não vira vendido, não troca a família do rendimento (`RECIPE_IN_USE`) |
+| U | Formulário: medida filtrada pela família, linhas somem e voltam, erro na linha certa sem apagar o digitado |
 | I | Nova versão ao editar; o pedido usa a versão vigente na data |
+| I | Versões e linhas só de inserção (permissão e gatilho) |
 | I | Item inativo não entra em produto novo |
-| E | Cadastrar "X-Burger" com pão, carne e queijo e ver o custo |
+| I | Nome repetido entre ativos; isolamento de restaurante; chef pode, estoquista não |
+| E | Cadastrar o molho e o "X-Burger" que usa o molho, editar e ver a versão 2 |
 
 ## 004 — Entradas, perdas e saldo
 

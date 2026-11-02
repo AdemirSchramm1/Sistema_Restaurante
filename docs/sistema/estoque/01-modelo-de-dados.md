@@ -25,7 +25,7 @@ erDiagram
   RECIPE ||--o{ RECIPE_VERSION : versiona
   RECIPE_VERSION ||--o{ RECIPE_LINE : contém
   ITEM ||--o{ RECIPE_LINE : "usado em"
-  RECIPE ||--o| ITEM : "produz (sub-receita)"
+  RECIPE ||--o{ RECIPE_LINE : "preparo usado em"
 ```
 
 ## Cadastros
@@ -122,10 +122,18 @@ Proteções:
 movimentação. Pode ser reconstruída a qualquer momento somando o livro (teste de integração verifica
 que projeção = soma do livro).
 
-### Fichas técnicas
-- `recipes`: `code`, `name`, `kind` (`DISH`, `SUB_RECIPE`), `produced_item_id` (sub-receita).
-- `recipe_versions`: `valid_from`, `yield_quantity`, `portions`, `portion_weight`, `cooking_index`,
-  `sale_price`. Versão nova a cada mudança.
-- `recipe_lines`: `item_id` **ou** `sub_recipe_id`, `net_quantity`, `recipe_unit_id`,
-  `correction_factor` (copiado do item, editável).
+### Produtos (feature 003, migração `0004_recipes`)
+- `recipes`: `name`, `name_normalized`, `kind` (`DISH` = vendido, `SUB_RECIPE` = preparo), `active`,
+  `version` (trava otimista). Nome único entre ativos do restaurante (`recipes_active_name`).
+- `recipe_versions` (só inserção): `recipe_id`, `number`, `valid_from`, `yield_quantity` e
+  `yield_unit_id` (só preparo; os dois juntos, quantidade > 0). Versão nova quando muda o
+  rendimento ou alguma linha; mudar só o nome não cria versão.
+- `recipe_lines` (só inserção): `recipe_version_id`, `position`, `item_id` **ou** `sub_recipe_id`
+  (check `recipe_lines_one_component`), `quantity numeric(14,4) > 0`, `unit_id`. Um item ou preparo
+  aparece uma vez por versão.
+- A linha de preparo aponta para o produto, não para a versão: vale a versão vigente do preparo.
+- Gatilho `app_reject_change` em versões e linhas; `app_user` só tem `SELECT, INSERT` nelas. RLS
+  por `restaurant_id` nas três tabelas.
+- Ainda não existem: FC/IC por linha, porções, preço de venda, item produzido (`PRODUCED`) gerado
+  pelo preparo e ordem de produção.
 

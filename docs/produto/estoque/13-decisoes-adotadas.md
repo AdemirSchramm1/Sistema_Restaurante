@@ -17,6 +17,14 @@ O dono do produto testou a primeira versão e achou o cadastro complexo demais. 
 | Locais | Tipo, temperatura, responsável, ordem de contagem, regra de químicos | **Fora do escopo.** O estoque tem um saldo só por item, sem dizer onde ele está guardado |
 | Textos da tela | Termos técnicos (fator, FC, GTIN) | Rótulos do dia a dia, com exemplo em cada campo |
 
+Decisões da feature 003 (Produtos), 2026-11-02:
+
+| Tema | Decisão |
+|---|---|
+| Preparos (sub-receitas) | **Entram na primeira versão.** Preparo tem rendimento e é usado dentro de outros produtos; a baixa vai direto nos ingredientes, proporcional |
+| Ordem de produção / estoque de preparo pronto | Fora por enquanto |
+| Preço de venda e % do custo no preço | Fora por enquanto |
+
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.
 
