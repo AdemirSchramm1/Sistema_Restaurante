@@ -41,7 +41,15 @@ describe("explodir o produto em itens (FR-009)", () => {
   });
 
   it("desce por preparo dentro de preparo", () => {
-    const base = node("base", prepData({ name: "Base", yieldQuantity: d("1"), yieldUnit: "l", lines: [prepLine("molho", "1", "kg")] }));
+    const base = node(
+      "base",
+      prepData({
+        name: "Base",
+        yieldQuantity: d("1"),
+        yieldUnit: "l",
+        lines: [prepLine("molho", "1", "kg")],
+      }),
+    );
     const r = explode([prepLine("base", "250", "ml")], d("1"), graphOf(MOLHO, base), items);
     // 250 ml de base = 1/4 l → 0,25 kg de molho → 1/8 do molho
     if (r.ok) expect(map(r.value)).toEqual({ tomate: "0.3125", cebola: "0.025" });

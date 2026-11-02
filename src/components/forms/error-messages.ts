@@ -31,11 +31,23 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_DESCRIPTION: "O nome do item precisa ter entre 3 e 200 letras.",
   PURCHASE_FACTOR_REQUIRED: "Diga quanto vem em cada embalagem (ex.: 20) ou deixe a embalagem em branco.",
   PURCHASE_LABEL_REQUIRED: "Diga o nome da embalagem (ex.: Caixa) ou deixe a quantidade em branco.",
+  INVALID_NAME: "O nome precisa ter entre 3 e 120 letras.",
+  INVALID_QUANTITY: "A quantidade precisa ser maior que zero, com até 4 casas depois da vírgula.",
+  INVALID_YIELD: "Diga quanto o preparo rende (quantidade maior que zero e a medida).",
+  RECIPE_EMPTY: "Adicione pelo menos um item.",
+  RECIPE_DUPLICATE_NAME: "Já existe um produto ativo com este nome.",
+  DUPLICATE_RECIPE_COMPONENT: "Este item já está no produto; some as quantidades numa linha só.",
+  COMPONENT_INACTIVE: "Este item está inativo e não pode entrar em produto novo.",
+  NOT_A_SUB_RECIPE: "Só preparos podem ser usados dentro de outro produto.",
+  RECIPE_CYCLE: "Este preparo acabaria usando a si mesmo.",
+  RECIPE_IN_USE: "Este preparo está em uso em outros produtos.",
 };
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
+  if (error.code === "RECIPE_IN_USE" && Array.isArray(error.details?.usedBy))
+    return `Este preparo está em uso em: ${(error.details.usedBy as string[]).join(", ")}. Tire dele primeiro.`;
   return base;
 }

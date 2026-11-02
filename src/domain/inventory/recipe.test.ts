@@ -57,7 +57,10 @@ describe("quantidade e medida de cada linha (FR-002, FR-003)", () => {
   });
 
   it("recusa medida de outra família (un num item em kg)", () => {
-    const r = validateRecipe(dishData({ lines: [itemLine("pao", "1", "un"), itemLine("carne", "1", "un")] }), lookup);
+    const r = validateRecipe(
+      dishData({ lines: [itemLine("pao", "1", "un"), itemLine("carne", "1", "un")] }),
+      lookup,
+    );
     expect(code(r)).toBe("UNIT_DIMENSION_MISMATCH");
     expect(field(r)).toBe("lines.1.unit");
   });
@@ -74,7 +77,10 @@ describe("quantidade e medida de cada linha (FR-002, FR-003)", () => {
   });
 
   it("recusa o mesmo item duas vezes", () => {
-    const r = validateRecipe(dishData({ lines: [itemLine("carne", "100", "g"), itemLine("carne", "50", "g")] }), lookup);
+    const r = validateRecipe(
+      dishData({ lines: [itemLine("carne", "100", "g"), itemLine("carne", "50", "g")] }),
+      lookup,
+    );
     expect(code(r)).toBe("DUPLICATE_RECIPE_COMPONENT");
     expect(field(r)).toBe("lines.1.component");
   });
@@ -92,7 +98,9 @@ describe("quantidade e medida de cada linha (FR-002, FR-003)", () => {
 
   it("item inativado depois continua na linha que já existia", () => {
     const previous = [itemLine("velho", "1", "kg")];
-    expect(code(validateRecipe(dishData({ lines: [itemLine("velho", "2", "kg")] }), lookup, { previous }))).toBe("OK");
+    expect(
+      code(validateRecipe(dishData({ lines: [itemLine("velho", "2", "kg")] }), lookup, { previous })),
+    ).toBe("OK");
   });
 });
 
@@ -123,7 +131,9 @@ describe("preparos (spec 003, US4)", () => {
   });
 
   it("o preparo não pode usar a si mesmo", () => {
-    const r = validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, { selfId: "molho" });
+    const r = validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, {
+      selfId: "molho",
+    });
     expect(code(r)).toBe("RECIPE_CYCLE");
   });
 });
@@ -142,7 +152,9 @@ describe("preparo em uso (FR-010)", () => {
   });
 
   it("em uso, troca kg por g mas não por un", () => {
-    expect(code(checkSubRecipeChange(current, { kind: "SUB_RECIPE", yieldUnit: "g" }, ["X-Burger"]))).toBe("OK");
+    expect(code(checkSubRecipeChange(current, { kind: "SUB_RECIPE", yieldUnit: "g" }, ["X-Burger"]))).toBe(
+      "OK",
+    );
     expect(code(checkSubRecipeChange(current, { kind: "SUB_RECIPE", yieldUnit: "un" }, ["X-Burger"]))).toBe(
       "RECIPE_IN_USE",
     );
@@ -159,10 +171,15 @@ describe("versões (FR-004)", () => {
     const cur = dishData();
     expect(hasVersionChanges(null, cur)).toBe(true);
     expect(hasVersionChanges(cur, dishData({ name: "Outro nome" }))).toBe(false);
-    expect(hasVersionChanges(cur, dishData({ lines: [...cur.lines.slice(0, 2), itemLine("queijo", "0.03", "kg")] }))).toBe(
-      true,
-    );
-    expect(hasVersionChanges(cur, dishData({ lines: [itemLine("pao", "1.0", "un"), ...cur.lines.slice(1)] }))).toBe(false);
+    expect(
+      hasVersionChanges(
+        cur,
+        dishData({ lines: [...cur.lines.slice(0, 2), itemLine("queijo", "0.03", "kg")] }),
+      ),
+    ).toBe(true);
+    expect(
+      hasVersionChanges(cur, dishData({ lines: [itemLine("pao", "1.0", "un"), ...cur.lines.slice(1)] })),
+    ).toBe(false);
     expect(hasVersionChanges(cur, dishData({ lines: cur.lines.slice(0, 2) }))).toBe(true);
     const prep = prepData();
     expect(hasVersionChanges(prep, prepData({ yieldQuantity: d("3") }))).toBe(true);
