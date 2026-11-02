@@ -30,7 +30,7 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
   for (const [k, v] of Object.entries(raw)) {
     const m = LINE_KEY.exec(k);
     if (m) {
-      const i = Number(m[1]);
+      const i = Number.parseInt(m[1]!, 10);
       rows.set(i, { ...rows.get(i), [m[2]!]: v });
     } else if (!ALLOWED.has(k)) return err("VALIDATION", undefined, { keys: [k] });
   }

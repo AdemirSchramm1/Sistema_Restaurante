@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
@@ -30,6 +30,10 @@ type Props = {
 
 const ALL_UNITS = UNITS.map((u) => u.code);
 
+/** Chave estável de cada linha, para o React não trocar uma linha pela outra ao tirar. */
+let lineKey = 0;
+const keyed = (l: RecipeLineValues) => ({ ...l, key: lineKey++ });
+
 /** Formulário do produto: nome, tipo e o que vai nele (docs/produto/estoque/04-fichas-tecnicas.md). */
 export function RecipeForm({ action, options, initial, meta, readOnly, submitLabel }: Props) {
   const { state, pending, formProps } = useFormAction(action);
@@ -37,8 +41,6 @@ export function RecipeForm({ action, options, initial, meta, readOnly, submitLab
   const fe = (f: string) => fieldError(error, f);
 
   const [kind, setKind] = useState<RecipeKind>(initial.kind);
-  const nextKey = useRef(0);
-  const keyed = (l: RecipeLineValues) => ({ ...l, key: nextKey.current++ });
   const [lines, setLines] = useState(() => initial.lines.map(keyed));
 
   const preps = options.preps.filter((p) => p.id !== meta?.id);
