@@ -159,6 +159,13 @@ pela compra e pelo estorno de compra; `stock_unit_locked_at` na primeira movimen
 - A linha de preparo aponta para o produto, não para a versão: vale a versão vigente do preparo.
 - Gatilho `app_reject_change` em versões e linhas; `app_user` só tem `SELECT, INSERT` nelas. RLS
   por `restaurant_id` nas três tabelas.
-- Ainda não existem: FC/IC por linha, porções, preço de venda, item produzido (`PRODUCED`) gerado
-  pelo preparo e ordem de produção.
+- Ainda não existem: FC/IC por linha, porções, item produzido (`PRODUCED`) gerado pelo preparo e
+  ordem de produção.
+
+### Preço de venda (feature 008, migração `0008_sale_price`)
+- `recipes.sale_price numeric(12,2)` opcional. Checks `recipes_sale_price_positive` (> 0) e
+  `recipes_sale_price_dish` (só `kind = 'DISH'`). Fica no produto, não na versão: mudar o preço usa
+  a trava otimista (`version`) e vai para a auditoria (`salePrice`), sem criar versão.
+- O painel não grava nada: lê os produtos ativos com a versão mais nova
+  (`recipes.activeWithLatest()`), o grafo de preparos e o custo médio dos itens, e calcula na hora.
 

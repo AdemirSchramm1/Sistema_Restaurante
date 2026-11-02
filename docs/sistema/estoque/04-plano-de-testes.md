@@ -119,8 +119,19 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 
 ## 008 — Painel de custo dos produtos
 
-Casos de domínio em [02-regras-de-calculo](02-regras-de-calculo.md#cmv-e-indicadores--cogsts-indicatorsts)
-(CMV teórico, % de CMV por produto). O plano detalhado é escrito no `tasks.md` da feature.
+| Nível | Teste |
+|---|---|
+| U | Custo no preço do X-Burger (8,50 ÷ 28,00), faixas nos limites (35 e 40), barra, sobra e prejuízo |
+| U | O que mais pesa (empate, custo zero), ordem do painel e resumo; validação e entrada do preço |
+| U | `usesItem` direto e por preparo em dois níveis |
+| U | Painel (resumo, barra com marca dos 35%, sem preço, sem custo, vazio), quadro do preço, "Usado nos produtos", histórico do preço |
+| I | Preço: trava otimista, auditoria, permissão (chef sim, estoquista não), preparo recusado no caso de uso e no banco |
+| I | Painel: custo, %, faixa, sobra, o que mais pesa (inclusive preparo), ordem, inativo fora, custo médio atual |
+| I | Item usado direto e por preparo; isolamento entre restaurantes |
+| E | Comprar itens, cadastrar o X-Burger, definir o preço, ver no painel e no item; acessibilidade de Custos |
+
+CMV teórico do período e variância esperam as vendas da 005 (casos em
+[02-regras-de-calculo](02-regras-de-calculo.md#cmv-e-indicadores--cogsts-indicatorsts)).
 
 Fora do plano por decisão do dono: recebimento com conferência cega, temperatura, quarentena,
 contagem de estoque e fiscal.

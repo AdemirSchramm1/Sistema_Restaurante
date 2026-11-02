@@ -103,7 +103,26 @@ preparo; cada ingrediente do preparo entra multiplicado por essa fração (recur
 | Sem custo | um item sem custo médio | total `null` e o item listado |
 | Ciclo | A usa B, B usa A | `RECIPE_CYCLE` com o caminho [A, B, A] |
 
-Ficam para depois (fora da 003): FC, IC, porções, preço de venda e % de custo no preço.
+Ficam para depois (fora da 003): FC, IC e porções. Preço de venda e % de custo no preço vieram na 008.
+
+`usesItem(lines, itemId, graph)` (feature 008): o produto usa o item numa linha ou dentro de um
+preparo, em qualquer nível. É o quadro "Usado nos produtos" do item.
+
+## Custo dos produtos — `product-cost.ts` (feature 008)
+
+Fonte: [04-fichas-tecnicas](../../produto/estoque/04-fichas-tecnicas.md) e
+[10-indicadores](../../produto/estoque/10-indicadores.md#painel-de-custo-dos-produtos-feature-008).
+Recebe o custo de `recipeCost` e o preço; não arredonda (a tela mostra % com 1 casa e R$ com 2).
+
+| Função | Regra | Caso |
+|---|---|---|
+| `costShare` | custo ÷ preço × 100 | 8,50 ÷ 28,00 = 30,357…% |
+| `costBand` | ≤ 35 `OK`; ≤ 40 `WARN`; > 40 `HIGH` | 35 → OK; 35,01 → WARN; 40,01 → HIGH |
+| `costBarPercent` | % inteira, meio para cima, entre 0 e 100; > 0 tem ao menos 1 | 42,5 → 43; 130 → 100 |
+| `evaluateProductCost` | % , faixa, sobra (preço − custo) e o que mais pesa (linha mais cara ÷ custo) | X-Burger: 30,4%, OK, R$ 19,50, carne 70,6% |
+| `rankProductCosts` | com %: maior primeiro; depois sem preço; depois sem custo; empate pelo nome | – |
+| `summarizeProductCosts` | conta alto, atenção, dentro da faixa, sem preço, sem custo | sem custo e sem preço conta só como sem custo |
+| `validateSalePrice` | em branco pode; > 0 e até 2 casas (`INVALID_PRICE`) | 0, −1, 28,001 → erro |
 
 ## Reposição — `reorder.ts`
 

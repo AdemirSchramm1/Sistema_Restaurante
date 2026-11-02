@@ -58,6 +58,25 @@ Tudo em R$ (custo gravado na movimentação), porque kg, l e un não se comparam
 diminuiu o estoque, sem contar estornos nem o que foi estornado: hoje perdas e acertos para menos;
 com a 005, também os pedidos. Barras simples (HTML e CSS), sem biblioteca de gráficos.
 
+## Painel de custo dos produtos (feature 008)
+
+Menu "Custos". Para cada produto vendido ativo, com o custo médio dos itens de hoje:
+
+- **Custo** de uma unidade, **preço** de venda e **custo no preço** = custo ÷ preço × 100.
+- **Faixa**: até 35% dentro da faixa; acima de 35% até 40% atenção; acima de 40% alto (margem em
+  risco). A faixa vai escrita, não só na cor; a barra vai de 0% a 100% do preço, com uma marca nos 35%.
+- **Sobra por venda** = preço − custo (negativa = prejuízo).
+- **O que mais pesa**: a linha mais cara do produto e quanto ela é do custo.
+- Ordem: maior % primeiro; depois os sem preço; depois os sem custo.
+- Resumo no topo: quantos estão altos, em atenção, dentro da faixa, sem preço e sem custo.
+
+Exemplo (caso de teste): X-Burger com pão R$ 1,00, 150 g de carne a R$ 40/kg e 30 g de queijo a
+R$ 50/kg custa R$ 8,50; vendido a R$ 28,00 → 30,4%, dentro da faixa, sobra R$ 19,50; a carne é 71%
+do custo. A R$ 20,00 → 42,5%, alto.
+
+Sem a baixa por pedido (005) não há quantidade vendida, então o CMV teórico do período e a variância
+ficam para depois. O painel é o custo de **uma unidade** hoje.
+
 ## Investigação quando a variância sobe
 
 O painel guia esta sequência:
