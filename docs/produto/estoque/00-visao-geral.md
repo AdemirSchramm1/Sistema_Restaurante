@@ -48,8 +48,8 @@ Spec Kit (`specs/NNN-nome/`).
 |---|---|---|---|
 | 001 | Cadastros base: grupos, locais, itens | – | Feito |
 | 002 | Simplificar o cadastro e retirar os locais | 001 | Feito: só nome, grupo, medida e embalagem; sem locais |
-| 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Em revisão ([specs/003-produtos](../../../specs/003-produtos/spec.md)): produtos vendidos e preparos, versões e custo |
-| 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Compra entra, perda sai com motivo |
+| 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Feito: produtos vendidos e preparos, versões e custo |
+| 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Em andamento ([specs/004](../../../specs/004-entradas-perdas-saldo/spec.md)): compra entra, perda sai com motivo |
 | 005 | Baixa automática por pedido (manual primeiro; PDV depois) | 003, 004 | Estoque diminui conforme os clientes pedem |
 | 006 | Alerta de reposição | 004, 005 | Aviso quando o item está acabando |
 | 007 | Fornecedores | 004 | Quem vende cada item e por quanto |
