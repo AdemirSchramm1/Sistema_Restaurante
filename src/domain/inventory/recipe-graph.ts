@@ -107,11 +107,22 @@ export function recipeCost(
   return { lines: out, total, missingItemIds };
 }
 
-/** Esqueleto (spec 008, US3). */
+/** O produto usa o item numa linha ou dentro de um preparo, em qualquer nível (spec 008, US3)? */
 export function usesItem(
-  _lines: readonly RecipeLineData[],
-  _itemId: string,
-  _graph: Map<string, RecipeNode>,
+  lines: readonly RecipeLineData[],
+  itemId: string,
+  graph: Map<string, RecipeNode>,
+  seen = new Set<string>(),
 ): boolean {
+  for (const l of lines) {
+    if (l.component.kind === "ITEM") {
+      if (l.component.id === itemId) return true;
+      continue;
+    }
+    if (seen.has(l.component.id)) continue;
+    seen.add(l.component.id);
+    const prep = graph.get(l.component.id);
+    if (prep && usesItem(prep.lines, itemId, graph, seen)) return true;
+  }
   return false;
 }

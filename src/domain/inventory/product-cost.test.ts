@@ -118,7 +118,7 @@ describe("custo de um produto no painel (spec 008, US2)", () => {
 
 describe("ordem e resumo do painel (spec 008, US2)", () => {
   const rows = [
-    xBurger({ id: "barato", name: "Suco", salePrice: d(10), cost: d(2) }), // 20%
+    xBurger({ id: "barato", name: "Pastel", salePrice: d(10), cost: d(2) }), // 20%
     xBurger({ id: "sem-preco-b", name: "Batata", salePrice: null }),
     xBurger({ id: "sem-custo", name: "Açaí", cost: null, missingCostNames: ["Polpa"] }),
     xBurger({ id: "caro", name: "Picanha", salePrice: d(50), cost: d(25) }), // 50%

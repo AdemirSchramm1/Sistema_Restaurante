@@ -68,9 +68,18 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
   return ok({ name: text(raw.name), kind, yieldQuantity, yieldUnit, lines });
 }
 
-/** Esqueleto (spec 008, US1). */
+/** Formulário do preço de venda (spec 008, US1). Em branco = sem preço. */
 export function parseSalePriceForm(
-  _raw: Record<string, unknown>,
+  raw: Record<string, unknown>,
 ): Result<{ id: string; version: number; salePrice: Decimal | null }> {
-  return err("NOT_IMPLEMENTED" as never);
+  const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const id = text(raw.id);
+  const v = text(raw.version);
+  const version = /^\d+$/.test(v) ? Number.parseInt(v, 10) : 0;
+  if (!UUID.test(id) || version < 1) return err("VALIDATION");
+  const price = text(raw.salePrice);
+  if (!price) return ok({ id, version, salePrice: null });
+  const parsed = parseBrDecimal(price);
+  if (!parsed.ok) return err("INVALID_PRICE", "salePrice");
+  return ok({ id, version, salePrice: parsed.value });
 }
