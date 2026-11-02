@@ -46,7 +46,13 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
   await page.getByText("Produto cadastrado.").waitFor();
   expect(await seriousViolations(page), "detalhe do produto").toEqual([]);
 
-  for (const path of ["/estoque/itens", "/estoque/produtos", "/estoque/grupos", "/equipe"]) {
+  for (const path of [
+    "/estoque/itens",
+    "/estoque/produtos",
+    "/estoque/lancamentos",
+    "/estoque/grupos",
+    "/equipe",
+  ]) {
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }
