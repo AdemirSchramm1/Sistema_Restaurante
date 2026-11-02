@@ -18,23 +18,27 @@ Testcontainers e Playwright. `decimal.js` para quantidade e custo.
 | Princípio | Como a 003 cumpre |
 |---|---|
 | I. Testes primeiro | Cada tarefa de código vem depois do teste correspondente em `tasks.md` (commits `test(003)` antes de `feat(003)`) |
-| II. Domínio puro | `recipe.ts` (validação das linhas) e `recipe-cost.ts` (custo) sem banco nem React; data da versão recebida como parâmetro |
+| II. Domínio puro | `recipe.ts` (validação das linhas) e `recipe-graph.ts` (ciclo, explosão, custo) sem banco nem React; data da versão recebida como parâmetro |
 | III. Livro imutável | Não mexe em movimentações. As versões do produto seguem a mesma ideia: só inserção |
 | IV. Precisão | `quantity numeric(14,4)`; conversão só por `convert` em `units.ts`; arredondamento só na tela |
 | V. Rastreabilidade | Auditoria `recipe` em criar, editar, inativar e reativar; RLS em `recipes`, `recipe_versions`, `recipe_lines` |
 | VI. Docs vivas | `docs/produto/estoque/04-fichas-tecnicas.md`, `docs/sistema/estoque/01-modelo-de-dados.md`, glossário e roadmap no mesmo PR |
-| VII. Simplicidade | Sem sub-receitas, sem índices de rendimento; versão = cópia completa das linhas |
+| VII. Simplicidade | Preparos sem ordem de produção (baixa direto pelos ingredientes); sem índices de rendimento; versão = cópia completa das linhas |
 
 ## Modelo de dados
 
 ```text
-recipes          id, restaurant_id, name, name_normalized, active, current_version_id,
+recipes          id, restaurant_id, name, name_normalized, kind (DISH | SUB_RECIPE), active,
                  created_*/updated_*/version (trava otimista, como em items)
                  unique (restaurant_id, name_normalized) where active
-recipe_versions  id, restaurant_id, recipe_id, number, valid_from timestamptz, created_by
+recipe_versions  id, restaurant_id, recipe_id, number, valid_from timestamptz, created_*,
+                 yield_quantity numeric(14,4) null, yield_unit_id null (só preparo)
                  unique (recipe_id, number)  — só inserção (trigger bloqueia UPDATE/DELETE)
-recipe_lines     id, restaurant_id, recipe_version_id, item_id, quantity numeric(14,4) > 0, unit_id
-                 unique (recipe_version_id, item_id)  — só inserção
+recipe_lines     id, restaurant_id, recipe_version_id, position, item_id null, sub_recipe_id null,
+                 quantity numeric(14,4) > 0, unit_id
+                 check: exatamente um entre item_id e sub_recipe_id
+                 unique (recipe_version_id, item_id), unique (recipe_version_id, sub_recipe_id)
+                 — só inserção
 ```
 
 - Compatibilidade de família entre `unit_id` da linha e `stock_unit_id` do item: validada no domínio
@@ -45,6 +49,15 @@ recipe_lines     id, restaurant_id, recipe_version_id, item_id, quantity numeric
 
 ## Decisões
 
+- **Preparo = produto com `kind = SUB_RECIPE`** e rendimento na versão. A linha de outro produto
+  aponta para o preparo (não para uma versão): vale sempre a versão vigente do preparo na data.
+  Não gera item `PRODUCED` nem ordem de produção nesta feature (o glossário previa isso; fica para
+  quando houver lote pronto em estoque).
+- **Explosão no domínio** (`recipe-graph.ts`): função pura que recebe o produto, as versões
+  vigentes dos preparos e as medidas dos itens. Usada pelo custo agora e pela baixa na 005.
+- **Ciclos** checados no caso de uso com o grafo das versões vigentes de todos os preparos ativos
+  do restaurante (volume pequeno).
+
 - **Nome no código `recipe`** (glossário), na tela "Produto".
 - **Versão como cópia completa** das linhas: simples e fácil de ler; volume pequeno.
 - **Salvar sem mudança não cria versão** (compara linhas normalizadas no domínio).
@@ -54,7 +67,7 @@ recipe_lines     id, restaurant_id, recipe_version_id, item_id, quantity numeric
 ## Arquivos
 
 ```text
-src/domain/inventory/        recipe.ts, recipe-cost.ts (+ testes)
+src/domain/inventory/        recipe.ts, recipe-graph.ts (ciclo, explosão e custo) (+ testes)
 src/domain/access/           permissions.ts (recipe.write)
 src/application/inventory/   recipe-input.ts, create-recipe.ts, update-recipe.ts,
                              set-recipe-active.ts, list-recipes.ts, get-recipe.ts

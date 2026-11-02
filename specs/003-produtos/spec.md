@@ -1,6 +1,6 @@
 # Feature 003 — Produtos (o que o cliente pede e quanto de cada item usa)
 
-**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: rascunho (escopo a confirmar com o dono)
+**Branch**: `claude/project-thread-8lg7o1` · **Criada**: 2026-11-02 · **Status**: em implementação
 
 ## Contexto
 
@@ -47,19 +47,46 @@ quando o cliente pedir.
 2. O produto mostra o custo total, a soma das linhas.
 3. Se algum item ainda não tem custo (as compras só entram na feature 004), o total aparece como
    "Sem custo ainda" e a linha diz qual item falta.
-4. *(A confirmar)* Preço de venda opcional; com ele, a tela mostra "O custo é X% do preço".
+4. Num preparo (US4), o custo mostrado é o do rendimento inteiro e o de cada medida (ex.: R$ 18,00
+   por kg).
+
+### US4 — Preparos usados dentro de outros produtos (P1, decidido pelo dono em 2026-11-02)
+
+Como dono, quero cadastrar o molho, a massa ou o hambúrguer porcionado uma vez e usar dentro de
+vários pratos, para não repetir a lista de ingredientes.
+
+1. Ao criar um produto escolho o tipo: "Vendido ao cliente" ou "Preparo (usado dentro de outros
+   produtos)".
+2. O preparo pede "Quanto rende" (ex.: 2 kg de molho). O vendido não pede.
+3. Na lista do que vai num produto aparecem os itens e os preparos ativos. "Molho de tomate" (rende
+   2 kg) entra no X-Burger com 50 g.
+4. Quando o cliente pede um X-Burger, o estoque baixa a parte proporcional dos ingredientes do
+   molho: 50 g ÷ 2 kg = 1/40 de cada ingrediente (a baixa é a feature 005; aqui fica a regra de
+   cálculo pronta e testada).
+5. Um preparo pode usar outro preparo, mas nunca a si mesmo, nem por um caminho indireto
+   (molho A usa B que usa A). Aparece "Este preparo acabaria usando a si mesmo".
+6. Um produto vendido não pode ser usado dentro de outro.
+7. Um preparo usado em produtos ativos não pode ser inativado, nem virar "Vendido", nem trocar a
+   medida do rendimento para outra família (ex.: kg → un). Aparece em quais produtos ele está.
 
 ## Requisitos
 
-- **FR-001** O produto guarda: nome, ativo/inativo e as linhas (item + quantidade + medida da
-  linha). Nome único entre ativos do restaurante, sem diferenciar maiúsculas e acentos.
-- **FR-002** A medida da linha é a do item ou outra da mesma família (g/kg, ml/l, un). A conversão
-  usa a função `convert` de `units.ts`.
+- **FR-001** O produto guarda: nome, tipo (vendido ou preparo), ativo/inativo e as linhas (item ou
+  preparo + quantidade + medida da linha). O preparo guarda também quanto rende (quantidade e
+  medida). Nome único entre ativos do restaurante, sem diferenciar maiúsculas e acentos.
+- **FR-002** A medida da linha é a do item (ou a do rendimento do preparo) ou outra da mesma
+  família (g/kg, ml/l, un). A conversão usa a função `convert` de `units.ts`.
 - **FR-003** Quantidade decimal exata, > 0, até 4 casas.
-- **FR-004** Cada edição grava uma nova versão imutável (`recipe_version`) com `valid_from`. As
-  linhas pertencem à versão. Versões antigas nunca mudam.
-- **FR-005** Custo da linha = quantidade convertida × `averageCost` do item; custo do produto = soma.
-  Arredondamento só na tela (2 casas). Sem custo médio em algum item → produto sem custo.
+- **FR-004** Cada edição das linhas ou do rendimento grava uma nova versão imutável
+  (`recipe_version`) com `valid_from`. Versões antigas nunca mudam. Mudar só o nome não cria versão.
+- **FR-005** Custo da linha de item = quantidade convertida × `averageCost` do item. Custo da linha
+  de preparo = (quantidade convertida ÷ rendimento) × custo do preparo. Custo do produto = soma.
+  Arredondamento só na tela (2 casas). Falta custo médio em algum item → produto sem custo.
+- **FR-009** "Explodir" um produto (função de domínio): transforma N unidades do produto na lista
+  de itens e quantidades na medida de cada item, descendo pelos preparos. É o que a 005 vai baixar.
+- **FR-010** Sem ciclos entre preparos (`RECIPE_CYCLE`); só preparo entra em linha de outro
+  produto (`NOT_A_SUB_RECIPE`); preparo em uso não inativa, não vira vendido nem troca a família
+  do rendimento (`RECIPE_IN_USE`).
 - **FR-006** Permissões: gerente e chef cadastram e editam produtos (`recipe.write`); todos os
   papéis leem.
 - **FR-007** Auditoria em criar, editar, inativar e reativar; RLS por restaurante como nas demais
@@ -69,7 +96,9 @@ quando o cliente pedir.
 
 ## Fora do escopo (desta primeira versão)
 
-- Sub-receitas (molho, massa) e ordem de produção. *(A confirmar com o dono.)*
+- Preço de venda e % do custo no preço (decisão do dono em 2026-11-02: fica para depois).
+- Ordem de produção (preparar um lote de molho e guardar): o preparo é baixado direto pelos
+  ingredientes quando o prato é pedido. Lote pronto em estoque pode vir depois.
 - Fator de correção, índice de cocção, rendimento, porções, modo de preparo, foto, alérgenos,
   informação nutricional.
 - Categoria do cardápio e integração com PDV (vem na 005).

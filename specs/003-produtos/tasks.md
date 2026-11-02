@@ -5,7 +5,7 @@ a exige (TDD). `[teste]` = escrever o teste e vê-lo falhar antes da tarefa segu
 
 ## Fase 0: Escopo
 
-- [ ] T000 Confirmar com o dono: sub-receitas fora da primeira versão; preço de venda opcional (US3.4)
+- [x] T000 Confirmar com o dono: **com preparos (sub-receitas)**, sem preço de venda, sem ordem de produção
 
 ## Fase 1: Domínio (US1, US3)
 
@@ -13,8 +13,8 @@ a exige (TDD). `[teste]` = escrever o teste e vê-lo falhar antes da tarefa segu
 - [ ] T002 `src/domain/inventory/recipe.ts`
 - [ ] T003 [teste] `recipe.test.ts`: salvar sem mudança não gera versão; versão vigente numa data
 - [ ] T004 `recipe.ts`: `hasChanges`, `versionAt`
-- [ ] T005 [teste] `recipe-cost.test.ts`: custo da linha (150 g de item em kg a R$ 40,00/kg = R$ 6,00); soma; sem custo quando falta custo médio
-- [ ] T006 `src/domain/inventory/recipe-cost.ts`
+- [ ] T005 [teste] `recipe-graph.test.ts`: ciclo direto e indireto (`RECIPE_CYCLE`); explodir 2 X-Burger com 50 g de molho que rende 2 kg; custo da linha (150 g de item em kg a R$ 40,00/kg = R$ 6,00), custo de linha de preparo, soma; sem custo quando falta custo médio
+- [ ] T006 `src/domain/inventory/recipe-graph.ts` (`findCycle`, `explode`, `recipeCost`)
 - [ ] T007 [teste] `permissions.test.ts`: `recipe.write` para gerente e chef; demais só leem
 - [ ] T008 `permissions.ts`
 
@@ -24,7 +24,7 @@ a exige (TDD). `[teste]` = escrever o teste e vê-lo falhar antes da tarefa segu
 - [ ] T010 Schema, migração `0004_recipes` e `recipe-repository.ts`
 - [ ] T011 [teste] `recipe-input.test.ts`: entrada do formulário (linhas, quantidade com vírgula)
 - [ ] T012 `recipe-input.ts`
-- [ ] T013 [teste] Integração: criar produto; nome repetido entre ativos; editar cria versão 2 e mantém a 1; trava otimista (`STALE_RECORD`); isolamento de tenant; auditoria; chef pode, estoquista não (`DENIED`)
+- [ ] T013 [teste] Integração: criar produto; nome repetido entre ativos; editar cria versão 2 e mantém a 1; trava otimista (`STALE_RECORD`); isolamento de tenant; auditoria; chef pode, estoquista não (`DENIED`); preparo em uso não inativa nem troca família (`RECIPE_IN_USE`); ciclo recusado
 - [ ] T014 `create-recipe.ts`, `update-recipe.ts`, `set-recipe-active.ts`, `list-recipes.ts`, `get-recipe.ts`, `actions/recipes.ts`
 
 ## Fase 3: Tela (US1, US2, US3)
