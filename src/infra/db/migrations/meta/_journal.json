@@ -43,6 +43,13 @@
       "when": 1793592224712,
       "tag": "0005_stock_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793595050882,
+      "tag": "0006_suppliers",
+      "breakpoints": true
     }
   ]
 }

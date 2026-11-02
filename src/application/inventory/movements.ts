@@ -11,6 +11,7 @@ import {
   planReversal,
   type AdjustmentStatus,
   type PlannedMovement,
+  type PurchaseInput,
 } from "@/domain/inventory/movement";
 import { reasonById } from "@/domain/inventory/movement-reasons";
 import type { UnitCode } from "@/domain/inventory/units";
@@ -55,10 +56,35 @@ async function replayed(repos: Repos, key: string | null) {
 
 export type PurchaseCommand = Common & {
   itemId: string;
+  /** De quem foi a compra (spec 007). Opcional. */
+  supplierId?: string | null;
   quantity: Decimal;
-  unit: UnitCode | "PACKAGE";
+  /** `SUPPLIER_PACKAGE`: a embalagem do fornecedor escolhido para este item. */
+  unit: UnitCode | "PACKAGE" | "SUPPLIER_PACKAGE";
   totalPaid: Decimal;
 };
+
+/** Fornecedor da compra: existe, não está bloqueado e, se pedido, tem embalagem para o item. */
+async function resolveSupplier(
+  repos: Repos,
+  cmd: PurchaseCommand,
+): Promise<Result<{ supplierId: string | null; unit: PurchaseInput["unit"] }>> {
+  const supplierId = cmd.supplierId ?? null;
+  if (!supplierId) {
+    if (cmd.unit === "SUPPLIER_PACKAGE") return err("UNKNOWN_UNIT", "unit");
+    return ok({ supplierId, unit: cmd.unit });
+  }
+  const supplier = await repos.suppliers.get(supplierId);
+  if (!supplier) return err("NOT_FOUND", "supplierId");
+  if (!supplier.active) return err("SUPPLIER_BLOCKED", "supplierId");
+  if (cmd.unit !== "SUPPLIER_PACKAGE") return ok({ supplierId, unit: cmd.unit });
+  const offer = await repos.suppliers.findOffer(supplierId, cmd.itemId);
+  if (!offer?.packageLabel || !offer.packageQuantity) return err("UNKNOWN_UNIT", "unit");
+  return ok({
+    supplierId,
+    unit: { packageLabel: offer.packageLabel, packageQuantity: offer.packageQuantity },
+  });
+}
 
 /** Compra: saldo sobe, custo médio e último custo mudam (US1). */
 export async function registerPurchase(
@@ -73,7 +99,9 @@ export async function registerPurchase(
     if (again) return ok({ movementId: again });
     const item = await repos.movements.lockItem(cmd.itemId);
     if (!item) return err("NOT_FOUND", "itemId");
-    const plan = planPurchase(item, cmd, deps.clock.now());
+    const supplier = await resolveSupplier(repos, cmd);
+    if (!supplier.ok) return supplier;
+    const plan = planPurchase(item, { ...cmd, unit: supplier.value.unit }, deps.clock.now());
     if (!plan.ok) return plan;
     const { newAverageCost, newLastCost, ...line } = plan.value;
     const movementId = await write(
@@ -83,6 +111,7 @@ export async function registerPurchase(
       {
         type: "PURCHASE",
         itemId: item.id,
+        supplierId: supplier.value.supplierId,
         reasonId: null,
         notes: cleanNotes(cmd.notes),
         occurredAt: cmd.occurredAt,

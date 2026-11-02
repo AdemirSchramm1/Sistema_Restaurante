@@ -3,6 +3,7 @@ import type { FieldChanges } from "@/domain/shared/audit";
 import type { Origin } from "./context";
 import type { AccessRepos } from "./access/ports";
 import type { CatalogRepos } from "./inventory/ports";
+import type { SupplierRepos } from "./suppliers/ports";
 
 export interface Clock {
   now(): Date;
@@ -47,7 +48,7 @@ export interface AuditRepo {
   ): Promise<(AuditEntry & { occurredAt: Date; userName: string | null })[]>;
 }
 
-export type Repos = AccessRepos & CatalogRepos & { audit: AuditRepo };
+export type Repos = AccessRepos & CatalogRepos & SupplierRepos & { audit: AuditRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {

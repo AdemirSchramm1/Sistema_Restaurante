@@ -3,7 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import type { AdjustmentRequestRecord, MovementRecord, MovementRepo } from "@/application/inventory/ports";
 import { d } from "@/domain/shared/decimal";
 import type { Tx } from "../db";
-import { adjustmentRequests, items, stockBalances, stockMovements, users } from "../schema";
+import { adjustmentRequests, items, stockBalances, stockMovements, suppliers, users } from "../schema";
 import { dec, str, UNIT_CODE_BY_ID } from "./util";
 
 const recorder = alias(users, "recorder");
@@ -21,12 +21,14 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
         recordedByName: recorder.name,
         approvedByName: approver.name,
         reversedById: reversal.id,
+        supplierName: suppliers.name,
       })
       .from(stockMovements)
       .innerJoin(items, eq(items.id, stockMovements.itemId))
       .leftJoin(recorder, eq(recorder.id, stockMovements.createdBy))
       .leftJoin(approver, eq(approver.id, stockMovements.approvedBy))
-      .leftJoin(reversal, eq(reversal.reversesId, stockMovements.id));
+      .leftJoin(reversal, eq(reversal.reversesId, stockMovements.id))
+      .leftJoin(suppliers, eq(suppliers.id, stockMovements.supplierId));
 
   type MovementRow = Awaited<ReturnType<ReturnType<typeof movementSelect>["execute"]>>[number];
   const toMovement = (r: MovementRow): MovementRecord => ({
@@ -50,6 +52,8 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
     approvedByName: r.approvedByName,
     reversesId: r.m.reversesId,
     reversedById: r.reversedById,
+    supplierId: r.m.supplierId,
+    supplierName: r.supplierName,
   });
 
   const requestSelect = () =>
@@ -124,6 +128,7 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
         reversesId: m.reversesId,
         approvedBy: m.approvedBy,
         idempotencyKey: m.idempotencyKey,
+        supplierId: m.supplierId ?? null,
         createdAt: m.recordedAt,
         createdBy: m.recordedBy,
       });
