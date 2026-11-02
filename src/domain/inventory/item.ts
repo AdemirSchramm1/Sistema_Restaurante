@@ -47,6 +47,9 @@ export type Item = ItemData & {
   averageCost: Decimal | null;
   lastCost: Decimal | null;
   costUpdatedAt: Date | null;
+  /** Aviso de reposição (spec 006): "avisar quando chegar em" e "comprar até". */
+  reorderPoint: Decimal | null;
+  parLevel: Decimal | null;
   groupId: string;
   groupName: string;
   subgroupName: string;

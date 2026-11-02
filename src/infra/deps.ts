@@ -14,6 +14,7 @@ import { itemRepository } from "./db/repositories/item-repository";
 import { recipeRepository } from "./db/repositories/recipe-repository";
 import { movementRepository } from "./db/repositories/movement-repository";
 import { supplierRepository } from "./db/repositories/supplier-repository";
+import { reportRepository } from "./db/repositories/report-repository";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
 import { cryptoTokens } from "./tokens";
@@ -38,6 +39,7 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     recipes: recipeRepository(tx, restaurantId),
     movements: movementRepository(tx, restaurantId),
     suppliers: supplierRepository(tx, restaurantId),
+    reports: reportRepository(tx, restaurantId),
   };
 }
 

@@ -65,6 +65,8 @@ export type ItemListRow = Pick<
   subgroupName: string;
   /** Saldo na medida do item (soma do livro). */
   balance: Decimal;
+  /** Chegou no ponto de reposição (spec 006). */
+  atReorderPoint: boolean;
 };
 
 export interface ItemRepo {
@@ -89,6 +91,12 @@ export interface ItemRepo {
   ): Promise<{ id: string; code: string } | null>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   setCogsOverride(id: string, value: boolean | null, version: number, audit: Audit): Promise<Result<void>>;
+  setReorderLevels(
+    id: string,
+    levels: { reorderPoint: Decimal | null; parLevel: Decimal | null },
+    version: number,
+    audit: Audit,
+  ): Promise<Result<void>>;
   activeCountInSubgroup(subgroupId: string): Promise<number>;
   /** Saldo do item na sua medida (0 sem movimentação). */
   balance(id: string): Promise<Decimal>;
@@ -259,9 +267,56 @@ export interface MovementRepo {
   listRequests(status: AdjustmentStatus | "ALL"): Promise<AdjustmentRequestRecord[]>;
 }
 
+/** Linha da lista "Repor" e do quadro do item (spec 006). */
+export type ReorderRow = {
+  itemId: string;
+  code: string;
+  name: string;
+  unit: UnitCode;
+  active: boolean;
+  balance: Decimal;
+  reorderPoint: Decimal | null;
+  parLevel: Decimal | null;
+  purchaseUnitLabel: string | null;
+  purchaseFactor: Decimal | null;
+  /** Fornecedor preferido do item, se houver. */
+  supplier: {
+    name: string;
+    phone: string | null;
+    leadTimeDays: number | null;
+    deliveryDays: number[];
+    packageLabel: string | null;
+    packageQuantity: Decimal | null;
+  } | null;
+};
+
+/** Saídas no período por item (positivas), com o saldo atual. */
+export type OutflowByItem = {
+  itemId: string;
+  name: string;
+  unit: UnitCode;
+  quantity: Decimal;
+  value: Decimal;
+  balance: Decimal;
+};
+
+/** Consultas só de leitura para o aviso e os gráficos (spec 006). */
+export interface ReportRepo {
+  /** Itens com aviso; `atPointOnly` filtra os que chegaram no ponto; `itemId` busca um só (com ou sem aviso). */
+  reorderRows(filter: { atPointOnly?: boolean; itemId?: string }): Promise<ReorderRow[]>;
+  countAtReorderPoint(): Promise<number>;
+  /** Itens ativos com saída no período ou saldo, com o total que saiu. */
+  outflowByItem(from: Date, to: Date, itemIds?: readonly string[]): Promise<OutflowByItem[]>;
+  outflowByReason(from: Date, to: Date): Promise<{ reasonId: string; value: Decimal }[]>;
+  totals(from: Date, to: Date): Promise<{ inflow: Decimal; outflow: Decimal; losses: Decimal }>;
+  /** Entradas e saídas por semana (segunda a domingo, no fuso dado); semanas sem movimento vêm zeradas. */
+  weekly(from: Date, to: Date, timezone: string): Promise<{ weekStart: string; inflow: Decimal; outflow: Decimal }[]>;
+}
+
 export type CatalogRepos = {
   groups: GroupRepo;
   items: ItemRepo;
   recipes: RecipeRepo;
   movements: MovementRepo;
+  reports: ReportRepo;
 };
