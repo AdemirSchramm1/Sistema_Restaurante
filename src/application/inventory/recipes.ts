@@ -245,6 +245,8 @@ export type RecipeView = {
     yieldQuantity: Decimal | null;
     yieldUnit: UnitCode | null;
   };
+  /** Preço de venda (só produto vendido; spec 008). */
+  salePrice: Decimal | null;
   versionNumber: number;
   validFrom: Date;
   lines: RecipeLineView[];
@@ -286,6 +288,7 @@ export async function getRecipe(deps: Deps, ctx: RequestContext, id: string): Pr
         yieldQuantity: v.yieldQuantity,
         yieldUnit: v.yieldUnit,
       },
+      salePrice: null,
       versionNumber: v.number,
       validFrom: v.validFrom,
       lines: v.lines.map((l: RecipeLineData, i): RecipeLineView => {

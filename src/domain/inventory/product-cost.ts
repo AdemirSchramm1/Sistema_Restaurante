@@ -105,6 +105,7 @@ export function summarizeProductCosts(rows: readonly ProductCost[]) {
 /** Em branco pode; senão maior que zero e com até 2 casas (spec 008, FR-001). */
 export function validateSalePrice(price: Decimal | null): Result<void> {
   if (price === null) return ok(undefined);
-  if (price.lte(0) || price.decimalPlaces() > 2 || price.gt(PRICE_MAX)) return err("INVALID_PRICE", "salePrice");
+  if (price.lte(0) || price.decimalPlaces() > 2 || price.gt(PRICE_MAX))
+    return err("INVALID_PRICE", "salePrice");
   return ok(undefined);
 }
