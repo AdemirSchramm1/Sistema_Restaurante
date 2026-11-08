@@ -169,7 +169,7 @@ cebola que saiu.
 ## Premissas
 
 - Os preços são editados só pelo gerente, como pedido. O chef vê, mas não muda.
-- Sem observação livre: o que não estiver nos botões é falado com o garçom (decisão a confirmar).
+- Sem observação livre: o que não estiver nos botões é falado com o garçom.
 - Retirar não dá desconto.
 - O preço do adicional é o mesmo em todos os pratos.
 - Grupos de escolha obrigatória (ex.: "escolha o ponto da carne", "escolha 1 acompanhamento") e
@@ -179,3 +179,9 @@ cebola que saiu.
 
 Escolhas obrigatórias (ponto da carne, acompanhamento), tamanhos (P/M/G), combos, preço do
 adicional diferente por prato, desconto por retirada, foto do adicional, baixa do estoque (005).
+
+## Decisões
+
+| Data | Pergunta | Decisão |
+|---|---|---|
+| 2026-11-08 | Tirar de vez o campo de texto livre do cardápio? | Sim, só botões. O que não estiver nos botões o cliente fala com o garçom |

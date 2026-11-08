@@ -31,5 +31,5 @@
 
 ## Notas
 
-- Sem marcadores [NEEDS CLARIFICATION]. Uma premissa a confirmar com o dono: não há observação
-  livre nenhuma; o que não estiver nos botões é falado com o garçom.
+- Sem marcadores [NEEDS CLARIFICATION]. "Só botões, sem texto livre" confirmado pelo dono em
+  2026-11-08. Spec pronta para o `speckit plan`.
