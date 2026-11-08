@@ -3,6 +3,7 @@ import {
   boolean,
   char,
   check,
+  date,
   index,
   integer,
   jsonb,
@@ -130,6 +131,8 @@ export const recipes = pgTable(
     active: boolean("active").notNull().default(true),
     /** Preço de venda; só produto vendido (spec 008). */
     salePrice: numeric("sale_price", { precision: 12, scale: 2 }),
+    /** "Esgotado hoje": data local em que foi marcado (spec 009, US5). */
+    soldOutOn: date("sold_out_on", { mode: "string" }),
   },
   (t) => [
     uniqueIndex("recipes_active_name")
@@ -137,6 +140,7 @@ export const recipes = pgTable(
       .where(sql`active`),
     check("recipes_sale_price_positive", sql`sale_price > 0`),
     check("recipes_sale_price_dish", sql`sale_price is null or kind = 'DISH'`),
+    check("recipes_sold_out_dish", sql`sold_out_on is null or kind = 'DISH'`),
   ],
 );
 

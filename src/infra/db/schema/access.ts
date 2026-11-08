@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { base, editable } from "./common";
 import { users } from "./auth";
 
-export const roleEnum = pgEnum("role", ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE"]);
+export const roleEnum = pgEnum("role", ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER"]);
 export const invitationStatusEnum = pgEnum("invitation_status", [
   "PENDING",
   "ACCEPTED",
@@ -15,6 +15,8 @@ export const restaurants = pgTable("restaurants", {
   id: uuid("id").primaryKey(),
   name: text("name").notNull(),
   timezone: text("timezone").notNull().default("America/Sao_Paulo"),
+  /** Chave "Recebendo pedidos pelo QR code" (spec 009, US6). */
+  acceptingQrOrders: boolean("accepting_qr_orders").notNull().default(true),
   nextGroupCode: integer("next_group_code").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   createdBy: uuid("created_by"),

@@ -64,6 +64,20 @@
       "when": 1793645538478,
       "tag": "0008_sale_price",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794172512297,
+      "tag": "0009_ordering",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794172553331,
+      "tag": "0010_addons",
+      "breakpoints": true
     }
   ]
 }
