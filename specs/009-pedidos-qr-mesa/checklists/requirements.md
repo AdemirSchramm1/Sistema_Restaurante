@@ -13,7 +13,7 @@
 
 ## Completude dos requisitos
 
-- [ ] Nenhum marcador [NEEDS CLARIFICATION] restante
+- [x] Nenhum marcador [NEEDS CLARIFICATION] restante
 - [x] Requisitos testáveis e sem ambiguidade
 - [x] Critérios de sucesso mensuráveis
 - [x] Critérios de sucesso sem tecnologia
@@ -31,5 +31,5 @@
 
 ## Notas
 
-- Resta 1 marcador: a regra dos 10 minutos (US3). A spec segue com a leitura "10 minutos sem uso
-  no celular do cliente"; confirmar no `speckit clarify` antes do `speckit plan`.
+- O único ponto em aberto (regra dos 10 minutos) foi decidido pelo dono em 2026-11-08: 10 minutos
+  desde a leitura do QR code, sem renovação. Spec pronta para o `speckit plan`.
