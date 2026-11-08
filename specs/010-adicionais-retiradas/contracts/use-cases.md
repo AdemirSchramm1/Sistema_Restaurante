@@ -10,7 +10,7 @@ quantidade entram como string no formato brasileiro (`"3,00"`, `"20"`) e passam 
 |---|---|---|---|---|
 | `listAddons` | `addon.read` | `includeInactive?` | `{ id, name, componentName, quantity, unit, price, active, cost, costShare, band }[]` em ordem alfabética | – |
 | `getAddon` | `addon.read` | `id` | adicional + custo, % do preço, faixa, produtos que o usam, aviso de componente inativo | `NOT_FOUND` |
-| `createAddon` | `addon.write` | `name`, `component { kind, id }`, `quantity`, `unit`, `price` | `{ id }` | `INVALID_NAME`, `NAME_IN_USE`, `COMPONENT_INACTIVE`, `NOT_A_SUB_RECIPE`, `INCOMPATIBLE_UNIT`, `INVALID_QUANTITY`, `INVALID_PRICE` |
+| `createAddon` | `addon.write` | `name`, `component { kind, id }`, `quantity`, `unit`, `price` | `{ id }` | `INVALID_NAME`, `NAME_IN_USE`, `COMPONENT_INACTIVE`, `NOT_A_SUB_RECIPE`, `UNIT_DIMENSION_MISMATCH`, `INVALID_QUANTITY`, `INVALID_PRICE` |
 | `updateAddon` | `addon.write` | os mesmos + `id`, `version` | – | os mesmos + `STALE_RECORD`, `NOT_FOUND` |
 | `setAddonActive` | `addon.write` | `id`, `active`, `version` | – | `NAME_IN_USE` (ao reativar), `STALE_RECORD`, `NOT_FOUND` |
 
