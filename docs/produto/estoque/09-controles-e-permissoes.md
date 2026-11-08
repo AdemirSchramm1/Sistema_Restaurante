@@ -42,7 +42,8 @@ Na primeira versão (features 004 e 007) os papéis fazem:
 | Aprovar acerto e estornar | Gerente (nunca o próprio pedido) |
 | Cadastrar fornecedor, itens e preços, bloquear | Gerente e comprador |
 | Definir o aviso de reposição do item (feature 006) | Gerente, chef e comprador |
-| Ver estoque, produtos, fornecedores, "Repor" e "Gráficos" | Todos os papéis |
+| Definir o preço de venda do produto (feature 008) | Gerente e chef |
+| Ver estoque, produtos, fornecedores, "Repor", "Gráficos" e "Custos" | Todos os papéis |
 
 ## Operação pequena
 

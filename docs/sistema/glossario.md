@@ -19,7 +19,12 @@
 | Tipo de produto | – | `RecipeKind`: `DISH` (vendido), `SUB_RECIPE` (preparo) | |
 | Preparo (sub-receita) | – | `recipe` com `kind = SUB_RECIPE` | Tem rendimento; é usado dentro de outros produtos e baixa pelos ingredientes. Item `PRODUCED` e ordem de produção ainda não existem |
 | Explodir o produto | – | `explode` (`recipe-graph.ts`) | Produto → itens e quantidades na medida do item |
-| Permissão de produtos | – | `recipe.write` | Gerente e chef |
+| Permissão de produtos | – | `recipe.write` | Gerente e chef; também define o preço de venda (feature 008) |
+| Preço de venda | – | `salePrice` (`recipes.sale_price`) | Só produto vendido; na tela "Vendo por (R$)" |
+| Custo no preço | % CMV da ficha | `costShare` | custo ÷ preço × 100; na tela "Custo no preço" |
+| Faixa do custo | – | `CostBand`: `OK`, `WARN`, `HIGH` | Na tela: dentro da faixa, atenção, alto |
+| Sobra por venda | – | `margin` | preço − custo |
+| O que mais pesa | – | `heaviest` | Linha mais cara do produto |
 | Ordem de produção | OP | `production_order` | |
 | Movimentação | – | `stock_movement` | Livro imutável |
 | Tipo de movimentação | – | `MovementType` | Ver `estoque/03-movimentacoes-e-saldo.md` |

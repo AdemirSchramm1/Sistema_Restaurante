@@ -12,8 +12,15 @@
 >
 > Cada edição das linhas ou do rendimento cria uma **versão** com data; o pedido usa a versão do
 > dia. A tela mostra o custo pelo custo médio dos itens ("Sem custo ainda" antes da primeira
-> compra). Ficam fora da primeira versão: preço de venda e % do custo no preço, FC, IC, porções,
-> alérgenos, modo de preparo e foto. O resto deste documento é a referência do manual.
+> compra). Ficam fora da primeira versão: FC, IC, porções, alérgenos, modo de preparo e foto. O resto
+> deste documento é a referência do manual.
+>
+> **Preço de venda e custo no preço (feature 008).** O produto vendido ganha "Vendo por (R$)". Com
+> preço e custo, o produto mostra quanto do preço vai em ingredientes (custo ÷ preço × 100), a faixa
+> (até 35% dentro da faixa, até 40% atenção, acima de 40% alto) e quanto sobra por venda. A tela
+> **Custos** junta todos os produtos vendidos, e o item mostra em quais produtos ele entra (o aviso
+> de "fichas afetadas" quando o preço de um insumo muda). Preparo não tem preço; mudar o preço não
+> cria versão. Ver [10-indicadores](10-indicadores.md#painel-de-custo-dos-produtos-feature-008).
 
 > Fonte: Manual de Referência, seção 3 ("A ficha técnica liga estoque, custo e venda").
 

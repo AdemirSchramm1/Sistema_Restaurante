@@ -54,6 +54,18 @@ Decisões da feature 006 (Alerta de reposição e gráficos), 2026-11-02:
 | Gráficos | Pedido do dono: o que mais e menos saiu, por motivo e por semana. Leves: conta no banco, barras em HTML e CSS |
 | Ordem dos gráficos | Por valor em R$ |
 
+Decisões da feature 008 (Painel de custo dos produtos), 2026-11-02:
+
+| Tema | Decisão |
+|---|---|
+| Preço de venda | Entra agora (estava fora na 003). Fica no produto, não na versão; vai para o histórico. Só produto vendido |
+| Quem define o preço | Quem cadastra produto: gerente e chef |
+| Faixas | Até 35% dentro da faixa; até 40% atenção; acima de 40% alto. Sem meta universal (o manual aceita até 40% à la carte), por isso 35–40% é atenção, não alto |
+| Barra | Escala fixa de 0% a 100% do preço, com marca nos 35% |
+| O que mais pesa | Pela linha do produto (item ou preparo), que é o nome que a pessoa vê |
+| Produtos afetados por preço de insumo | Quadro "Usado nos produtos" no item, com custo e % de cada produto |
+| CMV teórico do período | Espera as vendas da 005 |
+
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.
 

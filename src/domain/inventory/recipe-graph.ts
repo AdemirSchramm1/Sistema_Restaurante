@@ -106,3 +106,23 @@ export function recipeCost(
   const total = complete ? out.reduce((s, l) => s.plus(l.cost!), d(0)) : null;
   return { lines: out, total, missingItemIds };
 }
+
+/** O produto usa o item numa linha ou dentro de um preparo, em qualquer nível (spec 008, US3)? */
+export function usesItem(
+  lines: readonly RecipeLineData[],
+  itemId: string,
+  graph: Map<string, RecipeNode>,
+  seen = new Set<string>(),
+): boolean {
+  for (const l of lines) {
+    if (l.component.kind === "ITEM") {
+      if (l.component.id === itemId) return true;
+      continue;
+    }
+    if (seen.has(l.component.id)) continue;
+    seen.add(l.component.id);
+    const prep = graph.get(l.component.id);
+    if (prep && usesItem(prep.lines, itemId, graph, seen)) return true;
+  }
+  return false;
+}

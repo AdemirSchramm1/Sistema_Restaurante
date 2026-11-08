@@ -47,6 +47,11 @@ describe("histórico (FR-004)", () => {
     expect(screen.getByText("Comprar até: 40 → 50,5")).toBeTruthy();
   });
 
+  it("mostra o preço de venda em português (spec 008)", () => {
+    render(<HistoryList timezone="America/Sao_Paulo" entries={[entry({ salePrice: [null, "28.00"] })]} />);
+    expect(screen.getByText("Preço de venda: — → 28,00")).toBeTruthy();
+  });
+
   it("campos antigos, já retirados do cadastro, ainda aparecem com nome em português", () => {
     render(
       <HistoryList

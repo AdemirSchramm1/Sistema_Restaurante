@@ -60,6 +60,7 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
     "/estoque/fornecedores",
     "/estoque/repor",
     "/estoque/graficos",
+    "/estoque/custos",
     "/estoque/grupos",
     "/equipe",
   ]) {

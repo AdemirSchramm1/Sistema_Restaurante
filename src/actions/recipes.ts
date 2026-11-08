@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { createRecipe, setRecipeActive, updateRecipe } from "@/application/inventory/recipes";
-import { parseRecipeForm } from "@/application/inventory/recipe-input";
+import { parseRecipeForm, parseSalePriceForm } from "@/application/inventory/recipe-input";
+import { setRecipeSalePrice } from "@/application/inventory/product-costs";
 import { formDataToObject } from "@/application/inventory/item-input";
 import { withContext, type ActionState } from "./_session";
 
@@ -43,5 +44,20 @@ export async function setRecipeActiveAction(_prev: ActionState, form: FormData):
   const active = form.get("active") === "true";
   const state = await withContext((ctx) => setRecipeActive(serverDeps(), ctx, id, version, active));
   if (state?.ok) revalidatePath(`/estoque/produtos/${id}`);
+  return state;
+}
+
+/** Salva o preço de venda do produto (spec 008, US1). */
+export async function setSalePriceAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const parsed = parseSalePriceForm(formDataToObject(form));
+  const state = await withContext(async (ctx) => {
+    if (!parsed.ok) return parsed;
+    const { id, version, salePrice } = parsed.value;
+    return setRecipeSalePrice(serverDeps(), ctx, id, version, salePrice);
+  });
+  if (state?.ok && parsed.ok) {
+    revalidatePath(`/estoque/produtos/${parsed.value.id}`);
+    revalidatePath("/estoque/custos");
+  }
   return state;
 }

@@ -54,6 +54,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_CNPJ: "CNPJ inválido. Confira os números (ex.: 11.222.333/0001-81).",
   CNPJ_IN_USE: "Já existe um fornecedor com este CNPJ.",
   INVALID_EMAIL: "E-mail inválido (ex.: vendas@fornecedor.com.br).",
+  PRICE_ONLY_FOR_DISH: "Só produto vendido ao cliente tem preço de venda.",
   INVALID_PRICE: "Preço inválido. Precisa ser maior que zero (ex.: 90,00).",
   SUPPLIER_ITEM_DUPLICATE: "Este item já está na lista deste fornecedor.",
   SUPPLIER_BLOCKED: "Este fornecedor está bloqueado. Desbloqueie ou escolha outro.",

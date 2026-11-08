@@ -12,6 +12,7 @@ const NAV = [
   { href: "/estoque/lancamentos", label: "Lançamentos" },
   { href: "/estoque/repor", label: "Repor" },
   { href: "/estoque/graficos", label: "Gráficos" },
+  { href: "/estoque/custos", label: "Custos" },
   { href: "/estoque/fornecedores", label: "Fornecedores" },
   { href: "/estoque/grupos", label: "Grupos" },
   { href: "/equipe", label: "Equipe" },

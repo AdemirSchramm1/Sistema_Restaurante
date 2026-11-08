@@ -2,6 +2,7 @@ import { and, asc, desc, eq, ilike, inArray, lte, ne, sql, type SQL } from "driz
 import type {
   ComponentRecord,
   RecipeListRow,
+  RecipeRecord,
   RecipeRepo,
   RecipeVersionRecord,
 } from "@/application/inventory/ports";
@@ -21,6 +22,16 @@ const toLine = (l: LineRow): RecipeLineData => ({
   component: l.itemId ? { kind: "ITEM", id: l.itemId } : { kind: "RECIPE", id: l.subRecipeId! },
   quantity: dec(l.quantity)!,
   unit: UNIT_CODE_BY_ID[l.unitId]!,
+});
+
+const toRecord = (r: typeof recipes.$inferSelect, current: RecipeVersionRecord): RecipeRecord => ({
+  id: r.id,
+  name: r.name,
+  kind: r.kind,
+  active: r.active,
+  version: r.version,
+  salePrice: dec(r.salePrice),
+  current,
 });
 
 export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
@@ -116,6 +127,9 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
 
     setActive: (id, active, version, audit) => guarded(() => optimistic(id, version, { active }, audit)),
 
+    setSalePrice: (id, salePrice, version, audit) =>
+      optimistic(id, version, { salePrice: salePrice ? salePrice.toFixed(2) : null }, audit),
+
     async insertVersion(v, lineIds, audit) {
       await tx.insert(recipeVersions).values({
         id: v.id,
@@ -149,7 +163,17 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
       if (!r) return null;
       const current = (await latestVersions([id])).get(id);
       if (!current) return null;
-      return { id: r.id, name: r.name, kind: r.kind, active: r.active, version: r.version, current };
+      return toRecord(r, current);
+    },
+
+    async activeWithLatest() {
+      const rows = await tx
+        .select()
+        .from(recipes)
+        .where(eq(recipes.active, true))
+        .orderBy(asc(recipes.nameNormalized));
+      const versions = await latestVersions(rows.map((r) => r.id));
+      return rows.filter((r) => versions.has(r.id)).map((r) => toRecord(r, versions.get(r.id)!));
     },
 
     async versionAt(recipeId, at) {

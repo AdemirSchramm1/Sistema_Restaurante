@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseRecipeForm } from "./recipe-input";
+import { parseRecipeForm, parseSalePriceForm } from "./recipe-input";
 
 const ITEM = "0193a000-0000-7000-8000-000000000123";
 const PREP = "0193a000-0000-7000-8000-000000000456";
@@ -75,5 +75,29 @@ describe("entrada do formulário de produto (spec 003)", () => {
   it("rejeita tipo e medida fora da lista", () => {
     expect(field(parseRecipeForm({ ...base, kind: "COMBO" }))).toBe("kind");
     expect(field(parseRecipeForm({ ...base, "lines.0.unit": "xícara" }))).toBe("lines.0.unit");
+  });
+});
+
+describe("entrada do preço de venda (spec 008, US1)", () => {
+  const id = "0193a000-0000-7000-8000-000000000789";
+
+  it("lê o preço com vírgula", () => {
+    const r = parseSalePriceForm({ id, version: "3", salePrice: "1.028,50" });
+    expect(r.ok && [r.value.id, r.value.version, r.value.salePrice?.toString()]).toEqual([id, 3, "1028.5"]);
+  });
+
+  it("em branco tira o preço", () => {
+    const r = parseSalePriceForm({ id, version: "1", salePrice: "  " });
+    expect(r.ok && r.value.salePrice).toBeNull();
+  });
+
+  it("texto que não é número dá erro no campo do preço", () => {
+    const r = parseSalePriceForm({ id, version: "1", salePrice: "vinte" });
+    expect(r.ok ? "OK" : `${r.error.code}:${r.error.field}`).toBe("INVALID_PRICE:salePrice");
+  });
+
+  it("sem id ou versão é recusado", () => {
+    const r = parseSalePriceForm({ id: "x", version: "1", salePrice: "10" });
+    expect(r.ok ? "OK" : r.error.code).toBe("VALIDATION");
   });
 });

@@ -128,11 +128,15 @@ export const recipes = pgTable(
     nameNormalized: text("name_normalized").notNull(),
     kind: recipeKindEnum("kind").notNull(),
     active: boolean("active").notNull().default(true),
+    /** Preço de venda; só produto vendido (spec 008). */
+    salePrice: numeric("sale_price", { precision: 12, scale: 2 }),
   },
   (t) => [
     uniqueIndex("recipes_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),
+    check("recipes_sale_price_positive", sql`sale_price > 0`),
+    check("recipes_sale_price_dish", sql`sale_price is null or kind = 'DISH'`),
   ],
 );
 
