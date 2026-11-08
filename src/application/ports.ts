@@ -25,6 +25,11 @@ export interface TokenService {
   hash(token: string): string;
 }
 
+/** Desenho do QR code da mesa (spec 009). */
+export interface QrRenderer {
+  svg(url: string): Promise<string>;
+}
+
 /** Criação de login (Better Auth em produção). */
 export interface AuthService {
   createUser(input: { email: string; password: string; name: string }): Promise<Result<{ userId: string }>>;
@@ -70,6 +75,7 @@ export type Deps = {
   mailer: Mailer;
   auth: AuthService;
   tokens: TokenService;
+  qr: QrRenderer;
   global: GlobalLookups;
   appUrl: string;
   /** Roda `fn` numa transação do restaurante. Se `fn` devolver erro, a transação é desfeita. */

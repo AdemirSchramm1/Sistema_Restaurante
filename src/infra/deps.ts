@@ -28,6 +28,7 @@ import { publicOrderingLookups } from "./db/public-ordering";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
 import { cryptoTokens } from "./tokens";
+import { qrSvg } from "./qr";
 
 class Rollback<T> extends Error {
   constructor(readonly result: Result<T>) {
@@ -116,6 +117,7 @@ export function makeDeps(cfg: DepsConfig): Deps & { betterAuth: Auth } {
     appUrl: cfg.appUrl,
     auth: betterAuthService(betterAuth, cfg.db),
     tokens: cryptoTokens,
+    qr: { svg: qrSvg },
     global: globalLookups(cfg.db),
     betterAuth,
     async tenant(restaurantId, fn) {
