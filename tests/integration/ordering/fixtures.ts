@@ -89,3 +89,42 @@ export async function scan(env: TestEnv, token: string, previousCookie: string |
     }),
   ).cookie;
 }
+
+/** Restaurante com X-Burger (+ queijo até 2, "Sem cebola") e Suco, mesa 12 e um celular com acesso aberto. */
+export async function orderingScenario(env: TestEnv, m: RequestContext) {
+  const { createAddon } = await import("../../../src/application/ordering/addons");
+  const { setProductCustomization } = await import("../../../src/application/ordering/customization");
+  const k = await orderingKitchen(env, m);
+  const cheese = unwrap(
+    await createAddon(env.deps, m, {
+      name: "Fatia de queijo",
+      component: { kind: "ITEM", id: k.queijo },
+      quantity: d("20"),
+      unit: "g",
+      price: d("3.00"),
+    }),
+  ).id;
+  unwrap(
+    await setProductCustomization(env.deps, m, {
+      recipeId: k.burger,
+      version: 2,
+      addons: [{ addonId: cheese, maxTimes: 2 }],
+      removables: [{ component: { kind: "ITEM", id: k.cebola } }],
+    }),
+  );
+  const table = await tableWithQr(env, m, "12");
+  const cookie = await scan(env, table.token);
+  const burger = (quantity = 1) => ({
+    recipeId: k.burger,
+    quantity,
+    unitPrice: "34.00",
+    addons: [{ addonId: cheese, times: 2, unitPrice: "3.00" }],
+    removals: [{ kind: "ITEM", id: k.cebola }],
+  });
+  const juice = (quantity = 1) => ({ recipeId: k.suco, quantity, unitPrice: "9.00", addons: [], removals: [] });
+  const place = async (lines: unknown[]) => {
+    const { submitOrder } = await import("../../../src/application/ordering/submit-order");
+    return unwrap(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }));
+  };
+  return { ...k, cheese, table, cookie, burger, juice, place };
+}
