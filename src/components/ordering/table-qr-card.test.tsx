@@ -27,6 +27,14 @@ describe("QR code da mesa (spec 009, US1)", () => {
     expect(decodeURIComponent(link.getAttribute("href")!)).toContain("<svg");
   });
 
+  it("'Abrir o cardápio' leva ao link do QR code, para testar sem celular", () => {
+    render(<TableQrCard {...props} />);
+    const link = screen.getByRole("link", { name: "Abrir o cardápio da Mesa 12" });
+    expect(link.getAttribute("href")).toBe("https://app/m/abc");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toContain("noreferrer");
+  });
+
   it("'Trocar QR code' pede confirmação antes de trocar", () => {
     render(<TableQrCard {...props} />);
     expect(screen.queryByRole("button", { name: "Sim, trocar" })).toBeNull();
@@ -40,5 +48,6 @@ describe("QR code da mesa (spec 009, US1)", () => {
   it("na folha de impressão não mostra os botões", () => {
     render(<TableQrCard {...props} rotateAction={undefined} />);
     expect(screen.queryByRole("button", { name: "Trocar QR code" })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Abrir o cardápio/ })).toBeNull();
   });
 });

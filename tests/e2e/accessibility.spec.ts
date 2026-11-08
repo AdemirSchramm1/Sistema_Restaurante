@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { devices, expect, test, type Page } from "@playwright/test";
 import { signUp } from "./helpers";
+import { createTables, customize, newAddon, newDish, newItem, qrPath } from "./ordering-helpers";
 
 /** Falhas graves de acessibilidade (WCAG 2.1 A e AA) numa página. */
 async function seriousViolations(page: Page) {
@@ -67,4 +68,73 @@ test("telas do estoque e da equipe sem falhas graves de acessibilidade", async (
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }
+});
+
+test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos sem falhas graves (specs 009 e 010)", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  await signUp(page, `Pedidos Acessíveis ${Date.now()}`);
+  await newItem(page, "Pão", "un");
+  await newItem(page, "Queijo", "kg");
+  await newItem(page, "Cebola", "kg");
+  const burger = await newDish(
+    page,
+    "X-Burger",
+    [
+      { component: "Pão (un)", quantity: "1", unit: "un" },
+      { component: "Queijo (kg)", quantity: "30", unit: "g" },
+      { component: "Cebola (kg)", quantity: "20", unit: "g" },
+    ],
+    "28,00",
+  );
+  await page.goto("/pedidos/adicionais/novo");
+  expect(await seriousViolations(page), "/pedidos/adicionais/novo").toEqual([]);
+  const addon = await newAddon(page, { name: "Fatia de queijo", component: "Queijo", quantity: "20", unit: "g", price: "3,00" });
+  expect(await seriousViolations(page), "detalhe do adicional").toEqual([]);
+  await customize(page, burger, {
+    addons: [{ label: "Fatia de queijo · R$ 3,00", name: "Fatia de queijo", maxTimes: 2 }],
+    removals: ["Cebola"],
+  });
+  expect(await seriousViolations(page), "produto com o quadro adicionar e tirar").toEqual([]);
+  await createTables(page, 1, 2);
+  expect(await seriousViolations(page), "/pedidos/mesas").toEqual([]);
+  const table = await qrPath(page, "1");
+
+  const phoneContext = await browser.newContext({ ...devices["Pixel 7"], locale: "pt-BR" });
+  const cell = await phoneContext.newPage();
+  await cell.goto(table);
+  await expect(cell.getByRole("heading", { name: "Mesa 1" })).toBeVisible();
+  expect(await seriousViolations(cell), "cardápio").toEqual([]);
+  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
+  expect(await seriousViolations(cell), "tela do prato").toEqual([]);
+  await cell.getByRole("button", { name: "Mais Fatia de queijo" }).click();
+  await cell.getByRole("button", { name: "Sem cebola" }).click();
+  await cell.getByRole("button", { name: "Adicionar ao pedido" }).click();
+  await cell.getByRole("button", { name: "Enviar pedido" }).click();
+  expect(await seriousViolations(cell), "resumo do pedido").toEqual([]);
+  await cell.getByRole("button", { name: "Confirmar" }).click();
+  await expect(cell.getByText("Pedido enviado para a cozinha")).toBeVisible();
+  expect(await seriousViolations(cell), "cardápio com pedido enviado").toEqual([]);
+  await phoneContext.close();
+
+  await page.goto("/pedidos/cozinha");
+  await expect(page.getByRole("article", { name: "Pedido 1, Mesa 1" })).toBeVisible();
+  expect(await seriousViolations(page), "/pedidos/cozinha").toEqual([]);
+  await page.getByRole("button", { name: "Começar preparo" }).click();
+  await page.getByRole("button", { name: "Pronto" }).click({ timeout: 10_000 });
+  await expect(page.getByRole("region", { name: "Prontos" }).getByRole("article")).toHaveCount(1, { timeout: 10_000 });
+  await page.goto("/pedidos/garcom");
+  await expect(page.getByRole("article", { name: "Mesa 1, pedido 1" })).toBeVisible();
+  expect(await seriousViolations(page), "/pedidos/garcom").toEqual([]);
+
+  for (const path of ["/pedidos", "/pedidos/adicionais", addon]) {
+    await page.goto(path);
+    expect(await seriousViolations(page), path).toEqual([]);
+  }
+  await page.getByRole("link", { name: "Pedidos", exact: true }).click();
+  await page.getByRole("link", { name: "1", exact: true }).click();
+  await expect(page.getByText("SEM cebola")).toBeVisible();
+  expect(await seriousViolations(page), "detalhe do pedido").toEqual([]);
 });

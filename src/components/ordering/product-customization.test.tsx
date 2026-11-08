@@ -52,7 +52,7 @@ describe("quadro 'Adicionar e tirar' (spec 010, US2)", () => {
     const input = screen.getByLabelText("Texto do botão: Cebola") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "Sem cebola roxa" } });
     expect(input.value).toBe("Sem cebola roxa");
-    fireEvent.click(screen.getByRole("button", { name: "Tirar Cebola da lista" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remover Cebola da lista" }));
     expect(screen.queryByLabelText("Texto do botão: Cebola")).toBeNull();
   });
 
