@@ -19,6 +19,11 @@ e do garçom.
 esperava: com os pedidos gravados aqui (produto, versão vigente e quantidade), a 005 passa a baixar
 o estoque. **A baixa do estoque não faz parte desta feature.**
 
+> **Atualizado pela [010](../010-adicionais-retiradas/spec.md) (2026-11-08).** A observação livre
+> por linha ("sem cebola") sai do cardápio do cliente: adicionar e tirar viram botões cadastrados
+> pelo gerente, com preço. Onde esta spec, o plano e os contratos falam em "observação" da linha
+> do pedido, vale o que a 010 define.
+
 ## Histórias
 
 ### US1 — Cadastrar as mesas e imprimir o QR code de cada uma (P1)
@@ -257,8 +262,8 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
 ## Fora do escopo
 
 Baixa do estoque (feature 005, que passa a usar estes pedidos), conta da mesa, pagamento e
-divisão da conta, gorjeta, chamar garçom pelo app, delivery e retirada, adicionais e opções de
-produto (ponto da carne, tamanhos), categorias e fotos no cardápio, impressora de cozinha,
+divisão da conta, gorjeta, chamar garçom pelo app, delivery e retirada, adicionais e retiradas
+(feature 010), escolhas obrigatórias do produto (ponto da carne, tamanhos), categorias e fotos no cardápio, impressora de cozinha,
 integração com PDV, nota fiscal, relatório de vendas.
 
 ## Decisões
