@@ -25,7 +25,7 @@ decimal. As ações públicas estão em [public-routes.md](public-routes.md).
 
 | Caso de uso | Permissão | Entrada | Saída | Erros |
 |---|---|---|---|---|
-| `listKitchenOrders` | `order.kitchen` | – | pedidos `RECEIVED`/`PREPARING`/`READY` mais antigos primeiro: `{ id, number, tableName, submittedAt, status, late, version, lines: { quantity, productName, note }[] }` + `serverNow` | – |
+| `listKitchenOrders` | `order.kitchen` | – | pedidos `RECEIVED`/`PREPARING`/`READY` mais antigos primeiro: `{ id, number, tableName, submittedAt, status, late, version, lines: { quantity, productName, changes }[] }` + `serverNow` (`changes` da 010) | – |
 | `advanceOrderStatus` | `order.kitchen` | `id`, `to` (`PREPARING` ou `READY`), `version` | – | `INVALID_ORDER_TRANSITION`, `STALE_RECORD`, `NOT_FOUND` |
 | `listReadyOrders` | `order.deliver` | – | pedidos `READY`: `{ id, number, tableName, readyAt, lines }` | – |
 | `markDelivered` | `order.deliver` | `id`, `version` | – | `INVALID_ORDER_TRANSITION`, `STALE_RECORD`, `NOT_FOUND` |

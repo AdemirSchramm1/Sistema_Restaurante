@@ -73,7 +73,7 @@ dining_tables        name, name_normalized, active, qr_token (único), qr_rotate
 menu_accesses        table_id, token_hash (único), opened_at, expires_at, ended_at, ip, user_agent
 orders               table_id, menu_access_id, business_day, number, status, cancel_reason,
                      total, client_request_id, version          (único: restaurante+dia+número)
-order_lines          order_id, recipe_id, recipe_version_id, quantity int, unit_price, note   (só inserção)
+order_lines          order_id, recipe_id, recipe_version_id, quantity int, base_price, unit_price   (só inserção; escolhas na 010)
 order_status_events  order_id, from_status, to_status, reason, user_id, at                    (só inserção)
 order_day_counters   restaurant_id + business_day (pk), last_number
 recipes              + sold_out_on date null

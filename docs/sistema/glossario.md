@@ -71,6 +71,12 @@
 | Esgotado hoje | – | `soldOutOn` (`recipes.sold_out_on`) | Volta sozinho no dia seguinte |
 | Recebendo pedidos pelo QR code | – | `acceptingQrOrders` | Chave do restaurante |
 | Permissões de pedidos | – | `table.manage`, `ordering.toggle`, `order.kitchen`, `order.cancel`, `order.deliver`, `order.read`, `product.sold_out` | Ver spec 009, FR-010 |
+| Adicional | – | `addon` | Item ou preparo com quantidade e preço, que o cliente adiciona por botão ("+ Fatia de queijo"). Feature 010 |
+| Retirada | – | `removable` (`recipe_removables`) | Componente do produto que o cliente pode tirar ("Sem cebola") |
+| Adicionar e tirar (quadro do produto) | – | `customization` | Adicionais permitidos (com máximo de vezes) e retiradas de um produto |
+| Mudanças da linha | – | `changes` (`describeChanges`) | Texto da cozinha: "+ 2 Fatia de queijo", "SEM cebola" |
+| Consumo da linha | – | `lineConsumption` | O que uma linha do pedido usa de cada item; a 005 baixa isso |
+| Permissões de adicionais | – | `addon.read`, `addon.write` | Ver: gerente e chef. Mudar (inclusive preço): gerente |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de

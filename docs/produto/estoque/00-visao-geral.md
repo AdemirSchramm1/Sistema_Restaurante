@@ -55,7 +55,7 @@ Spec Kit (`specs/NNN-nome/`).
 | 007 | Fornecedores | 004 | Em revisão ([specs/007](../../../specs/007-fornecedores/spec.md)): cadastro comercial, itens e preços, preferido, compra com fornecedor, bloqueio |
 | 008 | Painel de custo dos produtos | 003, 004 | Em revisão ([specs/008](../../../specs/008-painel-custo-produtos/spec.md)): preço de venda, custo no preço com faixa, sobra, o que mais pesa, tela Custos e "Usado nos produtos" no item |
 | 009 | Pedidos pelo QR code da mesa | 003, 008 | Spec e plano em revisão ([specs/009](../../../specs/009-pedidos-qr-mesa/spec.md)): mesas e QR codes, cardápio sem login aberto por 20 minutos desde a leitura, telas da cozinha e do garçom. Libera a 005 |
-| 010 | Adicionar e tirar por botão | 009 | Spec em rascunho ([specs/010](../../../specs/010-adicionais-retiradas/spec.md)): adicionais com preço do gerente, retiradas por produto, sem observação livre |
+| 010 | Adicionar e tirar por botão | 009 | Spec e plano em revisão ([specs/010](../../../specs/010-adicionais-retiradas/spec.md)): adicionais com preço do gerente, retiradas por produto, sem observação livre |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,
 conferência cega, fiscal e locais de armazenamento (o saldo é um só por item).

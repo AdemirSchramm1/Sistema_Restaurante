@@ -86,8 +86,8 @@ são finais. Transição inválida: `INVALID_ORDER_TRANSITION`. "Atrasado": `sta
 | `recipe_id` | `uuid` → `recipes` | Produto vendido |
 | `recipe_version_id` | `uuid` → `recipe_versions` | Versão mais nova no envio (a 005 baixa por ela) |
 | `quantity` | `integer` | 1 a 20 (check) |
-| `unit_price` | `numeric(12,2)` | Preço de venda no envio; check `> 0` |
-| `note` | `text` null | Até 140 caracteres (check) |
+| `unit_price` | `numeric(12,2)` | Produto + adicionais no envio (010); check `unit_price >= base_price` |
+| `base_price` | `numeric(12,2)` | Preço de venda do produto no envio; check `> 0` ([010](../010-adicionais-retiradas/data-model.md)) |
 
 Até 30 linhas por pedido (domínio). O mesmo produto pode aparecer em duas linhas com observações
 diferentes. Trigger `app_reject_change` em `UPDATE`/`DELETE`.

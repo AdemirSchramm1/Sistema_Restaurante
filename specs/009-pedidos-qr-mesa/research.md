@@ -103,7 +103,7 @@ Cada decisão no formato: decisão, motivo e alternativas.
 
 ## R9. Conferência de preço e disponibilidade no envio
 
-- **Decisão**: o carrinho manda cada linha com `recipeId`, `quantity`, `note` e o `unitPrice` que o
+- **Decisão**: o carrinho manda cada linha com `recipeId`, `quantity`, as escolhas da 010 e o `unitPrice` que o
   cliente viu. Na transação, o caso de uso relê os produtos (ativo, vendido, com preço, não esgotado
   hoje, versão mais nova). O domínio (`checkOrder`) devolve: `PRODUCT_UNAVAILABLE` com a lista,
   `PRICE_CHANGED` com os preços novos, ou as linhas prontas com preço e versão do momento. Nada é
@@ -114,8 +114,7 @@ Cada decisão no formato: decisão, motivo e alternativas.
 
 ## R10. Abuso e limites
 
-- **Decisão**: no domínio: quantidade inteira 1–20 (`INVALID_QUANTITY`), observação até 140
-  caracteres (`NOTE_TOO_LONG`), até 30 linhas, até 10 pedidos por acesso
+- **Decisão**: no domínio: quantidade inteira 1–20 (`INVALID_QUANTITY`), até 30 linhas, até 10 pedidos por acesso
   (`ACCESS_ORDER_LIMIT`). A rota `/m/{token}` não cria acesso para mesa inativa nem com a chave
   desligada; mostra a mensagem direto.
 - **Motivo**: casos-limite da spec; impede brincadeira sem atrapalhar uma mesa normal.
