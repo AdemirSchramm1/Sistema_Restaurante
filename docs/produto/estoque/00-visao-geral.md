@@ -50,10 +50,11 @@ Spec Kit (`specs/NNN-nome/`).
 | 002 | Simplificar o cadastro e retirar os locais | 001 | Feito: só nome, grupo, medida e embalagem; sem locais |
 | 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Feito: produtos vendidos e preparos, versões e custo |
 | 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Feito: compra entra, perda sai com motivo, acerto com aprovação, estorno |
-| 005 | Baixa automática por pedido | 003, 004 | Estoque diminui conforme os clientes pedem. **Espera o cardápio do cliente** (QR code na mesa) |
+| 005 | Baixa automática por pedido | 003, 004 | Estoque diminui conforme os clientes pedem. **Espera o cardápio do cliente** (QR code na mesa, feature 009) |
 | 006 | Alerta de reposição e gráficos | 004 | Em revisão ([specs/006](../../../specs/006-alerta-reposicao/spec.md)): aviso por item, tela Repor com quanto comprar e de quem, gráficos do que mais e menos saiu |
 | 007 | Fornecedores | 004 | Em revisão ([specs/007](../../../specs/007-fornecedores/spec.md)): cadastro comercial, itens e preços, preferido, compra com fornecedor, bloqueio |
 | 008 | Painel de custo dos produtos | 003, 004 | Em revisão ([specs/008](../../../specs/008-painel-custo-produtos/spec.md)): preço de venda, custo no preço com faixa, sobra, o que mais pesa, tela Custos e "Usado nos produtos" no item |
+| 009 | Pedidos pelo QR code da mesa | 003, 008 | Spec e plano em revisão ([specs/009](../../../specs/009-pedidos-qr-mesa/spec.md)): mesas e QR codes, cardápio sem login aberto por 20 minutos desde a leitura, telas da cozinha e do garçom. Libera a 005 |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,
 conferência cega, fiscal e locais de armazenamento (o saldo é um só por item).
