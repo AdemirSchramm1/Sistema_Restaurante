@@ -185,7 +185,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
   com o nome do restaurante e da mesa.
 - **FR-004** O cardápio do cliente abre sem login. Mostra só produtos vendidos, ativos, com preço
   de venda e não esgotados, do restaurante dono da mesa.
-- **FR-005** Cada leitura do QR code abre um acesso ao cardápio, ligado à mesa. O acesso fecha 10
+- **FR-005** Cada leitura do QR code abre um acesso ao cardápio, ligado à mesa. O acesso fecha 20
   minutos depois da leitura; usar o cardápio não aumenta esse tempo. Acesso fechado não envia
   pedido. O tempo de 20 minutos é fixo nesta versão.
 - **FR-006** O pedido guarda: número (sequencial por restaurante, por dia, para chamar na cozinha),
