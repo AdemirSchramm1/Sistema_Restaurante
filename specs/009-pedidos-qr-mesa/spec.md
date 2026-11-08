@@ -21,8 +21,8 @@ o estoque. **A baixa do estoque não faz parte desta feature.**
 
 > **Atualizado pela [010](../010-adicionais-retiradas/spec.md) (2026-11-08).** A observação livre
 > por linha ("sem cebola") sai do cardápio do cliente: adicionar e tirar viram botões cadastrados
-> pelo gerente, com preço. Spec, plano e contratos desta pasta já foram ajustados; o que vale para a linha
-> do pedido, vale o que a 010 define.
+> pelo gerente, com preço. Spec, plano e contratos desta pasta já foram ajustados; para as escolhas
+> da linha do pedido, vale o que a 010 define.
 
 ## Histórias
 
