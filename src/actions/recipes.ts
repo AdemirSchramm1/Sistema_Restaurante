@@ -7,6 +7,8 @@ import { createRecipe, setRecipeActive, updateRecipe } from "@/application/inven
 import { parseRecipeForm, parseSalePriceForm } from "@/application/inventory/recipe-input";
 import { setRecipeSalePrice } from "@/application/inventory/product-costs";
 import { formDataToObject } from "@/application/inventory/item-input";
+import { setProductCustomization } from "@/application/ordering/customization";
+import { parseCustomizationForm } from "@/application/ordering/customization-input";
 import { withContext, type ActionState } from "./_session";
 
 function splitMeta(form: FormData) {
@@ -59,5 +61,18 @@ export async function setSalePriceAction(_prev: ActionState, form: FormData): Pr
     revalidatePath(`/estoque/produtos/${parsed.value.id}`);
     revalidatePath("/estoque/custos");
   }
+  return state;
+}
+
+/** Quadro "Adicionar e tirar" do produto (spec 010, US2). */
+export async function setProductCustomizationAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const recipeId = String(form.get("recipeId") ?? "");
+  const version = Number.parseInt(String(form.get("version") ?? "0"), 10);
+  const state = await withContext(async (ctx) => {
+    const parsed = parseCustomizationForm(formDataToObject(form));
+    if (!parsed.ok) return parsed;
+    return setProductCustomization(serverDeps(), ctx, { recipeId, version, ...parsed.value });
+  });
+  if (state?.ok) revalidatePath(`/estoque/produtos/${recipeId}`);
   return state;
 }
