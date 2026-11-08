@@ -19,6 +19,11 @@ e do garçom.
 esperava: com os pedidos gravados aqui (produto, versão vigente e quantidade), a 005 passa a baixar
 o estoque. **A baixa do estoque não faz parte desta feature.**
 
+> **Atualizado pela [010](../010-adicionais-retiradas/spec.md) (2026-11-08).** A observação livre
+> por linha ("sem cebola") sai do cardápio do cliente: adicionar e tirar viram botões cadastrados
+> pelo gerente, com preço. Spec, plano e contratos desta pasta já foram ajustados; para as escolhas
+> da linha do pedido, vale o que a 010 define.
+
 ## Histórias
 
 ### US1 — Cadastrar as mesas e imprimir o QR code de cada uma (P1)
@@ -64,8 +69,9 @@ e 1 suco no pedido, enviar e ver a confirmação "Pedido enviado para a cozinha"
 2. O cardápio mostra os produtos **vendidos ao cliente**, **ativos**, **com preço** e **disponíveis**
    (US5), em ordem alfabética, com nome e preço. Tem busca por nome. Preparos, produtos inativos,
    sem preço ou esgotados não aparecem.
-3. Dado o X-Burger a R$ 28,00, quando toco em "Adicionar", escolho 2 e escrevo "sem cebola", então
-   o pedido mostra "2 × X-Burger — R$ 56,00 — sem cebola".
+3. Dado o X-Burger a R$ 28,00, quando toco em "Adicionar", escolho 2 e toco em "Sem cebola" (botão
+   da [010](../010-adicionais-retiradas/spec.md)), então o pedido mostra "2 × X-Burger · Sem cebola —
+   R$ 56,00".
 4. Posso mudar a quantidade e tirar linhas antes de enviar. O total aparece sempre atualizado.
 5. Quando toco em "Enviar pedido", vejo o resumo (linhas, observações e total) e confirmo. Então
    aparece "Pedido enviado para a cozinha" com o número do pedido.
@@ -129,7 +135,7 @@ da cozinha; marcar "Pronto" e vê-lo na tela do garçom; marcar "Entregue".
 **Cenários**
 
 1. O menu ganha **"Cozinha"**. A tela mostra os pedidos em aberto, o mais antigo primeiro, com:
-   número, mesa, há quanto tempo chegou, as linhas (quantidade, produto, observação).
+   número, mesa, há quanto tempo chegou, as linhas (quantidade, produto e o que foi adicionado ou tirado).
 2. Um pedido novo aparece sozinho na tela da cozinha em até 10 segundos, sem recarregar a página,
    com um destaque de "novo".
 3. A cozinha muda a situação: **Recebido → Em preparo → Pronto**.
@@ -165,7 +171,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
 - Mesa inativada ou QR code trocado enquanto o cliente está com o cardápio aberto: o próximo envio
   é recusado com a mensagem da mesa.
 - Pedido vazio: o botão "Enviar pedido" fica indisponível.
-- Quantidade por linha: número inteiro de 1 a 20. Observação: até 140 caracteres.
+- Quantidade por linha: número inteiro de 1 a 20. Não há campo de texto livre (010).
 - Cardápio sem nenhum produto disponível: "O cardápio está vazio no momento. Chame um garçom."
 - Muitos envios seguidos do mesmo acesso (brincadeira ou robô): no máximo 10 pedidos por acesso; o
   seguinte mostra "Chame um garçom para continuar pedindo."
@@ -190,7 +196,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
   pedido. O tempo de 20 minutos é fixo nesta versão.
 - **FR-006** O pedido guarda: número (sequencial por restaurante, por dia, para chamar na cozinha),
   mesa, data e hora, acesso de origem, situação e as linhas (produto, versão vigente do produto no
-  envio, quantidade inteira, preço unitário no envio, observação). O total é a soma de
+  envio, quantidade inteira, preço unitário no envio, adicionais e retiradas da 010). O total é a soma de
   quantidade × preço, em decimal exato.
 - **FR-007** Envio sem duplicar: repetir o mesmo envio (toque duplo, reenvio após queda) devolve o
   mesmo pedido.
@@ -224,7 +230,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
   ou por nova leitura no mesmo celular.
 - **Pedido**: número do dia, mesa, acesso de origem, data e hora, situação, motivo de cancelamento,
   total.
-- **Linha do pedido**: produto, versão do produto, quantidade, preço unitário, observação.
+- **Linha do pedido**: produto, versão do produto, quantidade, preço unitário, adicionais e retiradas (010).
 - **Disponibilidade do produto**: produto esgotado ou disponível (no restaurante).
 - **Configuração do restaurante**: recebendo pedidos pelo QR code (sim/não).
 
@@ -257,8 +263,8 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
 ## Fora do escopo
 
 Baixa do estoque (feature 005, que passa a usar estes pedidos), conta da mesa, pagamento e
-divisão da conta, gorjeta, chamar garçom pelo app, delivery e retirada, adicionais e opções de
-produto (ponto da carne, tamanhos), categorias e fotos no cardápio, impressora de cozinha,
+divisão da conta, gorjeta, chamar garçom pelo app, delivery e retirada, adicionais e retiradas
+(feature 010), escolhas obrigatórias do produto (ponto da carne, tamanhos), categorias e fotos no cardápio, impressora de cozinha,
 integração com PDV, nota fiscal, relatório de vendas.
 
 ## Decisões

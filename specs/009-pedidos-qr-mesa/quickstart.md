@@ -30,9 +30,9 @@ sem esperar.
 | 2 | Criar "5" de novo | "Já existe uma mesa com esse nome" |
 | 3 | "Imprimir todos" | Folha com 10 QR codes, nome do restaurante e "Mesa N" |
 | 4 | Escanear o QR da mesa 5 com o celular (ou abrir `/m/{token}` com o navegador em modo celular) | Cardápio com "Mesa 5", sem login; X-Burger e Suco; preparo não aparece |
-| 5 | Pôr 2 X-Burger "sem cebola" e 1 Suco; "Enviar pedido" → confirmar | "Pedido enviado para a cozinha", número 1, total R$ 65,00 |
+| 5 | Pôr 2 X-Burger com o botão "Sem cebola" (010) e 1 Suco; "Enviar pedido" → confirmar | "Pedido enviado para a cozinha", número 1, total R$ 65,00 |
 | 6 | Tocar duas vezes em "Confirmar" num segundo pedido | Só um pedido novo |
-| 7 | Chef: Pedidos → Cozinha (outra janela aberta antes do passo 5) | Pedido da mesa 5 aparece sozinho em até 10 s, com a observação |
+| 7 | Chef: Pedidos → Cozinha (outra janela aberta antes do passo 5) | Pedido da mesa 5 aparece sozinho em até 10 s, com "SEM cebola" embaixo do X-Burger |
 | 8 | Chef: "Em preparo" e depois "Pronto" | Celular mostra a situação em "Meus pedidos" |
 | 9 | Garçom: Pedidos → Garçom | Pedido pronto com "Mesa 5"; "Entregue" tira da tela |
 | 10 | Gerente muda o preço do Suco para R$ 10,00 com um Suco no carrinho do celular; enviar | "O preço de Suco mudou para R$ 10,00" e nova confirmação |

@@ -48,7 +48,7 @@ Entrada (Zod):
 ```ts
 {
   clientRequestId: string; // uuid
-  lines: { recipeId: string; quantity: number; note?: string; unitPrice: string }[]; // 1 a 30
+  lines: { recipeId: string; quantity: number; unitPrice: string; addons: …; removals: … }[]; // 1 a 30, escolhas na 010
 }
 ```
 
@@ -62,7 +62,7 @@ O acesso vem do cookie, não da entrada. Ordem das conferências, todas na mesma
 | 4 | Mesa ativa | `TABLE_INACTIVE` |
 | 5 | Chave de pedidos ligada | `ORDERING_PAUSED` |
 | 6 | Menos de 10 pedidos no acesso | `ACCESS_ORDER_LIMIT` |
-| 7 | Linhas: 1 a 30; quantidade inteira 1–20; observação até 140 | `EMPTY_ORDER`, `INVALID_QUANTITY`, `NOTE_TOO_LONG` |
+| 7 | Linhas: 1 a 30; quantidade inteira 1–20; adicionais e retiradas válidos (010) | `EMPTY_ORDER`, `INVALID_QUANTITY` e os erros da 010 |
 | 8 | Todo produto é vendido, ativo, com preço e não esgotado hoje | `PRODUCT_UNAVAILABLE` + `details.recipeIds` |
 | 9 | Preço de cada linha igual ao atual | `PRICE_CHANGED` + `details.prices: { recipeId, price }[]` |
 
@@ -87,5 +87,5 @@ Mensagens ao cliente (em `error-messages.ts`):
 ## Ação `listAccessOrdersAction` — "Meus pedidos"
 
 Sem entrada; acesso pelo cookie. Acesso fechado: `ACCESS_EXPIRED`. Saída: pedidos deste acesso,
-mais novo primeiro: `{ number, submittedAt, status, total, lines: { quantity, productName, note }[] }`.
+mais novo primeiro: `{ number, submittedAt, status, total, lines: { quantity, productName, changes }[] }` (`changes` vem da 010).
 Nunca mostra pedidos de outro celular da mesma mesa.
