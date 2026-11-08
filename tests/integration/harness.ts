@@ -22,6 +22,17 @@ export async function closeTestDbs() {
 }
 
 const TABLES = [
+  "order_line_removals",
+  "order_line_addons",
+  "recipe_removables",
+  "recipe_addons",
+  "addons",
+  "order_status_events",
+  "order_lines",
+  "orders",
+  "order_day_counters",
+  "menu_accesses",
+  "dining_tables",
   "supplier_items",
   "suppliers",
   "adjustment_requests",
