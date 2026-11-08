@@ -31,11 +31,20 @@ export function MenuApp({
   const [expired, setExpired] = useState(false);
 
   const query = normalizeDescription(q);
-  const shown = query ? menu.products.filter((p) => normalizeDescription(p.name).includes(query)) : menu.products;
+  const shown = query
+    ? menu.products.filter((p) => normalizeDescription(p.name).includes(query))
+    : menu.products;
   const add = (p: MenuProduct) => {
     if (p.addons.length === 0 && p.removables.length === 0)
       setLines((c) =>
-        addToCart(c, { productId: p.id, name: p.name, basePrice: p.price, quantity: 1, addons: [], removals: [] }),
+        addToCart(c, {
+          productId: p.id,
+          name: p.name,
+          basePrice: p.price,
+          quantity: 1,
+          addons: [],
+          removals: [],
+        }),
       );
     else setOpen(p);
   };
@@ -78,12 +87,20 @@ export function MenuApp({
             />
             <ul className="grid gap-2" aria-label="Cardápio">
               {shown.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border py-2">
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 border-b border-border py-2"
+                >
                   <div className="grid">
                     <span className="text-base font-medium">{p.name}</span>
                     <span className="text-sm text-muted-foreground">{brl(p.price)}</span>
                   </div>
-                  <Button type="button" className="h-11" aria-label={`Adicionar ${p.name}`} onClick={() => add(p)}>
+                  <Button
+                    type="button"
+                    className="h-11"
+                    aria-label={`Adicionar ${p.name}`}
+                    onClick={() => add(p)}
+                  >
                     Adicionar
                   </Button>
                 </li>

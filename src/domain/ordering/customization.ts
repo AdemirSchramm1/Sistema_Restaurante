@@ -53,7 +53,10 @@ export function priceLine(basePrice: Decimal, options: ProductOptions, choice: C
 }
 
 /** Texto para a cozinha: "+ 2 Fatia de queijo", "SEM cebola" (US4-1). */
-export function describeChanges(addons: readonly { name: string; times: number }[], removalLabels: readonly string[]) {
+export function describeChanges(
+  addons: readonly { name: string; times: number }[],
+  removalLabels: readonly string[],
+) {
   return [
     ...addons.map((a) => `+ ${a.times} ${a.name}`),
     ...removalLabels.map((l) => `SEM ${l.trim().replace(/^sem\s+/i, "")}`),
@@ -83,7 +86,8 @@ export function validateCustomizationConfig(
   input: CustomizationInput,
   inProduct: ReadonlySet<string>,
 ): Result<CustomizationConfig> {
-  if (input.addons.length > MAX_OPTIONS || input.removables.length > MAX_OPTIONS) return err("TOO_MANY_OPTIONS");
+  if (input.addons.length > MAX_OPTIONS || input.removables.length > MAX_OPTIONS)
+    return err("TOO_MANY_OPTIONS");
   const seen = new Set<string>();
   for (const [i, a] of input.addons.entries()) {
     if (seen.has(a.addonId)) return err("DUPLICATE_OPTION", `addons.${i}`);

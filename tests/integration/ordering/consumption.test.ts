@@ -19,7 +19,12 @@ describe("consumo do pedido para a baixa (spec 010, US5)", () => {
         kind: "DISH",
         yieldQuantity: null,
         yieldUnit: null,
-        lines: [itemLine(s.pao, "1", "un"), itemLine(s.carne, "200", "g"), itemLine(s.queijo, "30", "g"), itemLine(s.cebola, "20", "g")],
+        lines: [
+          itemLine(s.pao, "1", "un"),
+          itemLine(s.carne, "200", "g"),
+          itemLine(s.queijo, "30", "g"),
+          itemLine(s.cebola, "20", "g"),
+        ],
       }),
     );
 

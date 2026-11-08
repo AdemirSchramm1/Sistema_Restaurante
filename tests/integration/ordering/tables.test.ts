@@ -53,7 +53,9 @@ describe("mesas e QR codes (spec 009, US1)", () => {
     expect(code(await renameTable(env.deps, m, { id, name: "Outro", version: 1 }))).toBe("STALE_RECORD");
     unwrap(await setTableActive(env.deps, m, { id, active: false, version: 2 }));
     unwrap(await createTable(env.deps, m, { name: "Balcão" }));
-    expect(code(await setTableActive(env.deps, m, { id, active: true, version: 3 }))).toBe("TABLE_NAME_IN_USE");
+    expect(code(await setTableActive(env.deps, m, { id, active: true, version: 3 }))).toBe(
+      "TABLE_NAME_IN_USE",
+    );
     expect(code(await renameTable(env.deps, m, { id: crypto.randomUUID(), name: "x", version: 1 }))).toBe(
       "NOT_FOUND",
     );
@@ -101,6 +103,8 @@ describe("mesas e QR codes (spec 009, US1)", () => {
       "select user_id from audit_log where entity = 'dining_table' and action = 'DENIED' and restaurant_id = $1",
       [m.restaurantId],
     );
-    expect(denied.rows.map((r) => r.user_id).sort()).toEqual([chef.userId, chef.userId, waiter.userId].sort());
+    expect(denied.rows.map((r) => r.user_id).sort()).toEqual(
+      [chef.userId, chef.userId, waiter.userId].sort(),
+    );
   });
 });

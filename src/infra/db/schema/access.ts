@@ -3,7 +3,14 @@ import { sql } from "drizzle-orm";
 import { base, editable } from "./common";
 import { users } from "./auth";
 
-export const roleEnum = pgEnum("role", ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER"]);
+export const roleEnum = pgEnum("role", [
+  "MANAGER",
+  "CHEF",
+  "STOCKKEEPER",
+  "BUYER",
+  "ADMINISTRATIVE",
+  "WAITER",
+]);
 export const invitationStatusEnum = pgEnum("invitation_status", [
   "PENDING",
   "ACCEPTED",

@@ -18,7 +18,10 @@ export default async function Page() {
     <div className="grid gap-4">
       <AutoRefresh seconds={5} />
       <h1 className="text-2xl font-semibold">Prontos para levar</h1>
-      <ReadyList orders={r.value.map((o) => ({ ...o, readyAt: o.readyAt.toISOString() }))} deliver={markDeliveredAction} />
+      <ReadyList
+        orders={r.value.map((o) => ({ ...o, readyAt: o.readyAt.toISOString() }))}
+        deliver={markDeliveredAction}
+      />
     </div>
   );
 }

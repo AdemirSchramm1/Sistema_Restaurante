@@ -26,7 +26,15 @@ describe("adicionais (spec 010, US1)", () => {
     const m = await newRestaurant(env);
     const k = await orderingKitchen(env, m);
     const { id } = unwrap(await createAddon(env.deps, m, cheese(k.queijo)));
-    unwrap(await createAddon(env.deps, m, { ...cheese(k.bacon), name: "Bacon extra", quantity: d("0.03"), unit: "kg", price: d("0") }));
+    unwrap(
+      await createAddon(env.deps, m, {
+        ...cheese(k.bacon),
+        name: "Bacon extra",
+        quantity: d("0.03"),
+        unit: "kg",
+        price: d("0"),
+      }),
+    );
 
     const list = unwrap(await listAddons(env.deps, m, {}));
     expect(list.map((a) => a.name)).toEqual(["Bacon extra", "Fatia de queijo"]);
@@ -69,7 +77,9 @@ describe("adicionais (spec 010, US1)", () => {
     const m = await newRestaurant(env);
     const k = await orderingKitchen(env, m);
     unwrap(await createAddon(env.deps, m, cheese(k.queijo)));
-    expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "fatia de quéijo" }))).toBe("NAME_IN_USE");
+    expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "fatia de quéijo" }))).toBe(
+      "NAME_IN_USE",
+    );
     expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "B", price: d("-1") }))).toBe(
       "INVALID_PRICE",
     );
@@ -83,7 +93,13 @@ describe("adicionais (spec 010, US1)", () => {
       "INVALID_QUANTITY",
     );
     expect(
-      code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "F", component: { kind: "RECIPE", id: k.burger } })),
+      code(
+        await createAddon(env.deps, m, {
+          ...cheese(k.queijo),
+          name: "F",
+          component: { kind: "RECIPE", id: k.burger },
+        }),
+      ),
     ).toBe("NOT_A_SUB_RECIPE");
     expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "" }))).toBe("INVALID_NAME");
   });
@@ -94,11 +110,20 @@ describe("adicionais (spec 010, US1)", () => {
     const k = await orderingKitchen(env, m);
     const { id } = unwrap(await createAddon(env.deps, m, cheese(k.queijo)));
     unwrap(await setItemActive(env.deps, m, k.queijo, 1, false));
-    expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "Outro" }))).toBe("COMPONENT_INACTIVE");
+    expect(code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "Outro" }))).toBe(
+      "COMPONENT_INACTIVE",
+    );
     expect(unwrap(await getAddon(env.deps, m, id)).componentInactive).toBe(true);
     unwrap(await setRecipeActive(env.deps, m, k.molho, 1, false));
     expect(
-      code(await createAddon(env.deps, m, { ...cheese(k.queijo), name: "M", component: { kind: "RECIPE", id: k.molho }, unit: "g" })),
+      code(
+        await createAddon(env.deps, m, {
+          ...cheese(k.queijo),
+          name: "M",
+          component: { kind: "RECIPE", id: k.molho },
+          unit: "g",
+        }),
+      ),
     ).toBe("COMPONENT_INACTIVE");
   });
 
@@ -108,7 +133,9 @@ describe("adicionais (spec 010, US1)", () => {
     const k = await orderingKitchen(env, m);
     const { id } = unwrap(await createAddon(env.deps, m, cheese(k.queijo)));
     unwrap(await updateAddon(env.deps, m, { id, version: 1, ...cheese(k.queijo), price: d("3.50") }));
-    expect(code(await updateAddon(env.deps, m, { id, version: 1, ...cheese(k.queijo) }))).toBe("STALE_RECORD");
+    expect(code(await updateAddon(env.deps, m, { id, version: 1, ...cheese(k.queijo) }))).toBe(
+      "STALE_RECORD",
+    );
     unwrap(await setAddonActive(env.deps, m, { id, active: false, version: 2 }));
     expect(unwrap(await listAddons(env.deps, m, {}))).toHaveLength(0);
     expect(unwrap(await listAddons(env.deps, m, { includeInactive: true }))).toHaveLength(1);
@@ -139,7 +166,9 @@ describe("adicionais (spec 010, US1)", () => {
     expect(code(await listAddons(env.deps, chef, {}))).toBe("OK");
     expect(code(await getAddon(env.deps, chef, id))).toBe("OK");
     expect(code(await createAddon(env.deps, chef, { ...cheese(k.queijo), name: "X" }))).toBe("FORBIDDEN");
-    expect(code(await updateAddon(env.deps, chef, { id, version: 1, ...cheese(k.queijo) }))).toBe("FORBIDDEN");
+    expect(code(await updateAddon(env.deps, chef, { id, version: 1, ...cheese(k.queijo) }))).toBe(
+      "FORBIDDEN",
+    );
     expect(code(await listAddons(env.deps, stock, {}))).toBe("FORBIDDEN");
     const denied = await ownerTestDb().$client.query(
       "select user_id from audit_log where entity = 'addon' and action = 'DENIED' and restaurant_id = $1",

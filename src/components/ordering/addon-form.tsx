@@ -12,7 +12,13 @@ import { compatibleUnits } from "@/domain/inventory/recipe";
 import { UNITS, type UnitCode } from "@/domain/inventory/units";
 
 export type AddonOption = { id: string; label: string; unit: UnitCode };
-export type AddonFormValues = { name: string; component: string; quantity: string; unit: UnitCode | ""; price: string };
+export type AddonFormValues = {
+  name: string;
+  component: string;
+  quantity: string;
+  unit: UnitCode | "";
+  price: string;
+};
 
 export type AddonFormProps = {
   action: (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -58,7 +64,12 @@ export function AddonForm({ action, options, initial, meta, readOnly, submitLabe
       {error && !error.field && <FormError error={error} />}
       {state?.ok && <Alert tone="success">Alterações salvas.</Alert>}
       <fieldset disabled={readOnly} className="grid gap-4">
-        <Field label="Nome do botão" htmlFor="addon-name" hint="Como o cliente vê: Fatia de queijo" error={fe("name")}>
+        <Field
+          label="Nome do botão"
+          htmlFor="addon-name"
+          hint="Como o cliente vê: Fatia de queijo"
+          error={fe("name")}
+        >
           <Input id="addon-name" name="name" defaultValue={initial.name} maxLength={40} required />
         </Field>
         <Field label="O que vai" htmlFor="addon-component" error={fe("component")}>
@@ -87,11 +98,28 @@ export function AddonForm({ action, options, initial, meta, readOnly, submitLabe
           </Select>
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Quantidade" htmlFor="addon-quantity" hint="Por vez que o cliente toca no +" error={fe("quantity")}>
-            <Input id="addon-quantity" name="quantity" inputMode="decimal" defaultValue={initial.quantity} required />
+          <Field
+            label="Quantidade"
+            htmlFor="addon-quantity"
+            hint="Por vez que o cliente toca no +"
+            error={fe("quantity")}
+          >
+            <Input
+              id="addon-quantity"
+              name="quantity"
+              inputMode="decimal"
+              defaultValue={initial.quantity}
+              required
+            />
           </Field>
           <Field label="Medida" htmlFor="addon-unit" error={fe("unit")}>
-            <Select id="addon-unit" name="unit" value={unit} onChange={(e) => setUnit(e.target.value)} required>
+            <Select
+              id="addon-unit"
+              name="unit"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              required
+            >
               {!unit && <option value="">Escolha</option>}
               {units.map((u) => (
                 <option key={u} value={u}>
@@ -101,7 +129,12 @@ export function AddonForm({ action, options, initial, meta, readOnly, submitLabe
             </Select>
           </Field>
         </div>
-        <Field label="Preço (R$)" htmlFor="addon-price" hint="Use 0 para adicional grátis" error={fe("price")}>
+        <Field
+          label="Preço (R$)"
+          htmlFor="addon-price"
+          hint="Use 0 para adicional grátis"
+          error={fe("price")}
+        >
           <Input
             id="addon-price"
             name="price"

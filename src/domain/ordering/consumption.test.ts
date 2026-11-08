@@ -40,13 +40,22 @@ describe("consumo da linha do pedido (spec 010, US5, FR-009)", () => {
 
   it('tirar um preparo tira o preparo inteiro ("Sem molho")', () => {
     const lines = [itemLine("pao", "1", "un"), prepLine("molho", "50", "g")];
-    const r = lineConsumption({ versionLines: lines, removed: [{ kind: "RECIPE", id: "molho" }], addons: [], quantity: 1 }, graph, items);
+    const r = lineConsumption(
+      { versionLines: lines, removed: [{ kind: "RECIPE", id: "molho" }], addons: [], quantity: 1 },
+      graph,
+      items,
+    );
     expect(r.ok && map(r.value)).toEqual({ pao: "1" });
   });
 
   it("adicional de preparo desce até os ingredientes", () => {
     const r = lineConsumption(
-      { versionLines: [itemLine("pao", "1", "un")], removed: [], addons: [{ line: prepLine("molho", "50", "g"), times: 1 }], quantity: 1 },
+      {
+        versionLines: [itemLine("pao", "1", "un")],
+        removed: [],
+        addons: [{ line: prepLine("molho", "50", "g"), times: 1 }],
+        quantity: 1,
+      },
       graph,
       items,
     );
@@ -54,7 +63,11 @@ describe("consumo da linha do pedido (spec 010, US5, FR-009)", () => {
   });
 
   it("propaga erro de item desconhecido", () => {
-    const r = lineConsumption({ versionLines: [itemLine("nada", "1", "un")], removed: [], addons: [], quantity: 1 }, graph, items);
+    const r = lineConsumption(
+      { versionLines: [itemLine("nada", "1", "un")], removed: [], addons: [], quantity: 1 },
+      graph,
+      items,
+    );
     expect(r.ok).toBe(false);
   });
 });

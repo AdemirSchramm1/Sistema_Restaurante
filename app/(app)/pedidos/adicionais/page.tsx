@@ -35,7 +35,10 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/adicion
         O que o cliente pode pôr a mais no prato, com preço. Ligue cada adicional aos produtos no quadro
         &quot;Adicionar e tirar&quot; da página do produto.
       </p>
-      <Link href={all ? "/pedidos/adicionais" : "/pedidos/adicionais?situacao=todos"} className="text-sm text-primary underline underline-offset-4">
+      <Link
+        href={all ? "/pedidos/adicionais" : "/pedidos/adicionais?situacao=todos"}
+        className="text-sm text-primary underline underline-offset-4"
+      >
         {all ? "Mostrar só os ativos" : "Mostrar também os inativos"}
       </Link>
       {r.value.length === 0 ? (
@@ -55,7 +58,10 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/adicion
             {r.value.map((a) => (
               <tr key={a.id}>
                 <Td>
-                  <Link href={`/pedidos/adicionais/${a.id}`} className="text-primary underline-offset-4 hover:underline">
+                  <Link
+                    href={`/pedidos/adicionais/${a.id}`}
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
                     {a.name}
                   </Link>{" "}
                   {!a.active && <Badge tone="muted">inativo</Badge>}

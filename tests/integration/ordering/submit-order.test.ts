@@ -46,7 +46,10 @@ async function setup(env: TestEnv, m: RequestContext) {
   return { ...k, cheese, table, cookie, burgerLine, juiceLine };
 }
 
-const order = (lines: unknown[], clientRequestId: string = crypto.randomUUID()) => ({ clientRequestId, lines });
+const order = (lines: unknown[], clientRequestId: string = crypto.randomUUID()) => ({
+  clientRequestId,
+  lines,
+});
 
 describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
   it("grava o pedido, as linhas com a versão e as escolhas copiadas, e o evento", async () => {
@@ -57,8 +60,15 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     expect(r).toEqual({ orderId: expect.any(String), number: 1, total: "77.00", status: "RECEIVED" });
 
     const db = ownerTestDb().$client;
-    const o = await db.query("select status, total, business_day::text, table_id from orders where id = $1", [r.orderId]);
-    expect(o.rows[0]).toMatchObject({ status: "RECEIVED", total: "77.00", business_day: "2026-10-31", table_id: s.table.tableId });
+    const o = await db.query("select status, total, business_day::text, table_id from orders where id = $1", [
+      r.orderId,
+    ]);
+    expect(o.rows[0]).toMatchObject({
+      status: "RECEIVED",
+      total: "77.00",
+      business_day: "2026-10-31",
+      table_id: s.table.tableId,
+    });
     const lines = await db.query(
       `select l.id, l.quantity, l.base_price, l.unit_price, l.recipe_version_id = (
          select id from recipe_versions v where v.recipe_id = l.recipe_id order by number desc limit 1) as latest
@@ -74,15 +84,24 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
       [lines.rows[0].id],
     );
     expect(addons.rows).toEqual([
-      { name: "Fatia de queijo", times: 2, unit_price: "3.00", item_id: s.queijo, quantity: "20.0000", has_unit: true },
+      {
+        name: "Fatia de queijo",
+        times: 2,
+        unit_price: "3.00",
+        item_id: s.queijo,
+        quantity: "20.0000",
+        has_unit: true,
+      },
     ]);
-    const removals = await db.query("select item_id, label from order_line_removals where order_line_id = $1", [
-      lines.rows[0].id,
-    ]);
+    const removals = await db.query(
+      "select item_id, label from order_line_removals where order_line_id = $1",
+      [lines.rows[0].id],
+    );
     expect(removals.rows).toEqual([{ item_id: s.cebola, label: "Sem cebola" }]);
-    const events = await db.query("select from_status, to_status, user_id from order_status_events where order_id = $1", [
-      r.orderId,
-    ]);
+    const events = await db.query(
+      "select from_status, to_status, user_id from order_status_events where order_id = $1",
+      [r.orderId],
+    );
     expect(events.rows).toEqual([{ from_status: null, to_status: "RECEIVED", user_id: null }]);
 
     const mine = unwrap(await listAccessOrders(env.deps, s.cookie));
@@ -100,9 +119,10 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     const a = unwrap(await submitOrder(env.deps, s.cookie, order([s.juiceLine], id)));
     const b = unwrap(await submitOrder(env.deps, s.cookie, order([s.juiceLine], id)));
     expect(b).toEqual(a);
-    const n = await ownerTestDb().$client.query("select count(*)::int as n from orders where restaurant_id = $1", [
-      m.restaurantId,
-    ]);
+    const n = await ownerTestDb().$client.query(
+      "select count(*)::int as n from orders where restaurant_id = $1",
+      [m.restaurantId],
+    );
     expect(n.rows[0].n).toBe(1);
   });
 
@@ -156,7 +176,9 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     expect(code(await submitOrder(env.deps, s.cookie, order([{ ...s.juiceLine, quantity: 21 }])))).toBe(
       "INVALID_QUANTITY",
     );
-    expect(code(await submitOrder(env.deps, s.cookie, { clientRequestId: "x", lines: [] }))).toBe("VALIDATION");
+    expect(code(await submitOrder(env.deps, s.cookie, { clientRequestId: "x", lines: [] }))).toBe(
+      "VALIDATION",
+    );
     expect(code(await submitOrder(env.deps, s.cookie, order([{ ...s.juiceLine, note: "sem gelo" }])))).toBe(
       "VALIDATION",
     );
@@ -166,16 +188,25 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     const env = testEnv();
     const m = await newRestaurant(env);
     const s = await setup(env, m);
-    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-31' where id = $1", [s.suco]);
+    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-31' where id = $1", [
+      s.suco,
+    ]);
     const r = await submitOrder(env.deps, s.cookie, order([s.burgerLine(), s.juiceLine]));
-    expect(r.ok ? null : r.error).toMatchObject({ code: "PRODUCT_UNAVAILABLE", details: { recipeIds: [s.suco] } });
+    expect(r.ok ? null : r.error).toMatchObject({
+      code: "PRODUCT_UNAVAILABLE",
+      details: { recipeIds: [s.suco] },
+    });
 
     unwrap(await setAddonActive(env.deps, m, { id: s.cheese, active: false, version: 1 }));
     const r2 = await submitOrder(env.deps, s.cookie, order([s.burgerLine()]));
-    expect(r2.ok ? null : r2.error).toMatchObject({ code: "PRODUCT_UNAVAILABLE", details: { addonIds: [s.cheese] } });
-    const n = await ownerTestDb().$client.query("select count(*)::int as n from orders where restaurant_id = $1", [
-      m.restaurantId,
-    ]);
+    expect(r2.ok ? null : r2.error).toMatchObject({
+      code: "PRODUCT_UNAVAILABLE",
+      details: { addonIds: [s.cheese] },
+    });
+    const n = await ownerTestDb().$client.query(
+      "select count(*)::int as n from orders where restaurant_id = $1",
+      [m.restaurantId],
+    );
     expect(n.rows[0].n).toBe(0);
   });
 
@@ -223,7 +254,13 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     expect(code(await submitOrder(env.deps, s.cookie, order([s.burgerLine()])))).toBe("OPTION_UNAVAILABLE");
     expect(
       code(
-        await submitOrder(env.deps, s.cookie, order([s.burgerLine({ addons: [{ addonId: s.cheese, times: 3, unitPrice: "3.00" }], removals: [] })])),
+        await submitOrder(
+          env.deps,
+          s.cookie,
+          order([
+            s.burgerLine({ addons: [{ addonId: s.cheese, times: 3, unitPrice: "3.00" }], removals: [] }),
+          ]),
+        ),
       ),
     ).toBe("INVALID_ADDON_TIMES");
   });

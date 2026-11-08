@@ -28,7 +28,8 @@ function describe(c: {
   removables: readonly { label: string }[];
 }): string {
   const parts: string[] = [];
-  if (c.addons.length) parts.push(`Adicionar: ${c.addons.map((a) => `${a.name} (até ${a.maxTimes})`).join(", ")}.`);
+  if (c.addons.length)
+    parts.push(`Adicionar: ${c.addons.map((a) => `${a.name} (até ${a.maxTimes})`).join(", ")}.`);
   if (c.removables.length) parts.push(`Tirar: ${c.removables.map((r) => r.label).join(", ")}.`);
   return parts.join(" ") || "Nada para adicionar ou tirar";
 }
@@ -49,10 +50,19 @@ export async function getProductCustomization(
     const found = refs.length ? await repos.recipes.components(refs) : [];
     const nameOf = new Map(found.map((c) => [refKey(c.ref), c.name]));
     const inLatest = new Set(refs.map(refKey));
-    const available = (await repos.addons.list(false)).map((a) => ({ addonId: a.id, name: a.name, price: a.price }));
+    const available = (await repos.addons.list(false)).map((a) => ({
+      addonId: a.id,
+      name: a.name,
+      price: a.price,
+    }));
     return ok({
       version: recipe.version,
-      addons: current.addons.map(({ addonId, name, price, maxTimes }) => ({ addonId, name, price, maxTimes })),
+      addons: current.addons.map(({ addonId, name, price, maxTimes }) => ({
+        addonId,
+        name,
+        price,
+        maxTimes,
+      })),
       removables: current.removables.map((r) => ({ ...r, orphan: !inLatest.has(refKey(r.component)) })),
       candidates: refs.map((component) => ({ component, name: nameOf.get(refKey(component)) ?? "?" })),
       available,
@@ -77,7 +87,9 @@ export async function setProductCustomization(
     if (!recipe) return err("NOT_FOUND");
     if (recipe.kind !== "DISH") return err("NOT_A_DISH");
 
-    const addons = new Map((await repos.addons.getMany(input.addons.map((a) => a.addonId))).map((a) => [a.id, a]));
+    const addons = new Map(
+      (await repos.addons.getMany(input.addons.map((a) => a.addonId))).map((a) => [a.id, a]),
+    );
     const refs = recipe.current.lines.map((l) => l.component);
     const found = refs.length ? await repos.recipes.components(refs) : [];
     const nameOf = new Map(found.map((c) => [refKey(c.ref), c.name]));

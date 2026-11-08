@@ -18,15 +18,21 @@ describe("chave de pedidos e consulta (spec 009, US6)", () => {
     const chef = await addMember(env, m, ["CHEF"]);
     const settings = unwrap(await getOrderingSettings(env.deps, m));
     expect(settings).toMatchObject({ acceptingQrOrders: true });
-    expect(code(await setAcceptingQrOrders(env.deps, chef, { accepting: false, version: settings.version }))).toBe(
-      "FORBIDDEN",
-    );
-    unwrap(await setAcceptingQrOrders(env.deps, m, { accepting: false, version: settings.version }));
-    expect(code(await setAcceptingQrOrders(env.deps, m, { accepting: true, version: settings.version }))).toBe(
-      "STALE_RECORD",
-    );
     expect(
-      code(await openMenuAccess(env.deps, { qrToken: s.table.token, previousCookie: null, origin: { ip: null, userAgent: null } })),
+      code(await setAcceptingQrOrders(env.deps, chef, { accepting: false, version: settings.version })),
+    ).toBe("FORBIDDEN");
+    unwrap(await setAcceptingQrOrders(env.deps, m, { accepting: false, version: settings.version }));
+    expect(
+      code(await setAcceptingQrOrders(env.deps, m, { accepting: true, version: settings.version })),
+    ).toBe("STALE_RECORD");
+    expect(
+      code(
+        await openMenuAccess(env.deps, {
+          qrToken: s.table.token,
+          previousCookie: null,
+          origin: { ip: null, userAgent: null },
+        }),
+      ),
     ).toBe("ORDERING_PAUSED");
     const audit = await ownerTestDb().$client.query(
       "select entity, changes from audit_log where restaurant_id = $1 and changes ? 'acceptingQrOrders'",
@@ -43,7 +49,9 @@ describe("chave de pedidos e consulta (spec 009, US6)", () => {
     const a = await s.place([s.burger(2)]);
     const b = await s.place([s.juice()]);
     unwrap(await advanceOrderStatus(env.deps, m, { id: a.orderId, to: "PREPARING", version: 1 }));
-    unwrap(await cancelOrder(env.deps, m, { id: b.orderId, reason: "CUSTOMER_GAVE_UP", note: null, version: 1 }));
+    unwrap(
+      await cancelOrder(env.deps, m, { id: b.orderId, reason: "CUSTOMER_GAVE_UP", note: null, version: 1 }),
+    );
     env.clock.advance(24 * 3600_000);
     const next = await scan(env, s.table.token);
     const { submitOrder } = await import("../../../src/application/ordering/submit-order");
@@ -61,17 +69,30 @@ describe("chave de pedidos e consulta (spec 009, US6)", () => {
       ["2026-10-31", 1],
     ]);
     expect(
-      unwrap(await listOrders(env.deps, m, { from: "2026-10-31", to: "2026-11-01", status: "CANCELLED" })).map((o) => o.number),
+      unwrap(
+        await listOrders(env.deps, m, { from: "2026-10-31", to: "2026-11-01", status: "CANCELLED" }),
+      ).map((o) => o.number),
     ).toEqual([2]);
     expect(
-      unwrap(await listOrders(env.deps, m, { from: "2026-10-31", to: "2026-11-01", tableId: crypto.randomUUID() })),
+      unwrap(
+        await listOrders(env.deps, m, { from: "2026-10-31", to: "2026-11-01", tableId: crypto.randomUUID() }),
+      ),
     ).toEqual([]);
-    expect(code(await listOrders(env.deps, m, { from: "2026-11-02", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
-    expect(code(await listOrders(env.deps, m, { from: "2026-10-01", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
+    expect(code(await listOrders(env.deps, m, { from: "2026-11-02", to: "2026-11-01" }))).toBe(
+      "INVALID_PERIOD",
+    );
+    expect(code(await listOrders(env.deps, m, { from: "2026-10-01", to: "2026-11-01" }))).toBe(
+      "INVALID_PERIOD",
+    );
     expect(code(await listOrders(env.deps, m, { from: "ontem", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
 
     const one = unwrap(await getOrder(env.deps, waiter, b.orderId));
-    expect(one).toMatchObject({ number: 2, status: "CANCELLED", cancelReason: "CUSTOMER_GAVE_UP", tableName: "12" });
+    expect(one).toMatchObject({
+      number: 2,
+      status: "CANCELLED",
+      cancelReason: "CUSTOMER_GAVE_UP",
+      tableName: "12",
+    });
     expect(one.lines).toEqual([{ quantity: 1, productName: "Suco", unitPrice: "9.00", changes: [] }]);
     expect(one.events.map((e) => [e.fromStatus, e.toStatus, e.userName])).toEqual([
       [null, "RECEIVED", null],
@@ -79,6 +100,8 @@ describe("chave de pedidos e consulta (spec 009, US6)", () => {
     ]);
     expect(code(await getOrder(env.deps, waiter, crypto.randomUUID()))).toBe("NOT_FOUND");
     const stock = await addMember(env, m, ["STOCKKEEPER"]);
-    expect(code(await listOrders(env.deps, stock, { from: "2026-10-31", to: "2026-10-31" }))).toBe("FORBIDDEN");
+    expect(code(await listOrders(env.deps, stock, { from: "2026-10-31", to: "2026-10-31" }))).toBe(
+      "FORBIDDEN",
+    );
   });
 });

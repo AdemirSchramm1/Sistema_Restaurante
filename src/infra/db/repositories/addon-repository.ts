@@ -32,7 +32,9 @@ export function addonRepository(tx: Tx, restaurantId: string): AddonRepo {
         itemName: items.description,
         itemActive: items.active,
         recipeName: sql<string | null>`(select r.name from ${recipes} r where r.id = ${addons.subRecipeId})`,
-        recipeActive: sql<boolean | null>`(select r.active from ${recipes} r where r.id = ${addons.subRecipeId})`,
+        recipeActive: sql<
+          boolean | null
+        >`(select r.active from ${recipes} r where r.id = ${addons.subRecipeId})`,
       })
       .from(addons)
       .leftJoin(items, eq(items.id, addons.itemId))

@@ -20,7 +20,10 @@ export function ReadyList({ orders, deliver }: { orders: ReadyOrderView[]; deliv
     <ul className="grid gap-3 sm:grid-cols-2">
       {orders.map((o) => (
         <li key={o.id}>
-          <article aria-label={`Mesa ${o.tableName}, pedido ${o.number}`} className="grid gap-2 rounded-lg border-2 border-primary p-4">
+          <article
+            aria-label={`Mesa ${o.tableName}, pedido ${o.number}`}
+            className="grid gap-2 rounded-lg border-2 border-primary p-4"
+          >
             <h2 className="text-3xl font-bold">Mesa {o.tableName}</h2>
             <span className="text-sm text-muted-foreground">Pedido {o.number}</span>
             <ul className="grid gap-1">
@@ -33,7 +36,12 @@ export function ReadyList({ orders, deliver }: { orders: ReadyOrderView[]; deliv
                 </li>
               ))}
             </ul>
-            <ActionForm action={deliver} hidden={{ id: o.id, version: o.version }} submitLabel="Entregue" variant="default" />
+            <ActionForm
+              action={deliver}
+              hidden={{ id: o.id, version: o.version }}
+              submitLabel="Entregue"
+              variant="default"
+            />
           </article>
         </li>
       ))}

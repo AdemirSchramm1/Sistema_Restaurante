@@ -45,9 +45,13 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
       },
     ]);
 
-    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-31' where id = $1", [k.suco]);
+    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-31' where id = $1", [
+      k.suco,
+    ]);
     expect(unwrap(await getMenu(env.deps, cookie)).products.map((p) => p.name)).toEqual(["X-Burger"]);
-    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-30' where id = $1", [k.suco]);
+    await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-30' where id = $1", [
+      k.suco,
+    ]);
     expect(unwrap(await getMenu(env.deps, cookie)).products.map((p) => p.name)).toEqual(["Suco", "X-Burger"]);
   });
 
@@ -61,7 +65,12 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
     const juice = { recipeId: k.suco, quantity: 1, unitPrice: "9.00", addons: [], removals: [] };
     unwrap(await submitOrder(env.deps, mine, { clientRequestId: crypto.randomUUID(), lines: [juice] }));
     env.clock.advance(60_000);
-    unwrap(await submitOrder(env.deps, mine, { clientRequestId: crypto.randomUUID(), lines: [{ ...juice, quantity: 2 }] }));
+    unwrap(
+      await submitOrder(env.deps, mine, {
+        clientRequestId: crypto.randomUUID(),
+        lines: [{ ...juice, quantity: 2 }],
+      }),
+    );
     unwrap(await submitOrder(env.deps, other, { clientRequestId: crypto.randomUUID(), lines: [juice] }));
 
     const list = unwrap(await listAccessOrders(env.deps, mine));

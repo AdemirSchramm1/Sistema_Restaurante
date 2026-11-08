@@ -82,7 +82,10 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
 }
 
 /** Pedidos deste celular (deste acesso), mais novo primeiro. Nunca de outro celular da mesa. */
-export async function listAccessOrders(deps: Deps, cookie: string | null): Promise<Result<AccessOrderView[]>> {
+export async function listAccessOrders(
+  deps: Deps,
+  cookie: string | null,
+): Promise<Result<AccessOrderView[]>> {
   const found = await accessFromCookie(deps, cookie);
   if (!found.ok) return found;
   return deps.tenant(found.value.restaurantId, async (repos) => {

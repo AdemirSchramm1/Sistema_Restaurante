@@ -7,7 +7,9 @@ export const MAX_LINES = 30;
 export const MAX_ORDERS_PER_ACCESS = 10;
 
 export function validateLineQuantity(q: number): Result<void> {
-  return Number.isInteger(q) && q >= 1 && q <= MAX_LINE_QUANTITY ? ok(undefined) : err("INVALID_QUANTITY", "quantity");
+  return Number.isInteger(q) && q >= 1 && q <= MAX_LINE_QUANTITY
+    ? ok(undefined)
+    : err("INVALID_QUANTITY", "quantity");
 }
 
 /** Quantidade de linhas e de pedidos já enviados pelo mesmo acesso. */

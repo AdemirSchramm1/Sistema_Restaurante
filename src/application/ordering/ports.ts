@@ -22,7 +22,10 @@ export interface DiningTableRepo {
   get(id: string): Promise<DiningTableRecord | null>;
   /** Nomes normalizados das mesas ativas. */
   activeNames(): Promise<Set<string>>;
-  insert(t: { id: string; name: string; normalized: string; qrToken: string }, audit: Audit): Promise<Result<void>>;
+  insert(
+    t: { id: string; name: string; normalized: string; qrToken: string },
+    audit: Audit,
+  ): Promise<Result<void>>;
   rename(id: string, name: string, normalized: string, version: number, audit: Audit): Promise<Result<void>>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   rotateQr(id: string, qrToken: string, version: number, audit: Audit): Promise<Result<void>>;
@@ -37,7 +40,9 @@ export type MenuAccessRecord = {
 };
 
 export interface MenuAccessRepo {
-  insert(a: MenuAccessRecord & { tokenHash: string; ip: string | null; userAgent: string | null }): Promise<void>;
+  insert(
+    a: MenuAccessRecord & { tokenHash: string; ip: string | null; userAgent: string | null },
+  ): Promise<void>;
   get(id: string): Promise<MenuAccessRecord | null>;
   end(id: string, at: Date): Promise<void>;
 }
@@ -182,7 +187,10 @@ export interface CustomizationRepo {
   /** Troca as duas listas do produto (a trava otimista é a do produto). */
   replace(
     recipeId: string,
-    config: { addons: { addonId: string; maxTimes: number }[]; removables: { component: ComponentRef; label: string }[] },
+    config: {
+      addons: { addonId: string; maxTimes: number }[];
+      removables: { component: ComponentRef; label: string }[];
+    },
     version: number,
     audit: Audit,
   ): Promise<Result<void>>;

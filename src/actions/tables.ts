@@ -21,7 +21,9 @@ const meta = (form: FormData) => ({
 const int = (v: FormDataEntryValue | null) => Number(String(v ?? "").trim() || Number.NaN);
 
 export async function createTableAction(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const state = await withContext((ctx) => createTable(serverDeps(), ctx, { name: String(form.get("name") ?? "") }));
+  const state = await withContext((ctx) =>
+    createTable(serverDeps(), ctx, { name: String(form.get("name") ?? "") }),
+  );
   if (state?.ok) revalidatePath(PATH);
   return state;
 }

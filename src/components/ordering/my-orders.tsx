@@ -14,7 +14,9 @@ export function MyOrders({ orders }: { orders: readonly AccessOrderView[] }) {
           <li key={o.number} className="grid gap-1 rounded-lg border border-border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-medium">Pedido nº {o.number}</span>
-              <span className="rounded bg-muted px-2 py-0.5 text-sm font-medium">{ORDER_STATUS_LABELS[o.status]}</span>
+              <span className="rounded bg-muted px-2 py-0.5 text-sm font-medium">
+                {ORDER_STATUS_LABELS[o.status]}
+              </span>
             </div>
             <ul className="grid gap-1 text-sm">
               {o.lines.map((l, i) => (

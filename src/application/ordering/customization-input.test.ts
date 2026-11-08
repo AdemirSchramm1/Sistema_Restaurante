@@ -14,7 +14,10 @@ describe("formulário do quadro 'Adicionar e tirar' (spec 010, US2)", () => {
     });
     expect(r).toEqual({
       ok: true,
-      value: { addons: [{ addonId: A, maxTimes: 2 }], removables: [{ component: { kind: "ITEM", id: C }, label: null }] },
+      value: {
+        addons: [{ addonId: A, maxTimes: 2 }],
+        removables: [{ component: { kind: "ITEM", id: C }, label: null }],
+      },
     });
   });
 

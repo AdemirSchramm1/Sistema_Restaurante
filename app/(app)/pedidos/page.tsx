@@ -33,11 +33,14 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
   const today = businessDay(deps.clock.now(), tz);
   const from = one(sp.de) ?? today;
   const to = one(sp.ate) ?? today;
-  const status = ORDER_STATUSES.includes(one(sp.situacao) as OrderStatus) ? (one(sp.situacao) as OrderStatus) : undefined;
+  const status = ORDER_STATUSES.includes(one(sp.situacao) as OrderStatus)
+    ? (one(sp.situacao) as OrderStatus)
+    : undefined;
   const mesa = one(sp.mesa)?.trim();
   const r = await listOrders(deps, ctx, { from, to, status });
   const rows = r.ok ? r.value.filter((o) => !mesa || o.tableName.toLowerCase() === mesa.toLowerCase()) : [];
-  const time = (d: Date) => d.toLocaleTimeString("pt-BR", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
+  const time = (d: Date) =>
+    d.toLocaleTimeString("pt-BR", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
   const date = (s: string) => s.split("-").reverse().join("/");
 
   return (

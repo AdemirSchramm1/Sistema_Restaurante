@@ -12,7 +12,9 @@ describe("menu por permissão (spec 009, T022)", () => {
 
   it("chef vê a cozinha, os adicionais e o estoque, mas não mesas nem equipe", () => {
     const l = labels(["CHEF"]);
-    expect(l).toEqual(expect.arrayContaining(["Cozinha", "Garçom", "Pedidos", "Adicionais", "Itens", "Produtos"]));
+    expect(l).toEqual(
+      expect.arrayContaining(["Cozinha", "Garçom", "Pedidos", "Adicionais", "Itens", "Produtos"]),
+    );
     expect(l).not.toContain("Mesas");
     expect(l).not.toContain("Equipe");
   });

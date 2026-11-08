@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  CANCEL_REASONS,
-  ORDER_STATUS_LABELS,
-  checkCancel,
-  checkTransition,
-  isLate,
-  isFinal,
-} from "./order";
+import { CANCEL_REASONS, ORDER_STATUS_LABELS, checkCancel, checkTransition, isLate, isFinal } from "./order";
 
 describe("situações do pedido (spec 009, FR-008)", () => {
   it("anda um passo por vez: Recebido → Em preparo → Pronto → Entregue", () => {

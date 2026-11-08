@@ -91,7 +91,13 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   );
   await page.goto("/pedidos/adicionais/novo");
   expect(await seriousViolations(page), "/pedidos/adicionais/novo").toEqual([]);
-  const addon = await newAddon(page, { name: "Fatia de queijo", component: "Queijo", quantity: "20", unit: "g", price: "3,00" });
+  const addon = await newAddon(page, {
+    name: "Fatia de queijo",
+    component: "Queijo",
+    quantity: "20",
+    unit: "g",
+    price: "3,00",
+  });
   expect(await seriousViolations(page), "detalhe do adicional").toEqual([]);
   await customize(page, burger, {
     addons: [{ label: "Fatia de queijo · R$ 3,00", name: "Fatia de queijo", maxTimes: 2 }],
@@ -124,7 +130,9 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   expect(await seriousViolations(page), "/pedidos/cozinha").toEqual([]);
   await page.getByRole("button", { name: "Começar preparo" }).click();
   await page.getByRole("button", { name: "Pronto" }).click({ timeout: 10_000 });
-  await expect(page.getByRole("region", { name: "Prontos" }).getByRole("article")).toHaveCount(1, { timeout: 10_000 });
+  await expect(page.getByRole("region", { name: "Prontos" }).getByRole("article")).toHaveCount(1, {
+    timeout: 10_000,
+  });
   await page.goto("/pedidos/garcom");
   await expect(page.getByRole("article", { name: "Mesa 1, pedido 1" })).toBeVisible();
   expect(await seriousViolations(page), "/pedidos/garcom").toEqual([]);

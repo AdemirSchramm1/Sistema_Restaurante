@@ -40,7 +40,9 @@ export function AccessTimer({
   if (left === 0)
     return (
       <div role="alert" className="grid gap-2 rounded-lg border border-border bg-muted p-4 text-center">
-        <p className="text-lg font-medium">Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar.</p>
+        <p className="text-lg font-medium">
+          Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar.
+        </p>
         {unsent.length > 0 && (
           <div className="text-sm">
             <p>Não foi enviado:</p>

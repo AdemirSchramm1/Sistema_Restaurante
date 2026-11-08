@@ -5,7 +5,9 @@ import type { Db } from "./db";
  * Consultas da rota pública do cardápio (spec 009, ADR 0005). Funções `SECURITY DEFINER` que
  * devolvem só o restaurante e o id: nada mais do restaurante sai antes do `withTenantTx`.
  */
-export function publicOrderingLookups(db: Db): Pick<GlobalLookups, "tableByQrToken" | "menuAccessByTokenHash"> {
+export function publicOrderingLookups(
+  db: Db,
+): Pick<GlobalLookups, "tableByQrToken" | "menuAccessByTokenHash"> {
   return {
     async tableByQrToken(token) {
       const r = await db.$client.query<{ restaurant_id: string; table_id: string; active: boolean }>(

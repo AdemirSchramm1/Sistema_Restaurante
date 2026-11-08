@@ -91,7 +91,10 @@ export function Cart({
     <section className="grid gap-3" aria-label="Seu pedido">
       <h2 className="text-lg font-semibold">Seu pedido</h2>
       {sent && (
-        <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-900">
+        <div
+          role="status"
+          className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-900"
+        >
           <p className="font-semibold">Pedido enviado para a cozinha</p>
           <p className="text-sm">
             Pedido nº {sent.number} · {brl(sent.total)}
@@ -197,7 +200,13 @@ export function Cart({
             <Button type="button" className="h-12 text-base" disabled={sending} onClick={confirm}>
               Confirmar
             </Button>
-            <Button type="button" variant="ghost" className="h-11" disabled={sending} onClick={() => setConfirming(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-11"
+              disabled={sending}
+              onClick={() => setConfirming(false)}
+            >
               Voltar
             </Button>
           </div>

@@ -16,7 +16,10 @@ const meta = (form: FormData) => ({
 });
 
 /** Trava otimista na cozinha: "Este pedido mudou em outra tela" e a tela recarrega. */
-async function run(path: string, fn: (ctx: RequestContext) => Promise<Result<unknown>>): Promise<ActionState> {
+async function run(
+  path: string,
+  fn: (ctx: RequestContext) => Promise<Result<unknown>>,
+): Promise<ActionState> {
   const state = await withContext(fn);
   revalidatePath(path);
   if (state && !state.ok && state.error.code === "STALE_RECORD")

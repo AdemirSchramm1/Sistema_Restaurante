@@ -39,5 +39,8 @@ export async function qrScanResponse(
     "Secure",
     "SameSite=Lax",
   ].join("; ");
-  return new Response(null, { status: 303, headers: { ...NO_STORE, Location: "/cardapio", "Set-Cookie": cookie } });
+  return new Response(null, {
+    status: 303,
+    headers: { ...NO_STORE, Location: "/cardapio", "Set-Cookie": cookie },
+  });
 }

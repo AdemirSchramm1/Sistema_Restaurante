@@ -65,7 +65,10 @@ export async function setSalePriceAction(_prev: ActionState, form: FormData): Pr
 }
 
 /** Quadro "Adicionar e tirar" do produto (spec 010, US2). */
-export async function setProductCustomizationAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+export async function setProductCustomizationAction(
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const recipeId = String(form.get("recipeId") ?? "");
   const version = Number.parseInt(String(form.get("version") ?? "0"), 10);
   const state = await withContext(async (ctx) => {

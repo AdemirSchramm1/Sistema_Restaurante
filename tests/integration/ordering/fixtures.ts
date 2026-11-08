@@ -53,7 +53,12 @@ export async function orderingKitchen(env: TestEnv, ctx: RequestContext) {
       kind: "DISH",
       yieldQuantity: null,
       yieldUnit: null,
-      lines: [itemLine(pao, "1", "un"), itemLine(carne, "150", "g"), itemLine(queijo, "30", "g"), itemLine(cebola, "20", "g")],
+      lines: [
+        itemLine(pao, "1", "un"),
+        itemLine(carne, "150", "g"),
+        itemLine(queijo, "30", "g"),
+        itemLine(cebola, "20", "g"),
+      ],
     }),
   ).id;
   const suco = unwrap(
@@ -121,7 +126,13 @@ export async function orderingScenario(env: TestEnv, m: RequestContext) {
     addons: [{ addonId: cheese, times: 2, unitPrice: "3.00" }],
     removals: [{ kind: "ITEM", id: k.cebola }],
   });
-  const juice = (quantity = 1) => ({ recipeId: k.suco, quantity, unitPrice: "9.00", addons: [], removals: [] });
+  const juice = (quantity = 1) => ({
+    recipeId: k.suco,
+    quantity,
+    unitPrice: "9.00",
+    addons: [],
+    removals: [],
+  });
   const place = async (lines: unknown[]) => {
     const { submitOrder } = await import("../../../src/application/ordering/submit-order");
     return unwrap(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }));

@@ -19,9 +19,7 @@ export type CartLine = CartLineData & { key: string };
 export const choiceKey = (l: Omit<CartLineData, "quantity" | "name" | "basePrice">) =>
   [
     l.productId,
-    ...l.addons
-      .map((a) => `${a.id}x${a.times}`)
-      .sort(),
+    ...l.addons.map((a) => `${a.id}x${a.times}`).sort(),
     "|",
     ...l.removals.map((r) => `${r.kind}:${r.id}`).sort(),
   ].join(",");
@@ -75,7 +73,10 @@ export type PriceChanges = {
 };
 
 /** Aplica os preços novos que o servidor devolveu e diz o que mudou, em português. */
-export function applyPriceChanges(lines: readonly CartLine[], ch: PriceChanges): { lines: CartLine[]; messages: string[] } {
+export function applyPriceChanges(
+  lines: readonly CartLine[],
+  ch: PriceChanges,
+): { lines: CartLine[]; messages: string[] } {
   const prices = new Map((ch.prices ?? []).map((p) => [p.recipeId, p.price]));
   const addonPrices = new Map((ch.addonPrices ?? []).map((p) => [p.addonId, p.price]));
   const messages = new Set<string>();

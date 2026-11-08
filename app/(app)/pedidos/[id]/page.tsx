@@ -34,8 +34,9 @@ export default async function Page({ params }: PageProps<"/pedidos/[id]">) {
       </h1>
       <p className="text-sm text-muted-foreground">
         {ORDER_STATUS_LABELS[o.status]}
-        {o.cancelReason && ` · ${CANCEL_REASON_LABELS[o.cancelReason]}${o.cancelNote ? `: ${o.cancelNote}` : ""}`} · enviado em{" "}
-        {when(o.submittedAt)}
+        {o.cancelReason &&
+          ` · ${CANCEL_REASON_LABELS[o.cancelReason]}${o.cancelNote ? `: ${o.cancelNote}` : ""}`}{" "}
+        · enviado em {when(o.submittedAt)}
       </p>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="grid gap-2">

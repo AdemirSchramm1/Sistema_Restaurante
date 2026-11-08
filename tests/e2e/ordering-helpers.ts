@@ -84,12 +84,16 @@ export async function createTables(page: Page, from: number, to: number) {
 
 /** Cartão da mesa na tela de Mesas. */
 export const tableCard = (page: Page, name: string): Locator =>
-  page.getByRole("listitem").filter({ has: page.getByRole("img", { name: `QR code da Mesa ${name}`, exact: true }) });
+  page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("img", { name: `QR code da Mesa ${name}`, exact: true }) });
 
 /** Caminho do link do QR code da mesa (o mesmo que a câmera do celular abre). */
 export async function qrPath(page: Page, name: string) {
   await page.goto("/pedidos/mesas");
-  const href = await page.getByRole("link", { name: `Abrir o cardápio da Mesa ${name}`, exact: true }).getAttribute("href");
+  const href = await page
+    .getByRole("link", { name: `Abrir o cardápio da Mesa ${name}`, exact: true })
+    .getAttribute("href");
   expect(href).toMatch(/\/m\/[\w-]+$/);
   return new URL(href!).pathname;
 }

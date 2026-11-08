@@ -19,9 +19,10 @@ describe("rota pública GET /m/{token} (spec 009, contracts/public-routes.md)", 
     expect(cookie).toMatch(/^menu_access=[A-Za-z0-9_-]{43}; /);
     for (const part of ["HttpOnly", "Secure", "SameSite=Lax", "Path=/cardapio", "Max-Age=1200"])
       expect(cookie).toContain(part);
-    const n = await ownerTestDb().$client.query("select count(*)::int as n from menu_accesses where restaurant_id = $1", [
-      m.restaurantId,
-    ]);
+    const n = await ownerTestDb().$client.query(
+      "select count(*)::int as n from menu_accesses where restaurant_id = $1",
+      [m.restaurantId],
+    );
     expect(n.rows[0].n).toBe(1);
   });
 

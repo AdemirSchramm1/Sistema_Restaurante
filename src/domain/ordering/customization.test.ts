@@ -61,8 +61,17 @@ describe("escolha do cliente (spec 010, US3)", () => {
   });
 
   it("adicional não ligado ao prato ou indisponível", () => {
-    const r = validateChoice(OPTIONS, { addons: [{ addonId: "velho", times: 1 }, { addonId: "x", times: 1 }], removals: [] });
-    expect(r).toEqual({ ok: false, error: { code: "PRODUCT_UNAVAILABLE", details: { addonIds: ["velho", "x"] } } });
+    const r = validateChoice(OPTIONS, {
+      addons: [
+        { addonId: "velho", times: 1 },
+        { addonId: "x", times: 1 },
+      ],
+      removals: [],
+    });
+    expect(r).toEqual({
+      ok: false,
+      error: { code: "PRODUCT_UNAVAILABLE", details: { addonIds: ["velho", "x"] } },
+    });
   });
 
   it("retirada que não existe mais no prato", () => {
@@ -146,19 +155,25 @@ describe('quadro "Adicionar e tirar" do produto (spec 010, US2, FR-002)', () => 
   });
 
   it("adicional inativo não entra", () => {
-    expect(code(validateCustomizationConfig({ addons: [addon("q", 1, false)], removables: [] }, inProduct))).toBe(
-      "ADDON_INACTIVE",
-    );
+    expect(
+      code(validateCustomizationConfig({ addons: [addon("q", 1, false)], removables: [] }, inProduct)),
+    ).toBe("ADDON_INACTIVE");
   });
 
   it("só tira o que está no produto, com texto de até 40", () => {
     const out = validateCustomizationConfig(
-      { addons: [], removables: [{ component: { kind: "ITEM", id: "tomate" }, label: null, name: "Tomate" }] },
+      {
+        addons: [],
+        removables: [{ component: { kind: "ITEM", id: "tomate" }, label: null, name: "Tomate" }],
+      },
       inProduct,
     );
     expect(code(out)).toBe("NOT_IN_PRODUCT");
     const long = validateCustomizationConfig(
-      { addons: [], removables: [{ component: { kind: "ITEM", id: "cebola" }, label: "S".repeat(41), name: "Cebola" }] },
+      {
+        addons: [],
+        removables: [{ component: { kind: "ITEM", id: "cebola" }, label: "S".repeat(41), name: "Cebola" }],
+      },
       inProduct,
     );
     expect(code(long)).toBe("INVALID_LABEL");
@@ -169,6 +184,8 @@ describe('quadro "Adicionar e tirar" do produto (spec 010, US2, FR-002)', () => 
       code(validateCustomizationConfig({ addons: [addon("q"), addon("q")], removables: [] }, inProduct)),
     ).toBe("DUPLICATE_OPTION");
     const eleven = Array.from({ length: 11 }, (_, i) => addon(`a${i}`));
-    expect(code(validateCustomizationConfig({ addons: eleven, removables: [] }, inProduct))).toBe("TOO_MANY_OPTIONS");
+    expect(code(validateCustomizationConfig({ addons: eleven, removables: [] }, inProduct))).toBe(
+      "TOO_MANY_OPTIONS",
+    );
   });
 });

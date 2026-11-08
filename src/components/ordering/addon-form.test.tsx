@@ -27,7 +27,9 @@ describe("formulário do adicional (spec 010, US1)", () => {
   it("ao escolher o queijo, a medida fica na família dele", () => {
     render(<AddonForm {...base} />);
     fireEvent.change(screen.getByLabelText("O que vai"), { target: { value: "ITEM:q" } });
-    const units = Array.from((screen.getByLabelText("Medida") as HTMLSelectElement).options).map((o) => o.value);
+    const units = Array.from((screen.getByLabelText("Medida") as HTMLSelectElement).options).map(
+      (o) => o.value,
+    );
     expect(units).toEqual(["g", "kg"]);
   });
 

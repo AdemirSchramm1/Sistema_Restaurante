@@ -13,7 +13,10 @@ export type CustomizationForm = {
 
 /** Quadro "Adicionar e tirar": `addons.N.addonId`, `addons.N.maxTimes`, `removables.N.component`, `removables.N.label`. */
 export function parseCustomizationForm(raw: Record<string, unknown>): Result<CustomizationForm> {
-  const rows = { addons: new Map<number, Record<string, string>>(), removables: new Map<number, Record<string, string>>() };
+  const rows = {
+    addons: new Map<number, Record<string, string>>(),
+    removables: new Map<number, Record<string, string>>(),
+  };
   for (const [k, v] of Object.entries(raw)) {
     const m = KEY.exec(k);
     if (!m) {
@@ -33,7 +36,8 @@ export function parseCustomizationForm(raw: Record<string, unknown>): Result<Cus
   const removables: CustomizationForm["removables"] = [];
   for (const [i, r] of sorted(rows.removables).entries()) {
     const [kind, id] = (r.component ?? "").split(":");
-    if ((kind !== "ITEM" && kind !== "RECIPE") || !UUID.test(id ?? "")) return err("VALIDATION", `removables.${i}`);
+    if ((kind !== "ITEM" && kind !== "RECIPE") || !UUID.test(id ?? ""))
+      return err("VALIDATION", `removables.${i}`);
     removables.push({ component: { kind, id: id! }, label: r.label ? r.label : null });
   }
   return ok({ addons, removables });

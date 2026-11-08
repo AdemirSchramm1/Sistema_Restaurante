@@ -98,12 +98,17 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
           <Card className="grid gap-2 text-sm">
             <CardTitle>Produtos que oferecem</CardTitle>
             {a.usedBy.length === 0 ? (
-              <p className="text-muted-foreground">Nenhum ainda. Ligue no quadro &quot;Adicionar e tirar&quot; do produto.</p>
+              <p className="text-muted-foreground">
+                Nenhum ainda. Ligue no quadro &quot;Adicionar e tirar&quot; do produto.
+              </p>
             ) : (
               <ul className="grid gap-1">
                 {a.usedBy.map((p) => (
                   <li key={p.id}>
-                    <Link href={`/estoque/produtos/${p.id}`} className="text-primary underline-offset-4 hover:underline">
+                    <Link
+                      href={`/estoque/produtos/${p.id}`}
+                      className="text-primary underline-offset-4 hover:underline"
+                    >
                       {p.name}
                     </Link>
                   </li>

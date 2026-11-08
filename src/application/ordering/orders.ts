@@ -31,7 +31,11 @@ export async function setAcceptingQrOrders(
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.orderingSettings.get();
-    const r = await repos.orderingSettings.setAcceptingQrOrders(input.accepting, input.version, auditStamp(deps, ctx));
+    const r = await repos.orderingSettings.setAcceptingQrOrders(
+      input.accepting,
+      input.version,
+      auditStamp(deps, ctx),
+    );
     if (!r.ok) return r;
     if (current.acceptingQrOrders !== input.accepting)
       await repos.audit.record({
@@ -58,7 +62,8 @@ export type OrderListRow = {
 
 /** "2026-11-08" válido? */
 const validDay = (v: string) => DAY.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
-const daysBetween = (a: string, b: string) => (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
+const daysBetween = (a: string, b: string) =>
+  (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
 
 /** Pedidos de um período de até 31 dias (dias locais), mais novo primeiro. */
 export async function listOrders(

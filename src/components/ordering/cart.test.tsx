@@ -22,7 +22,11 @@ function Harness({ submit, initial }: { submit: SubmitFn; initial: CartLine[] })
   return <Cart lines={lines} onChange={setLines} submit={submit} />;
 }
 const start = (...l: (typeof burger | typeof juice)[]) => l.reduce<CartLine[]>((c, x) => addToCart(c, x), []);
-const ok = { ok: true as const, data: { orderId: "o1", number: 7, total: "77.00", status: "RECEIVED" as const }, at: 1 };
+const ok = {
+  ok: true as const,
+  data: { orderId: "o1", number: 7, total: "77.00", status: "RECEIVED" as const },
+  at: 1,
+};
 
 describe("carrinho do celular (spec 009 US2, spec 010 US3)", () => {
   it("mostra linhas com as escolhas e o total; muda quantidade e tira linha", () => {
@@ -36,7 +40,11 @@ describe("carrinho do celular (spec 009 US2, spec 010 US3)", () => {
   });
 
   it("mesmo produto com escolhas diferentes fica em linhas separadas", () => {
-    const lines = start(burger, { ...burger, quantity: 1, addons: [], removals: [] }, { ...burger, quantity: 1 });
+    const lines = start(
+      burger,
+      { ...burger, quantity: 1, addons: [], removals: [] },
+      { ...burger, quantity: 1 },
+    );
     expect(lines.map((l) => l.quantity)).toEqual([3, 1]);
   });
 
@@ -69,10 +77,7 @@ describe("carrinho do celular (spec 009 US2, spec 010 US3)", () => {
   });
 
   it("nova tentativa depois de falha reusa o mesmo clientRequestId", async () => {
-    const submit = vi
-      .fn<SubmitFn>()
-      .mockRejectedValueOnce(new Error("rede"))
-      .mockResolvedValueOnce(ok);
+    const submit = vi.fn<SubmitFn>().mockRejectedValueOnce(new Error("rede")).mockResolvedValueOnce(ok);
     render(<Harness submit={submit} initial={start(juice)} />);
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));

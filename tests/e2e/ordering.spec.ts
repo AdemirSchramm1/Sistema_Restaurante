@@ -148,23 +148,31 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
     "Pedido nº 2 · R$ 35,00",
   );
   // O pedido 1 continua com o preço do envio.
-  await expect(mine.getByRole("listitem").filter({ hasText: "Pedido nº 1" }).first()).toContainText("R$ 68,00");
+  await expect(mine.getByRole("listitem").filter({ hasText: "Pedido nº 1" }).first()).toContainText(
+    "R$ 68,00",
+  );
 
   // "Esgotado hoje" na cozinha tira o X-Burger do cardápio.
   await kitchen.getByText(/^Esgotado hoje \(/).click();
   await kitchen.getByRole("form", { name: "Esgotado hoje: X-Burger" }).getByRole("button").click();
-  await expect(kitchen.getByRole("form", { name: "Disponível de novo: X-Burger" })).toBeVisible({ timeout: 10_000 });
+  await expect(kitchen.getByRole("form", { name: "Disponível de novo: X-Burger" })).toBeVisible({
+    timeout: 10_000,
+  });
   await cell.reload();
   await expect(cell.getByRole("heading", { name: "Mesa 5" })).toBeVisible();
   await expect(cell.getByRole("button", { name: "Adicionar X-Burger" })).toHaveCount(0);
   await kitchen.getByRole("form", { name: "Disponível de novo: X-Burger" }).getByRole("button").click();
-  await expect(kitchen.getByRole("form", { name: "Esgotado hoje: X-Burger" })).toBeVisible({ timeout: 10_000 });
+  await expect(kitchen.getByRole("form", { name: "Esgotado hoje: X-Burger" })).toBeVisible({
+    timeout: 10_000,
+  });
 
   // Depois de 20 minutos o acesso acaba; escanear de novo abre outro.
   if (await expireMenuAccesses(restaurant, "5")) {
     await cell.reload();
     await expect(
-      cell.getByRole("alert").filter({ hasText: "Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar." }),
+      cell
+        .getByRole("alert")
+        .filter({ hasText: "Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar." }),
     ).toBeVisible();
     await cell.goto(table5);
     await expect(cell.getByRole("button", { name: "Adicionar X-Burger" })).toBeVisible();
@@ -185,7 +193,9 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await page.getByRole("button", { name: "Parar de receber pedidos" }).click();
   await expect(page.getByRole("button", { name: "Voltar a receber pedidos" })).toBeVisible();
   await cell.goto(newTable5);
-  await expect(cell.getByText("O restaurante não está recebendo pedidos agora. Chame um garçom.")).toBeVisible();
+  await expect(
+    cell.getByText("O restaurante não está recebendo pedidos agora. Chame um garçom."),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Voltar a receber pedidos" }).click();
   await expect(page.getByRole("button", { name: "Parar de receber pedidos" })).toBeVisible();
 

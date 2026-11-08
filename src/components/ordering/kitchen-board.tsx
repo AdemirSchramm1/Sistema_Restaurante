@@ -36,7 +36,15 @@ const COLUMNS: { status: OrderStatus; title: string }[] = [
 const minutesAgo = (from: string, now: string) =>
   Math.max(0, Math.floor((Date.parse(now) - Date.parse(from)) / 60_000));
 
-function CancelForm({ order, cancel, onClose }: { order: KitchenOrderView; cancel: Action; onClose: () => void }) {
+function CancelForm({
+  order,
+  cancel,
+  onClose,
+}: {
+  order: KitchenOrderView;
+  cancel: Action;
+  onClose: () => void;
+}) {
   const [reason, setReason] = useState("");
   return (
     <ActionForm
@@ -110,9 +118,19 @@ export function KitchenBoard({
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-xl">Mesa {o.tableName}</strong>
                     <span className="text-sm text-muted-foreground">Pedido {o.number}</span>
-                    <span className="text-sm text-muted-foreground">há {minutesAgo(o.submittedAt, serverNow)} min</span>
-                    {fresh && <span className="rounded bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">Novo</span>}
-                    {o.late && <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-900">Atrasado</span>}
+                    <span className="text-sm text-muted-foreground">
+                      há {minutesAgo(o.submittedAt, serverNow)} min
+                    </span>
+                    {fresh && (
+                      <span className="rounded bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                        Novo
+                      </span>
+                    )}
+                    {o.late && (
+                      <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-900">
+                        Atrasado
+                      </span>
+                    )}
                   </div>
                   <ul className="grid gap-1">
                     {o.lines.map((l, i) => (
@@ -144,7 +162,9 @@ export function KitchenBoard({
                         aria-label={`Pronto: pedido ${o.number}`}
                       />
                     )}
-                    {o.status === "READY" && <span className="text-sm text-muted-foreground">Esperando o garçom</span>}
+                    {o.status === "READY" && (
+                      <span className="text-sm text-muted-foreground">Esperando o garçom</span>
+                    )}
                     {cancelling !== o.id && (
                       <Button
                         type="button"
@@ -157,7 +177,9 @@ export function KitchenBoard({
                       </Button>
                     )}
                   </div>
-                  {cancelling === o.id && <CancelForm order={o} cancel={cancel} onClose={() => setCancelling(null)} />}
+                  {cancelling === o.id && (
+                    <CancelForm order={o} cancel={cancel} onClose={() => setCancelling(null)} />
+                  )}
                 </article>
               );
             })}

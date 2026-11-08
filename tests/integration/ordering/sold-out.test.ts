@@ -12,7 +12,9 @@ describe("esgotado hoje (spec 009, US5)", () => {
     const s = await orderingScenario(env, m);
     const chef = await addMember(env, m, ["CHEF"]);
     unwrap(await setProductSoldOut(env.deps, chef, { recipeId: s.suco, soldOut: true }));
-    const row = await ownerTestDb().$client.query("select sold_out_on::text from recipes where id = $1", [s.suco]);
+    const row = await ownerTestDb().$client.query("select sold_out_on::text from recipes where id = $1", [
+      s.suco,
+    ]);
     expect(row.rows[0].sold_out_on).toBe("2026-10-31");
     expect(unwrap(await getMenu(env.deps, s.cookie)).products.map((p) => p.name)).toEqual(["X-Burger"]);
     expect(unwrap(await getRecipe(env.deps, m, s.suco)).recipe.active).toBe(true);
@@ -26,7 +28,9 @@ describe("esgotado hoje (spec 009, US5)", () => {
 
     unwrap(await setProductSoldOut(env.deps, chef, { recipeId: s.suco, soldOut: true }));
     env.clock.advance(24 * 3600_000);
-    expect(unwrap(await listDishesForKitchen(env.deps, chef)).find((x) => x.id === s.suco)?.soldOut).toBe(false);
+    expect(unwrap(await listDishesForKitchen(env.deps, chef)).find((x) => x.id === s.suco)?.soldOut).toBe(
+      false,
+    );
   });
 
   it("preparo não esgota; garçom não marca; vai para a auditoria", async () => {
@@ -34,11 +38,15 @@ describe("esgotado hoje (spec 009, US5)", () => {
     const m = await newRestaurant(env);
     const s = await orderingScenario(env, m);
     const waiter = await addMember(env, m, ["WAITER"]);
-    expect(code(await setProductSoldOut(env.deps, m, { recipeId: s.molho, soldOut: true }))).toBe("NOT_A_DISH");
+    expect(code(await setProductSoldOut(env.deps, m, { recipeId: s.molho, soldOut: true }))).toBe(
+      "NOT_A_DISH",
+    );
     expect(code(await setProductSoldOut(env.deps, m, { recipeId: crypto.randomUUID(), soldOut: true }))).toBe(
       "NOT_FOUND",
     );
-    expect(code(await setProductSoldOut(env.deps, waiter, { recipeId: s.suco, soldOut: true }))).toBe("FORBIDDEN");
+    expect(code(await setProductSoldOut(env.deps, waiter, { recipeId: s.suco, soldOut: true }))).toBe(
+      "FORBIDDEN",
+    );
     unwrap(await setProductSoldOut(env.deps, m, { recipeId: s.suco, soldOut: true }));
     const audit = await ownerTestDb().$client.query(
       "select changes from audit_log where entity = 'recipe' and entity_id = $1 and changes ? 'soldOutOn'",

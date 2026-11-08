@@ -20,7 +20,13 @@ import { items, recipes, recipeVersions, units } from "./catalog";
 
 /** Pedidos pelo QR code da mesa (feature 009, specs/009-pedidos-qr-mesa/data-model.md). */
 
-export const orderStatusEnum = pgEnum("order_status", ["RECEIVED", "PREPARING", "READY", "DELIVERED", "CANCELLED"]);
+export const orderStatusEnum = pgEnum("order_status", [
+  "RECEIVED",
+  "PREPARING",
+  "READY",
+  "DELIVERED",
+  "CANCELLED",
+]);
 export const orderCancelReasonEnum = pgEnum("order_cancel_reason", [
   "CUSTOMER_GAVE_UP",
   "OUT_OF_PRODUCT",

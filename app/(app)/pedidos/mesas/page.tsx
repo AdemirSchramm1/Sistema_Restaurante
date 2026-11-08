@@ -60,7 +60,9 @@ export default async function Page() {
           <ActionForm
             action={setAcceptingQrOrdersAction}
             hidden={{ accepting: String(!settings.value.acceptingQrOrders), version: settings.value.version }}
-            submitLabel={settings.value.acceptingQrOrders ? "Parar de receber pedidos" : "Voltar a receber pedidos"}
+            submitLabel={
+              settings.value.acceptingQrOrders ? "Parar de receber pedidos" : "Voltar a receber pedidos"
+            }
           />
         </Card>
       )}
@@ -104,7 +106,13 @@ export default async function Page() {
                     submitLabel="Renomear"
                     aria-label={`Renomear a mesa ${t.name}`}
                   >
-                    <Input name="name" defaultValue={t.name} maxLength={30} aria-label="Nome da mesa" className="w-32" />
+                    <Input
+                      name="name"
+                      defaultValue={t.name}
+                      maxLength={30}
+                      aria-label="Nome da mesa"
+                      className="w-32"
+                    />
                   </ActionForm>
                   <ActionForm
                     action={setTableActiveAction}

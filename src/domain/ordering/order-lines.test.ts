@@ -12,9 +12,9 @@ describe("linhas do pedido (spec 009, casos-limite)", () => {
   });
 
   it("pedido tem de 1 a 30 linhas", () => {
-    expect(!checkOrderShape(0, 0).ok && (checkOrderShape(0, 0) as { error: { code: string } }).error.code).toBe(
-      "EMPTY_ORDER",
-    );
+    expect(
+      !checkOrderShape(0, 0).ok && (checkOrderShape(0, 0) as { error: { code: string } }).error.code,
+    ).toBe("EMPTY_ORDER");
     const many = checkOrderShape(31, 0);
     expect(!many.ok && many.error.code).toBe("TOO_MANY_LINES");
     expect(checkOrderShape(30, 0).ok).toBe(true);

@@ -24,7 +24,9 @@ describe("tempo do acesso (spec 009, US3)", () => {
     const { rerender } = render(<AccessTimer serverNow={serverNow} expiresAt={expiresAt} unsent={[]} />);
     act(() => vi.advanceTimersByTime(3 * 60_000));
     expect(screen.queryByText(/Envie o pedido/)).toBeNull();
-    rerender(<AccessTimer serverNow={serverNow} expiresAt={expiresAt} unsent={[{ name: "Suco", quantity: 1 }]} />);
+    rerender(
+      <AccessTimer serverNow={serverNow} expiresAt={expiresAt} unsent={[{ name: "Suco", quantity: 1 }]} />,
+    );
     expect(screen.getByText("Faltam 2 minutos. Envie o pedido para não perder o que escolheu.")).toBeTruthy();
   });
 
@@ -40,7 +42,9 @@ describe("tempo do acesso (spec 009, US3)", () => {
       />,
     );
     act(() => vi.advanceTimersByTime(5 * 60_000));
-    expect(screen.getByText("Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar.")).toBeTruthy();
+    expect(
+      screen.getByText("Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar."),
+    ).toBeTruthy();
     expect(screen.getByText("2 × Suco")).toBeTruthy();
     expect(onExpire).toHaveBeenCalled();
   });

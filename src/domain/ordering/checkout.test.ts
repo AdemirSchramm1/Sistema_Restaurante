@@ -31,7 +31,13 @@ const line = (over: Partial<RequestedLine> = {}): RequestedLine => ({
   removals: [{ kind: "ITEM", id: "cebola" }],
   ...over,
 });
-const sucoLine: RequestedLine = { recipeId: "s", quantity: 1, unitPrice: d("9.00"), addons: [], removals: [] };
+const sucoLine: RequestedLine = {
+  recipeId: "s",
+  quantity: 1,
+  unitPrice: d("9.00"),
+  addons: [],
+  removals: [],
+};
 
 describe("conferência no envio (spec 009 R9 + spec 010 R5)", () => {
   it("devolve as linhas com versão, preço do produto, preço da linha e cópia das escolhas", () => {
@@ -42,7 +48,9 @@ describe("conferência no envio (spec 009 R9 + spec 010 R5)", () => {
     expect(a).toMatchObject({ recipeId: "x", versionId: "x-v2", quantity: 2 });
     expect(a!.basePrice.toFixed(2)).toBe("28.00");
     expect(a!.unitPrice.toFixed(2)).toBe("34.00");
-    expect(a!.addons).toEqual([{ addonId: "queijo", name: "Fatia de queijo", times: 2, unitPrice: d("3.00") }]);
+    expect(a!.addons).toEqual([
+      { addonId: "queijo", name: "Fatia de queijo", times: 2, unitPrice: d("3.00") },
+    ]);
     expect(a!.removals).toEqual([{ component: { kind: "ITEM", id: "cebola" }, label: "Sem cebola" }]);
     expect(b!.unitPrice.toFixed(2)).toBe("9.00");
   });
@@ -55,15 +63,24 @@ describe("conferência no envio (spec 009 R9 + spec 010 R5)", () => {
 
   it("produto que saiu do cardápio (esgotado, inativo, sem preço) → PRODUCT_UNAVAILABLE com a lista (US2-11)", () => {
     const r = checkOrder([line(), sucoLine], catalog({ ...xBurger, available: false }, suco));
-    expect(r).toEqual({ ok: false, error: { code: "PRODUCT_UNAVAILABLE", details: { recipeIds: ["x"], addonIds: [] } } });
+    expect(r).toEqual({
+      ok: false,
+      error: { code: "PRODUCT_UNAVAILABLE", details: { recipeIds: ["x"], addonIds: [] } },
+    });
     const gone = checkOrder([sucoLine], catalog(xBurger));
     expect(!gone.ok && gone.error.details).toEqual({ recipeIds: ["s"], addonIds: [] });
   });
 
   it("adicional indisponível entra na mesma lista", () => {
-    const off = { ...xBurger, options: { ...xBurger.options, addons: [{ ...xBurger.options.addons[0]!, available: false }] } };
+    const off = {
+      ...xBurger,
+      options: { ...xBurger.options, addons: [{ ...xBurger.options.addons[0]!, available: false }] },
+    };
     const r = checkOrder([line()], catalog(off));
-    expect(!r.ok && r.error).toEqual({ code: "PRODUCT_UNAVAILABLE", details: { recipeIds: [], addonIds: ["queijo"] } });
+    expect(!r.ok && r.error).toEqual({
+      code: "PRODUCT_UNAVAILABLE",
+      details: { recipeIds: [], addonIds: ["queijo"] },
+    });
   });
 
   it("retirada que sumiu → OPTION_UNAVAILABLE", () => {
@@ -86,7 +103,10 @@ describe("conferência no envio (spec 009 R9 + spec 010 R5)", () => {
       options: { ...xBurger.options, addons: [{ ...xBurger.options.addons[0]!, price: d("3.50") }] },
     };
     const r = checkOrder([line()], catalog(up));
-    expect(!r.ok && r.error.details).toEqual({ prices: [], addonPrices: [{ addonId: "queijo", price: "3.50" }] });
+    expect(!r.ok && r.error.details).toEqual({
+      prices: [],
+      addonPrices: [{ addonId: "queijo", price: "3.50" }],
+    });
   });
 
   it("preço da linha diferente da soma também é recusado", () => {

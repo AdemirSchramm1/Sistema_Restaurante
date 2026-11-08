@@ -23,7 +23,12 @@ describe("acesso ao cardápio de 20 minutos (spec 009, US3)", () => {
       [m.restaurantId],
     );
     expect(row.rows).toHaveLength(1);
-    expect(row.rows[0]).toMatchObject({ table_id: tableId, ip: "203.0.113.7", user_agent: "Celular de teste", ended_at: null });
+    expect(row.rows[0]).toMatchObject({
+      table_id: tableId,
+      ip: "203.0.113.7",
+      user_agent: "Celular de teste",
+      ended_at: null,
+    });
     expect(row.rows[0].token_hash).not.toBe(opened.cookie);
 
     env.clock.advance(19 * MIN + 59_000);
@@ -53,9 +58,9 @@ describe("acesso ao cardápio de 20 minutos (spec 009, US3)", () => {
     const env = testEnv();
     const m = await newRestaurant(env);
     const { token, tableId } = await tableWithQr(env, m, "5");
-    expect(code(await openMenuAccess(env.deps, { qrToken: "nao-existe", previousCookie: null, origin }))).toBe(
-      "NOT_FOUND",
-    );
+    expect(
+      code(await openMenuAccess(env.deps, { qrToken: "nao-existe", previousCookie: null, origin })),
+    ).toBe("NOT_FOUND");
     await ownerTestDb().$client.query("update restaurants set accepting_qr_orders = false where id = $1", [
       m.restaurantId,
     ]);
@@ -69,9 +74,10 @@ describe("acesso ao cardápio de 20 minutos (spec 009, US3)", () => {
     expect(code(await openMenuAccess(env.deps, { qrToken: token, previousCookie: null, origin }))).toBe(
       "TABLE_INACTIVE",
     );
-    const n = await ownerTestDb().$client.query("select count(*)::int as n from menu_accesses where restaurant_id = $1", [
-      m.restaurantId,
-    ]);
+    const n = await ownerTestDb().$client.query(
+      "select count(*)::int as n from menu_accesses where restaurant_id = $1",
+      [m.restaurantId],
+    );
     expect(n.rows[0].n).toBe(0);
   });
 

@@ -26,7 +26,11 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     expect(within(card).getByText("Mesa 12")).toBeTruthy();
     expect(within(card).getByText("há 5 min")).toBeTruthy();
     expect(within(card).getByText("2 × X-Burger")).toBeTruthy();
-    expect(within(card).getAllByRole("listitem").some((li) => li.textContent === "SEM cebola")).toBe(true);
+    expect(
+      within(card)
+        .getAllByRole("listitem")
+        .some((li) => li.textContent === "SEM cebola"),
+    ).toBe(true);
   });
 
   it("botão de cada situação", () => {

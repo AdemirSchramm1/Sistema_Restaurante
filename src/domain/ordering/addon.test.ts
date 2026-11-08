@@ -4,10 +4,34 @@ import type { ComponentInfo, ComponentRef } from "../inventory/recipe";
 import { d } from "../shared/decimal";
 
 const INFO: Record<string, ComponentInfo> = {
-  "ITEM:queijo": { ref: { kind: "ITEM", id: "queijo" }, name: "Queijo mussarela", active: true, unit: "kg", isSubRecipe: false },
-  "ITEM:velho": { ref: { kind: "ITEM", id: "velho" }, name: "Velho", active: false, unit: "kg", isSubRecipe: false },
-  "RECIPE:molho": { ref: { kind: "RECIPE", id: "molho" }, name: "Molho da casa", active: true, unit: "kg", isSubRecipe: true },
-  "RECIPE:xburger": { ref: { kind: "RECIPE", id: "xburger" }, name: "X-Burger", active: true, unit: "un", isSubRecipe: false },
+  "ITEM:queijo": {
+    ref: { kind: "ITEM", id: "queijo" },
+    name: "Queijo mussarela",
+    active: true,
+    unit: "kg",
+    isSubRecipe: false,
+  },
+  "ITEM:velho": {
+    ref: { kind: "ITEM", id: "velho" },
+    name: "Velho",
+    active: false,
+    unit: "kg",
+    isSubRecipe: false,
+  },
+  "RECIPE:molho": {
+    ref: { kind: "RECIPE", id: "molho" },
+    name: "Molho da casa",
+    active: true,
+    unit: "kg",
+    isSubRecipe: true,
+  },
+  "RECIPE:xburger": {
+    ref: { kind: "RECIPE", id: "xburger" },
+    name: "X-Burger",
+    active: true,
+    unit: "un",
+    isSubRecipe: false,
+  },
 };
 const lookup = (r: ComponentRef) => INFO[`${r.kind}:${r.id}`];
 
@@ -36,16 +60,18 @@ describe("adicional (spec 010, US1, FR-001)", () => {
   });
 
   it("pode usar um preparo (US1-4), mas não um produto vendido", () => {
-    expect(validateAddon(fatia({ component: { kind: "RECIPE", id: "molho" }, quantity: d("30") }), lookup).ok).toBe(
-      true,
-    );
-    expect(code(validateAddon(fatia({ component: { kind: "RECIPE", id: "xburger" }, unit: "un" }), lookup))).toBe(
-      "NOT_A_SUB_RECIPE",
-    );
+    expect(
+      validateAddon(fatia({ component: { kind: "RECIPE", id: "molho" }, quantity: d("30") }), lookup).ok,
+    ).toBe(true);
+    expect(
+      code(validateAddon(fatia({ component: { kind: "RECIPE", id: "xburger" }, unit: "un" }), lookup)),
+    ).toBe("NOT_A_SUB_RECIPE");
   });
 
   it("item ou preparo ativo e existente", () => {
-    expect(code(validateAddon(fatia({ component: { kind: "ITEM", id: "velho" } }), lookup))).toBe("COMPONENT_INACTIVE");
+    expect(code(validateAddon(fatia({ component: { kind: "ITEM", id: "velho" } }), lookup))).toBe(
+      "COMPONENT_INACTIVE",
+    );
     expect(code(validateAddon(fatia({ component: { kind: "ITEM", id: "nada" } }), lookup))).toBe("NOT_FOUND");
   });
 

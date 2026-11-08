@@ -35,7 +35,8 @@ export function validateAddon(
   if (!info) return err("NOT_FOUND", "component");
   if (data.component.kind === "RECIPE" && !info.isSubRecipe) return err("NOT_A_SUB_RECIPE", "component");
   if (!info.active) return err("COMPONENT_INACTIVE", "component");
-  if (data.quantity.lte(0) || data.quantity.decimalPlaces() > QTY_SCALE) return err("INVALID_QUANTITY", "quantity");
+  if (data.quantity.lte(0) || data.quantity.decimalPlaces() > QTY_SCALE)
+    return err("INVALID_QUANTITY", "quantity");
   const unit = unitByCode(data.unit);
   if (!unit) return err("UNKNOWN_UNIT", "unit");
   if (unit.dimension !== unitByCode(info.unit)!.dimension)

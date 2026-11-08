@@ -114,7 +114,11 @@ export function ProductCustomization(props: ProductCustomizationProps) {
           </ul>
           {edit && freeAddons.length > 0 && addons.length < MAX_OPTIONS && (
             <div className="flex flex-wrap items-center gap-2">
-              <Select aria-label="Ligar adicional" value={pickAddon} onChange={(e) => setPickAddon(e.target.value)}>
+              <Select
+                aria-label="Ligar adicional"
+                value={pickAddon}
+                onChange={(e) => setPickAddon(e.target.value)}
+              >
                 <option value="">Escolha um adicional</option>
                 {freeAddons.map((a) => (
                   <option key={a.addonId} value={a.addonId}>
@@ -148,7 +152,9 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                     maxLength={40}
                     disabled={!edit}
                     onChange={(e) =>
-                      setRemovables((list) => list.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))
+                      setRemovables((list) =>
+                        list.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)),
+                      )
                     }
                     className="w-48"
                   />
@@ -174,7 +180,11 @@ export function ProductCustomization(props: ProductCustomizationProps) {
           </ul>
           {edit && freeCandidates.length > 0 && removables.length < MAX_OPTIONS && (
             <div className="flex flex-wrap items-center gap-2">
-              <Select aria-label="Deixar tirar" value={pickRemoval} onChange={(e) => setPickRemoval(e.target.value)}>
+              <Select
+                aria-label="Deixar tirar"
+                value={pickRemoval}
+                onChange={(e) => setPickRemoval(e.target.value)}
+              >
                 <option value="">Escolha o que vai no produto</option>
                 {freeCandidates.map((c) => (
                   <option key={c.component} value={c.component}>

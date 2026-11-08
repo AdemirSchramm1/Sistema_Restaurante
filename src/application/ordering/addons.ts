@@ -25,7 +25,10 @@ export type AddonView = AddonRecord & {
 export type AddonDetail = AddonView & { usedBy: { id: string; name: string }[]; componentInactive: boolean };
 
 /** Forma gravada na auditoria: legível, sem ids. */
-const auditView = (a: { name: string; quantity: Decimal; unit: string; price: Decimal }, componentName: string) => ({
+const auditView = (
+  a: { name: string; quantity: Decimal; unit: string; price: Decimal },
+  componentName: string,
+) => ({
   name: a.name,
   component: componentName,
   quantity: `${formatBrDecimal(a.quantity)} ${a.unit}`,
@@ -44,7 +47,11 @@ async function costing(repos: Repos, addons: readonly AddonRecord[]) {
     return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
   };
   return (a: AddonRecord): AddonView => {
-    const cost = recipeCost([{ component: a.component, quantity: a.quantity, unit: a.unit }], graph, item).total;
+    const cost = recipeCost(
+      [{ component: a.component, quantity: a.quantity, unit: a.unit }],
+      graph,
+      item,
+    ).total;
     const share = cost && a.price.gt(0) ? costShare(cost, a.price) : null;
     return { ...a, cost, costShare: share, band: share ? costBand(share) : null };
   };
@@ -77,7 +84,11 @@ export async function getAddon(deps: Deps, ctx: RequestContext, id: string): Pro
     const a = await repos.addons.get(id);
     if (!a) return err("NOT_FOUND");
     const evaluate = await costing(repos, [a]);
-    return ok({ ...evaluate(a), usedBy: await repos.addons.usedBy(id), componentInactive: !a.componentActive });
+    return ok({
+      ...evaluate(a),
+      usedBy: await repos.addons.usedBy(id),
+      componentInactive: !a.componentActive,
+    });
   });
 }
 

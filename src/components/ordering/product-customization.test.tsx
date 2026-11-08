@@ -31,9 +31,13 @@ describe("quadro 'Adicionar e tirar' (spec 010, US2)", () => {
     const add = screen.getByRole("group", { name: "Adicionar" });
     expect(within(add).getByText("Fatia de queijo")).toBeTruthy();
     expect(within(add).getByText("R$ 3,00")).toBeTruthy();
-    expect((within(add).getByLabelText("Até quantas vezes: Fatia de queijo") as HTMLSelectElement).value).toBe("2");
+    expect(
+      (within(add).getByLabelText("Até quantas vezes: Fatia de queijo") as HTMLSelectElement).value,
+    ).toBe("2");
     const remove = screen.getByRole("group", { name: "Tirar" });
-    expect((within(remove).getByLabelText("Texto do botão: Cebola") as HTMLInputElement).value).toBe("Sem cebola");
+    expect((within(remove).getByLabelText("Texto do botão: Cebola") as HTMLInputElement).value).toBe(
+      "Sem cebola",
+    );
   });
 
   it("liga outro adicional e outra retirada; grátis aparece como Grátis", () => {
@@ -44,7 +48,9 @@ describe("quadro 'Adicionar e tirar' (spec 010, US2)", () => {
     expect(screen.getByLabelText("Até quantas vezes: Bacon")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Deixar tirar"), { target: { value: "ITEM:picles" } });
     fireEvent.click(screen.getByRole("button", { name: "Deixar tirar" }));
-    expect((screen.getByLabelText("Texto do botão: Picles") as HTMLInputElement).placeholder).toBe("Sem picles");
+    expect((screen.getByLabelText("Texto do botão: Picles") as HTMLInputElement).placeholder).toBe(
+      "Sem picles",
+    );
   });
 
   it("muda o texto do botão e tira da lista", () => {

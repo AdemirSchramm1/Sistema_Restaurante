@@ -45,7 +45,12 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
     const before = unwrap(await getProductCustomization(env.deps, m, k.burger));
     expect(before.version).toBe(2);
     expect(before.addons).toEqual([]);
-    expect(before.candidates.map((c) => c.name)).toEqual(["Pão de hambúrguer", "Carne moída", "Queijo prato", "Cebola"]);
+    expect(before.candidates.map((c) => c.name)).toEqual([
+      "Pão de hambúrguer",
+      "Carne moída",
+      "Queijo prato",
+      "Cebola",
+    ]);
     expect(before.available.map((a) => a.name)).toEqual(["Bacon", "Fatia de queijo"]);
 
     unwrap(
@@ -56,7 +61,10 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
           { addonId: k.addonQueijo, maxTimes: 2 },
           { addonId: k.addonBacon, maxTimes: 1 },
         ],
-        removables: [{ component: item(k.cebola) }, { component: item(k.queijo), label: "Sem queijo nenhum" }],
+        removables: [
+          { component: item(k.cebola) },
+          { component: item(k.queijo), label: "Sem queijo nenhum" },
+        ],
       }),
     );
     const after = unwrap(await getProductCustomization(env.deps, m, k.burger));
@@ -94,7 +102,12 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
       }),
     );
     unwrap(
-      await setProductCustomization(env.deps, m, { recipeId: k.burger, version: 3, addons: [], removables: [] }),
+      await setProductCustomization(env.deps, m, {
+        recipeId: k.burger,
+        version: 3,
+        addons: [],
+        removables: [],
+      }),
     );
     const now = unwrap(await getProductCustomization(env.deps, m, k.burger));
     expect([now.addons, now.removables]).toEqual([[], []]);
@@ -131,12 +144,25 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
     const m = await newRestaurant(env);
     const k = await setup(env, m);
     const set = (over: Partial<Parameters<typeof setProductCustomization>[2]>) =>
-      setProductCustomization(env.deps, m, { recipeId: k.burger, version: 2, addons: [], removables: [], ...over });
+      setProductCustomization(env.deps, m, {
+        recipeId: k.burger,
+        version: 2,
+        addons: [],
+        removables: [],
+        ...over,
+      });
 
     expect(code(await set({ addons: [{ addonId: k.addonQueijo, maxTimes: 6 }] }))).toBe("INVALID_MAX_TIMES");
     expect(code(await set({ addons: [{ addonId: k.addonQueijo, maxTimes: 0 }] }))).toBe("INVALID_MAX_TIMES");
     expect(
-      code(await set({ addons: [{ addonId: k.addonQueijo, maxTimes: 1 }, { addonId: k.addonQueijo, maxTimes: 2 }] })),
+      code(
+        await set({
+          addons: [
+            { addonId: k.addonQueijo, maxTimes: 1 },
+            { addonId: k.addonQueijo, maxTimes: 2 },
+          ],
+        }),
+      ),
     ).toBe("DUPLICATE_OPTION");
     expect(code(await set({ removables: [{ component: item(k.laranja) }] }))).toBe("NOT_IN_PRODUCT");
     expect(code(await set({ removables: [{ component: item(k.cebola), label: "x".repeat(41) }] }))).toBe(
@@ -145,7 +171,9 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
     expect(
       code(await set({ removables: Array.from({ length: 11 }, () => ({ component: item(k.cebola) })) })),
     ).toBe("TOO_MANY_OPTIONS");
-    expect(code(await set({ addons: [{ addonId: crypto.randomUUID(), maxTimes: 1 }] }))).toBe("ADDON_INACTIVE");
+    expect(code(await set({ addons: [{ addonId: crypto.randomUUID(), maxTimes: 1 }] }))).toBe(
+      "ADDON_INACTIVE",
+    );
     unwrap(await setAddonActive(env.deps, m, { id: k.addonBacon, active: false, version: 1 }));
     expect(code(await set({ addons: [{ addonId: k.addonBacon, maxTimes: 1 }] }))).toBe("ADDON_INACTIVE");
     expect(code(await set({ version: 1 }))).toBe("STALE_RECORD");
@@ -162,7 +190,12 @@ describe("quadro 'Adicionar e tirar' do produto (spec 010, US2)", () => {
     expect(code(await getProductCustomization(env.deps, chef, k.burger))).toBe("OK");
     expect(
       code(
-        await setProductCustomization(env.deps, chef, { recipeId: k.burger, version: 2, addons: [], removables: [] }),
+        await setProductCustomization(env.deps, chef, {
+          recipeId: k.burger,
+          version: 2,
+          addons: [],
+          removables: [],
+        }),
       ),
     ).toBe("FORBIDDEN");
   });

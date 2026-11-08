@@ -45,8 +45,12 @@ describe("cozinha e garçom (spec 009 US4 + spec 010 US4)", () => {
       "INVALID_ORDER_TRANSITION",
     );
     unwrap(await advanceOrderStatus(env.deps, chef, { id, to: "PREPARING", version: 1 }));
-    expect(code(await advanceOrderStatus(env.deps, chef, { id, to: "READY", version: 1 }))).toBe("STALE_RECORD");
-    expect(code(await advanceOrderStatus(env.deps, waiter, { id, to: "READY", version: 2 }))).toBe("FORBIDDEN");
+    expect(code(await advanceOrderStatus(env.deps, chef, { id, to: "READY", version: 1 }))).toBe(
+      "STALE_RECORD",
+    );
+    expect(code(await advanceOrderStatus(env.deps, waiter, { id, to: "READY", version: 2 }))).toBe(
+      "FORBIDDEN",
+    );
     env.clock.advance(MIN);
     unwrap(await advanceOrderStatus(env.deps, chef, { id, to: "READY", version: 2 }));
 
@@ -60,9 +64,15 @@ describe("cozinha e garçom (spec 009 US4 + spec 010 US4)", () => {
     expect(unwrap(await listReadyOrders(env.deps, waiter))).toEqual([]);
     expect(unwrap(await listKitchenOrders(env.deps, chef)).orders).toEqual([]);
     expect(code(await markDelivered(env.deps, waiter, { id, version: 4 }))).toBe("INVALID_ORDER_TRANSITION");
-    expect(code(await markDelivered(env.deps, waiter, { id: crypto.randomUUID(), version: 1 }))).toBe("NOT_FOUND");
+    expect(code(await markDelivered(env.deps, waiter, { id: crypto.randomUUID(), version: 1 }))).toBe(
+      "NOT_FOUND",
+    );
 
-    const events = await ownerTestDb().$client.query<{ from_status: string | null; to_status: string; user_id: string | null }>(
+    const events = await ownerTestDb().$client.query<{
+      from_status: string | null;
+      to_status: string;
+      user_id: string | null;
+    }>(
       "select from_status, to_status, user_id from order_status_events where order_id = $1 order by at, id",
       [id],
     );
@@ -87,10 +97,12 @@ describe("cozinha e garçom (spec 009 US4 + spec 010 US4)", () => {
       code(await cancelOrder(env.deps, chef, { id, reason: "OTHER", note: "x".repeat(141), version: 1 })),
     ).toBe("NOTE_TOO_LONG");
     unwrap(await cancelOrder(env.deps, chef, { id, reason: "OUT_OF_PRODUCT", note: null, version: 1 }));
-    expect(code(await cancelOrder(env.deps, chef, { id, reason: "OTHER", note: "de novo", version: 2 }))).toBe(
-      "INVALID_ORDER_TRANSITION",
-    );
-    const row = await ownerTestDb().$client.query("select status, cancel_reason from orders where id = $1", [id]);
+    expect(
+      code(await cancelOrder(env.deps, chef, { id, reason: "OTHER", note: "de novo", version: 2 })),
+    ).toBe("INVALID_ORDER_TRANSITION");
+    const row = await ownerTestDb().$client.query("select status, cancel_reason from orders where id = $1", [
+      id,
+    ]);
     expect(row.rows[0]).toEqual({ status: "CANCELLED", cancel_reason: "OUT_OF_PRODUCT" });
     const ev = await ownerTestDb().$client.query(
       "select reason, user_id from order_status_events where order_id = $1 and to_status = 'CANCELLED'",
@@ -110,8 +122,8 @@ describe("cozinha e garçom (spec 009 US4 + spec 010 US4)", () => {
     expect(code(await listKitchenOrders(env.deps, stock))).toBe("FORBIDDEN");
     expect(code(await listReadyOrders(env.deps, stock))).toBe("FORBIDDEN");
     expect(code(await listKitchenOrders(env.deps, waiter))).toBe("FORBIDDEN");
-    expect(code(await cancelOrder(env.deps, waiter, { id, reason: "OUT_OF_PRODUCT", note: null, version: 1 }))).toBe(
-      "FORBIDDEN",
-    );
+    expect(
+      code(await cancelOrder(env.deps, waiter, { id, reason: "OUT_OF_PRODUCT", note: null, version: 1 })),
+    ).toBe("FORBIDDEN");
   });
 });

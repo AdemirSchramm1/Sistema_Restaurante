@@ -5,7 +5,13 @@ const id = "0193a000-0000-7000-8000-000000000010";
 
 describe("formulário do adicional (spec 010, US1)", () => {
   it("lê nome, componente, quantidade e preço com vírgula", () => {
-    const r = parseAddonForm({ name: " Fatia de queijo ", component: `ITEM:${id}`, quantity: "20", unit: "g", price: "3,00" });
+    const r = parseAddonForm({
+      name: " Fatia de queijo ",
+      component: `ITEM:${id}`,
+      quantity: "20",
+      unit: "g",
+      price: "3,00",
+    });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.value.name).toBe(" Fatia de queijo ");
@@ -22,7 +28,14 @@ describe("formulário do adicional (spec 010, US1)", () => {
 
   it("aponta o campo com problema", () => {
     const field = (raw: Record<string, string>) => {
-      const r = parseAddonForm({ name: "A", component: `ITEM:${id}`, quantity: "1", unit: "g", price: "1", ...raw });
+      const r = parseAddonForm({
+        name: "A",
+        component: `ITEM:${id}`,
+        quantity: "1",
+        unit: "g",
+        price: "1",
+        ...raw,
+      });
       return r.ok ? "OK" : `${r.error.code}:${r.error.field}`;
     };
     expect(field({ component: "" })).toBe("VALIDATION:component");
