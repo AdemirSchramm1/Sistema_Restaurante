@@ -69,3 +69,23 @@ export async function orderingKitchen(env: TestEnv, ctx: RequestContext) {
   unwrap(await setRecipeSalePrice(env.deps, ctx, suco, 1, d("9.00")));
   return { pao, carne, queijo, cebola, bacon, laranja, molho, burger, suco };
 }
+
+/** Cria a mesa e devolve o token do QR code (o que vai impresso). */
+export async function tableWithQr(env: TestEnv, ctx: RequestContext, name: string) {
+  const { createTable, tableQrCodes } = await import("../../../src/application/ordering/tables");
+  const { id } = unwrap(await createTable(env.deps, ctx, { name }));
+  const qr = unwrap(await tableQrCodes(env.deps, ctx, { ids: [id] }));
+  return { tableId: id, token: qr.tables[0]!.url.split("/m/")[1]! };
+}
+
+/** Escaneia o QR code: devolve o cookie do acesso de 20 minutos. */
+export async function scan(env: TestEnv, token: string, previousCookie: string | null = null) {
+  const { openMenuAccess } = await import("../../../src/application/ordering/menu-access");
+  return unwrap(
+    await openMenuAccess(env.deps, {
+      qrToken: token,
+      previousCookie,
+      origin: { ip: "203.0.113.7", userAgent: "Celular de teste" },
+    }),
+  ).cookie;
+}
