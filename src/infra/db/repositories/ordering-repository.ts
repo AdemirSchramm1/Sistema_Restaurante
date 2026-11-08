@@ -8,6 +8,7 @@ import type {
   OrderingSettingsRepo,
   OrderRecord,
   OrderRepo,
+  NewOrder,
 } from "@/application/ordering/ports";
 import type { Audit } from "@/application/access/ports";
 import type { CatalogProduct } from "@/domain/ordering/checkout";
@@ -114,7 +115,8 @@ export function diningTableRepository(tx: Tx, restaurantId: string): DiningTable
     rename: (id, name, normalized, version, audit) =>
       guarded(() => optimistic(id, version, { name, nameNormalized: normalized }, audit)),
     setActive: (id, active, version, audit) => guarded(() => optimistic(id, version, { active }, audit)),
-    rotateQr: (id, qrToken, version, audit) => optimistic(id, version, { qrToken, qrRotatedAt: audit.at }, audit),
+    rotateQr: (id, qrToken, version, audit) =>
+      optimistic(id, version, { qrToken, qrRotatedAt: audit.at }, audit),
   };
 }
 
@@ -223,7 +225,11 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
     const lineIds = lines.map((l) => l.id);
     const chosenAddons = lineIds.length
       ? await tx
-          .select({ lineId: orderLineAddons.orderLineId, name: orderLineAddons.name, times: orderLineAddons.times })
+          .select({
+            lineId: orderLineAddons.orderLineId,
+            name: orderLineAddons.name,
+            times: orderLineAddons.times,
+          })
           .from(orderLineAddons)
           .where(inArray(orderLineAddons.orderLineId, lineIds))
           .orderBy(asc(orderLineAddons.createdAt), asc(orderLineAddons.id))
@@ -252,6 +258,107 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
     }));
   }
 
+  async function takeNextNumber(businessDay: string): Promise<number> {
+    const [r] = await tx
+      .insert(orderDayCounters)
+      .values({ restaurantId, businessDay, lastNumber: 1 })
+      .onConflictDoUpdate({
+        target: [orderDayCounters.restaurantId, orderDayCounters.businessDay],
+        set: { lastNumber: sql`${orderDayCounters.lastNumber} + 1` },
+      })
+      .returning({ n: orderDayCounters.lastNumber });
+    return r!.n;
+  }
+
+  async function insertOrder(o: NewOrder, number: number) {
+    await tx.insert(orders).values({
+      id: o.id,
+      restaurantId,
+      createdAt: o.submittedAt,
+      tableId: o.tableId,
+      menuAccessId: o.menuAccessId,
+      clientRequestId: o.clientRequestId,
+      businessDay: o.businessDay,
+      number,
+      status: "RECEIVED",
+      total: o.total.toFixed(2),
+      submittedAt: o.submittedAt,
+      statusChangedAt: o.submittedAt,
+    });
+    for (const [position, l] of o.lines.entries()) {
+      const lineId = ids();
+      await tx.insert(orderLines).values({
+        id: lineId,
+        restaurantId,
+        createdAt: o.submittedAt,
+        orderId: o.id,
+        position,
+        recipeId: l.recipeId,
+        recipeVersionId: l.versionId,
+        quantity: l.quantity,
+        basePrice: l.basePrice.toFixed(2),
+        unitPrice: l.unitPrice.toFixed(2),
+      });
+      if (l.addons.length) {
+        const current = await tx
+          .select({
+            id: addons.id,
+            itemId: addons.itemId,
+            subRecipeId: addons.subRecipeId,
+            quantity: addons.quantity,
+            unitId: addons.unitId,
+          })
+          .from(addons)
+          .where(
+            inArray(
+              addons.id,
+              l.addons.map((a) => a.addonId),
+            ),
+          );
+        const byId = new Map(current.map((a) => [a.id, a]));
+        await tx.insert(orderLineAddons).values(
+          l.addons.map((a) => {
+            const c = byId.get(a.addonId)!;
+            return {
+              id: ids(),
+              restaurantId,
+              createdAt: o.submittedAt,
+              orderLineId: lineId,
+              addonId: a.addonId,
+              name: a.name,
+              times: a.times,
+              unitPrice: a.unitPrice.toFixed(2),
+              itemId: c.itemId,
+              subRecipeId: c.subRecipeId,
+              quantity: c.quantity,
+              unitId: c.unitId,
+            };
+          }),
+        );
+      }
+      if (l.removals.length)
+        await tx.insert(orderLineRemovals).values(
+          l.removals.map((r) => ({
+            id: ids(),
+            restaurantId,
+            createdAt: o.submittedAt,
+            orderLineId: lineId,
+            ...componentCols(r.component),
+            label: r.label,
+          })),
+        );
+    }
+    await tx.insert(orderStatusEvents).values({
+      id: ids(),
+      restaurantId,
+      createdAt: o.submittedAt,
+      orderId: o.id,
+      fromStatus: null,
+      toStatus: "RECEIVED",
+      at: o.submittedAt,
+    });
+  }
+
   return {
     async findByClientRequest(menuAccessId, clientRequestId) {
       const [r] = await load(
@@ -267,104 +374,17 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         .where(eq(orders.menuAccessId, menuAccessId));
       return Number(r?.n ?? 0);
     },
-    async takeNextNumber(businessDay) {
-      const [r] = await tx
-        .insert(orderDayCounters)
-        .values({ restaurantId, businessDay, lastNumber: 1 })
-        .onConflictDoUpdate({
-          target: [orderDayCounters.restaurantId, orderDayCounters.businessDay],
-          set: { lastNumber: sql`${orderDayCounters.lastNumber} + 1` },
-        })
-        .returning({ n: orderDayCounters.lastNumber });
-      return r!.n;
-    },
     async insert(o) {
-      await tx.insert(orders).values({
-        id: o.id,
-        restaurantId,
-        createdAt: o.submittedAt,
-        tableId: o.tableId,
-        menuAccessId: o.menuAccessId,
-        clientRequestId: o.clientRequestId,
-        businessDay: o.businessDay,
-        number: o.number,
-        status: "RECEIVED",
-        total: o.total.toFixed(2),
-        submittedAt: o.submittedAt,
-        statusChangedAt: o.submittedAt,
-      });
-      for (const [position, l] of o.lines.entries()) {
-        const lineId = ids();
-        await tx.insert(orderLines).values({
-          id: lineId,
-          restaurantId,
-          createdAt: o.submittedAt,
-          orderId: o.id,
-          position,
-          recipeId: l.recipeId,
-          recipeVersionId: l.versionId,
-          quantity: l.quantity,
-          basePrice: l.basePrice.toFixed(2),
-          unitPrice: l.unitPrice.toFixed(2),
+      try {
+        return await withSavepoint(tx, async () => {
+          const number = await takeNextNumber(o.businessDay);
+          await insertOrder(o, number);
+          return { number };
         });
-        if (l.addons.length) {
-          const current = await tx
-            .select({
-              id: addons.id,
-              itemId: addons.itemId,
-              subRecipeId: addons.subRecipeId,
-              quantity: addons.quantity,
-              unitId: addons.unitId,
-            })
-            .from(addons)
-            .where(
-              inArray(
-                addons.id,
-                l.addons.map((a) => a.addonId),
-              ),
-            );
-          const byId = new Map(current.map((a) => [a.id, a]));
-          await tx.insert(orderLineAddons).values(
-            l.addons.map((a) => {
-              const c = byId.get(a.addonId)!;
-              return {
-                id: ids(),
-                restaurantId,
-                createdAt: o.submittedAt,
-                orderLineId: lineId,
-                addonId: a.addonId,
-                name: a.name,
-                times: a.times,
-                unitPrice: a.unitPrice.toFixed(2),
-                itemId: c.itemId,
-                subRecipeId: c.subRecipeId,
-                quantity: c.quantity,
-                unitId: c.unitId,
-              };
-            }),
-          );
-        }
-        if (l.removals.length)
-          await tx.insert(orderLineRemovals).values(
-            l.removals.map((r) => ({
-              id: ids(),
-              restaurantId,
-              createdAt: o.submittedAt,
-              orderLineId: lineId,
-              ...componentCols(r.component),
-              label: r.label,
-            })),
-          );
+      } catch (e) {
+        if (isUniqueViolation(e, "orders_client_request")) return null;
+        throw e;
       }
-      await tx.insert(orderStatusEvents).values({
-        id: ids(),
-        restaurantId,
-        createdAt: o.submittedAt,
-        orderId: o.id,
-        fromStatus: null,
-        toStatus: "RECEIVED",
-        at: o.submittedAt,
-      });
     },
     async get(id) {
       const [r] = await load(eq(orders.id, id), []);
@@ -456,7 +476,10 @@ export function menuRepository(tx: Tx): MenuRepo {
       if (!rows.length) return out;
       const found = rows.map((r) => r.id);
       const versions = await tx
-        .selectDistinctOn([recipeVersions.recipeId], { id: recipeVersions.id, recipeId: recipeVersions.recipeId })
+        .selectDistinctOn([recipeVersions.recipeId], {
+          id: recipeVersions.id,
+          recipeId: recipeVersions.recipeId,
+        })
         .from(recipeVersions)
         .where(inArray(recipeVersions.recipeId, found))
         .orderBy(recipeVersions.recipeId, desc(recipeVersions.number));
@@ -485,7 +508,9 @@ export function menuRepository(tx: Tx): MenuRepo {
           maxTimes: recipeAddons.maxTimes,
           active: addons.active,
           itemActive: items.active,
-          subRecipeActive: sql<boolean | null>`(select r.active from ${recipes} r where r.id = ${addons.subRecipeId})`,
+          subRecipeActive: sql<
+            boolean | null
+          >`(select r.active from ${recipes} r where r.id = ${addons.subRecipeId})`,
         })
         .from(recipeAddons)
         .innerJoin(addons, eq(addons.id, recipeAddons.addonId))
@@ -573,7 +598,10 @@ export function orderChoicesRepository(tx: Tx): OrderChoicesRepo {
         .orderBy(asc(orderLines.position));
       const lineIds = lines.map((l) => l.id);
       if (!lineIds.length) return [];
-      const chosen = await tx.select().from(orderLineAddons).where(inArray(orderLineAddons.orderLineId, lineIds));
+      const chosen = await tx
+        .select()
+        .from(orderLineAddons)
+        .where(inArray(orderLineAddons.orderLineId, lineIds));
       const removed = await tx
         .select()
         .from(orderLineRemovals)

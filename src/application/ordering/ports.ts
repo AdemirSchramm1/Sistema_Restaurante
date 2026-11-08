@@ -93,7 +93,6 @@ export type NewOrder = {
   menuAccessId: string;
   clientRequestId: string;
   businessDay: string;
-  number: number;
   total: Decimal;
   submittedAt: Date;
   lines: PricedLine[];
@@ -109,9 +108,12 @@ export type OrderFilter = {
 export interface OrderRepo {
   findByClientRequest(menuAccessId: string, clientRequestId: string): Promise<OrderRecord | null>;
   countForAccess(menuAccessId: string): Promise<number>;
-  /** Reserva o próximo número do dia (upsert com trava de linha). */
-  takeNextNumber(businessDay: string): Promise<number>;
-  insert(o: NewOrder): Promise<void>;
+  /**
+   * Reserva o número do dia (upsert com trava de linha) e grava pedido, linhas, escolhas e o
+   * evento de situação. `null`: já existe pedido com este `clientRequestId` no acesso (nada fica
+   * gravado, nem o número).
+   */
+  insert(o: NewOrder): Promise<{ number: number } | null>;
   get(id: string): Promise<OrderRecord | null>;
   events(id: string): Promise<OrderEventRecord[]>;
   /** Mais antigo primeiro. */
