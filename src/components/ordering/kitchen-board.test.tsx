@@ -40,8 +40,10 @@ describe("quadro da cozinha (spec 009 US4)", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("button", { name: "Começar preparo do pedido 1" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Pronto: pedido 2" })).toBeTruthy();
+    const card = (n: number) => screen.getByRole("article", { name: `Pedido ${n}, Mesa 12` });
+    expect(within(card(1)).getByRole("button", { name: "Começar preparo" })).toBeTruthy();
+    expect(within(card(2)).getByRole("button", { name: "Pronto" })).toBeTruthy();
+    expect(within(card(3)).queryByRole("button", { name: "Pronto" })).toBeNull();
     const ready = screen.getByRole("article", { name: "Pedido 3, Mesa 12" });
     expect(within(ready).getByText("Esperando o garçom")).toBeTruthy();
   });
