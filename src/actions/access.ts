@@ -44,7 +44,7 @@ export async function setMemberActiveAction(_p: ActionState, f: FormData): Promi
   );
 }
 
-/** Rota pública: aceita o convite, entra e vai para os itens. */
+/** Rota pública: aceita o convite, entra e vai para a primeira tela do papel. */
 export async function acceptInvitationAction(_p: ActionState, f: FormData): Promise<ActionState> {
   const deps = serverDeps();
   const password = str(f, "password");
@@ -58,5 +58,5 @@ export async function acceptInvitationAction(_p: ActionState, f: FormData): Prom
     body: { email: str(f, "email"), password },
     headers: await headers(),
   });
-  redirect("/estoque/itens");
+  redirect("/");
 }

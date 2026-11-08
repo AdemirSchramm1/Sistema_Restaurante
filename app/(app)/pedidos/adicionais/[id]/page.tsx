@@ -63,8 +63,8 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
       )}
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <Card>
+          {/* Sem `key` pela versão: remontar depois de salvar apagaria o "Alterações salvas.". */}
           <AddonForm
-            key={a.version}
             action={updateAddonAction}
             options={opts}
             initial={{

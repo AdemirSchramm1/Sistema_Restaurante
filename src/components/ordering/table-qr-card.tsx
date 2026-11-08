@@ -34,6 +34,15 @@ export function TableQrCard({ restaurantName, table, rotateAction }: TableQrCard
       {rotateAction && (
         <div className="no-print grid w-full gap-2 text-sm">
           <a
+            href={table.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Abrir o cardápio da ${label}`}
+            className="text-primary underline underline-offset-4"
+          >
+            Abrir o cardápio
+          </a>
+          <a
             href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(table.svg)}`}
             download={`mesa-${table.name}.svg`}
             className="text-primary underline underline-offset-4"

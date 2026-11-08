@@ -125,8 +125,8 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             />
           )}
           {custom?.ok && (
+            // Sem `key` pela versão: remontar depois de salvar apagaria o "Quadro salvo.".
             <ProductCustomization
-              key={`custom-${custom.value.version}`}
               recipeId={v.recipe.id}
               kind={v.recipe.kind}
               version={custom.value.version}

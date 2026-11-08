@@ -157,7 +157,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                       type="button"
                       size="sm"
                       variant="ghost"
-                      aria-label={`Tirar ${r.name} da lista`}
+                      aria-label={`Remover ${r.name} da lista`}
                       onClick={() => setRemovables((list) => list.filter((_, j) => j !== i))}
                     >
                       Remover
