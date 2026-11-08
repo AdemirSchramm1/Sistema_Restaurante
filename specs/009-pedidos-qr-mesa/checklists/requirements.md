@@ -31,5 +31,5 @@
 
 ## Notas
 
-- O único ponto em aberto (regra dos 10 minutos) foi decidido pelo dono em 2026-11-08: 10 minutos
+- O único ponto em aberto (tempo do cardápio aberto) foi decidido pelo dono em 2026-11-08: 20 minutos
   desde a leitura do QR code, sem renovação. Spec pronta para o `speckit plan`.

@@ -83,26 +83,26 @@ e 1 suco no pedido, enviar e ver a confirmação "Pedido enviado para a cozinha"
     envio, então aparece "X-Burger não está mais disponível" e a linha sai do pedido; o resto pode
     ser enviado.
 
-### US3 — O cardápio aberto fica no ar por no máximo 10 minutos (P1)
+### US3 — O cardápio aberto fica no ar por no máximo 20 minutos (P1)
 
 Como dono, não quero cardápios abertos para sempre nos celulares, nem gente pedindo de fora do
 restaurante com uma foto antiga do QR code.
 
 **Por que P1**: foi pedido explicitamente pelo dono.
 
-**Teste independente**: escanear o QR code, mexer no cardápio sem parar e, 10 minutos depois da
+**Teste independente**: escanear o QR code, mexer no cardápio sem parar e, 20 minutos depois da
 leitura, tentar enviar um pedido; aparece a mensagem para escanear de novo e nenhum pedido é criado.
 
 **Regra (decidida pelo dono em 2026-11-08)**: cada leitura do QR code abre um **acesso ao
-cardápio** naquele celular do cliente. O acesso **fecha 10 minutos depois da leitura**, mesmo que o
+cardápio** naquele celular do cliente. O acesso **fecha 20 minutos depois da leitura**, mesmo que o
 cliente esteja mexendo; usar o cardápio não aumenta o tempo. Para pedir de novo depois disso, basta
 escanear o QR code da mesa outra vez.
 
 **Cenários**
 
-1. Dado o cardápio aberto há 9 minutos, quando adiciono um produto, então o tempo **não** aumenta:
+1. Dado o cardápio aberto há 19 minutos, quando adiciono um produto, então o tempo **não** aumenta:
    continua faltando 1 minuto.
-2. Passados 10 minutos da leitura, quando toco em qualquer coisa, então aparece "Seu tempo acabou.
+2. Passados 20 minutos da leitura, quando toco em qualquer coisa, então aparece "Seu tempo acabou.
    Escaneie o QR code da mesa de novo para continuar." O que estava no pedido e não foi enviado é
    mostrado na tela para o cliente lembrar, mas não pode ser enviado.
 3. Dado um acesso fechado, quando alguém tenta enviar um pedido com ele (inclusive reabrindo a aba
@@ -113,7 +113,7 @@ escanear o QR code da mesa outra vez.
 5. Escanear o QR code de novo no mesmo celular abre um acesso novo; o antigo deixa de valer.
    Os pedidos já enviados continuam na cozinha normalmente.
 6. Acesso fechado não ocupa nada no sistema: some da contagem de acessos abertos.
-7. Dado que o cliente toca em "Confirmar" antes dos 10 minutos e o envio chega logo depois, então o
+7. Dado que o cliente toca em "Confirmar" antes dos 20 minutos e o envio chega logo depois, então o
    pedido é aceito (vale a hora em que o cliente confirmou, com tolerância de poucos segundos).
 
 ### US4 — A cozinha recebe os pedidos e o garçom leva à mesa (P1)
@@ -187,7 +187,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
   de venda e não esgotados, do restaurante dono da mesa.
 - **FR-005** Cada leitura do QR code abre um acesso ao cardápio, ligado à mesa. O acesso fecha 10
   minutos depois da leitura; usar o cardápio não aumenta esse tempo. Acesso fechado não envia
-  pedido. O tempo de 10 minutos é fixo nesta versão.
+  pedido. O tempo de 20 minutos é fixo nesta versão.
 - **FR-006** O pedido guarda: número (sequencial por restaurante, por dia, para chamar na cozinha),
   mesa, data e hora, acesso de origem, situação e as linhas (produto, versão vigente do produto no
   envio, quantidade inteira, preço unitário no envio, observação). O total é a soma de
@@ -220,7 +220,7 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
 ## Entidades
 
 - **Mesa**: nome, ativa/inativa, link atual do QR code, restaurante.
-- **Acesso ao cardápio**: mesa, quando abriu, fecha em (abriu + 10 minutos); termina por tempo
+- **Acesso ao cardápio**: mesa, quando abriu, fecha em (abriu + 20 minutos); termina por tempo
   ou por nova leitura no mesmo celular.
 - **Pedido**: número do dia, mesa, acesso de origem, data e hora, situação, motivo de cancelamento,
   total.
@@ -242,10 +242,10 @@ Como cozinha, quero tirar um prato do cardápio do cliente quando acabar, sem in
 
 ## Premissas
 
-- Os 10 minutos contam da leitura do QR code no celular do cliente, sem renovação (decisão do dono
+- Os 20 minutos contam da leitura do QR code no celular do cliente, sem renovação (decisões do dono
   em 2026-11-08).
 - O pedido vai direto para a cozinha, sem o garçom confirmar antes. O controle contra pedido
-  indevido é: QR code trocável, acesso de 10 minutos, limite por acesso, chave de desligar e
+  indevido é: QR code trocável, acesso de 20 minutos, limite por acesso, chave de desligar e
   cancelamento pela cozinha.
 - O cardápio mostra nome e preço, em ordem alfabética. Categorias, foto e descrição ficam para
   depois.
@@ -265,4 +265,5 @@ integração com PDV, nota fiscal, relatório de vendas.
 
 | Data | Pergunta | Decisão |
 |---|---|---|
-| 2026-11-08 | Como contam os 10 minutos do cardápio aberto? | 10 minutos desde a leitura do QR code, no celular do cliente; usar o cardápio não renova |
+| 2026-11-08 | Como contam os minutos do cardápio aberto? | Desde a leitura do QR code, no celular do cliente; usar o cardápio não renova |
+| 2026-11-08 | Quanto tempo o cardápio fica aberto? | 20 minutos (o pedido original falava em 10; o dono mudou depois de decidir a regra) |
