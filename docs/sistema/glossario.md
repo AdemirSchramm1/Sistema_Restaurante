@@ -54,11 +54,23 @@
 | Estorno | – | `MovementType.REVERSAL` (`reverses_id`) | Uma vez por movimentação |
 | Lançamento | – | `stock_movement` | Nome na tela do menu "Lançamentos" |
 | Permissões de lançamento | – | `movement.purchase`, `movement.loss`, `adjustment.request`, `adjustment.approve`, `movement.reverse` | Ver spec 004, FR-006 |
-| Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE` | Gerente, chef, estoquista, comprador, administrativo |
+| Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE`, `WAITER` | Gerente, chef, estoquista, comprador, administrativo, garçom (`WAITER` entra na feature 009) |
 | Vínculo do usuário com o restaurante | – | `membership` | |
 | Convite | – | `invitation` | |
 | Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Informativa desde a 002 |
 | Trilha de auditoria | – | `audit_log` | Só inserção |
+| Mesa | – | `dining_table` | Tem o QR code (`qrToken`). Feature 009 |
+| Trocar QR code | – | `rotateTableQr` | Invalida o link antigo da mesa |
+| Acesso ao cardápio | – | `menu_access` | Aberto pela leitura do QR code; fecha 20 minutos depois (`MENU_ACCESS_MINUTES`) |
+| Cardápio | – | `menu` | Produtos vendidos, ativos, com preço e não esgotados |
+| Pedido | – | `order` | Da mesa, enviado pelo cliente. Não confundir com pedido de acerto nem com ponto de pedido |
+| Linha do pedido | – | `order_line` | Produto, versão, quantidade, preço no envio, observação. Só inserção |
+| Número do pedido | – | `order.number` + `businessDay` | Reinicia a cada dia do restaurante |
+| Situação do pedido | – | `OrderStatus`: `RECEIVED`, `PREPARING`, `READY`, `DELIVERED`, `CANCELLED` | Recebido, em preparo, pronto, entregue, cancelado |
+| Motivo de cancelamento | – | `OrderCancelReason`: `CUSTOMER_GAVE_UP`, `OUT_OF_PRODUCT`, `IMPROPER_ORDER`, `OTHER` | |
+| Esgotado hoje | – | `soldOutOn` (`recipes.sold_out_on`) | Volta sozinho no dia seguinte |
+| Recebendo pedidos pelo QR code | – | `acceptingQrOrders` | Chave do restaurante |
+| Permissões de pedidos | – | `table.manage`, `ordering.toggle`, `order.kitchen`, `order.cancel`, `order.deliver`, `order.read`, `product.sold_out` | Ver spec 009, FR-010 |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de
