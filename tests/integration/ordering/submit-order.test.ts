@@ -57,7 +57,7 @@ describe("enviar pedido (spec 009 US2 + spec 010 US3)", () => {
     expect(r).toEqual({ orderId: expect.any(String), number: 1, total: "77.00", status: "RECEIVED" });
 
     const db = ownerTestDb().$client;
-    const o = await db.query("select status, total, business_day, table_id from orders where id = $1", [r.orderId]);
+    const o = await db.query("select status, total, business_day::text, table_id from orders where id = $1", [r.orderId]);
     expect(o.rows[0]).toMatchObject({ status: "RECEIVED", total: "77.00", business_day: "2026-10-31", table_id: s.table.tableId });
     const lines = await db.query(
       `select l.id, l.quantity, l.base_price, l.unit_price, l.recipe_version_id = (

@@ -10,6 +10,8 @@ import {
   type OrderStatus,
 } from "@/domain/ordering/order";
 import type { Action } from "@/domain/access/permissions";
+import { businessDay } from "@/domain/ordering/business-day";
+import { isSoldOut } from "@/domain/ordering/menu";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 /** Cozinha e garçom (spec 009, US4). Cada mudança de situação grava o evento com quem e quando. */
@@ -154,5 +156,56 @@ export async function cancelOrder(
       input.version,
       auditStamp(deps, ctx),
     );
+  });
+}
+
+/** Produtos vendidos (ativos e com preço) com o interruptor "Esgotado hoje" (spec 009, US5). */
+export async function listDishesForKitchen(
+  deps: Deps,
+  ctx: RequestContext,
+): Promise<Result<{ id: string; name: string; soldOut: boolean }[]>> {
+  const allowed = await authorize(deps, ctx, "product.sold_out", "recipe");
+  if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const today = businessDay(deps.clock.now(), (await repos.orderingSettings.get()).timezone);
+    const rows = await repos.menu.products();
+    return ok(
+      rows
+        .filter((r) => r.active && r.salePrice)
+        .map((r) => ({ id: r.id, name: r.name, soldOut: isSoldOut(r.soldOutOn, today) })),
+    );
+  });
+}
+
+/**
+ * "Esgotado hoje" guarda a data local de hoje: amanhã o produto volta sozinho. Sem trava otimista
+ * (é um interruptor do dia; o último clique vale).
+ */
+export async function setProductSoldOut(
+  deps: Deps,
+  ctx: RequestContext,
+  input: { recipeId: string; soldOut: boolean },
+): Promise<Result<void>> {
+  const allowed = await authorize(deps, ctx, "product.sold_out", "recipe", input.recipeId);
+  if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const current = (await repos.menu.products()).find((r) => r.id === input.recipeId);
+    if (!current) {
+      const any = await repos.recipes.get(input.recipeId);
+      return any ? err("NOT_A_DISH") : err("NOT_FOUND");
+    }
+    const today = businessDay(deps.clock.now(), (await repos.orderingSettings.get()).timezone);
+    const day = input.soldOut ? today : null;
+    await repos.menu.setSoldOut(input.recipeId, day, auditStamp(deps, ctx));
+    if (current.soldOutOn !== day)
+      await repos.audit.record({
+        entity: "recipe",
+        entityId: input.recipeId,
+        action: "UPDATE",
+        changes: { soldOutOn: [current.soldOutOn, day] },
+        userId: ctx.userId,
+        origin: ctx.origin,
+      });
+    return ok(undefined);
   });
 }

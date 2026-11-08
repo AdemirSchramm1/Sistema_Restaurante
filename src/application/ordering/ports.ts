@@ -1,7 +1,7 @@
 import type { Result } from "@/domain/shared/result";
 import type { Decimal } from "@/domain/shared/decimal";
 import type { UnitCode } from "@/domain/inventory/units";
-import type { ComponentRef } from "@/domain/inventory/recipe";
+import type { ComponentRef, RecipeLineData } from "@/domain/inventory/recipe";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
 import type { CatalogProduct, PricedLine } from "@/domain/ordering/checkout";
 import type { MenuProductRow } from "@/domain/ordering/menu";
@@ -192,6 +192,8 @@ export interface CustomizationRepo {
 export type StoredLineChoices = {
   recipeId: string;
   recipeVersionId: string;
+  /** Linhas da versão gravada no pedido (não a atual). */
+  versionLines: RecipeLineData[];
   quantity: number;
   addons: { component: ComponentRef; quantity: Decimal; unit: UnitCode; times: number }[];
   removals: ComponentRef[];

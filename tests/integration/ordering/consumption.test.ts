@@ -14,7 +14,7 @@ describe("consumo do pedido para a baixa (spec 010, US5)", () => {
 
     // Versão nova do X-Burger depois do envio: o consumo segue a versão gravada no pedido.
     unwrap(
-      await updateRecipe(env.deps, m, s.burger, 3, {
+      await updateRecipe(env.deps, m, s.burgerId, 3, {
         name: "X-Burger",
         kind: "DISH",
         yieldQuantity: null,

@@ -18,7 +18,7 @@ describe("esgotado hoje (spec 009, US5)", () => {
     expect(unwrap(await getRecipe(env.deps, m, s.suco)).recipe.active).toBe(true);
     expect(unwrap(await listDishesForKitchen(env.deps, chef))).toEqual([
       { id: s.suco, name: "Suco", soldOut: true },
-      { id: s.burger, name: "X-Burger", soldOut: false },
+      { id: s.burgerId, name: "X-Burger", soldOut: false },
     ]);
 
     unwrap(await setProductSoldOut(env.deps, chef, { recipeId: s.suco, soldOut: false }));

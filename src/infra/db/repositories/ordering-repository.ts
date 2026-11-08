@@ -606,9 +606,26 @@ export function orderChoicesRepository(tx: Tx): OrderChoicesRepo {
         .select()
         .from(orderLineRemovals)
         .where(inArray(orderLineRemovals.orderLineId, lineIds));
+      const versionLines = await tx
+        .select()
+        .from(recipeLines)
+        .where(
+          inArray(
+            recipeLines.recipeVersionId,
+            lines.map((l) => l.recipeVersionId),
+          ),
+        )
+        .orderBy(asc(recipeLines.position));
       return lines.map((l) => ({
         recipeId: l.recipeId,
         recipeVersionId: l.recipeVersionId,
+        versionLines: versionLines
+          .filter((v) => v.recipeVersionId === l.recipeVersionId)
+          .map((v) => ({
+            component: ref(v.itemId, v.subRecipeId),
+            quantity: dec(v.quantity)!,
+            unit: UNIT_CODE_BY_ID[v.unitId]!,
+          })),
         quantity: l.quantity,
         addons: chosen
           .filter((a) => a.orderLineId === l.id)

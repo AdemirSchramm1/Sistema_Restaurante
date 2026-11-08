@@ -8,6 +8,8 @@ import {
   rotateTableQrAction,
   setTableActiveAction,
 } from "@/actions/tables";
+import { setAcceptingQrOrdersAction } from "@/actions/orders";
+import { getOrderingSettings } from "@/application/ordering/orders";
 import { serverDeps } from "@/infra/server";
 import { listTables, tableQrCodes } from "@/application/ordering/tables";
 import { ActionForm } from "@/components/forms/action-form";
@@ -15,7 +17,7 @@ import { TableQrCard } from "@/components/ordering/table-qr-card";
 import { TableRangeForm } from "@/components/ordering/table-range-form";
 import { NoAccess } from "@/components/layout/no-access";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Alert, Card, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 
 export const metadata: Metadata = { title: "Mesas" };
@@ -23,9 +25,10 @@ export const metadata: Metadata = { title: "Mesas" };
 export default async function Page() {
   const ctx = await requireContext();
   const deps = serverDeps();
-  const [list, qrs] = await Promise.all([
+  const [list, qrs, settings] = await Promise.all([
     listTables(deps, ctx, { includeInactive: true }),
     tableQrCodes(deps, ctx, {}),
+    getOrderingSettings(deps, ctx),
   ]);
   if (!list.ok || !qrs.ok) return <NoAccess />;
   const svgById = new Map(qrs.value.tables.map((t) => [t.id, t]));
@@ -42,6 +45,25 @@ export default async function Page() {
           </Link>
         )}
       </div>
+
+      {settings.ok && (
+        <Card className="grid gap-2" aria-label="Recebendo pedidos pelo QR code">
+          <CardTitle>Recebendo pedidos pelo QR code</CardTitle>
+          {settings.value.acceptingQrOrders ? (
+            <p className="text-sm">Ligado: os clientes podem pedir pelo celular.</p>
+          ) : (
+            <Alert tone="info">
+              Desligado: quem escanear vê &quot;O restaurante não está recebendo pedidos agora. Chame um
+              garçom.&quot;
+            </Alert>
+          )}
+          <ActionForm
+            action={setAcceptingQrOrdersAction}
+            hidden={{ accepting: String(!settings.value.acceptingQrOrders), version: settings.value.version }}
+            submitLabel={settings.value.acceptingQrOrders ? "Parar de receber pedidos" : "Voltar a receber pedidos"}
+          />
+        </Card>
+      )}
 
       <Card className="grid gap-4">
         <CardTitle>Nova mesa</CardTitle>

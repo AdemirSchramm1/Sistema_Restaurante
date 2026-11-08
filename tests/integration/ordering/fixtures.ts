@@ -126,5 +126,5 @@ export async function orderingScenario(env: TestEnv, m: RequestContext) {
     const { submitOrder } = await import("../../../src/application/ordering/submit-order");
     return unwrap(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }));
   };
-  return { ...k, cheese, table, cookie, burger, juice, place };
+  return { ...k, burgerId: k.burger, cheese, table, cookie, burger, juice, place };
 }

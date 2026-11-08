@@ -5,6 +5,9 @@ import { setProductCustomizationAction, setSalePriceAction, updateRecipeAction }
 import { serverDeps } from "@/infra/server";
 import { getRecipe, recipeFormOptions } from "@/application/inventory/recipes";
 import { getProductCustomization } from "@/application/ordering/customization";
+import { listDishesForKitchen } from "@/application/ordering/kitchen";
+import { setProductSoldOutAction } from "@/actions/orders";
+import { ActionForm } from "@/components/forms/action-form";
 import { ProductCustomization } from "@/components/ordering/product-customization";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
@@ -32,12 +35,14 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const view = await getRecipe(deps, ctx, id);
   if (!view.ok) notFound();
   const v = view.value;
-  const [options, history, restaurant, custom] = await Promise.all([
+  const [options, history, restaurant, custom, dishes] = await Promise.all([
     recipeFormOptions(deps, ctx, id),
     getAuditHistory(deps, ctx, "recipe", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
     v.recipe.kind === "DISH" && can(ctx.roles, "addon.read") ? getProductCustomization(deps, ctx, id) : null,
+    v.recipe.kind === "DISH" && can(ctx.roles, "product.sold_out") ? listDishesForKitchen(deps, ctx) : null,
   ]);
+  const onMenu = dishes?.ok ? dishes.value.find((x) => x.id === id) : undefined;
   const timezone = restaurant.ok ? (restaurant.value?.timezone ?? "America/Sao_Paulo") : "America/Sao_Paulo";
   const canWrite = can(ctx.roles, "recipe.write");
 
@@ -75,6 +80,17 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         </span>
         {canWrite && (
           <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
+        )}
+        {onMenu && (
+          <>
+            {onMenu.soldOut && <Badge tone="warn">esgotado hoje</Badge>}
+            <ActionForm
+              action={setProductSoldOutAction}
+              hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
+              submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
+              variant="ghost"
+            />
+          </>
         )}
       </div>
       {isPrep && v.usedBy.length > 0 && (
