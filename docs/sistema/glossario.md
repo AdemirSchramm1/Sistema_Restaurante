@@ -64,7 +64,7 @@
 | Acesso ao cardápio | – | `menu_access` | Aberto pela leitura do QR code; fecha 20 minutos depois (`MENU_ACCESS_MINUTES`) |
 | Cardápio | – | `menu` | Produtos vendidos, ativos, com preço e não esgotados |
 | Pedido | – | `order` | Da mesa, enviado pelo cliente. Não confundir com pedido de acerto nem com ponto de pedido |
-| Linha do pedido | – | `order_line` | Produto, versão, quantidade, preço no envio, observação. Só inserção |
+| Linha do pedido | – | `order_line` | Produto, versão, quantidade, preço do produto (`basePrice`) e preço com adicionais (`unitPrice`) no envio. Sem observação livre (010). Só inserção |
 | Número do pedido | – | `order.number` + `businessDay` | Reinicia a cada dia do restaurante |
 | Situação do pedido | – | `OrderStatus`: `RECEIVED`, `PREPARING`, `READY`, `DELIVERED`, `CANCELLED` | Recebido, em preparo, pronto, entregue, cancelado |
 | Motivo de cancelamento | – | `OrderCancelReason`: `CUSTOMER_GAVE_UP`, `OUT_OF_PRODUCT`, `IMPROPER_ORDER`, `OTHER` | |

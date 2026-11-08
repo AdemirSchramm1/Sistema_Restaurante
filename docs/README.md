@@ -28,6 +28,12 @@ E se liga ao fluxo **Spec Kit**:
   - [09 — Controles e permissões](produto/estoque/09-controles-e-permissoes.md)
   - [10 — Indicadores](produto/estoque/10-indicadores.md)
   - [13 — Decisões adotadas](produto/estoque/13-decisoes-adotadas.md)
+- Módulo de Pedidos
+  - [00 — Visão geral](produto/pedidos/00-visao-geral.md)
+  - [01 — Mesas e QR codes](produto/pedidos/01-mesas-e-qr-code.md)
+  - [02 — Cardápio do cliente](produto/pedidos/02-cardapio-do-cliente.md)
+  - [03 — Cozinha e garçom](produto/pedidos/03-cozinha-e-garcom.md)
+  - [04 — Adicionar e tirar](produto/pedidos/04-adicionar-e-tirar.md)
 
 ### Sistema
 
@@ -41,6 +47,11 @@ E se liga ao fluxo **Spec Kit**:
   - [02 — Regras de cálculo (domínio)](sistema/estoque/02-regras-de-calculo.md)
   - [03 — Movimentações e saldo](sistema/estoque/03-movimentacoes-e-saldo.md)
   - [04 — Plano de testes](sistema/estoque/04-plano-de-testes.md)
+- Módulo de Pedidos
+  - [01 — Modelo de dados](sistema/pedidos/01-modelo-de-dados.md)
+  - [02 — Regras (domínio)](sistema/pedidos/02-regras.md)
+  - [03 — Rota pública e acesso ao cardápio](sistema/pedidos/03-rota-publica.md)
+  - [04 — Plano de testes](sistema/pedidos/04-plano-de-testes.md)
 
 ## Como manter
 

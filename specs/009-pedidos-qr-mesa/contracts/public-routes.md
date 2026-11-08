@@ -12,6 +12,10 @@
 
 ## `GET /m/{token}` — ler o QR code (route handler)
 
+`/m/{token}` responde `307 → /cardapio/qr/{token}`: o cookie do acesso só vale em `/cardapio`, e
+é nessa segunda rota que o navegador manda o cookie anterior (passo 5). Os passos abaixo rodam em
+`/cardapio/qr/{token}`.
+
 1. `app_table_by_qr_token(token)`.
 2. Não achou → página "QR code inválido. Chame um garçom." (status 404).
 3. Mesa inativa → "Esta mesa não está recebendo pedidos. Chame um garçom." (sem criar acesso).

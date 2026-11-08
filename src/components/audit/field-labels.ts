@@ -72,6 +72,13 @@ export const FIELD_LABELS: Record<string, string> = {
   paymentTerms: "Pagamento",
   notes: "Observação",
   item: "Item vendido",
+  component: "O que vai",
+  quantity: "Quantidade",
+  price: "Preço",
+  customization: "Adicionar e tirar",
+  soldOutOn: "Esgotado no dia",
+  qrRotatedAt: "QR code trocado em",
+  acceptingQrOrders: "Recebendo pedidos pelo QR code",
 };
 
 /** Campos cujo valor é um id interno ou uma lista técnica: o histórico só diz que mudou. */

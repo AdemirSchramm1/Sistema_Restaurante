@@ -15,9 +15,20 @@ import { recipeRepository } from "./db/repositories/recipe-repository";
 import { movementRepository } from "./db/repositories/movement-repository";
 import { supplierRepository } from "./db/repositories/supplier-repository";
 import { reportRepository } from "./db/repositories/report-repository";
+import {
+  diningTableRepository,
+  menuAccessRepository,
+  menuRepository,
+  orderChoicesRepository,
+  orderingSettingsRepository,
+  orderRepository,
+} from "./db/repositories/ordering-repository";
+import { addonRepository, customizationRepository } from "./db/repositories/addon-repository";
+import { publicOrderingLookups } from "./db/public-ordering";
 import { createAuth, type Auth } from "./auth/auth";
 import { betterAuthService } from "./auth/auth-service";
 import { cryptoTokens } from "./tokens";
+import { qrSvg } from "./qr";
 
 class Rollback<T> extends Error {
   constructor(readonly result: Result<T>) {
@@ -40,6 +51,14 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     movements: movementRepository(tx, restaurantId),
     suppliers: supplierRepository(tx, restaurantId),
     reports: reportRepository(tx, restaurantId),
+    tables: diningTableRepository(tx, restaurantId),
+    menuAccesses: menuAccessRepository(tx, restaurantId),
+    orderingSettings: orderingSettingsRepository(tx, restaurantId),
+    orders: orderRepository(tx, restaurantId, uuidIds.next),
+    menu: menuRepository(tx),
+    addons: addonRepository(tx, restaurantId),
+    customization: customizationRepository(tx, restaurantId, uuidIds.next),
+    orderChoices: orderChoicesRepository(tx),
   };
 }
 
@@ -69,6 +88,7 @@ function globalLookups(db: Db): GlobalLookups {
       ]);
       return r.rows[0]?.id ?? null;
     },
+    ...publicOrderingLookups(db),
   };
 }
 
@@ -97,6 +117,7 @@ export function makeDeps(cfg: DepsConfig): Deps & { betterAuth: Auth } {
     appUrl: cfg.appUrl,
     auth: betterAuthService(betterAuth, cfg.db),
     tokens: cryptoTokens,
+    qr: { svg: qrSvg },
     global: globalLookups(cfg.db),
     betterAuth,
     async tenant(restaurantId, fn) {

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { setSalePriceAction, updateRecipeAction } from "@/actions/recipes";
+import { setProductCustomizationAction, setSalePriceAction, updateRecipeAction } from "@/actions/recipes";
 import { serverDeps } from "@/infra/server";
 import { getRecipe, recipeFormOptions } from "@/application/inventory/recipes";
+import { getProductCustomization } from "@/application/ordering/customization";
+import { listDishesForKitchen } from "@/application/ordering/kitchen";
+import { setProductSoldOutAction } from "@/actions/orders";
+import { ActionForm } from "@/components/forms/action-form";
+import { ProductCustomization } from "@/components/ordering/product-customization";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
 import { RECIPE_KIND_LABELS } from "@/domain/inventory/recipe";
@@ -20,6 +25,7 @@ import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
 export const metadata: Metadata = { title: "Produto" };
 
 const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
+const brPrice = (v: Decimal) => formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 });
 
 export default async function Page({ params, searchParams }: PageProps<"/estoque/produtos/[id]">) {
   const ctx = await requireContext();
@@ -29,11 +35,14 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   const view = await getRecipe(deps, ctx, id);
   if (!view.ok) notFound();
   const v = view.value;
-  const [options, history, restaurant] = await Promise.all([
+  const [options, history, restaurant, custom, dishes] = await Promise.all([
     recipeFormOptions(deps, ctx, id),
     getAuditHistory(deps, ctx, "recipe", id),
     deps.tenant(ctx.restaurantId, async (r) => ({ ok: true as const, value: await r.restaurants.get() })),
+    v.recipe.kind === "DISH" && can(ctx.roles, "addon.read") ? getProductCustomization(deps, ctx, id) : null,
+    v.recipe.kind === "DISH" && can(ctx.roles, "product.sold_out") ? listDishesForKitchen(deps, ctx) : null,
   ]);
+  const onMenu = dishes?.ok ? dishes.value.find((x) => x.id === id) : undefined;
   const timezone = restaurant.ok ? (restaurant.value?.timezone ?? "America/Sao_Paulo") : "America/Sao_Paulo";
   const canWrite = can(ctx.roles, "recipe.write");
 
@@ -48,6 +57,8 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   };
   const formOptions = { items: keep("ITEM", opts.items), preps: keep("RECIPE", opts.preps) };
   const isPrep = v.recipe.kind === "SUB_RECIPE";
+  const nameOf = (kind: "ITEM" | "RECIPE", cid: string) =>
+    v.lines.find((l) => l.componentKind === kind && l.componentId === cid)?.name;
   const priced = evaluateProductCost({
     id: v.recipe.id,
     name: v.recipe.name,
@@ -69,6 +80,17 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         </span>
         {canWrite && (
           <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
+        )}
+        {onMenu && (
+          <>
+            {onMenu.soldOut && <Badge tone="warn">esgotado hoje</Badge>}
+            <ActionForm
+              action={setProductSoldOutAction}
+              hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
+              submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
+              variant="ghost"
+            />
+          </>
         )}
       </div>
       {isPrep && v.usedBy.length > 0 && (
@@ -100,6 +122,28 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
               marginNegative={!!priced.margin?.isNegative()}
               canEdit={canWrite && v.recipe.active}
               action={setSalePriceAction}
+            />
+          )}
+          {custom?.ok && (
+            // Sem `key` pela versão: remontar depois de salvar apagaria o "Quadro salvo.".
+            <ProductCustomization
+              recipeId={v.recipe.id}
+              kind={v.recipe.kind}
+              version={custom.value.version}
+              addons={custom.value.addons.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              removables={custom.value.removables.map((r) => ({
+                component: `${r.component.kind}:${r.component.id}`,
+                name: nameOf(r.component.kind, r.component.id) ?? r.label.replace(/^sem\s+/i, ""),
+                label: r.label,
+                orphan: r.orphan,
+              }))}
+              candidates={custom.value.candidates.map((c) => ({
+                component: `${c.component.kind}:${c.component.id}`,
+                name: c.name,
+              }))}
+              available={custom.value.available.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              canEdit={can(ctx.roles, "addon.write") && v.recipe.active}
+              action={setProductCustomizationAction}
             />
           )}
           <Card className="grid gap-2 text-sm" aria-label="Quanto custa">

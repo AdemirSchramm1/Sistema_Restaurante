@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { can, assertCan, ACTIONS, type Role } from "./permissions";
+import { can, assertCan, ACTIONS, ROLES, ROLE_LABELS, type Role } from "./permissions";
 
 describe("matriz de permissões (spec 001, FR-003)", () => {
   it("gerente pode tudo", () => {
@@ -9,11 +9,17 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
   it("chef consulta, escreve itens e produtos, lança perda e pede acerto (specs 003 e 004)", () => {
     const allowed = ACTIONS.filter((a) => can(["CHEF"], a));
     expect(allowed.sort()).toEqual([
+      "addon.read",
       "adjustment.request",
       "catalog.read",
       "item.reorder",
       "item.write",
       "movement.loss",
+      "order.cancel",
+      "order.deliver",
+      "order.kitchen",
+      "order.read",
+      "product.sold_out",
       "recipe.write",
     ]);
   });
@@ -76,5 +82,35 @@ describe("aviso de reposição (spec 006, FR-002)", () => {
       can([r], "item.reorder"),
     );
     expect(who).toEqual(["MANAGER", "CHEF", "BUYER"]);
+  });
+});
+
+describe("pedidos pelo QR code (spec 009, FR-010) e adicionais (spec 010, FR-008)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER"];
+  const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
+
+  it("papel Garçom existe, em português", () => {
+    expect(ROLES).toContain("WAITER");
+    expect(ROLE_LABELS.WAITER).toBe("Garçom");
+  });
+
+  it("garçom só vê prontos, marca entregue e consulta pedidos; não vê estoque", () => {
+    expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual(["order.deliver", "order.read"]);
+    expect(can(["WAITER"], "catalog.read")).toBe(false);
+  });
+
+  it("matriz das ações novas", () => {
+    expect(who("table.manage")).toEqual(["MANAGER"]);
+    expect(who("ordering.toggle")).toEqual(["MANAGER"]);
+    expect(who("order.kitchen")).toEqual(["MANAGER", "CHEF"]);
+    expect(who("order.cancel")).toEqual(["MANAGER", "CHEF"]);
+    expect(who("product.sold_out")).toEqual(["MANAGER", "CHEF"]);
+    expect(who("order.deliver")).toEqual(["MANAGER", "CHEF", "WAITER"]);
+    expect(who("order.read")).toEqual(["MANAGER", "CHEF", "WAITER"]);
+  });
+
+  it("preços de adicionais só o gerente muda; o chef vê", () => {
+    expect(who("addon.write")).toEqual(["MANAGER"]);
+    expect(who("addon.read")).toEqual(["MANAGER", "CHEF"]);
   });
 });

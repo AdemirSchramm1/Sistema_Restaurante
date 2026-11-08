@@ -41,7 +41,8 @@ export async function signInAction(_prev: ActionState, form: FormData): Promise<
       };
     throw e;
   }
-  redirect("/estoque/itens");
+  // A primeira tela depende do papel (garçom não vê o estoque).
+  redirect("/");
 }
 
 export async function signOutAction() {

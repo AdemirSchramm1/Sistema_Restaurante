@@ -4,6 +4,7 @@ import type { Origin } from "./context";
 import type { AccessRepos } from "./access/ports";
 import type { CatalogRepos } from "./inventory/ports";
 import type { SupplierRepos } from "./suppliers/ports";
+import type { OrderingRepos } from "./ordering/ports";
 
 export interface Clock {
   now(): Date;
@@ -22,6 +23,11 @@ export interface Mailer {
 export interface TokenService {
   create(): { token: string; hash: string };
   hash(token: string): string;
+}
+
+/** Desenho do QR code da mesa (spec 009). */
+export interface QrRenderer {
+  svg(url: string): Promise<string>;
 }
 
 /** Criação de login (Better Auth em produção). */
@@ -48,7 +54,7 @@ export interface AuditRepo {
   ): Promise<(AuditEntry & { occurredAt: Date; userName: string | null })[]>;
 }
 
-export type Repos = AccessRepos & CatalogRepos & SupplierRepos & { audit: AuditRepo };
+export type Repos = AccessRepos & CatalogRepos & SupplierRepos & OrderingRepos & { audit: AuditRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {
@@ -57,6 +63,10 @@ export interface GlobalLookups {
   ): Promise<{ restaurantId: string; membershipId: string; active: boolean } | null>;
   invitationByTokenHash(hash: string): Promise<{ restaurantId: string; invitationId: string } | null>;
   userIdByEmail(email: string): Promise<string | null>;
+  /** Mesa pelo token do QR code (spec 009). Devolve só o mínimo. */
+  tableByQrToken(token: string): Promise<{ restaurantId: string; tableId: string; active: boolean } | null>;
+  /** Acesso ao cardápio pelo hash do cookie (spec 009). */
+  menuAccessByTokenHash(hash: string): Promise<{ restaurantId: string; menuAccessId: string } | null>;
 }
 
 export type Deps = {
@@ -65,6 +75,7 @@ export type Deps = {
   mailer: Mailer;
   auth: AuthService;
   tokens: TokenService;
+  qr: QrRenderer;
   global: GlobalLookups;
   appUrl: string;
   /** Roda `fn` numa transação do restaurante. Se `fn` devolver erro, a transação é desfeita. */

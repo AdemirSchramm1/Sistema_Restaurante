@@ -43,7 +43,28 @@ Na primeira versão (features 004 e 007) os papéis fazem:
 | Cadastrar fornecedor, itens e preços, bloquear | Gerente e comprador |
 | Definir o aviso de reposição do item (feature 006) | Gerente, chef e comprador |
 | Definir o preço de venda do produto (feature 008) | Gerente e chef |
-| Ver estoque, produtos, fornecedores, "Repor", "Gráficos" e "Custos" | Todos os papéis |
+| Ver estoque, produtos, fornecedores, "Repor", "Gráficos" e "Custos" | Todos os papéis, menos o garçom |
+
+### Pedidos (features 009 e 010)
+
+O papel **Garçom** (feature 009) só vê as telas "Garçom" e "Pedidos"; o menu mostra só o que cada
+papel pode abrir e, ao entrar, cada um cai na primeira tela do seu menu.
+
+| Ação | Permissão | Quem pode |
+|---|---|---|
+| Cadastrar, renomear e inativar mesa; trocar QR code | `table.manage` | Gerente |
+| Ligar e desligar "Recebendo pedidos pelo QR code" | `ordering.toggle` | Gerente |
+| Ver a cozinha e mudar a situação (Em preparo, Pronto) | `order.kitchen` | Gerente, chef |
+| Cancelar pedido (com motivo) | `order.cancel` | Gerente, chef |
+| Ver prontos e marcar entregue | `order.deliver` | Gerente, chef, garçom |
+| Consultar pedidos | `order.read` | Gerente, chef, garçom |
+| Marcar "Esgotado hoje" | `product.sold_out` | Gerente, chef |
+| Ver adicionais | `addon.read` | Gerente, chef |
+| Cadastrar e mudar adicionais e preços; quadro "Adicionar e tirar" do produto | `addon.write` | Gerente |
+
+O cliente não tem usuário: o pedido registra a mesa e o acesso de origem. Toda escrita da equipe
+(mesa, QR code, situação, cancelamento, esgotado, chave, adicional, quadro) vai para a trilha de
+auditoria, e tentativa sem permissão fica registrada como negada.
 
 ## Operação pequena
 
