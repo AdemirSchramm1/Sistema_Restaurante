@@ -56,6 +56,14 @@ describe("formulário de lançamento (spec 004)", () => {
     expect(screen.getByTestId("movement-preview").textContent).toBe("Vai sair: 0,5 kg");
   });
 
+  it("perda não oferece 'Pedido cancelado': só o cancelamento do pedido usa (spec 011)", () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText("Tipo de lançamento"), { target: { value: "LOSS" } });
+    const labels = [...(screen.getByLabelText("Motivo") as HTMLSelectElement).options].map((o) => o.textContent);
+    expect(labels).toContain("Queimou");
+    expect(labels).not.toContain("Pedido cancelado");
+  });
+
   it("acerto pergunta quanto tem de verdade e avisa que precisa de aprovação", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText("Tipo de lançamento"), { target: { value: "ADJUSTMENT" } });

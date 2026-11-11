@@ -48,6 +48,12 @@ describe("reposição (docs/produto/estoque/08-ciclo-operacional.md#planejamento
     expect(s(roundUpToPackage(d(20), d(5)).packages)).toBe("4");
   });
 
+  it("saldo negativo (venda sem estoque lançado, spec 011) conta como zero: acabou", () => {
+    expect(
+      s(orderQuantity({ parLevel: d(30), balance: d("-0.3"), averageDailyUsage: d(0), leadTimeDays: 2 })),
+    ).toBe("30");
+  });
+
   it("sem consumo, pedir = comprar até − saldo", () => {
     expect(
       s(orderQuantity({ parLevel: d(30), balance: d(8), averageDailyUsage: d(0), leadTimeDays: 2 })),
