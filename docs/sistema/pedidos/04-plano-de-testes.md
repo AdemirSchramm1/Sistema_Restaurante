@@ -26,7 +26,7 @@ ponta (Playwright). Testes escritos antes do código ([TDD](../01-tdd.md)).
 | I | Esgotado hoje volta no dia seguinte; auditoria (`sold-out`) |
 | I | Chave do restaurante e consulta por período, mesa e situação (`orders`) |
 | E | Roteiro do quickstart: mesas, QR code, celular, cozinha, garçom, esgotado, 20 minutos, troca do QR code, chave (`ordering.spec.ts`) |
-| E | Garçom vê só Garçom e Pedidos; QR code de outro restaurante abre só o cardápio dele (`ordering.spec.ts`) |
+| E | Garçom vê Garçom, Caixa (só para ver a conta, 011) e Pedidos; QR code de outro restaurante abre só o cardápio dele (`ordering.spec.ts`) |
 | E | Acessibilidade (axe, WCAG 2.1 AA): cardápio, tela do prato, resumo, cozinha, garçom, mesas, adicionais, pedidos (`accessibility.spec.ts`) |
 
 O teste ponta a ponta dos 20 minutos recua `opened_at` e `expires_at` no banco (com

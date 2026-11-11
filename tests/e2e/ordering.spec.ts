@@ -209,7 +209,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await phoneContext.close();
 });
 
-test("garçom só vê Garçom e Pedidos; QR code de outro restaurante abre só o cardápio dele (spec 009)", async ({
+test("garçom vê Garçom, Caixa (só para ver a conta) e Pedidos; QR code de outro restaurante abre só o cardápio dele (specs 009 e 011)", async ({
   page,
   browser,
 }) => {
@@ -239,8 +239,13 @@ test("garçom só vê Garçom e Pedidos; QR code de outro restaurante abre só o
   await waiter.getByRole("button", { name: "Aceitar convite" }).click();
   await expect(waiter).toHaveURL(/\/pedidos\/garcom$/);
   const nav = waiter.getByRole("navigation", { name: "Menu principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Garçom", "Pedidos"]);
+  await expect(nav.getByRole("link")).toHaveText(["Garçom", "Caixa", "Pedidos"]);
   await waiter.goto("/estoque/itens");
+  await expect(waiter.getByRole("heading", { name: "Sem acesso" })).toBeVisible();
+  // Spec 011: o garçom vê a conta para levar o total à mesa, mas não recebe nem vê as contas fechadas.
+  await waiter.goto("/caixa");
+  await expect(waiter.getByText("Nenhuma mesa com conta aberta.")).toBeVisible();
+  await waiter.goto("/caixa/contas");
   await expect(waiter.getByRole("heading", { name: "Sem acesso" })).toBeVisible();
   await waiterContext.close();
 
