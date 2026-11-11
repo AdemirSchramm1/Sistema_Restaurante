@@ -23,7 +23,7 @@ erDiagram
 | `opened_at` | `timestamptz` | Hora do primeiro pedido |
 | `service_rate` | `numeric(5,2)` null | Copiada do restaurante ao abrir; nulo = sem taxa. Check 0 a 20 |
 | `service_waived` | `boolean` default `false` | Caixa tirou a taxa desta conta |
-| `closed_at`, `closed_by` | `timestamptz`, `uuid` null | Preenchidos se `CLOSED` (check) |
+| `closed_at`, `closed_by`, `closed_day` | `timestamptz`, `uuid`, `date` null | Preenchidos se `CLOSED` (check). `closed_day` = dia local do fechamento, para a consulta (índice `(restaurant_id, closed_day)`) |
 | `subtotal`, `service_charge`, `total` | `numeric(12,2)` null | Gravados no fechamento (retrato para a consulta); check `total = subtotal + service_charge` |
 | `updated_at`, `updated_by`, `version` | | Trava otimista. Envio de pedido também soma 1 em `version` ([R2](research.md#r2-fechar-sem-perder-pedido-que-chegou-junto)) |
 
@@ -81,7 +81,7 @@ vai para a auditoria (`serviceChargeRate`).
 | `movement_type` + `SALE_RECIPE` | Saída por venda (tipo 7 do manual); quantidade negativa |
 | `order_id uuid null` → `orders` | Obrigatório em `SALE_RECIPE` (check); preenchido no estorno e na perda do cancelamento |
 | Check `stock_movements_reason` | `reason_id` obrigatório menos em `PURCHASE` e `SALE_RECIPE` |
-| Índice único parcial | `(order_id, item_id) where type = 'SALE_RECIPE'` (baixa uma vez só) |
+| Índice único parcial | `(order_id, item_id) where order_id is not null and reason_id is null` (baixa uma vez só; só a venda tem pedido sem motivo, e o valor novo do enum não pode ir no predicado na mesma migração) |
 | Motivos novos (seed) | `LOSS/ORDER_CANCELLED` "Pedido cancelado" (família Erro na operação); `REVERSAL/ORDER_CANCELLED` "Pedido cancelado" (família Estorno) |
 
 ## Papel
@@ -96,7 +96,7 @@ serviço       = 0 se service_rate nulo ou service_waived
                 senão round_half_up(subtotal × service_rate / 100, 2)
 total         = subtotal + serviço
 pago          = Σ amount dos pagamentos sem remoção
-falta         = total − pago                       (nunca negativo: checkPayment)
+falta         = total − pago                       (negativa só se um pedido é cancelado depois de pago: a conta não fecha)
 pode fechar   = falta = 0 e nenhum pedido em RECEIVED, PREPARING ou READY
 partes(N)     = trunc(falta ÷ N, 2) para cada uma; a 1ª recebe falta − Σ das outras
 ```

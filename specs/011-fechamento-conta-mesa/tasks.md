@@ -106,7 +106,7 @@ carne −0,3 kg, cebola sem saída.
 - [X] T053 [P] [teste] `tests/e2e/accessibility.spec.ts`: Caixa, conta, conta impressa e Contas sem violações do axe
 - [X] T054 [P] Docs de produto: `docs/produto/pedidos/05-conta-da-mesa.md` (novo) e `00-visao-geral.md`; `docs/produto/estoque/06-movimentacoes.md` (venda, saldo negativo para venda, perda "Pedido cancelado"), `09-controles-e-permissoes.md` (Caixa e ações `tab.*`), `13-decisoes-adotadas.md` (decisões da 011), `00-visao-geral.md` (005 e 011 feitas); `docs/README.md`
 - [X] T055 [P] Docs de sistema: `docs/sistema/pedidos/01-modelo-de-dados.md` (contas e pagamentos), `02-regras.md` (domínio `billing`), plano de testes; `docs/sistema/estoque/01-modelo-de-dados.md` e `03-movimentacoes-e-saldo.md` (`SALE_RECIPE`, `order_id`, saldo negativo só para venda)
-- [ ] T056 Rodar `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (cobertura do domínio ≥ 90%), `pnpm test:integration`, `pnpm test:e2e`; marcar as tarefas
+- [X] T056 Rodar `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (cobertura do domínio ≥ 90%), `pnpm test:integration`, `pnpm test:e2e`; marcar as tarefas
 
 ## Dependências
 
@@ -133,3 +133,49 @@ Fase 1 → Fase 2 → US4 (baixa) ───────────────�
    pediu.
 2. Depois: cancelamento com estoque (US5) e consulta de contas (US6).
 3. PRs pequenos por fase, cada um com testes e docs da parte entregue.
+
+## Notas da implementação
+
+O que mudou em relação à spec, ao plano e aos contratos, e por quê:
+
+- **Valor do pagamento**: nunca passa do que falta em **nenhuma** forma (a spec deixava o dinheiro
+  passar). No dinheiro, o que o cliente entrega a mais vai no campo "Recebido em dinheiro" e vira
+  troco; o valor é o que entra na conta. Recebido é opcional (sem ele, é o próprio valor).
+- **Pago a mais**: cancelar um pedido depois de pago deixa a falta negativa. A conta mostra "Pago a
+  mais", não fecha (`REMAINING_NOT_ZERO`) e pede para tirar um pagamento. O `data-model.md` dizia
+  "falta nunca negativa"; corrigido.
+- **Códigos**: o motivo de não fechar é `REMAINING_NOT_ZERO` (o contrato dizia `REMAINING`;
+  corrigido no contrato); novos
+  `TABLE_TAB_CLOSED` (cardápio de conta fechada), `TAB_NOT_CLOSED` (reabrir conta aberta),
+  `REVERSE_VIA_ORDER` (venda não se estorna à mão), `INGREDIENTS_USED_REQUIRED`. Id malformado
+  devolve `NOT_FOUND`; mesa malformada no filtro das contas, `VALIDATION`.
+- **Conta fechada em `/caixa/[id]`**: a mesma página serve a conta aberta e a fechada (com "Reabrir
+  conta" para o gerente); não existe `/caixa/contas/[id]` (T051). Por isso `getTab` pede também
+  `tab.history` quando a conta está fechada: o garçom vê a conta aberta, mas não abre a fechada pelo
+  link (FR-010).
+- **Garçom no menu**: com `tab.read`, o garçom passa a ver "Caixa". O teste de ponta a ponta da 009
+  ("garçom só vê Garçom e Pedidos") foi atualizado para a regra nova.
+- **Cancelar na 009**: `checkCancel` ganhou o 4º parâmetro (`ingredientsUsed`); o teste antigo "cancela
+  qualquer pedido ainda não entregue" passou a informar os ingredientes depois do preparo.
+- **Banco**: coluna `table_tabs.closed_day` (dia local do fechamento) para filtrar a consulta por dia
+  sem calcular fuso na consulta; índices extras `menu_accesses (restaurant_id, table_id, expires_at)`,
+  `stock_movements (order_id)` e `table_tabs (restaurant_id, closed_day)`. O índice "uma venda por
+  pedido e item" usa `order_id is not null and reason_id is null` no predicado, porque o valor novo
+  do enum não pode ser usado na mesma migração.
+- **Venda**: a quantidade vai com 4 casas (precisão do livro); o que arredonda para zero não vira
+  linha. Os motivos "Pedido cancelado" (perda e estorno) são só do sistema: não aparecem no
+  formulário de Lançamentos. Repor conta saldo negativo como zero.
+- **Fechar conta** leva para `/caixa?fechada=12`, com o aviso "Conta da Mesa 12 fechada…".
+- **Período**: `checkPeriod` saiu de `listOrders` e é usado também pelas contas fechadas. O filtro de
+  mesa da tela Contas lista só as mesas que fecharam conta no período.
+- **Ações**: `src/actions/billing.ts` nasceu na T035 com as escritas; as leituras são feitas direto
+  nas páginas (server components).
+- **Ponta a ponta**: `billing.spec.ts` foi escrito depois das telas, que já tinham testes de
+  componente escritos antes do código (a T052 pedia o roteiro vermelho antes das telas finais). Os
+  ajustes do roteiro foram de seletores (por exemplo, o Suco, sem opções, entra direto no pedido).
+- **Textos**: o botão é "Lançar pagamento" (a spec dizia "Registrar pagamento"); a reabertura
+  recusada diz "A mesa já tem outra conta aberta. Feche-a antes." (sem o nome da mesa, que já está
+  no título da página).
+
+Resultado final (2026-11-11): `pnpm lint` e `pnpm typecheck` limpos; 563 testes de unidade (domínio
+com 96,6% das instruções cobertas), 257 de integração e 16 de ponta a ponta passando.
