@@ -1,10 +1,20 @@
 import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import type { TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
+import type { ClosedTabRow, TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
-import { checkClose, closeBlockers, isPendingOrder, tabTotals, type CloseBlocker } from "@/domain/billing/tab";
+import {
+  checkClose,
+  checkReopenReason,
+  closeBlockers,
+  closedSummary,
+  isPendingOrder,
+  tabTotals,
+  type CloseBlocker,
+} from "@/domain/billing/tab";
+import type { PaymentMethod } from "@/domain/billing/payment";
+import { checkPeriod } from "../ordering/orders";
 import { businessDay } from "@/domain/ordering/business-day";
 import type { Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
@@ -270,24 +280,81 @@ export async function closeTab(
   });
 }
 
-/** Esqueleto (vermelho). */
+export type ClosedTabsReport = {
+  tabs: ClosedTabRow[];
+  summary: { byMethod: { method: PaymentMethod; amount: Decimal }[]; serviceCharge: Decimal; total: Decimal };
+};
+
+/**
+ * Contas fechadas por dia local do fechamento (até 31 dias) e mesa, a mais recente primeiro, com o
+ * resumo por forma de pagamento (US6).
+ */
 export async function listTabs(
-  _deps: Deps,
-  _ctx: RequestContext,
-  _input: { from: string; to: string; tableId?: string },
-): Promise<
-  Result<{
-    tabs: import("./ports").ClosedTabRow[];
-    summary: { byMethod: { method: import("@/domain/billing/payment").PaymentMethod; amount: Decimal }[]; serviceCharge: Decimal; total: Decimal };
-  }>
-> {
-  return err("NOT_FOUND");
+  deps: Deps,
+  ctx: RequestContext,
+  input: { from: string; to: string; tableId?: string },
+): Promise<Result<ClosedTabsReport>> {
+  const allowed = await authorize(deps, ctx, "tab.history", TAB_ENTITY);
+  if (!allowed.ok) return allowed;
+  const period = checkPeriod(input.from, input.to);
+  if (!period.ok) return period;
+  if (input.tableId && !isId(input.tableId)) return err("VALIDATION", "tableId");
+  const filter = { fromDay: input.from, toDay: input.to, tableId: input.tableId };
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const tabs = await repos.tabs.listClosed(filter);
+    const paid = await repos.tabs.paidByMethod(filter);
+    return ok({ tabs, summary: closedSummary(tabs, paid) });
+  });
 }
 
+/**
+ * Reabre uma conta fechada (só gerente, com motivo): volta aberta com os pagamentos, e o histórico
+ * guarda os valores de antes. A mesa que já abriu outra conta precisa fechar a nova antes.
+ */
 export async function reopenTab(
-  _deps: Deps,
-  _ctx: RequestContext,
-  _input: { tabId: string; reason: string; version: number },
+  deps: Deps,
+  ctx: RequestContext,
+  input: { tabId: string; reason: string; version: number },
 ): Promise<Result<void>> {
-  return err("NOT_FOUND");
+  if (!isId(input.tabId)) return err("NOT_FOUND");
+  const allowed = await authorize(deps, ctx, "tab.reopen", TAB_ENTITY, input.tabId);
+  if (!allowed.ok) return allowed;
+  const reason = checkReopenReason(input.reason);
+  if (!reason.ok) return reason;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const tab = await repos.tabs.lock(input.tabId);
+    if (!tab) return err("NOT_FOUND");
+    if (tab.status !== "CLOSED") return err("TAB_NOT_CLOSED");
+    if (tab.version !== input.version) return err("STALE_RECORD");
+    const audit = auditStamp(deps, ctx);
+    const reopened = await repos.tabs.reopen(tab.id, audit);
+    if (!reopened.ok) return reopened;
+    const before = tab.closedTotals;
+    await repos.tabs.addEvent({
+      id: deps.ids.next(),
+      tabId: tab.id,
+      kind: "REOPENED",
+      reason: reason.value,
+      details: {
+        previous: {
+          subtotal: before?.subtotal.toFixed(2) ?? null,
+          serviceCharge: before?.serviceCharge.toFixed(2) ?? null,
+          total: before?.total.toFixed(2) ?? null,
+          closedAt: tab.closedAt?.toISOString() ?? null,
+          closedByName: tab.closedByName,
+        },
+      },
+      userId: ctx.userId,
+      at: audit.at,
+    });
+    await repos.audit.record({
+      entity: TAB_ENTITY,
+      entityId: tab.id,
+      action: "UPDATE",
+      changes: { status: ["CLOSED", "OPEN"], reason: reason.value },
+      userId: ctx.userId,
+      origin: ctx.origin,
+    });
+    return ok(undefined);
+  });
 }

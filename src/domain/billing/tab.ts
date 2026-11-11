@@ -2,7 +2,7 @@ import { d, type Decimal } from "../shared/decimal";
 import { err, ok, type Result } from "../shared/result";
 import type { OrderStatus } from "../ordering/order";
 import { serviceCharge } from "./service-charge";
-import type { PaymentMethod } from "./payment";
+import { PAYMENT_METHODS, type PaymentMethod } from "./payment";
 
 /** O que a conta precisa saber de cada pedido e de cada pagamento (spec 011). */
 export type TabOrder = { status: OrderStatus; total: Decimal };
@@ -62,15 +62,31 @@ export function checkClose(totals: TabTotals, orders: readonly { status: OrderSt
   return ok(undefined);
 }
 
-/** Esqueleto (vermelho). */
-export function checkReopenReason(_reason: string): Result<string> {
-  return err("VALIDATION");
+export const REOPEN_REASON_MAX = 140;
+
+/** Reabrir pede o motivo, de 1 a 140 letras (spec 011, US6). */
+export function checkReopenReason(reason: string): Result<string> {
+  const text = reason.trim();
+  if (!text) return err("REASON_REQUIRED", "reason");
+  if (text.length > REOPEN_REASON_MAX) return err("NOTE_TOO_LONG", "reason");
+  return ok(text);
 }
 
-/** Esqueleto (vermelho). */
+/**
+ * Resumo das contas fechadas no período (US6): total da taxa, total geral e o que entrou por forma
+ * de pagamento (já sem os tirados), na ordem da lista de formas.
+ */
 export function closedSummary(
-  _tabs: readonly { serviceCharge: Decimal; total: Decimal }[],
-  _paid: readonly { method: PaymentMethod; amount: Decimal }[],
+  tabs: readonly { serviceCharge: Decimal; total: Decimal }[],
+  paid: readonly { method: PaymentMethod; amount: Decimal }[],
 ): { byMethod: { method: PaymentMethod; amount: Decimal }[]; serviceCharge: Decimal; total: Decimal } {
-  return { byMethod: [], serviceCharge: d(1), total: d(1) };
+  const byMethod = PAYMENT_METHODS.flatMap((method) => {
+    const amounts = paid.filter((p) => p.method === method).map((p) => p.amount);
+    return amounts.length ? [{ method, amount: sum(amounts) }] : [];
+  });
+  return {
+    byMethod,
+    serviceCharge: sum(tabs.map((t) => t.serviceCharge)),
+    total: sum(tabs.map((t) => t.total)),
+  };
 }

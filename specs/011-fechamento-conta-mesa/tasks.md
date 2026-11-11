@@ -95,8 +95,8 @@ carne −0,3 kg, cebola sem saída.
 
 ## Fase 8: US6 — Consultar contas e o que entrou no dia (P2)
 
-- [ ] T048 [US6] [teste] `tests/integration/billing/history.test.ts`: `listTabs` por período "até 31" dias e mesa (`INVALID_PERIOD`), resumo por forma de pagamento sem os tirados e com o total de taxa; `reopenTab` só gerente, motivo 1–140 (`REASON_REQUIRED`, `NOTE_TOO_LONG`), `TABLE_HAS_OPEN_TAB`, volta com os pagamentos e guarda os valores de antes no evento
-- [ ] T049 [US6] `listTabs` e `reopenTab` em `src/application/billing/tabs.ts`
+- [X] T048 [US6] [teste] `tests/integration/billing/history.test.ts`: `listTabs` por período "até 31" dias e mesa (`INVALID_PERIOD`), resumo por forma de pagamento sem os tirados e com o total de taxa; `reopenTab` só gerente, motivo 1–140 (`REASON_REQUIRED`, `NOTE_TOO_LONG`), `TABLE_HAS_OPEN_TAB`, volta com os pagamentos e guarda os valores de antes no evento
+- [X] T049 [US6] `listTabs` e `reopenTab` em `src/application/billing/tabs.ts`
 - [ ] T050 [P] [US6] [teste] `src/components/billing/tabs-report.test.tsx`: lista, resumo por forma e "Reabrir conta" só para gerente
 - [ ] T051 [US6] `src/components/billing/tabs-report.tsx`, `app/(app)/caixa/contas/page.tsx`, `app/(app)/caixa/contas/[id]/page.tsx`
 

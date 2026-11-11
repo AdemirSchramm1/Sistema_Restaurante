@@ -65,6 +65,14 @@ const validDay = (v: string) => DAY.test(v) && !Number.isNaN(Date.parse(`${v}T00
 const daysBetween = (a: string, b: string) =>
   (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
 
+/** Período de consulta: dias locais "AAAA-MM-DD", início até o fim, até 31 dias (009 e 011). */
+export function checkPeriod(from: string, to: string): Result<void> {
+  if (!validDay(from) || !validDay(to)) return err("INVALID_PERIOD");
+  const span = daysBetween(from, to);
+  if (span < 0 || span >= MAX_PERIOD_DAYS) return err("INVALID_PERIOD");
+  return ok(undefined);
+}
+
 /** Pedidos de um período de até 31 dias (dias locais), mais novo primeiro. */
 export async function listOrders(
   deps: Deps,
@@ -73,9 +81,8 @@ export async function listOrders(
 ): Promise<Result<OrderListRow[]>> {
   const allowed = await authorize(deps, ctx, "order.read", "order");
   if (!allowed.ok) return allowed;
-  if (!validDay(input.from) || !validDay(input.to)) return err("INVALID_PERIOD");
-  const span = daysBetween(input.from, input.to);
-  if (span < 0 || span >= MAX_PERIOD_DAYS) return err("INVALID_PERIOD");
+  const period = checkPeriod(input.from, input.to);
+  if (!period.ok) return period;
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const rows = await repos.orders.list({
       fromDay: input.from,
