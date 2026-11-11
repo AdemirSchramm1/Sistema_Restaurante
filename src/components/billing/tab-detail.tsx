@@ -137,7 +137,16 @@ function Row({ label, value, strong = false }: { label: string; value: string; s
  * Conta da mesa (spec 011, US1): pedidos com as mudanças do cliente, cancelados riscados e fora do
  * total, subtotal, taxa de serviço, total, pago e falta, e o histórico.
  */
-export function TabDetail({ tab, timezone }: { tab: TabDetailView; timezone: string }) {
+export function TabDetail({
+  tab,
+  timezone,
+  children,
+}: {
+  tab: TabDetailView;
+  timezone: string;
+  /** Pagamentos e botões do caixa, logo abaixo do total. */
+  children?: React.ReactNode;
+}) {
   const remaining = d(tab.remaining);
   const overpaid = remaining.isNegative();
   const closedText =
@@ -195,6 +204,8 @@ export function TabDetail({ tab, timezone }: { tab: TabDetailView; timezone: str
               </Alert>
             )}
           </Card>
+
+          {children}
 
           <Card className="grid gap-2">
             <CardTitle>Histórico da conta</CardTitle>

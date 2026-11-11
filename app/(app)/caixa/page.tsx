@@ -10,13 +10,15 @@ import { OpenTabs } from "@/components/billing/open-tabs";
 import { ServiceRateForm } from "@/components/billing/service-charge";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
+import { Alert } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Caixa" };
 export const dynamic = "force-dynamic";
 
 /** Caixa (spec 011, US1): mesas com conta aberta; atualiza sozinho a cada 10 segundos. */
-export default async function Page() {
+export default async function Page({ searchParams }: PageProps<"/caixa">) {
   const ctx = await requireContext();
+  const closed = (await searchParams).fechada;
   const deps = serverDeps();
   const r = await listOpenTabs(deps, ctx);
   if (!r.ok) return <NoAccess />;
@@ -32,6 +34,9 @@ export default async function Page() {
           </Link>
         )}
       </div>
+      {typeof closed === "string" && closed && (
+        <Alert tone="success">{`Conta da Mesa ${closed} fechada. A mesa está livre para o próximo cliente.`}</Alert>
+      )}
       <OpenTabs
         serverNow={r.value.serverNow}
         tabs={r.value.tabs.map((t) => ({

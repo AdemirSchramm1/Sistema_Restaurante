@@ -74,9 +74,9 @@ carne −0,3 kg, cebola sem saída.
 - [X] T036 [US2] [teste] `tests/integration/billing/payments.test.ts`: `addPayment` nas cinco formas; dinheiro com troco; `PAYMENT_EXCEEDS_REMAINING`; dois caixas pagando ao mesmo tempo nunca passam do total; toque duplo (`clientRequestId`) devolve o mesmo pagamento; `removePayment` grava a remoção e o evento (`ALREADY_REMOVED`); conta fechada recusa (`TAB_CLOSED`); permissão `tab.pay` (garçom `FORBIDDEN`)
 - [X] T037 [US2] `src/application/billing/payments.ts`
 - [X] T038 [US2] [teste] `tests/integration/billing/close.test.ts`: `closeTab` com falta 0 e pedidos entregues grava valores, quem e quando; `REMAINING_NOT_ZERO`; `PENDING_ORDERS`; `STALE_RECORD` quando um pedido entrou depois da tela carregada; pedido enviado depois do fechamento abre conta nova; acessos ao cardápio da mesa encerrados com `TAB_CLOSED` e o envio por eles recusado com `TAB_CLOSED`; mesa inativada com conta aberta ainda fecha
-- [ ] T039 [US2] `closeTab` em `src/application/billing/tabs.ts`; `submitOrder` devolve `TAB_CLOSED`; mensagem no cardápio do cliente ("Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo.")
-- [ ] T040 [P] [US2] [teste] `src/components/billing/payment-form.test.tsx`: formas, valor preenchido com o falta, "Troco: R$ 23,00" no dinheiro, mensagens de erro em português, "Fechar conta" desabilitado com o motivo, confirmação ao tirar pagamento
-- [ ] T041 [US2] `src/components/billing/payment-form.tsx` e ligação na página da conta
+- [X] T039 [US2] `closeTab` em `src/application/billing/tabs.ts`; `submitOrder` devolve `TAB_CLOSED`; mensagem no cardápio do cliente ("Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo.")
+- [X] T040 [P] [US2] [teste] `src/components/billing/payment-form.test.tsx`: formas, valor preenchido com o falta, "Troco: R$ 23,00" no dinheiro, mensagens de erro em português, "Fechar conta" desabilitado com o motivo, confirmação ao tirar pagamento
+- [X] T041 [US2] `src/components/billing/payment-form.tsx` e ligação na página da conta
 
 ## Fase 6: US3 — Dividir a conta (P1)
 

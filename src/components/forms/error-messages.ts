@@ -110,6 +110,18 @@ export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
   if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.paid !== undefined)
     return `Já foram pagos ${money(error.details.paid)} e, sem a taxa, a conta fica em ${money(error.details.total)}. Tire um pagamento antes de tirar a taxa.`;
+  if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.remaining !== undefined)
+    return `O valor passa do que falta pagar (${money(error.details.remaining)}).`;
+  if (error.code === "REMAINING_NOT_ZERO" && error.details?.remaining !== undefined) {
+    const remaining = d(String(error.details.remaining));
+    return remaining.isNegative()
+      ? `Foi pago ${money(remaining.abs())} a mais. Tire um pagamento e lance de novo com o valor certo.`
+      : `Ainda falta pagar ${money(remaining)}.`;
+  }
+  if (error.code === "PENDING_ORDERS" && typeof error.details?.pending === "number")
+    return error.details.pending === 1
+      ? "1 pedido ainda não foi entregue. Feche a conta depois que ele chegar à mesa ou for cancelado."
+      : `${error.details.pending} pedidos ainda não foram entregues. Feche a conta depois que eles chegarem à mesa ou forem cancelados.`;
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
   if (error.code === "INSUFFICIENT_STOCK" && error.details?.available !== undefined)

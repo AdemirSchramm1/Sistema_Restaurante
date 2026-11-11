@@ -1,12 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { serverDeps } from "@/infra/server";
-import { setServiceWaived } from "@/application/billing/tabs";
+import { closeTab, setServiceWaived } from "@/application/billing/tabs";
+import { addPayment, removePayment } from "@/application/billing/payments";
 import { setServiceChargeRate } from "@/application/billing/settings";
 import type { RequestContext } from "@/application/context";
+import { isPaymentMethod } from "@/domain/billing/payment";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { err, type Result } from "@/domain/shared/result";
+import { err, ok, type Result } from "@/domain/shared/result";
 import { toState, withContext, type ActionState } from "./_session";
 
 /** Caixa: conta da mesa (spec 011). Dinheiro chega como texto em pt-BR ("12,50"). */
@@ -48,4 +51,48 @@ export async function setServiceChargeRateAction(_prev: ActionState, form: FormD
   }
   const version = int(form, "version");
   return run(null, (ctx) => setServiceChargeRate(serverDeps(), ctx, { rate, version }));
+}
+
+/** "12,50" → 12.50; vazio → null; texto que não é número → erro no campo. */
+function money(form: FormData, name: string): Result<Decimal | null> {
+  const raw = text(form, name);
+  if (!raw) return ok(null);
+  const parsed = parseBrDecimal(raw.replace(/^R\$\s*/, ""));
+  return parsed.ok ? parsed : err("INVALID_AMOUNT", name);
+}
+
+export async function addPaymentAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tabId = text(form, "tabId");
+  const method = text(form, "method");
+  if (!isPaymentMethod(method))
+    return { ok: false, error: { code: "VALIDATION", field: "method", message: "Escolha a forma de pagamento." }, at: Date.now() };
+  const amount = money(form, "amount");
+  if (!amount.ok) return toState(amount);
+  if (!amount.value) return toState(err("INVALID_AMOUNT", "amount"));
+  const received = money(form, "received");
+  if (!received.ok) return toState(received);
+  const input = {
+    tabId,
+    method,
+    amount: amount.value,
+    received: method === "CASH" ? received.value : null,
+    clientRequestId: text(form, "clientRequestId"),
+  };
+  return run(tabId, async (ctx) => {
+    const r = await addPayment(serverDeps(), ctx, input);
+    return r.ok ? ok({ paymentId: r.value.paymentId, change: r.value.change?.toFixed(2) ?? null }) : r;
+  });
+}
+
+export async function removePaymentAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tabId = text(form, "tabId");
+  return run(tabId, (ctx) => removePayment(serverDeps(), ctx, { tabId, paymentId: text(form, "paymentId") }));
+}
+
+/** Fechou: volta para o Caixa, que mostra a mesa livre. */
+export async function closeTabAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tabId = text(form, "tabId");
+  const state = await run(tabId, (ctx) => closeTab(serverDeps(), ctx, { tabId, version: int(form, "version") }));
+  if (state?.ok) redirect(`/caixa?fechada=${encodeURIComponent(text(form, "tableName"))}`);
+  return state;
 }
