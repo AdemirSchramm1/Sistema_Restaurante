@@ -115,6 +115,17 @@ describe("contas fechadas (spec 011, US6)", () => {
     const b = await billingScenario(env);
     expect(code(await listTabs(env.deps, b.waiter, { from: "2026-10-31", to: "2026-10-31" }))).toBe("FORBIDDEN");
   });
+
+  it("garçom abre a conta aberta, mas não a fechada, nem pelo link (FR-010)", async () => {
+    const env = testEnv();
+    const t = await twoClosedTabs(env);
+    expect(code(await getTab(env.deps, t.waiter, t.t12))).toBe("FORBIDDEN");
+    expect(unwrap(await getTab(env.deps, t.cashier, t.t12)).status).toBe("CLOSED");
+    const phone = await scan(env, t.s.table.token);
+    unwrap(await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }));
+    const [open] = unwrap(await listOpenTabs(env.deps, t.waiter)).tabs;
+    expect(unwrap(await getTab(env.deps, t.waiter, open!.id)).status).toBe("OPEN");
+  });
 });
 
 describe("reabrir conta (spec 011, US6)", () => {
