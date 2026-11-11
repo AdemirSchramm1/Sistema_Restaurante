@@ -11,7 +11,8 @@ import {
   removePaymentAction,
   setServiceWaivedAction,
 } from "@/actions/billing";
-import { CloseTabForm, PaymentForm, PaymentList } from "@/components/billing/payment-form";
+import { CloseTabForm, PaymentList } from "@/components/billing/payment-form";
+import { PaymentPanel } from "@/components/billing/payment-panel";
 import { ServiceChargeToggle } from "@/components/billing/service-charge";
 import { TabDetail } from "@/components/billing/tab-detail";
 import { tabDetailView } from "@/components/billing/view";
@@ -59,7 +60,7 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
         {canPay && owing && (
           <Card className="grid gap-3">
             <CardTitle>Receber</CardTitle>
-            <PaymentForm tabId={t.id} remaining={view.remaining} action={addPaymentAction} />
+            <PaymentPanel tabId={t.id} remaining={view.remaining} action={addPaymentAction} />
           </Card>
         )}
         <Card className="grid gap-3">

@@ -83,8 +83,8 @@ carne −0,3 kg, cebola sem saída.
 **Objetivo**: dividir por pessoas e pagar cada parte.
 **Teste independente**: R$ 100,00 ÷ 3, três pagamentos em formas diferentes, fechar.
 
-- [ ] T042 [P] [US3] [teste] `src/components/billing/split-helper.test.tsx`: "Dividir por 3" mostra 33,34 / 33,33 / 33,33; "Pagar parte 1 de 3" preenche o valor; depois de um pagamento as partes são refeitas sobre o falta; mudar o número de pessoas refaz; valor livre continua possível
-- [ ] T043 [US3] `src/components/billing/split-helper.tsx` (usa `splitEvenly`; nada gravado)
+- [X] T042 [P] [US3] [teste] `src/components/billing/split-helper.test.tsx`: "Dividir por 3" mostra 33,34 / 33,33 / 33,33; "Pagar parte 1 de 3" preenche o valor; depois de um pagamento as partes são refeitas sobre o falta; mudar o número de pessoas refaz; valor livre continua possível
+- [X] T043 [US3] `src/components/billing/split-helper.tsx` (usa `splitEvenly`; nada gravado)
 
 ## Fase 7: US5 — Pedido cancelado devolve ou vira perda (P2)
 
