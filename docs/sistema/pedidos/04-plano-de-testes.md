@@ -45,3 +45,27 @@ O teste ponta a ponta dos 20 minutos recua `opened_at` e `expires_at` no banco (
 | I | Envio com adicionais e retiradas, preço do adicional mudou, opção indisponível (`submit-order`) |
 | I | Consumo de um pedido gravado pela versão do envio, não a atual (`consumption`) |
 | E | Cadastrar adicional, ligar ao produto, personalizar no celular, ver na cozinha, preço mudado no meio (`ordering.spec.ts`) |
+
+## 011 — Conta da mesa e baixa do estoque
+
+| Nível | Teste |
+|---|---|
+| U | Totais da conta, taxa com meio centavo para cima, taxa do restaurante de 0 a 20% (`tab`, `service-charge`) |
+| U | Pagamento: valor, até o que falta, recebido e troco só no dinheiro (`payment`) |
+| U | Dividir por 2 a 20 com os centavos na 1ª parte, soma igual ao que falta (`split`) |
+| U | Fechar só com falta zero e tudo entregue, com todos os motivos; motivo da reabertura; resumo por forma (`tab`) |
+| U | Cancelar depois do preparo pergunta pelos ingredientes (`order`); papel Caixa e ações `tab.*`; menu do caixa e do garçom |
+| U | Componentes: Caixa, conta, conta impressa, taxa (tirar com confirmação), pagamento com troco, divisão, fechar com os motivos, pagamentos tirados, contas fechadas e reabrir; pergunta dos ingredientes na cozinha; mensagens de erro com valores |
+| I | Esquema: uma conta aberta por mesa, checks dos valores, triggers só de inserção, pedido não troca de conta, venda uma vez por pedido e item (`billing/schema`) |
+| I | Isolamento: A não lê nem muda contas, pagamentos e histórico de B (`billing/isolation`) |
+| I | Conta abre com o pedido, com a taxa de agora; envios simultâneos abrem uma conta só (`billing/tab-open`) |
+| I | Caixa e conta: totais, cancelado fora do total, garçom vê a aberta e não a fechada, auditoria de negados (`billing/tabs`, `billing/history`) |
+| I | Taxa: configurar com auditoria, tirar e pôr de volta, recusa quando o pago passaria do total (`billing/service-charge`) |
+| I | Pagamentos: até o que falta, troco, toque duplo, duas telas ao mesmo tempo, tirar com histórico (`billing/payments`) |
+| I | Fechar: motivos, versão (`STALE_RECORD` com pedido chegando junto), mesa liberada, cardápio aberto avisa, próxima conta nova (`billing/close`) |
+| I | Contas fechadas por dia local, mesa e período; resumo sem os tirados; reabrir com motivo, só gerente, mesa com outra conta (`billing/history`) |
+| I | Baixa ao começar o preparo, uma vez só, saldo negativo, sem custo, versão do envio, falha desfaz tudo (`billing/sale`, `billing/sale-report`) |
+| I | Cancelar depois do preparo: pergunta, estorno, perda "Pedido cancelado", corrida de dois cancelamentos (`billing/cancel-stock`) |
+| E | Roteiro do quickstart: celular, cozinha, garçom e caixa; divisão por 3, troco, fechar, cardápio fechado, conta nova, contas do dia, cancelar depois do preparo, reabrir recusado, outro restaurante (`billing.spec.ts`) |
+| E | Garçom vê Caixa, mas não as contas fechadas (`ordering.spec.ts`) |
+| E | Acessibilidade (axe): Caixa, conta, conta impressa, contas fechadas, reabrir e a pergunta dos ingredientes na cozinha (`accessibility.spec.ts`) |

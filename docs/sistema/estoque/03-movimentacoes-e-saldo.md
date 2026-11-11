@@ -5,7 +5,11 @@ garante isso.
 
 > **Implementado na feature 004:** `PURCHASE`, `LOSS`, `ADJUSTMENT` (só via pedido aprovado) e
 > `REVERSAL`. Migração `0005_stock_ledger`; casos de uso em
-> `src/application/inventory/movements.ts`. Os outros tipos desta tabela ainda não existem.
+> `src/application/inventory/movements.ts`.
+>
+> **Feature 011:** `SALE_RECIPE` (venda pelo pedido), migração `0011_tabs`, casos de uso em
+> `src/application/inventory/sales.ts`. Ver [venda pelo pedido](#venda-pelo-pedido-feature-011). Os
+> outros tipos desta tabela ainda não existem.
 
 ## Tipos de movimentação
 
@@ -17,7 +21,7 @@ garante isso.
 | `INTERNAL_TRANSFER` | 4 | −origem, +destino | Não |
 | `UNIT_TRANSFER` | 5 | −origem, +trânsito; depois −trânsito, +destino | Não |
 | `PRODUCTION` | 6 | −cada ingrediente, +sub-receita | Sim, na sub-receita (custo = soma dos ingredientes ÷ rendimento real) |
-| `SALE_RECIPE` | 7 | −cada insumo da ficha | Não |
+| `SALE_RECIPE` | 7 | −cada item do consumo do pedido (uma linha por item) | Não |
 | `SALE_RESALE` | 8 | −item | Não |
 | `LOSS` | 9 | −origem | Não |
 | `STAFF_MEAL` | 10 | −origem | Não |
@@ -65,9 +69,43 @@ Uma movimentação só pode ser estornada uma vez (índice único em `reverses_i
 
 - Saídas operacionais (perda, acerto para menos, estorno): bloqueadas se o saldo ficaria negativo
   (`INSUFFICIENT_STOCK`).
-- Vendas (`SALE_*`): *(a decidir na feature 004)* — proposta: permitir e gerar alerta, porque o
-  pedido não pode parar. Como não há contagem de estoque (decisão de novembro de 2026), a correção
-  é um **acerto manual** com motivo, feito pelo gerente.
+- Venda (`SALE_RECIPE`) e perda "Pedido cancelado" (011): **nunca bloqueadas**, porque o pedido não
+  pode parar. O item mostra o saldo negativo com o aviso, e Repor conta o negativo como zero. Como
+  não há contagem de estoque (decisão de novembro de 2026), a correção é a compra que faltou ou um
+  **acerto manual** com aprovação.
+
+## Venda pelo pedido (feature 011)
+
+```text
+cozinha: RECEIVED → PREPARING (changeStatus, order.kitchen)
+  → recordOrderSale(orderId), na MESMA transação da mudança de situação
+       1. consumo do pedido (consumptionFor → orderConsumption da 010, pelas cópias do envio)
+       2. para cada item, em ordem de id: lockItem (SELECT … FOR UPDATE)
+       3. domínio: planSale(item, quantidade) — 4 casas, custo médio do momento, sem bloqueio
+       4. writeMovement: SALE_RECIPE com order_id, sem motivo; atualiza stock_balances
+  → se qualquer passo falhar, nem a baixa nem a mudança de situação ficam
+```
+
+- **Uma vez por pedido**: só a transição `RECEIVED → PREPARING` baixa; a trava otimista do pedido e
+  o índice `stock_movements_sale_once` garantem que dois toques ou duas telas não baixam duas vezes.
+- Quantidade que arredonda para zero em 4 casas (`INVALID_QUANTITY`) não vira linha.
+- Custo médio nulo (item nunca comprado) sai com custo zero; a venda não muda o custo médio.
+- Venda não se estorna à mão: `planReversal` recusa com `REVERSE_VIA_ORDER` ("cancele o pedido na
+  cozinha").
+
+Cancelar depois do preparo (`cancelOrder` com `ingredientsUsed`, mesma transação):
+
+```text
+reverseOrderSale(orderId, ingredientsUsed)
+  para cada venda do pedido (salesForOrder), em ordem de item: lockItem
+    planCancelledSale → REVERSAL "Pedido cancelado" (+ a quantidade, reverses_id = venda)
+                      → se usados: LOSS "Pedido cancelado" (− a mesma quantidade e custo, order_id)
+```
+
+Estorno e perda saem com o custo da venda, não o de agora, e não são barrados por saldo: com
+"Sim" o saldo final é o mesmo de antes do cancelamento; com "Não" volta ao de antes do preparo.
+Dois cancelamentos ao mesmo tempo: um recebe `STALE_RECORD` (trava do pedido) e o índice único de
+`reverses_id` impede estorno duplo.
 
 ## Reconstrução e verificação
 

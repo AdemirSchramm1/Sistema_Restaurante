@@ -54,8 +54,10 @@ O celular corrige o carrinho com os `details` e pede nova confirmação.
 
 - `checkTransition`: só `RECEIVED → PREPARING → READY → DELIVERED`, um passo por vez
   (`INVALID_ORDER_TRANSITION`). `DELIVERED` e `CANCELLED` são finais.
-- `checkCancel`: de qualquer situação não final, com motivo da lista; `OTHER` pede nota de 1 a 140
-  (`CANCEL_NOTE_REQUIRED`, `NOTE_TOO_LONG`).
+- `checkCancel(de, motivo, nota, ingredientsUsed)`: de qualquer situação não final, com motivo da
+  lista; `OTHER` pede nota de 1 a 140 (`CANCEL_NOTE_REQUIRED`, `NOTE_TOO_LONG`). Depois do preparo
+  (`leftTheShelf`: `PREPARING` ou `READY`, o estoque já baixou) exige dizer se os ingredientes foram
+  usados (`INGREDIENTS_USED_REQUIRED`, campo `ingredientsUsed`; 011).
 - `isLate`: `RECEIVED` ou `PREPARING` há mais de 20 minutos (`LATE_MINUTES`).
 
 ## Consumo da linha (010) — `consumption.ts`
@@ -69,7 +71,8 @@ O celular corrige o carrinho com os `details` e pede nova confirmação.
 
 Devolve `Map<itemId, Decimal>` na medida do item. Na aplicação, `orderConsumption(deps,
 restaurantId, orderId)` lê as cópias gravadas no pedido (`order_lines`, `order_line_addons`,
-`order_line_removals`) e soma as linhas; a feature 005 lança isso como saída do estoque.
+`order_line_removals`) e soma as linhas; desde a 011 isso sai do estoque como venda quando o pedido
+passa para `PREPARING` (ver [estoque/03](../estoque/03-movimentacoes-e-saldo.md#venda-pelo-pedido-feature-011)).
 
 Exemplo da spec: 2 × X-Burger (pão 1 un, carne 150 g, queijo 30 g, cebola 20 g) + 2 Fatia de
 queijo (20 g) sem cebola → pão 2 un, carne 0,3 kg, queijo 0,14 kg, nenhuma cebola.
@@ -80,6 +83,53 @@ queijo (20 g) sem cebola → pão 2 un, carne 0,3 kg, queijo 0,14 kg, nenhuma ce
 2. Mesa ativa (`TABLE_INACTIVE`) e chave ligada (`ORDERING_PAUSED`).
 3. Mesmo `(acesso, clientRequestId)` já gravado → devolve o mesmo pedido.
 4. `checkOrder` com o catálogo de agora.
-5. Num savepoint: reserva o número do dia em `order_day_counters` e insere pedido, linhas,
-   adicionais, retiradas e o evento `→ RECEIVED`. Se outro envio igual ganhou a corrida (índice
-   `orders_client_request`), relê e devolve o pedido dele.
+5. Conta da mesa (011): `tabs.openForOrder` insere a conta com `ON CONFLICT DO NOTHING` no índice
+   `table_tabs_one_open`; se já existe, trava a aberta (`FOR UPDATE`) e soma 1 na `version`. A conta
+   nova copia `restaurants.service_charge_rate` e ganha o evento `OPENED`.
+6. Num savepoint: reserva o número do dia em `order_day_counters` e insere pedido (com `tab_id`),
+   linhas, adicionais, retiradas e o evento `→ RECEIVED`. Se outro envio igual ganhou a corrida
+   (índice `orders_client_request`), relê e devolve o pedido dele.
+
+Acesso encerrado com `end_reason = TAB_CLOSED` (a conta da mesa fechou) devolve `TABLE_TAB_CLOSED`
+no envio e no cardápio, antes de olhar a hora: o celular mostra "Esta conta foi fechada. Escaneie o
+QR code da mesa para pedir de novo."
+
+## Conta da mesa (011) — `src/domain/billing/`
+
+| Regra | Função |
+|---|---|
+| Subtotal = Σ pedidos não cancelados; total = subtotal + taxa; pago = Σ pagamentos não tirados; falta = total − pago | `tabTotals` |
+| Taxa = subtotal × % ÷ 100, em centavos, meio centavo para cima; zero se a taxa é nula ou foi tirada | `serviceCharge` |
+| Taxa do restaurante: nula (desligada) ou 0 a 20 com até 2 casas (`INVALID_RATE`); padrão 10 | `checkServiceRate`, `DEFAULT_SERVICE_RATE` |
+| Pagamento: forma da lista, valor `> 0` com até 2 casas (`INVALID_AMOUNT`), nunca acima do que falta (`PAYMENT_EXCEEDS_REMAINING`, `details.remaining`); recebido só em dinheiro, `≥` valor (`RECEIVED_TOO_LOW`); troco = recebido − valor | `checkPayment` |
+| Dividir: 2 a 20 pessoas (`INVALID_PEOPLE`); partes truncadas em centavos e a sobra na 1ª | `splitEvenly` |
+| Fechar só com falta zero (`REMAINING_NOT_ZERO`, `details.remaining`) e nenhum pedido em `RECEIVED`, `PREPARING`, `READY` (`PENDING_ORDERS`, `details.pending`); a tela mostra todos os motivos de uma vez | `checkClose`, `closeBlockers` |
+| Motivo da reabertura: 1 a 140 depois de `trim` (`REASON_REQUIRED`, `NOTE_TOO_LONG`, campo `reason`) | `checkReopenReason` |
+| Resumo das contas fechadas: por forma (na ordem da lista, sem as vazias), taxa e total | `closedSummary` |
+
+Falta negativa ("Pago a mais") só acontece quando um pedido é cancelado depois de pago: a conta não
+fecha (`REMAINING_NOT_ZERO`) até tirar o pagamento a mais.
+
+## Conta da mesa (011) — aplicação, `src/application/billing/`
+
+- Toda escrita na conta (`addPayment`, `removePayment`, `setServiceWaived`, `closeTab`,
+  `reopenTab`) trava a conta (`tabs.lock`, `SELECT … FOR UPDATE`) e recalcula os totais depois da
+  trava: duas telas pagando nunca passam do total.
+- Toque duplo: `addPayment` procura o `clientRequestId` depois da trava e devolve o mesmo pagamento.
+- Trava otimista (`version`) em `setServiceWaived`, `closeTab` e `reopenTab` (`STALE_RECORD`: "A conta
+  mudou. Confira de novo."). Pagamento, pagamento tirado e cancelamento de pedido somam 1 na
+  `version` (`tabs.touch`), assim como o envio de pedido.
+- `setServiceWaived`: só com taxa (`NO_SERVICE_CHARGE`); tirar é recusado se o pago passaria do total
+  sem a taxa (`PAYMENT_EXCEEDS_REMAINING`, `details.total` e `details.paid`).
+- `closeTab`: grava `closed_*` e os valores, encerra os acessos ao cardápio abertos da mesa
+  (`menuAccesses.endOpenForTable`, `end_reason = TAB_CLOSED`) e grava o evento `CLOSED`.
+- `reopenTab` (`tab.reopen`): só conta fechada (`TAB_NOT_CLOSED`); volta para `OPEN` num savepoint e
+  traduz o índice `table_tabs_one_open` em `TABLE_HAS_OPEN_TAB`. O evento `REOPENED` guarda o motivo e
+  os valores de antes.
+- `getTab`: `tab.read`; conta fechada também pede `tab.history` (o garçom não abre conta fechada).
+  `listTabs` (`tab.history`): período de até 31 dias (`checkPeriod`, `INVALID_PERIOD`) por
+  `closed_day`, mesa opcional.
+- Id malformado (conta, pagamento) devolve `NOT_FOUND`, sem chegar ao banco.
+- Auditoria (`entity = 'table_tab'`): `paymentAdded`, `paymentRemoved`, `serviceWaived`, `status`
+  (fechar e reabrir, com `reason`); taxa do restaurante em `entity = 'restaurant'`
+  (`serviceChargeRate`).

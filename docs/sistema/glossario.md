@@ -75,7 +75,7 @@
 | Retirada | – | `removable` (`recipe_removables`) | Componente do produto que o cliente pode tirar ("Sem cebola") |
 | Adicionar e tirar (quadro do produto) | – | `customization` | Adicionais permitidos (com máximo de vezes) e retiradas de um produto |
 | Mudanças da linha | – | `changes` (`describeChanges`) | Texto da cozinha: "+ 2 Fatia de queijo", "SEM cebola" |
-| Consumo da linha | – | `lineConsumption` | O que uma linha do pedido usa de cada item; a 005 baixa isso |
+| Consumo da linha | – | `lineConsumption` | O que uma linha do pedido usa de cada item; a 011 baixa isso ao começar o preparo |
 | Permissões de adicionais | – | `addon.read`, `addon.write` | Ver: gerente e chef. Mudar (inclusive preço): gerente |
 | Conta da mesa | – | `tab` (`table_tabs`) | Abre no primeiro pedido da mesa, fecha no caixa; uma aberta por mesa. Feature 011 |
 | Situação da conta | – | `TabStatus`: `OPEN`, `CLOSED` | Aberta, fechada |
@@ -86,7 +86,15 @@
 | Falta pagar | – | `remaining` | Total − pago |
 | Dividir por pessoas | – | `splitEvenly` | Centavos que sobram vão para a 1ª parte |
 | Fechar conta / liberar a mesa | – | `closeTab` | Encerra os acessos ao cardápio da mesa (`end_reason = TAB_CLOSED`) |
-| Saída por venda | – | `MovementType.SALE_RECIPE` | Lançada ao começar o preparo; pode deixar saldo negativo |
+| Saída por venda | – | `MovementType.SALE_RECIPE` | Lançada ao começar o preparo (`recordOrderSale`); pode deixar saldo negativo |
+| Pedido cancelado (motivo) | – | `ORDER_CANCELLED` (`LOSS` e `REVERSAL`) | Só o sistema usa, ao cancelar depois do preparo (`reverseOrderSale`) |
+| Os ingredientes já foram usados? | – | `ingredientsUsed` | Pergunta do cancelamento depois do preparo (`leftTheShelf`) |
+| Histórico da conta | – | `tab_event` (`TabEventKind`) | Só inserção: abriu, pagamento, taxa, fechou, reabriu |
+| Tirar pagamento | – | `removePayment` (`tab_payment_removal`) | O pagamento fica, riscado |
+| Tirar a taxa da conta | – | `setServiceWaived` | Pôr de volta = `waived: false` |
+| Pago a mais | – | `remaining < 0` | Só se um pedido é cancelado depois de pago; a conta não fecha |
+| Contas fechadas | – | `listTabs` (`closedSummary`) | Por dia local do fechamento (`closed_day`) e mesa |
+| Reabrir conta | – | `reopenTab` | Só gerente, com motivo |
 | Caixa (papel) | – | `Role.CASHIER` | Vê Caixa, Contas e Pedidos |
 | Permissões da conta | – | `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` | Ver spec 011, FR-010 |
 
