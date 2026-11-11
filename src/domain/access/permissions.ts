@@ -10,7 +10,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   BUYER: "Comprador",
   ADMINISTRATIVE: "Administrativo",
   WAITER: "Garçom",
-  CASHIER: "",
+  CASHIER: "Caixa",
 };
 
 export const ACTIONS = [
@@ -64,8 +64,8 @@ const MATRIX: Record<Role, readonly Action[]> = {
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
-  WAITER: ["order.deliver", "order.read"],
-  CASHIER: [],
+  WAITER: ["order.deliver", "order.read", "tab.read"],
+  CASHIER: ["order.read", "tab.read", "tab.pay", "tab.history"],
 };
 
 export function can(roles: readonly Role[], action: Action): boolean {

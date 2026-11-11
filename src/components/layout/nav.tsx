@@ -15,6 +15,8 @@ export const NAV: readonly NavEntry[] = [
   { href: "/estoque/grupos", label: "Grupos", action: "catalog.read" },
   { href: "/pedidos/cozinha", label: "Cozinha", action: "order.kitchen" },
   { href: "/pedidos/garcom", label: "Garçom", action: "order.deliver" },
+  { href: "/caixa", label: "Caixa", action: "tab.read" },
+  { href: "/caixa/contas", label: "Contas", action: "tab.history" },
   { href: "/pedidos", label: "Pedidos", action: "order.read" },
   { href: "/pedidos/mesas", label: "Mesas", action: "table.manage" },
   { href: "/pedidos/adicionais", label: "Adicionais", action: "addon.read" },

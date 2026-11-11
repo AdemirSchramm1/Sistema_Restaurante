@@ -13,7 +13,7 @@ export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
   LOSS: "Perda",
   ADJUSTMENT: "Acerto",
   REVERSAL: "Estorno",
-  SALE_RECIPE: "",
+  SALE_RECIPE: "Venda",
 };
 
 /** O que o domínio precisa saber do item para lançar. */
@@ -48,8 +48,15 @@ function checkDate(at: Date, now: Date): Result<void> {
   return at.getTime() > now.getTime() ? err("FUTURE_DATE", "occurredAt") : ok(undefined);
 }
 
-function checkReason(reason: MovementReason | undefined, type: ReasonMovementType): Result<MovementReason> {
-  return reason && reason.movementType === type ? ok(reason) : err("INVALID_REASON", "reasonId");
+/** Motivo do tipo certo; os do sistema ("Pedido cancelado") só valem quando o sistema lança. */
+function checkReason(
+  reason: MovementReason | undefined,
+  type: ReasonMovementType,
+  bySystem = false,
+): Result<MovementReason> {
+  return reason && reason.movementType === type && (bySystem || !reason.system)
+    ? ok(reason)
+    : err("INVALID_REASON", "reasonId");
 }
 
 /** Embalagem de um fornecedor (spec 007): nome e quanto vem, na medida do item. */
@@ -215,6 +222,7 @@ export function planReversal(
   reason: MovementReason | undefined,
 ): Result<PlannedMovement & { newAverageCost: Decimal | null }> {
   if (original.type === "REVERSAL") return err("CANNOT_REVERSE_REVERSAL");
+  if (original.type === "SALE_RECIPE") return err("REVERSE_VIA_ORDER");
   if (original.reversed) return err("ALREADY_REVERSED");
   const r = checkReason(reason, "REVERSAL");
   if (!r.ok) return r;
@@ -239,16 +247,62 @@ export function planReversal(
   });
 }
 
-/** Esqueleto (vermelho): a regra vem no próximo commit. */
-export function planSale(_item: StockItem, _quantity: Decimal): Result<PlannedMovement> {
-  return err("VALIDATION");
+/** Inverte o sinal sem gerar "−0". */
+const negate = (v: Decimal) => (v.isZero() ? d(0) : v.negated());
+
+/**
+ * Venda pelo pedido (spec 011, FR-006 e FR-007): sai o consumo, na medida do item e com a precisão
+ * do livro (4 casas), pelo custo médio do momento. Nunca bloqueia por saldo nem por item inativo:
+ * o pedido não pode parar. Não muda o custo médio.
+ */
+export function planSale(item: StockItem, quantity: Decimal): Result<PlannedMovement> {
+  const qty = quantity.toDecimalPlaces(QTY_SCALE, Decimal.ROUND_HALF_UP);
+  if (!qty.gt(0)) return err("INVALID_QUANTITY", "quantity");
+  const unitCost = cost4(item.averageCost ?? d(0));
+  return ok({
+    quantity: qty.negated(),
+    unitCost,
+    totalCost: negate(money2(qty.times(unitCost))),
+    enteredQuantity: qty,
+    enteredUnit: item.stockUnit,
+  });
 }
 
+/**
+ * Pedido cancelado depois do preparo (spec 011, FR-008): estorna a venda e, se os ingredientes foram
+ * usados, lança a mesma saída como perda "Pedido cancelado". Mesmo custo da venda e sem bloqueio por
+ * saldo: o saldo final é o mesmo de antes (usados) ou volta (não usados).
+ */
 export function planCancelledSale(
-  _sale: OriginalMovement,
-  _item: StockItem,
-  _ingredientsUsed: boolean,
-  _reasons: { reversal: MovementReason | undefined; loss: MovementReason | undefined },
+  sale: OriginalMovement,
+  item: StockItem,
+  ingredientsUsed: boolean,
+  reasons: { reversal: MovementReason | undefined; loss: MovementReason | undefined },
 ): Result<{ reversal: PlannedMovement; loss: PlannedMovement | null }> {
-  return err("VALIDATION");
+  if (sale.type !== "SALE_RECIPE") return err("VALIDATION", "movementId");
+  if (sale.reversed) return err("ALREADY_REVERSED");
+  const reversalReason = checkReason(reasons.reversal, "REVERSAL", true);
+  if (!reversalReason.ok) return reversalReason;
+  if (ingredientsUsed) {
+    const lossReason = checkReason(reasons.loss, "LOSS", true);
+    if (!lossReason.ok) return lossReason;
+  }
+  const back = negate(sale.quantity);
+  const reversal: PlannedMovement = {
+    quantity: back,
+    unitCost: sale.unitCost,
+    totalCost: negate(sale.totalCost),
+    enteredQuantity: back,
+    enteredUnit: item.stockUnit,
+  };
+  const loss: PlannedMovement | null = ingredientsUsed
+    ? {
+        quantity: sale.quantity,
+        unitCost: sale.unitCost,
+        totalCost: sale.totalCost,
+        enteredQuantity: back,
+        enteredUnit: item.stockUnit,
+      }
+    : null;
+  return ok({ reversal, loss });
 }
