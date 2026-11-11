@@ -4,7 +4,8 @@ import { authorize, auditStamp } from "../shared";
 import type { TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
-import { closeBlockers, isPendingOrder, tabTotals, type CloseBlocker } from "@/domain/billing/tab";
+import { checkClose, closeBlockers, isPendingOrder, tabTotals, type CloseBlocker } from "@/domain/billing/tab";
+import { businessDay } from "@/domain/ordering/business-day";
 import type { Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
 
@@ -209,11 +210,62 @@ export async function setServiceWaived(
   });
 }
 
-/** Esqueleto (vermelho). */
+/**
+ * Fecha a conta e libera a mesa (US2-5): falta R$ 0,00 e nada pendente na cozinha. Grava o retrato
+ * dos valores e o dia local do fechamento, e encerra os acessos ao cardápio da mesa: o próximo
+ * pedido pelo QR code abre uma conta nova.
+ */
 export async function closeTab(
-  _deps: Deps,
-  _ctx: RequestContext,
-  _input: { tabId: string; version: number },
+  deps: Deps,
+  ctx: RequestContext,
+  input: { tabId: string; version: number },
 ): Promise<Result<void>> {
-  return err("NOT_FOUND");
+  if (!isId(input.tabId)) return err("NOT_FOUND");
+  const allowed = await authorize(deps, ctx, "tab.pay", TAB_ENTITY, input.tabId);
+  if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const tab = await repos.tabs.lock(input.tabId);
+    if (!tab) return err("NOT_FOUND");
+    if (tab.status !== "OPEN") return err("TAB_CLOSED");
+    if (tab.version !== input.version) return err("STALE_RECORD");
+    const { orders, totals } = await currentTotals(repos, tab);
+    const allowedToClose = checkClose(totals, orders);
+    if (!allowedToClose.ok) return allowedToClose;
+
+    const audit = auditStamp(deps, ctx);
+    const { timezone } = await repos.orderingSettings.get();
+    await repos.tabs.close(
+      tab.id,
+      {
+        subtotal: totals.subtotal,
+        serviceCharge: totals.serviceCharge,
+        total: totals.total,
+        closedDay: businessDay(audit.at, timezone),
+      },
+      audit,
+    );
+    await repos.menuAccesses.endOpenForTable(tab.tableId, audit.at, "TAB_CLOSED");
+    await repos.tabs.addEvent({
+      id: deps.ids.next(),
+      tabId: tab.id,
+      kind: "CLOSED",
+      details: {
+        subtotal: totals.subtotal.toFixed(2),
+        serviceCharge: totals.serviceCharge.toFixed(2),
+        total: totals.total.toFixed(2),
+        paid: totals.paid.toFixed(2),
+      },
+      userId: ctx.userId,
+      at: audit.at,
+    });
+    await repos.audit.record({
+      entity: TAB_ENTITY,
+      entityId: tab.id,
+      action: "UPDATE",
+      changes: { status: ["OPEN", "CLOSED"] },
+      userId: ctx.userId,
+      origin: ctx.origin,
+    });
+    return ok(undefined);
+  });
 }

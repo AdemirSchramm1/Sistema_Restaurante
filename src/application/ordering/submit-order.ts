@@ -30,6 +30,8 @@ export async function submitOrder(
     if (!loaded.ok) return loaded;
     const { access, table, settings } = loaded.value;
     const now = deps.clock.now();
+    // Conta fechada pelo caixa (spec 011): o celular precisa ler o QR code de novo.
+    if (access.endReason === "TAB_CLOSED") return err("TABLE_TAB_CLOSED");
     if (!canSubmitWith(access, now)) return err("ACCESS_EXPIRED");
 
     const same = await repos.orders.findByClientRequest(access.id, input.value.clientRequestId);
