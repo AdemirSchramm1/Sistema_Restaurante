@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { checkClose, closeBlockers, isPendingOrder, tabTotals, type TabTotals } from "./tab";
+import {
+  checkClose,
+  checkReopenReason,
+  closeBlockers,
+  closedSummary,
+  isPendingOrder,
+  tabTotals,
+  type TabTotals,
+} from "./tab";
 import { d } from "../shared/decimal";
 import type { OrderStatus } from "../ordering/order";
 
@@ -99,5 +107,43 @@ describe("fechar a conta (spec 011, US2 e FR-004)", () => {
   it("conta com todos os pedidos cancelados fecha com R$ 0,00, sem pagamento", () => {
     const orders = [order("CANCELLED", "68.00")];
     expect(code(checkClose(totals([], orders), orders))).toBe("OK");
+  });
+});
+
+describe("reabrir conta (spec 011, US6)", () => {
+  it("motivo obrigatório, sem espaços nas pontas, até 140 letras", () => {
+    expect(checkReopenReason("  Cliente pediu dois CPFs  ")).toEqual({ ok: true, value: "Cliente pediu dois CPFs" });
+    const empty = checkReopenReason("   ");
+    expect(empty.ok ? null : [empty.error.code, empty.error.field]).toEqual(["REASON_REQUIRED", "reason"]);
+    const long = checkReopenReason("x".repeat(141));
+    expect(long.ok ? null : [long.error.code, long.error.field]).toEqual(["NOTE_TOO_LONG", "reason"]);
+    expect(checkReopenReason("x".repeat(140)).ok).toBe(true);
+  });
+});
+
+describe("resumo das contas fechadas (spec 011, US6)", () => {
+  it("soma a taxa e o total; pagamentos por forma na ordem da lista, sem forma vazia", () => {
+    const s = closedSummary(
+      [
+        { serviceCharge: d("7.70"), total: d("84.70") },
+        { serviceCharge: d("0.90"), total: d("9.90") },
+      ],
+      [
+        { method: "CREDIT_CARD", amount: d("9.90") },
+        { method: "PIX", amount: d("50.00") },
+        { method: "CASH", amount: d("34.70") },
+      ],
+    );
+    expect(s.byMethod.map((x) => [x.method, x.amount.toFixed(2)])).toEqual([
+      ["CASH", "34.70"],
+      ["PIX", "50.00"],
+      ["CREDIT_CARD", "9.90"],
+    ]);
+    expect([s.serviceCharge.toFixed(2), s.total.toFixed(2)]).toEqual(["8.60", "94.60"]);
+  });
+
+  it("sem contas, tudo zero", () => {
+    const s = closedSummary([], []);
+    expect([s.byMethod, s.serviceCharge.toFixed(2), s.total.toFixed(2)]).toEqual([[], "0.00", "0.00"]);
   });
 });

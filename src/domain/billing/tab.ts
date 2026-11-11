@@ -2,6 +2,7 @@ import { d, type Decimal } from "../shared/decimal";
 import { err, ok, type Result } from "../shared/result";
 import type { OrderStatus } from "../ordering/order";
 import { serviceCharge } from "./service-charge";
+import type { PaymentMethod } from "./payment";
 
 /** O que a conta precisa saber de cada pedido e de cada pagamento (spec 011). */
 export type TabOrder = { status: OrderStatus; total: Decimal };
@@ -59,4 +60,17 @@ export function checkClose(totals: TabTotals, orders: readonly { status: OrderSt
   const pending = pendingCount(orders);
   if (pending > 0) return err("PENDING_ORDERS", undefined, { pending });
   return ok(undefined);
+}
+
+/** Esqueleto (vermelho). */
+export function checkReopenReason(_reason: string): Result<string> {
+  return err("VALIDATION");
+}
+
+/** Esqueleto (vermelho). */
+export function closedSummary(
+  _tabs: readonly { serviceCharge: Decimal; total: Decimal }[],
+  _paid: readonly { method: PaymentMethod; amount: Decimal }[],
+): { byMethod: { method: PaymentMethod; amount: Decimal }[]; serviceCharge: Decimal; total: Decimal } {
+  return { byMethod: [], serviceCharge: d(1), total: d(1) };
 }
