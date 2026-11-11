@@ -102,8 +102,8 @@ carne −0,3 kg, cebola sem saída.
 
 ## Fase 9: Ponta a ponta, docs e acabamento
 
-- [ ] T052 [teste] `tests/e2e/billing.spec.ts` (vermelho antes das telas finais): roteiro do [quickstart](quickstart.md) com celular emulado, cozinha e caixa em contextos separados; dois restaurantes
-- [ ] T053 [P] [teste] `tests/e2e/accessibility.spec.ts`: Caixa, conta, conta impressa e Contas sem violações do axe
+- [X] T052 [teste] `tests/e2e/billing.spec.ts` (vermelho antes das telas finais): roteiro do [quickstart](quickstart.md) com celular emulado, cozinha e caixa em contextos separados; dois restaurantes
+- [X] T053 [P] [teste] `tests/e2e/accessibility.spec.ts`: Caixa, conta, conta impressa e Contas sem violações do axe
 - [ ] T054 [P] Docs de produto: `docs/produto/pedidos/05-conta-da-mesa.md` (novo) e `00-visao-geral.md`; `docs/produto/estoque/06-movimentacoes.md` (venda, saldo negativo para venda, perda "Pedido cancelado"), `09-controles-e-permissoes.md` (Caixa e ações `tab.*`), `13-decisoes-adotadas.md` (decisões da 011), `00-visao-geral.md` (005 e 011 feitas); `docs/README.md`
 - [ ] T055 [P] Docs de sistema: `docs/sistema/pedidos/01-modelo-de-dados.md` (contas e pagamentos), `02-regras.md` (domínio `billing`), plano de testes; `docs/sistema/estoque/01-modelo-de-dados.md` e `03-movimentacoes-e-saldo.md` (`SALE_RECIPE`, `order_id`, saldo negativo só para venda)
 - [ ] T056 Rodar `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (cobertura do domínio ≥ 90%), `pnpm test:integration`, `pnpm test:e2e`; marcar as tarefas
