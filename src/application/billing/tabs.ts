@@ -1,6 +1,6 @@
 import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
-import { authorize } from "../shared";
+import { authorize, auditStamp } from "../shared";
 import type { TabEventRecord, TabPaymentRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
@@ -97,7 +97,7 @@ export async function loadTab(deps: Deps, repos: Repos, id: string): Promise<Res
   const payments = await repos.tabs.payments(id);
   const totals = tabTotals({
     orders,
-    payments: payments.map((p) => ({ amount: p.amount, removed: p.removedAt !== null })),
+    payments: activePayments(payments),
     serviceRate: tab.serviceRate,
     serviceWaived: tab.serviceWaived,
   });
@@ -142,11 +142,55 @@ export async function getTab(deps: Deps, ctx: RequestContext, id: string): Promi
   return deps.tenant(ctx.restaurantId, (repos) => loadTab(deps, repos, id));
 }
 
-/** Esqueleto (vermelho). */
+/** Pagamentos que valem (não tirados), no formato do domínio. */
+export const activePayments = (payments: { amount: Decimal; removedAt: Date | null }[]) =>
+  payments.map((p) => ({ amount: p.amount, removed: p.removedAt !== null }));
+
+/**
+ * Tira (ou põe de volta) a taxa de serviço desta conta (US1-8). Tirar é recusado se o que já foi
+ * pago passaria do novo total: a tela pede para tirar um pagamento antes.
+ */
 export async function setServiceWaived(
-  _deps: Deps,
-  _ctx: RequestContext,
-  _input: { tabId: string; waived: boolean; version: number },
+  deps: Deps,
+  ctx: RequestContext,
+  input: { tabId: string; waived: boolean; version: number },
 ): Promise<Result<void>> {
-  return err("NOT_FOUND");
+  const allowed = await authorize(deps, ctx, "tab.pay", TAB_ENTITY, input.tabId);
+  if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const tab = await repos.tabs.lock(input.tabId);
+    if (!tab) return err("NOT_FOUND");
+    if (tab.status !== "OPEN") return err("TAB_CLOSED");
+    if (tab.version !== input.version) return err("STALE_RECORD");
+    if (tab.serviceRate === null) return err("NO_SERVICE_CHARGE");
+    if (tab.serviceWaived === input.waived) return ok(undefined);
+    if (input.waived) {
+      const totals = tabTotals({
+        orders: await repos.orders.listForTab(tab.id),
+        payments: activePayments(await repos.tabs.payments(tab.id)),
+        serviceRate: tab.serviceRate,
+        serviceWaived: true,
+      });
+      if (totals.remaining.isNegative())
+        return err("PAYMENT_EXCEEDS_REMAINING", undefined, { total: totals.total.toFixed(2), paid: totals.paid.toFixed(2) });
+    }
+    const audit = auditStamp(deps, ctx);
+    await repos.tabs.setServiceWaived(tab.id, input.waived, audit);
+    await repos.tabs.addEvent({
+      id: deps.ids.next(),
+      tabId: tab.id,
+      kind: input.waived ? "SERVICE_WAIVED" : "SERVICE_RESTORED",
+      userId: ctx.userId,
+      at: audit.at,
+    });
+    await repos.audit.record({
+      entity: TAB_ENTITY,
+      entityId: tab.id,
+      action: "UPDATE",
+      changes: { serviceWaived: [tab.serviceWaived, input.waived] },
+      userId: ctx.userId,
+      origin: ctx.origin,
+    });
+    return ok(undefined);
+  });
 }
