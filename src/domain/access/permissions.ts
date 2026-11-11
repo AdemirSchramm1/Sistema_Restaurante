@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "../shared/result";
 
-export const ROLES = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER"] as const;
+export const ROLES = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"] as const;
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {
@@ -10,6 +10,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   BUYER: "Comprador",
   ADMINISTRATIVE: "Administrativo",
   WAITER: "Garçom",
+  CASHIER: "",
 };
 
 export const ACTIONS = [
@@ -36,6 +37,11 @@ export const ACTIONS = [
   "product.sold_out",
   "addon.read",
   "addon.write",
+  "tab.read",
+  "tab.pay",
+  "tab.history",
+  "tab.reopen",
+  "tab.settings",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -59,6 +65,7 @@ const MATRIX: Record<Role, readonly Action[]> = {
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
   WAITER: ["order.deliver", "order.read"],
+  CASHIER: [],
 };
 
 export function can(roles: readonly Role[], action: Action): boolean {

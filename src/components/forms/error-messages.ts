@@ -84,6 +84,21 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_LABEL: "O texto do botão precisa ter até 40 letras.",
   DUPLICATE_OPTION: "Esta opção já está na lista.",
   TOO_MANY_OPTIONS: "Use até 10 adicionais e 10 itens para tirar por produto.",
+  INVALID_RATE: "A taxa de serviço precisa ser de 0% a 20%, com até 2 casas (ex.: 10 ou 12,5).",
+  INVALID_PEOPLE: "Divida por 2 a 20 pessoas.",
+  PAYMENT_EXCEEDS_REMAINING: "O valor passa do que falta pagar.",
+  RECEIVED_TOO_LOW: "O valor recebido em dinheiro é menor que o valor do pagamento.",
+  REMAINING_NOT_ZERO: "Ainda falta pagar.",
+  PENDING_ORDERS: "A mesa tem pedidos que ainda não foram entregues.",
+  TAB_CLOSED: "Esta conta já foi fechada.",
+  TAB_NOT_CLOSED: "Esta conta já está aberta.",
+  TABLE_TAB_CLOSED: "Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo.",
+  ALREADY_REMOVED: "Este pagamento já foi tirado.",
+  NO_SERVICE_CHARGE: "Esta conta não tem taxa de serviço.",
+  REASON_REQUIRED: "Diga o motivo.",
+  TABLE_HAS_OPEN_TAB: "A mesa já tem outra conta aberta. Feche-a antes.",
+  INGREDIENTS_USED_REQUIRED: "Diga se os ingredientes já foram usados.",
+  REVERSE_VIA_ORDER: "Esta saída veio de um pedido. Para desfazer, cancele o pedido na cozinha.",
 };
 
 export function messageFor(error: DomainError): string {

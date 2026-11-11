@@ -4,8 +4,8 @@ import { applyPurchase, removePurchase } from "./average-cost";
 import type { MovementReason, ReasonMovementType } from "./movement-reasons";
 import { convert, toStockUnit, unitByCode, type UnitCode } from "./units";
 
-/** Tipos de movimentação desta versão (spec 004, FR-001). */
-export const MOVEMENT_TYPES = ["PURCHASE", "LOSS", "ADJUSTMENT", "REVERSAL"] as const;
+/** Tipos de movimentação desta versão (spec 004, FR-001; venda na spec 011). */
+export const MOVEMENT_TYPES = ["PURCHASE", "LOSS", "ADJUSTMENT", "REVERSAL", "SALE_RECIPE"] as const;
 export type MovementType = (typeof MOVEMENT_TYPES)[number];
 
 export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
@@ -13,6 +13,7 @@ export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
   LOSS: "Perda",
   ADJUSTMENT: "Acerto",
   REVERSAL: "Estorno",
+  SALE_RECIPE: "",
 };
 
 /** O que o domínio precisa saber do item para lançar. */
@@ -236,4 +237,18 @@ export function planReversal(
     enteredUnit: item.stockUnit,
     newAverageCost,
   });
+}
+
+/** Esqueleto (vermelho): a regra vem no próximo commit. */
+export function planSale(_item: StockItem, _quantity: Decimal): Result<PlannedMovement> {
+  return err("VALIDATION");
+}
+
+export function planCancelledSale(
+  _sale: OriginalMovement,
+  _item: StockItem,
+  _ingredientsUsed: boolean,
+  _reasons: { reversal: MovementReason | undefined; loss: MovementReason | undefined },
+): Result<{ reversal: PlannedMovement; loss: PlannedMovement | null }> {
+  return err("VALIDATION");
 }

@@ -2,13 +2,16 @@ import { describe, it, expect } from "vitest";
 import {
   checkAdjustmentDecision,
   planAdjustmentApproval,
+  MOVEMENT_TYPE_LABELS,
   planAdjustmentRequest,
+  planCancelledSale,
   planLoss,
   planPurchase,
   planReversal,
+  planSale,
   type StockItem,
 } from "./movement";
-import { MOVEMENT_REASONS, reasonByCode } from "./movement-reasons";
+import { manualReasons, MOVEMENT_REASONS, reasonByCode } from "./movement-reasons";
 import { d } from "../shared/decimal";
 
 const NOW = new Date("2026-11-02T12:00:00Z");
@@ -253,5 +256,132 @@ describe("estorno (spec 004, US5)", () => {
 
   it("estorno de lançamento de item inativado depois continua possível", () => {
     expect(code(planReversal(purchase, tomato({ active: false, balance: d(70) }), reversal))).toBe("OK");
+  });
+});
+
+describe("venda pelo pedido (spec 011, US4 e FR-006)", () => {
+  /** Queijo: 1 kg a R$ 50,00/kg. */
+  const cheese = (over: Partial<StockItem> = {}) =>
+    tomato({ id: "queijo", averageCost: d(50), balance: d(1), purchaseFactor: null, ...over });
+  const view = (r: ReturnType<typeof planSale>) =>
+    r.ok
+      ? [
+          r.value.quantity.toString(),
+          r.value.unitCost.toString(),
+          r.value.totalCost.toString(),
+          r.value.enteredQuantity.toString(),
+          r.value.enteredUnit,
+        ]
+      : r.error.code;
+
+  it("tipo novo em português", () => {
+    expect(MOVEMENT_TYPE_LABELS.SALE_RECIPE).toBe("Venda");
+  });
+
+  it("sai o consumo do pedido pelo custo médio do momento: 0,14 kg de queijo a R$ 50,00", () => {
+    expect(view(planSale(cheese(), d("0.14")))).toEqual(["-0.14", "50", "-7", "0.14", "kg"]);
+  });
+
+  it("não bloqueia por saldo: a venda pode deixar o saldo negativo", () => {
+    expect(view(planSale(cheese({ balance: d("0.1") }), d("0.2")))).toEqual(["-0.2", "50", "-10", "0.2", "kg"]);
+  });
+
+  it("item sem custo ainda sai com custo zero", () => {
+    expect(view(planSale(cheese({ averageCost: null }), d("0.14")))).toEqual(["-0.14", "0", "0", "0.14", "kg"]);
+  });
+
+  it("item inativo também baixa", () => {
+    expect(view(planSale(cheese({ active: false }), d("0.14")))[0]).toBe("-0.14");
+  });
+
+  it("quantidade com até 4 casas, a precisão do livro; o que arredonda para zero não sai", () => {
+    expect(view(planSale(cheese(), d("0.033333333")))[0]).toBe("-0.0333");
+    expect(view(planSale(cheese(), d("0.00005")))[0]).toBe("-0.0001");
+    expect(view(planSale(cheese(), d("0.00004")))).toBe("INVALID_QUANTITY");
+    expect(view(planSale(cheese(), d("0")))).toBe("INVALID_QUANTITY");
+    expect(view(planSale(cheese(), d("-1")))).toBe("INVALID_QUANTITY");
+  });
+});
+
+describe("pedido cancelado depois do preparo (spec 011, US5 e FR-008)", () => {
+  const sale = {
+    type: "SALE_RECIPE" as const,
+    quantity: d("-0.14"),
+    unitCost: d(50),
+    totalCost: d("-7"),
+    reversed: false,
+  };
+  const reasons = {
+    reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
+    loss: reasonByCode("LOSS", "ORDER_CANCELLED"),
+  };
+  const line = (p: { quantity: { toString(): string }; unitCost: { toString(): string }; totalCost: { toString(): string } }) => [
+    p.quantity.toString(),
+    p.unitCost.toString(),
+    p.totalCost.toString(),
+  ];
+
+  it("motivos 'Pedido cancelado' no estorno e na perda (família erro na operação)", () => {
+    expect(reasons.reversal?.label).toBe("Pedido cancelado");
+    expect(reasons.loss?.label).toBe("Pedido cancelado");
+    expect(reasons.loss?.family).toBe("OPERATIONAL");
+  });
+
+  it("ingredientes usados: estorna a venda e lança a perda com o mesmo custo", () => {
+    const r = planCancelledSale(sale, tomato({ balance: d("0.86") }), true, reasons);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(line(r.value.reversal)).toEqual(["0.14", "50", "7"]);
+    expect(r.value.loss && line(r.value.loss)).toEqual(["-0.14", "50", "-7"]);
+  });
+
+  it("ingredientes não usados: só o estorno, o estoque volta", () => {
+    const r = planCancelledSale(sale, tomato(), false, reasons);
+    expect(r.ok && [line(r.value.reversal), r.value.loss]).toEqual([["0.14", "50", "7"], null]);
+  });
+
+  it("a perda do cancelamento não é bloqueada por saldo", () => {
+    expect(code(planCancelledSale(sale, tomato({ balance: d("-3") }), true, reasons))).toBe("OK");
+  });
+
+  it("só venda, uma vez só, com os motivos certos", () => {
+    expect(code(planCancelledSale({ ...sale, type: "LOSS" }, tomato(), true, reasons))).toBe("VALIDATION");
+    expect(code(planCancelledSale({ ...sale, reversed: true }, tomato(), true, reasons))).toBe(
+      "ALREADY_REVERSED",
+    );
+    expect(code(planCancelledSale(sale, tomato(), true, { ...reasons, loss: reversal }))).toBe(
+      "INVALID_REASON",
+    );
+    expect(code(planCancelledSale(sale, tomato(), false, { ...reasons, reversal: loss }))).toBe(
+      "INVALID_REASON",
+    );
+  });
+
+  it("'Pedido cancelado' só vem do cancelamento: fora das listas e recusado na perda e no estorno à mão", () => {
+    expect(manualReasons("LOSS").map((r) => r.code)).not.toContain("ORDER_CANCELLED");
+    expect(manualReasons("REVERSAL").map((r) => r.code)).not.toContain("ORDER_CANCELLED");
+    expect(manualReasons("LOSS")).toHaveLength(11);
+    expect(manualReasons("REVERSAL")).toHaveLength(3);
+    const manualLoss = planLoss(
+      tomato(),
+      { quantity: d(1), unit: "kg", reason: reasons.loss, occurredAt: NOW },
+      NOW,
+    );
+    expect(code(manualLoss)).toBe("INVALID_REASON");
+    const burnt = { type: "LOSS" as const, quantity: d(-1), unitCost: d(3), totalCost: d(-3), reversed: false };
+    expect(code(planReversal(burnt, tomato(), reasons.reversal))).toBe("INVALID_REASON");
+  });
+
+  it("venda não se estorna à mão: desfaz cancelando o pedido", () => {
+    expect(code(planReversal(sale, tomato(), reversal))).toBe("REVERSE_VIA_ORDER");
+  });
+
+  it("perda comum continua bloqueada por saldo", () => {
+    const r = planLoss(
+      tomato({ balance: d("0.1") }),
+      { quantity: d("0.2"), unit: "kg", reason: loss, occurredAt: NOW },
+      NOW,
+    );
+    expect(code(r)).toBe("INSUFFICIENT_STOCK");
   });
 });

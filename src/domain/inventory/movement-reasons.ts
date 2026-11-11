@@ -52,6 +52,9 @@ export const MOVEMENT_REASONS: readonly MovementReason[] = [
   r(33, "REVERSAL", "REVERSAL", "OTHER", "Outro"),
 ];
 
+/** Esqueleto (vermelho). */
+export const manualReasons = (_type: ReasonMovementType): MovementReason[] => [];
+
 export const reasonById = (id: string) => MOVEMENT_REASONS.find((x) => x.id === id);
 export const reasonByCode = (type: ReasonMovementType, code: string) =>
   MOVEMENT_REASONS.find((x) => x.movementType === type && x.code === code);

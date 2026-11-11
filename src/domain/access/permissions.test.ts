@@ -94,8 +94,8 @@ describe("pedidos pelo QR code (spec 009, FR-010) e adicionais (spec 010, FR-008
     expect(ROLE_LABELS.WAITER).toBe("Garçom");
   });
 
-  it("garçom só vê prontos, marca entregue e consulta pedidos; não vê estoque", () => {
-    expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual(["order.deliver", "order.read"]);
+  it("garçom só vê prontos, marca entregue, consulta pedidos e vê a conta (spec 011); não vê estoque", () => {
+    expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual(["order.deliver", "order.read", "tab.read"]);
     expect(can(["WAITER"], "catalog.read")).toBe(false);
   });
 
@@ -112,5 +112,33 @@ describe("pedidos pelo QR code (spec 009, FR-010) e adicionais (spec 010, FR-008
   it("preços de adicionais só o gerente muda; o chef vê", () => {
     expect(who("addon.write")).toEqual(["MANAGER"]);
     expect(who("addon.read")).toEqual(["MANAGER", "CHEF"]);
+  });
+});
+
+describe("conta da mesa e caixa (spec 011, FR-010)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
+  const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
+
+  it("papel Caixa existe, em português", () => {
+    expect(ROLES).toContain("CASHIER");
+    expect(ROLE_LABELS.CASHIER).toBe("Caixa");
+  });
+
+  it("caixa vê o caixa, recebe, fecha e consulta contas e pedidos; não vê estoque nem cozinha", () => {
+    expect(ACTIONS.filter((a) => can(["CASHIER"], a)).sort()).toEqual([
+      "order.read",
+      "tab.history",
+      "tab.pay",
+      "tab.read",
+    ]);
+  });
+
+  it("matriz das ações novas", () => {
+    expect(who("tab.read")).toEqual(["MANAGER", "WAITER", "CASHIER"]);
+    expect(who("tab.pay")).toEqual(["MANAGER", "CASHIER"]);
+    expect(who("tab.history")).toEqual(["MANAGER", "CASHIER"]);
+    expect(who("tab.reopen")).toEqual(["MANAGER"]);
+    expect(who("tab.settings")).toEqual(["MANAGER"]);
+    expect(who("order.read")).toEqual(["MANAGER", "CHEF", "WAITER", "CASHIER"]);
   });
 });
