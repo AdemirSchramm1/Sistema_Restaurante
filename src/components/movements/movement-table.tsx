@@ -5,12 +5,20 @@ import { Badge } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
 import type { MovementView } from "@/application/inventory/movements";
 import { MOVEMENT_TYPE_LABELS } from "@/domain/inventory/movement";
-import { MOVEMENT_REASONS } from "@/domain/inventory/movement-reasons";
+import { manualReasons } from "@/domain/inventory/movement-reasons";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
 
 const qty = (v: Decimal) => `${v.gt(0) ? "+" : ""}${formatBrDecimal(v, { maxPlaces: 4 })}`;
 const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
-const REVERSAL_REASONS = MOVEMENT_REASONS.filter((r) => r.movementType === "REVERSAL");
+const REVERSAL_REASONS = manualReasons("REVERSAL");
+
+/** Motivo, pedido (venda e cancelamento, spec 011) ou fornecedor. */
+function source(m: MovementView): string {
+  if (m.type === "SALE_RECIPE" && m.order) return `Pedido ${m.order.number}, Mesa ${m.order.tableName}`;
+  if (m.reasonLabel)
+    return m.order ? `${m.reasonLabel} · pedido ${m.order.number}, Mesa ${m.order.tableName}` : m.reasonLabel;
+  return m.supplierName ? `De ${m.supplierName}` : "—";
+}
 
 /** Lista de movimentações do livro, com "Estornar" para quem pode. */
 export function MovementTable({
@@ -56,9 +64,9 @@ export function MovementTable({
                 </span>
               )}
             </Td>
-            <Td>{money(m.totalCost)}</Td>
+            <Td>{m.type === "SALE_RECIPE" && m.totalCost.isZero() ? "Sem custo" : money(m.totalCost)}</Td>
             <Td>
-              {m.reasonLabel ?? (m.supplierName ? `De ${m.supplierName}` : "—")}
+              {source(m)}
               {m.notes && <span className="block text-xs text-muted-foreground">{m.notes}</span>}
             </Td>
             <Td>
@@ -69,7 +77,7 @@ export function MovementTable({
             </Td>
             {canReverse && (
               <Td>
-                {m.type !== "REVERSAL" && !m.reversedById && (
+                {m.type !== "REVERSAL" && m.type !== "SALE_RECIPE" && !m.reversedById && (
                   <ActionForm
                     action={reverseMovementAction}
                     hidden={{ movementId: m.id, idempotencyKey: crypto.randomUUID() }}

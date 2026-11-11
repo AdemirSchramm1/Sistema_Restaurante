@@ -9,7 +9,7 @@ import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import type { ActionState } from "@/actions/_session";
 import { MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
 import {
-  MOVEMENT_REASONS,
+  manualReasons,
   REASON_FAMILY_LABELS,
   type ReasonFamily,
 } from "@/domain/inventory/movement-reasons";
@@ -35,7 +35,8 @@ export type MovementSupplierOption = {
   packages: { itemId: string; packageLabel: string; packageQuantity: string }[];
 };
 
-type FormType = Exclude<MovementType, "REVERSAL">;
+/** Venda não se lança à mão: sai pelo pedido (spec 011). */
+type FormType = Exclude<MovementType, "REVERSAL" | "SALE_RECIPE">;
 
 type Props = {
   action: (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -122,7 +123,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
       ? `${money(totalPaid.value.dividedBy(inItemUnit))} por ${item.unit}`
       : null;
 
-  const reasons = MOVEMENT_REASONS.filter((r) => r.movementType === type);
+  const reasons = type === "PURCHASE" ? [] : manualReasons(type);
   const families = [...new Set(reasons.map((r) => r.family))] as ReasonFamily[];
   const qtyName = type === "ADJUSTMENT" ? "countedQuantity" : "quantity";
 

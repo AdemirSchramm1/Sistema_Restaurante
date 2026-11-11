@@ -328,7 +328,11 @@ export interface ReportRepo {
   countAtReorderPoint(): Promise<number>;
   /** Itens ativos com saída no período ou saldo, com o total que saiu. */
   outflowByItem(from: Date, to: Date, itemIds?: readonly string[]): Promise<OutflowByItem[]>;
-  outflowByReason(from: Date, to: Date): Promise<{ reasonId: string; value: Decimal }[]>;
+  /** Saídas por motivo; a venda (spec 011) vem à parte, sem motivo. */
+  outflowByReason(
+    from: Date,
+    to: Date,
+  ): Promise<{ type: MovementType; reasonId: string | null; value: Decimal }[]>;
   totals(from: Date, to: Date): Promise<{ inflow: Decimal; outflow: Decimal; losses: Decimal }>;
   /** Entradas e saídas por semana (segunda a domingo, no fuso dado); semanas sem movimento vêm zeradas. */
   weekly(
