@@ -115,7 +115,7 @@ queijo 1 kg, enviar 2 × X-Burger com + 2 Fatia de queijo (20 g) e sem cebola, a
 "Começar preparo" e ver na página do queijo uma saída "Venda — pedido 7, Mesa 12" de 0,14 kg e o
 saldo 0,86 kg; o pão baixa 2 un, a carne 0,3 kg e a cebola não baixa.
 
-**Cenários** [NEEDS CLARIFICATION: Q1]
+**Cenários** (Q1 decidida: baixa ao começar o preparo)
 
 1. A baixa acontece quando a cozinha toca **"Começar preparo"** (é quando os ingredientes saem da
    prateleira). Pedido só recebido não mexe no estoque.
@@ -269,8 +269,6 @@ período (vem numa feature de indicadores, agora que as vendas existem).
 
 ## Perguntas em aberto
 
-- **Q1 — Quando o estoque baixa?** Proposta: quando a cozinha toca "Começar preparo" (US4).
-  Alternativas: no envio do pedido, ou só ao fechar a conta.
 - **Q2 — Como dividir a conta?** Proposta: dividir por pessoas em partes iguais e aceitar valor
   livre (US3). Alternativa: também dividir por itens (cada um paga o que consumiu).
 - **Q3 — Taxa de serviço (10%)?** Proposta: o gerente liga e define a porcentagem (padrão 10%,
@@ -282,3 +280,4 @@ período (vem numa feature de indicadores, agora que as vendas existem).
 | Data | Pergunta | Decisão |
 |---|---|---|
 | 2026-11-11 | Conta e baixa do estoque na mesma feature? | Sim, pedido do dono; a 011 entrega a 005 do roadmap |
+| 2026-11-11 | Q1 — Quando o estoque baixa? | Quando a cozinha toca "Começar preparo" (não no envio nem no fechamento da conta) |
