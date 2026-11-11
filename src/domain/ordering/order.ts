@@ -38,22 +38,30 @@ export function checkTransition(from: OrderStatus, to: OrderStatus): Result<void
   return NEXT[from] === to ? ok(undefined) : err("INVALID_ORDER_TRANSITION", undefined, { from, to });
 }
 
-/** Cancela qualquer pedido não final, com motivo da lista; "Outro" exige texto. */
+/**
+ * Cancela qualquer pedido não final, com motivo da lista; "Outro" exige texto. Depois do preparo,
+ * `ingredientsUsed` é obrigatório (spec 011, US5).
+ */
 export function checkCancel(
   from: OrderStatus,
   reason: CancelReason,
   note: string | null,
+  ingredientsUsed: boolean | null = null,
 ): Result<{ reason: CancelReason; note: string | null }> {
   if (!CANCEL_REASONS.includes(reason)) return err("VALIDATION", "reason");
   if (isFinal(from)) return err("INVALID_ORDER_TRANSITION", undefined, { from, to: "CANCELLED" });
   const text = note?.trim() || null;
   if (text && text.length > CANCEL_NOTE_MAX) return err("NOTE_TOO_LONG", "note");
   if (reason === "OTHER" && !text) return err("CANCEL_NOTE_REQUIRED", "note");
+  if (leftTheShelf(from) && ingredientsUsed === null) return err("INGREDIENTS_USED_REQUIRED", "ingredientsUsed");
   return ok({ reason, note: text });
 }
 
-/** Esqueleto (vermelho). */
-export const leftTheShelf = (_s: OrderStatus): boolean => false;
+/**
+ * Em preparo ou pronto: os ingredientes já saíram da prateleira e o estoque já baixou (spec 011,
+ * FR-006). Cancelar exige dizer se foram usados.
+ */
+export const leftTheShelf = (s: OrderStatus): boolean => s === "PREPARING" || s === "READY";
 
 /** Mais de 20 minutos sem ficar pronto (spec 009, US4-7). */
 export function isLate(status: OrderStatus, submittedAt: Date, now: Date): boolean {

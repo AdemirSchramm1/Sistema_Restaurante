@@ -53,9 +53,9 @@ describe("cancelar pedido (spec 009, US4-6)", () => {
     expect(CANCEL_REASONS).toEqual(["CUSTOMER_GAVE_UP", "OUT_OF_PRODUCT", "IMPROPER_ORDER", "OTHER"]);
   });
 
-  it("cancela qualquer pedido ainda não entregue", () => {
+  it("cancela qualquer pedido ainda não entregue (depois do preparo, dizendo se usou os ingredientes)", () => {
     for (const s of ["RECEIVED", "PREPARING", "READY"] as const)
-      expect(checkCancel(s, "CUSTOMER_GAVE_UP", null)).toEqual({
+      expect(checkCancel(s, "CUSTOMER_GAVE_UP", null, s === "RECEIVED" ? null : true)).toEqual({
         ok: true,
         value: { reason: "CUSTOMER_GAVE_UP", note: null },
       });

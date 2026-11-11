@@ -1,12 +1,13 @@
 import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import { recordOrderSale } from "../inventory/sales";
+import { recordOrderSale, reverseOrderSale } from "../inventory/sales";
 import type { OrderRecord } from "./ports";
 import {
   checkCancel,
   checkTransition,
   isLate,
+  leftTheShelf,
   type CancelReason,
   type OrderStatus,
 } from "@/domain/ordering/order";
@@ -144,7 +145,11 @@ export async function markDelivered(
   return move(deps, ctx, "order.deliver", { ...input, to: "DELIVERED" });
 }
 
-/** Cancela com motivo da lista; "Outro" pede texto de até 140. */
+/**
+ * Cancela com motivo da lista; "Outro" pede texto de até 140. Depois do preparo (spec 011, US5),
+ * estorna a venda e, com `ingredientsUsed`, lança a perda; a conta da mesa muda de versão porque o
+ * total mudou.
+ */
 export async function cancelOrder(
   deps: Deps,
   ctx: RequestContext,
@@ -156,14 +161,22 @@ export async function cancelOrder(
     const current = await repos.orders.get(input.id);
     if (!current) return err("NOT_FOUND");
     if (current.version !== input.version) return err("STALE_RECORD");
-    const c = checkCancel(current.status, input.reason, input.note);
+    const c = checkCancel(current.status, input.reason, input.note, input.ingredientsUsed ?? null);
     if (!c.ok) return c;
-    return repos.orders.changeStatus(
+    const audit = auditStamp(deps, ctx);
+    const changed = await repos.orders.changeStatus(
       input.id,
       { from: current.status, to: "CANCELLED", reason: c.value.reason, note: c.value.note },
       input.version,
-      auditStamp(deps, ctx),
+      audit,
     );
+    if (!changed.ok) return changed;
+    if (leftTheShelf(current.status)) {
+      const back = await reverseOrderSale(deps, ctx, repos, input.id, input.ingredientsUsed === true);
+      if (!back.ok) return back;
+    }
+    if (current.tabId) await repos.tabs.touch(current.tabId, audit);
+    return ok(undefined);
   });
 }
 

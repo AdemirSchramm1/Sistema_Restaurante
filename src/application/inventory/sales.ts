@@ -2,7 +2,8 @@ import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { writeMovement } from "./movements";
 import { consumptionFor } from "../ordering/order-consumption";
-import { planSale } from "@/domain/inventory/movement";
+import { planCancelledSale, planSale } from "@/domain/inventory/movement";
+import { reasonByCode } from "@/domain/inventory/movement-reasons";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 /**
@@ -51,6 +52,57 @@ export async function recordOrderSale(
         plan.value,
       ),
     );
+  }
+  return ok({ movementIds });
+}
+
+/**
+ * Pedido cancelado depois do preparo (spec 011, US5): estorna cada venda do pedido e, se os
+ * ingredientes foram usados, lança a mesma saída como perda "Pedido cancelado" (mesmo item,
+ * quantidade e custo). Nada é editado nem apagado; a perda não é barrada por saldo.
+ */
+export async function reverseOrderSale(
+  deps: Deps,
+  ctx: RequestContext,
+  repos: Repos,
+  orderId: string,
+  ingredientsUsed: boolean,
+): Promise<Result<{ movementIds: string[] }>> {
+  const reasons = {
+    reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
+    loss: reasonByCode("LOSS", "ORDER_CANCELLED"),
+  };
+  const sales = (await repos.movements.salesForOrder(orderId)).sort((a, b) => a.itemId.localeCompare(b.itemId));
+  const movementIds: string[] = [];
+  for (const sale of sales) {
+    const item = await repos.movements.lockItem(sale.itemId);
+    if (!item) return err("NOT_FOUND", "itemId");
+    const plan = planCancelledSale({ type: "SALE_RECIPE", ...sale }, item, ingredientsUsed, reasons);
+    if (!plan.ok) {
+      if (plan.error.code === "ALREADY_REVERSED") continue;
+      return plan;
+    }
+    const common = { itemId: item.id, orderId, notes: null, approvedBy: null, idempotencyKey: null };
+    const at = deps.clock.now();
+    movementIds.push(
+      await writeMovement(
+        deps,
+        ctx,
+        repos,
+        { ...common, type: "REVERSAL", reasonId: reasons.reversal!.id, occurredAt: at, reversesId: sale.id },
+        plan.value.reversal,
+      ),
+    );
+    if (plan.value.loss)
+      movementIds.push(
+        await writeMovement(
+          deps,
+          ctx,
+          repos,
+          { ...common, type: "LOSS", reasonId: reasons.loss!.id, occurredAt: at, reversesId: null },
+          plan.value.loss,
+        ),
+      );
   }
   return ok({ movementIds });
 }

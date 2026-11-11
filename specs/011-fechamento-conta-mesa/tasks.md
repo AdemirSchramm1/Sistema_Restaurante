@@ -88,8 +88,8 @@ carne −0,3 kg, cebola sem saída.
 
 ## Fase 7: US5 — Pedido cancelado devolve ou vira perda (P2)
 
-- [ ] T044 [US5] [teste] `tests/integration/billing/cancel-stock.test.ts`: cancelar `RECEIVED` não mexe no estoque; cancelar `PREPARING`/`READY` sem resposta → `INGREDIENTS_USED_REQUIRED`; "Sim" → estorno de cada venda + perda "Pedido cancelado" com mesmo item, quantidade e custo, saldo igual; "Não" → estorno e saldo volta; nada editado ou apagado; perda do cancelamento não é bloqueada por saldo negativo
-- [ ] T045 [US5] `reverseOrderSale` em `src/application/inventory/sales.ts` e `cancelOrder` em `kitchen.ts`
+- [X] T044 [US5] [teste] `tests/integration/billing/cancel-stock.test.ts`: cancelar `RECEIVED` não mexe no estoque; cancelar `PREPARING`/`READY` sem resposta → `INGREDIENTS_USED_REQUIRED`; "Sim" → estorno de cada venda + perda "Pedido cancelado" com mesmo item, quantidade e custo, saldo igual; "Não" → estorno e saldo volta; nada editado ou apagado; perda do cancelamento não é bloqueada por saldo negativo
+- [X] T045 [US5] `reverseOrderSale` em `src/application/inventory/sales.ts` e `cancelOrder` em `kitchen.ts`
 - [ ] T046 [P] [US5] [teste] `src/components/ordering/kitchen-board.test.tsx`: cancelar pedido em preparo ou pronto pergunta "Os ingredientes já foram usados?" (padrão Sim); pedido recebido não pergunta
 - [ ] T047 [US5] `src/components/ordering/kitchen-board.tsx` e `src/actions/kitchen.ts`
 
