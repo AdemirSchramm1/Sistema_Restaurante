@@ -5,8 +5,12 @@
 > por um **acerto** pedido por quem lança e **aprovado por outro gerente**. Ver [escopo simplificado](13-decisoes-adotadas.md#escopo-simplificado-novembro-de-2026).
 >
 > **Primeira versão (feature 004).** Existem: entrada por compra (valor total pago), perda com
-> motivo da lista abaixo, acerto com aprovação e estorno. Os demais tipos da tabela vêm depois
-> (venda na 005). Menu **Lançamentos**; saldo na lista de itens e na página do item.
+> motivo da lista abaixo, acerto com aprovação e estorno. Menu **Lançamentos**; saldo na lista de
+> itens e na página do item.
+>
+> **Venda pelo pedido (feature 011, entrega a 005).** O pedido baixa o estoque sozinho quando a
+> cozinha começa o preparo (tipo 7 da tabela). Ver [abaixo](#venda-pelo-pedido-feature-011). Os
+> demais tipos da tabela continuam fora.
 >
 > **Fornecedor na compra (feature 007).** A compra pode dizer de qual fornecedor foi e ser lançada
 > na embalagem dele ("2 Caixas do fornecedor de 18 kg" = 36 kg). Fornecedor bloqueado não aparece.
@@ -61,8 +65,9 @@ Três famílias (Altametrics), com motivos:
   lança a proteína queimada, o sistema superestima o lucro."
 - Movimentação lançada **não é editada nem apagada**. Correção = movimentação de estorno vinculada à
   original.
-- Saída que deixaria saldo negativo é bloqueada (perda, acerto, estorno). Para vendas, a decisão
-  fica para a feature 005 (proposta: permitir com alerta, o pedido não pode parar).
+- Saída que deixaria saldo negativo é bloqueada (perda, acerto, estorno). A exceção é o pedido
+  (feature 011): a venda e a perda "Pedido cancelado" nunca são bloqueadas, porque o pedido não pode
+  parar; o item avisa o saldo negativo.
 - Acerto: qualquer pessoa que lança pode pedir, sempre com motivo; só um gerente que não seja quem
   pediu aprova. O saldo muda só na aprovação.
 - Motivos implementados (lista fechada): perda de preparo (limpeza acima do normal, erro no
@@ -70,6 +75,36 @@ Três famílias (Altametrics), com motivos:
   ou quebrou, pedido feito errado, porção maior que a do produto, outro). Acerto: conferi na
   prateleira, lançamento esquecido, sumiu (possível furto), outro. Estorno: lançado errado,
   lançado em dobro, outro.
+- Motivos lançados só pelo sistema (feature 011), que não aparecem no formulário: perda **"Pedido
+  cancelado"** (família erro na operação) e estorno **"Pedido cancelado"**.
+
+## Venda pelo pedido (feature 011)
+
+Entrega a 005 do [roadmap](00-visao-geral.md#roadmap). Spec
+[011, US4 e US5](../../../specs/011-fechamento-conta-mesa/spec.md).
+
+- **Quando**: a cozinha toca **Começar preparo** (é quando os ingredientes saem da prateleira).
+  Pedido só recebido não mexe no estoque. Cada pedido baixa uma vez só.
+- **Quanto**: o consumo do pedido ([feature 010](../pedidos/04-adicionar-e-tirar.md#consumo-para-a-baixa-automática-feature-005)):
+  a ficha da versão do envio, sem o que foi tirado, mais os adicionais × vezes, tudo × quantidade;
+  preparos baixam seus ingredientes pelo rendimento. Mudar o produto depois não muda a baixa.
+- **Como aparece**: uma saída **Venda** por item, na medida do item (até 4 casas; o que arredonda
+  para zero não sai), com "Pedido 7, Mesa 12" de referência, a hora do fato e quem tocou "Começar
+  preparo".
+- **Custo**: o custo médio do momento. A venda não muda o custo médio. Item nunca comprado sai com
+  custo zero e a linha mostra **"Sem custo"**.
+- **Saldo negativo**: a venda nunca é bloqueada, nem por item inativo. Se o saldo fica negativo, o
+  item mostra o saldo em destaque com o aviso "O estoque está menor que o que o sistema esperava.
+  Lance a compra que faltou ou peça um acerto." Em **Repor**, saldo negativo conta como zero.
+- **Corrigir**: venda não se lança nem se estorna à mão ("Esta saída veio de um pedido. Para
+  desfazer, cancele o pedido na cozinha.").
+- **Pedido cancelado depois do preparo**: a cozinha diz se os ingredientes já foram usados.
+  - **Sim**: estorno da venda + **perda "Pedido cancelado"** com a mesma quantidade e custo. O saldo
+    não muda; a saída passa a contar como perda.
+  - **Não**: só o estorno; o saldo volta.
+  - Os dois ficam ligados ao pedido, com quem e quando. Nada é editado nem apagado.
+- **Gráficos** (feature 006): "o que mais saiu" conta as vendas, e "por motivo" mostra **Venda**
+  separada das perdas.
 
 ## Critérios de aceite (para a spec)
 

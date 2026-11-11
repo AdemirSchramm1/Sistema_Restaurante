@@ -44,3 +44,6 @@ Na página de cada produto vendido. Só gerente muda.
 Uma linha do pedido usa: a ficha da versão do envio, **sem** os ingredientes retirados, **mais**
 cada adicional × vezes, tudo × quantidade. No exemplo: pão 2 un, carne 0,3 kg, queijo 0,14 kg
 (2 × (30 g + 2 × 20 g)), nenhuma cebola.
+
+Desde a feature 011, esse consumo sai do estoque quando a cozinha toca **Começar preparo** (ver
+[03 — Cozinha e garçom](03-cozinha-e-garcom.md#baixa-do-estoque-feature-011)).

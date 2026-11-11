@@ -43,12 +43,13 @@ Na primeira versão (features 004 e 007) os papéis fazem:
 | Cadastrar fornecedor, itens e preços, bloquear | Gerente e comprador |
 | Definir o aviso de reposição do item (feature 006) | Gerente, chef e comprador |
 | Definir o preço de venda do produto (feature 008) | Gerente e chef |
-| Ver estoque, produtos, fornecedores, "Repor", "Gráficos" e "Custos" | Todos os papéis, menos o garçom |
+| Ver estoque, produtos, fornecedores, "Repor", "Gráficos" e "Custos" | Todos os papéis, menos o garçom e o caixa |
 
 ### Pedidos (features 009 e 010)
 
-O papel **Garçom** (feature 009) só vê as telas "Garçom" e "Pedidos"; o menu mostra só o que cada
-papel pode abrir e, ao entrar, cada um cai na primeira tela do seu menu.
+O papel **Garçom** (feature 009) vê as telas "Garçom", "Caixa" (só para ler a conta aberta, feature
+011) e "Pedidos"; o menu mostra só o que cada papel pode abrir e, ao entrar, cada um cai na primeira
+tela do seu menu.
 
 | Ação | Permissão | Quem pode |
 |---|---|---|
@@ -65,6 +66,30 @@ papel pode abrir e, ao entrar, cada um cai na primeira tela do seu menu.
 O cliente não tem usuário: o pedido registra a mesa e o acesso de origem. Toda escrita da equipe
 (mesa, QR code, situação, cancelamento, esgotado, chave, adicional, quadro) vai para a trilha de
 auditoria, e tentativa sem permissão fica registrada como negada.
+
+### Conta da mesa (feature 011)
+
+Entra o papel **Caixa**: vê só "Caixa", "Contas" e "Pedidos" e entra direto no Caixa. Ver
+[05 — Conta da mesa e caixa](../pedidos/05-conta-da-mesa.md).
+
+| Ação | Permissão | Quem pode |
+|---|---|---|
+| Ver o Caixa e a conta aberta; imprimir a conta aberta | `tab.read` | Gerente, caixa, garçom |
+| Lançar e tirar pagamento; tirar e pôr a taxa da conta; fechar conta | `tab.pay` | Gerente, caixa |
+| Contas fechadas: a lista, cada conta fechada e o resumo por forma de pagamento | `tab.history` | Gerente, caixa |
+| Reabrir conta (com motivo) | `tab.reopen` | Gerente |
+| Configurar a taxa de serviço do restaurante | `tab.settings` | Gerente |
+| Consultar pedidos | `order.read` | Gerente, chef, garçom, caixa |
+
+A baixa do estoque pelo pedido não tem permissão própria: acontece quando quem pode mudar a
+situação na cozinha (`order.kitchen`: gerente, chef) toca "Começar preparo", e o estorno ou a perda
+do cancelamento, com quem cancela (`order.cancel`). Toda escrita (pagamento, pagamento tirado,
+taxa tirada ou posta de volta, fechamento, reabertura com o motivo, taxa do restaurante, venda,
+estorno e perda do cancelamento) vai para a trilha de auditoria com quem e quando.
+
+Controles do manual que a 011 atende: tirar pagamento e tirar a taxa da conta ficam registrados com
+quem e quando (o pagamento tirado continua visível, riscado); reabrir conta é só do gerente e exige
+motivo; a perda de pedido cancelado fica separada da venda.
 
 ## Operação pequena
 

@@ -50,13 +50,13 @@ Spec Kit (`specs/NNN-nome/`).
 | 002 | Simplificar o cadastro e retirar os locais | 001 | Feito: só nome, grupo, medida e embalagem; sem locais |
 | 003 | **Produtos**: o que o cliente pede e quanto de cada item usa | 002 | Feito: produtos vendidos e preparos, versões e custo |
 | 004 | Entradas, perdas e saldo (livro imutável) + custo médio | 002 | Feito: compra entra, perda sai com motivo, acerto com aprovação, estorno |
-| 005 | Baixa automática por pedido | 003, 004, 009, 010 | Estoque diminui conforme os clientes pedem. Entra junto com a 011 ([specs/011](../../../specs/011-fechamento-conta-mesa/spec.md)). **Liberada**: o pedido já guarda a versão do produto e o consumo de cada linha (`orderConsumption`, feature 010) |
+| 005 | Baixa automática por pedido | 003, 004, 009, 010 | Feito junto com a 011 ([docs](06-movimentacoes.md#venda-pelo-pedido-feature-011)): o pedido baixa o estoque quando a cozinha começa o preparo, pela versão do produto no envio, com adicionais e retiradas; a venda pode deixar o saldo negativo, com aviso; cancelar depois do preparo estorna ou vira perda "Pedido cancelado" |
 | 006 | Alerta de reposição e gráficos | 004 | Em revisão ([specs/006](../../../specs/006-alerta-reposicao/spec.md)): aviso por item, tela Repor com quanto comprar e de quem, gráficos do que mais e menos saiu |
 | 007 | Fornecedores | 004 | Em revisão ([specs/007](../../../specs/007-fornecedores/spec.md)): cadastro comercial, itens e preços, preferido, compra com fornecedor, bloqueio |
 | 008 | Painel de custo dos produtos | 003, 004 | Em revisão ([specs/008](../../../specs/008-painel-custo-produtos/spec.md)): preço de venda, custo no preço com faixa, sobra, o que mais pesa, tela Custos e "Usado nos produtos" no item |
 | 009 | Pedidos pelo QR code da mesa | 003, 008 | Feito ([docs](../pedidos/00-visao-geral.md)): mesas e QR codes, cardápio sem login aberto por 20 minutos desde a leitura, telas da cozinha e do garçom, esgotado hoje, consulta de pedidos, papel Garçom |
 | 010 | Adicionar e tirar por botão | 009 | Feito ([docs](../pedidos/04-adicionar-e-tirar.md)): adicionais com preço do gerente, retiradas por produto, só botões (sem observação livre), consumo da linha |
-| 011 | Fechar a conta da mesa e baixar o estoque | 005, 009, 010 | Em especificação ([specs/011](../../../specs/011-fechamento-conta-mesa/spec.md)): conta da mesa com total, divisão, pagamentos e mesa liberada; baixa do estoque pelos pedidos (entrega a 005) |
+| 011 | Fechar a conta da mesa e baixar o estoque | 005, 009, 010 | Feito ([docs](../pedidos/05-conta-da-mesa.md)): conta da mesa com taxa de serviço, pagamentos, divisão, fechar e liberar a mesa, imprimir, contas fechadas com resumo por forma de pagamento, reabrir (gerente), papel Caixa; baixa do estoque pelos pedidos (entrega a 005) |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,
 conferência cega, fiscal e locais de armazenamento (o saldo é um só por item).

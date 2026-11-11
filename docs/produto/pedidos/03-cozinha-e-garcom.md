@@ -1,6 +1,7 @@
 # 3. Cozinha e garçom
 
-Spec [009, US4, US5 e US6](../../../specs/009-pedidos-qr-mesa/spec.md).
+Spec [009, US4, US5 e US6](../../../specs/009-pedidos-qr-mesa/spec.md). A baixa do estoque e o
+cancelamento depois do preparo vêm da [011](../../../specs/011-fechamento-conta-mesa/spec.md).
 
 ## Situações do pedido
 
@@ -23,11 +24,39 @@ Recebido ──► Em preparo ──► Pronto ──► Entregue
   mudanças embaixo do prato ("+ 2 Fatia de queijo", "**SEM** cebola").
 - Pedido novo aparece sozinho em até 10 segundos (a tela atualiza a cada 5), marcado **Novo**.
 - **Atrasado**: recebido ou em preparo há mais de 20 minutos (borda e texto, não só cor).
-- Botões **Começar preparo** e **Pronto**.
+- Botões **Começar preparo** e **Pronto**. **Começar preparo** baixa do estoque o que o pedido usa
+  (ver abaixo).
 - **Cancelar** pede o motivo: cliente desistiu, acabou o produto, pedido indevido ou outro (com
-  texto de até 140 letras).
+  texto de até 140 letras). Depois do preparo, pergunta também pelos ingredientes (ver abaixo).
 - **Esgotado hoje**: lista dos produtos do cardápio com o interruptor. Esgotado sai do cardápio do
   cliente até o fim do dia e volta sozinho no dia seguinte. Também na página do produto.
+
+## Baixa do estoque (feature 011)
+
+Quando a cozinha toca **Começar preparo**, os ingredientes saem da prateleira: o sistema lança, na
+mesma hora, uma saída por venda para cada item do consumo do pedido (a ficha da versão do envio,
+sem o que foi tirado, mais os adicionais, tudo × quantidade; ver
+[04-adicionar-e-tirar](04-adicionar-e-tirar.md#consumo-para-a-baixa-automática-feature-005)).
+
+- Pedido só recebido não mexe no estoque. Cada pedido baixa uma vez só, mesmo com toque duplo ou
+  duas telas.
+- A baixa nunca segura o pedido: se o saldo fica negativo, o item avisa (ver
+  [06-movimentacoes](../estoque/06-movimentacoes.md#venda-pelo-pedido-feature-011)).
+- Exemplo da spec: 2 × X-Burger com + 2 Fatia de queijo e sem cebola baixa pão 2 un, carne 0,3 kg
+  e queijo 0,14 kg; a cebola não baixa. Em **Lançamentos** aparece "Venda" com "Pedido 1, Mesa 12".
+
+## Cancelar depois do preparo (feature 011)
+
+| Situação do pedido | O que o cancelamento faz no estoque |
+|---|---|
+| Recebido | Nada: o estoque ainda não baixou |
+| Em preparo ou Pronto | Pergunta **"Os ingredientes já foram usados?"** (padrão: Sim) |
+
+- **Sim, vão para a perda**: a venda é estornada e o mesmo consumo sai como **perda** com motivo
+  "Pedido cancelado". O saldo não muda; a saída passa a contar como perda.
+- **Não, voltam para o estoque**: a venda é estornada e o saldo volta ao de antes do preparo.
+- Nada é apagado: venda, estorno e perda ficam em **Lançamentos**, com quem e quando.
+- O pedido cancelado sai do total da conta da mesa.
 
 ## Tela do Garçom
 

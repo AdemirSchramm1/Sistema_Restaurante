@@ -34,6 +34,7 @@ E se liga ao fluxo **Spec Kit**:
   - [02 — Cardápio do cliente](produto/pedidos/02-cardapio-do-cliente.md)
   - [03 — Cozinha e garçom](produto/pedidos/03-cozinha-e-garcom.md)
   - [04 — Adicionar e tirar](produto/pedidos/04-adicionar-e-tirar.md)
+  - [05 — Conta da mesa e caixa](produto/pedidos/05-conta-da-mesa.md)
 
 ### Sistema
 
