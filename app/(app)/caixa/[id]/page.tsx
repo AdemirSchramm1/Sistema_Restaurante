@@ -32,6 +32,12 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
         <h1 className="text-2xl font-semibold">
           Mesa {t.tableName} · {t.status === "OPEN" ? "conta aberta" : "conta fechada"}
         </h1>
+        <Link
+          href={`/caixa/${t.id}/imprimir`}
+          className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium hover:bg-muted"
+        >
+          Imprimir conta
+        </Link>
       </div>
       <TabDetail tab={tabDetailView(t)} timezone={t.timezone} />
     </div>
