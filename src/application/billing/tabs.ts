@@ -208,3 +208,12 @@ export async function setServiceWaived(
     return ok(undefined);
   });
 }
+
+/** Esqueleto (vermelho). */
+export async function closeTab(
+  _deps: Deps,
+  _ctx: RequestContext,
+  _input: { tabId: string; version: number },
+): Promise<Result<void>> {
+  return err("NOT_FOUND");
+}
