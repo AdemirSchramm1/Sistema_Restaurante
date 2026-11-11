@@ -39,6 +39,7 @@ export type TabView = {
   tableId: string;
   tableName: string;
   restaurantName: string;
+  timezone: string;
   status: TabStatus;
   openedAt: Date;
   closedAt: Date | null;
@@ -101,11 +102,13 @@ export async function loadTab(deps: Deps, repos: Repos, id: string): Promise<Res
     serviceWaived: tab.serviceWaived,
   });
   const blockers = tab.status === "OPEN" ? closeBlockers(totals, orders) : [];
+  const settings = await repos.orderingSettings.get();
   return ok({
     id: tab.id,
     tableId: tab.tableId,
     tableName: tab.tableName,
-    restaurantName: (await repos.orderingSettings.get()).restaurantName,
+    restaurantName: settings.restaurantName,
+    timezone: settings.timezone,
     status: tab.status,
     openedAt: tab.openedAt,
     closedAt: tab.closedAt,

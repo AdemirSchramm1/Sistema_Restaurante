@@ -10,30 +10,30 @@ Commits `test(011): …` antes de `feat(011): …`.
 
 ## Fase 1: Preparação
 
-- [ ] T001 Criar as pastas `src/domain/billing/`, `src/application/billing/`, `src/components/billing/`, `tests/integration/billing/`
+- [X] T001 Criar as pastas `src/domain/billing/`, `src/application/billing/`, `src/components/billing/`, `tests/integration/billing/`
 
 ## Fase 2: Base (bloqueia todas as histórias)
 
 Domínio puro, permissões e banco.
 
-- [ ] T002 [P] [teste] `src/domain/billing/service-charge.test.ts`: taxa = subtotal × porcentagem ÷ 100 com meio centavo para cima (R$ 68,00 × 10% = R$ 6,80; R$ 33,35 × 10% = R$ 3,34); nula ou tirada = R$ 0,00; porcentagem "0 a 20" com até 2 casas (`INVALID_RATE`)
-- [ ] T003 [P] `src/domain/billing/service-charge.ts`
-- [ ] T004 [P] [teste] `src/domain/billing/tab.test.ts`: subtotal ignora cancelados; total = subtotal + taxa; pago ignora pagamentos tirados; falta = total − pago; "pode fechar" só com falta 0 e sem pedido em `RECEIVED`/`PREPARING`/`READY` (`REMAINING_NOT_ZERO`, `PENDING_ORDERS`); conta com todos os pedidos cancelados fecha com R$ 0,00
-- [ ] T005 [P] `src/domain/billing/tab.ts`
-- [ ] T006 [P] [teste] `src/domain/billing/payment.test.ts`: valor > 0 com até 2 casas (`INVALID_AMOUNT`); fora do dinheiro, valor ≤ falta (`PAYMENT_EXCEEDS_REMAINING`); em dinheiro, recebido ≥ valor (`RECEIVED_TOO_LOW`), valor = mín(recebido, falta) e troco = recebido − valor (falta R$ 24,93, recebido R$ 50,00 → troco R$ 25,07)
-- [ ] T007 [P] `src/domain/billing/payment.ts`
-- [ ] T008 [P] [teste] `src/domain/billing/split.test.ts`: "2 a 20" pessoas (`INVALID_PEOPLE`); R$ 100,00 ÷ 3 = 33,34 + 33,33 + 33,33; R$ 74,80 ÷ 3 = 24,94 + 24,93 + 24,93; soma das partes sempre igual ao falta (propriedade com valores aleatórios); R$ 0,01 ÷ 2 = 0,01 + 0,00
-- [ ] T009 [P] `src/domain/billing/split.ts`
-- [ ] T010 [P] [teste] `src/domain/inventory/movement.test.ts`: `planSale` gera quantidade negativa na medida do item, custo = custo médio (zero sem custo), **sem** `INSUFFICIENT_STOCK` mesmo deixando saldo negativo; `planCancelledSale` gera estorno (+) e, se usados, perda (−) com o mesmo custo, também sem bloqueio; perda comum continua bloqueada
-- [ ] T011 [P] `src/domain/inventory/movement.ts` (`SALE_RECIPE`, rótulo "Venda", `planSale`, `planCancelledSale`) e `movement-reasons.ts` (motivos `LOSS/ORDER_CANCELLED` e `REVERSAL/ORDER_CANCELLED`, "Pedido cancelado")
-- [ ] T012 [P] [teste] `src/domain/access/permissions.test.ts`: `CASHIER` ("Caixa") e as ações `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` com a matriz de [contracts/use-cases.md](contracts/use-cases.md#permissões-novas-srcdomainaccesspermissionsts); caixa com `order.read` e sem `catalog.read`; garçom só `tab.read`
-- [ ] T013 [P] `src/domain/access/permissions.ts`
-- [ ] T014 [teste] `tests/integration/billing/schema.test.ts`: uma conta aberta por mesa (índice parcial); `tab_payments`, `tab_payment_removals` e `tab_events` recusam `UPDATE`/`DELETE` (`APPEND_ONLY`); check do dinheiro (`received = amount + change`); `closed_at`/`closed_by` obrigatórios se `CLOSED`; `service_charge_rate` 0–20; `SALE_RECIPE` exige `order_id` e dispensa motivo; venda única por `(order_id, item_id)`
-- [ ] T015 Migração `src/infra/db/migrations/0011_tabs.sql` e `src/infra/db/schema/billing.ts`: tabelas e colunas de [data-model.md](data-model.md), `ALTER TYPE role ADD VALUE 'CASHIER'`, `ALTER TYPE movement_type ADD VALUE 'SALE_RECIPE'`, seed dos dois motivos, `end_reason` com `RESCAN` nos acessos já encerrados, RLS e `GRANT` em todas
-- [ ] T016 [teste] `tests/integration/billing/isolation.test.ts`: restaurante A não lê nem grava contas, pagamentos e eventos de B, com e sem o filtro da aplicação
-- [ ] T017 [P] `src/application/billing/ports.ts` e `src/infra/db/repositories/billing-repository.ts`; `movements` ganha `insertSale`, `salesForOrder`
-- [ ] T018 [teste] `src/components/layout/nav.test.tsx`: caixa vê só "Caixa", "Contas" e "Pedidos" e entra direto no Caixa; garçom passa a ver "Caixa" (só leitura)
-- [ ] T019 `src/components/layout/nav.tsx` (itens Caixa e Contas filtrados por `can()`)
+- [X] T002 [P] [teste] `src/domain/billing/service-charge.test.ts`: taxa = subtotal × porcentagem ÷ 100 com meio centavo para cima (R$ 68,00 × 10% = R$ 6,80; R$ 33,35 × 10% = R$ 3,34); nula ou tirada = R$ 0,00; porcentagem "0 a 20" com até 2 casas (`INVALID_RATE`)
+- [X] T003 [P] `src/domain/billing/service-charge.ts`
+- [X] T004 [P] [teste] `src/domain/billing/tab.test.ts`: subtotal ignora cancelados; total = subtotal + taxa; pago ignora pagamentos tirados; falta = total − pago; "pode fechar" só com falta 0 e sem pedido em `RECEIVED`/`PREPARING`/`READY` (`REMAINING_NOT_ZERO`, `PENDING_ORDERS`); conta com todos os pedidos cancelados fecha com R$ 0,00
+- [X] T005 [P] `src/domain/billing/tab.ts`
+- [X] T006 [P] [teste] `src/domain/billing/payment.test.ts`: valor > 0 com até 2 casas (`INVALID_AMOUNT`); fora do dinheiro, valor ≤ falta (`PAYMENT_EXCEEDS_REMAINING`); em dinheiro, recebido ≥ valor (`RECEIVED_TOO_LOW`), valor = mín(recebido, falta) e troco = recebido − valor (falta R$ 24,93, recebido R$ 50,00 → troco R$ 25,07)
+- [X] T007 [P] `src/domain/billing/payment.ts`
+- [X] T008 [P] [teste] `src/domain/billing/split.test.ts`: "2 a 20" pessoas (`INVALID_PEOPLE`); R$ 100,00 ÷ 3 = 33,34 + 33,33 + 33,33; R$ 74,80 ÷ 3 = 24,94 + 24,93 + 24,93; soma das partes sempre igual ao falta (propriedade com valores aleatórios); R$ 0,01 ÷ 2 = 0,01 + 0,00
+- [X] T009 [P] `src/domain/billing/split.ts`
+- [X] T010 [P] [teste] `src/domain/inventory/movement.test.ts`: `planSale` gera quantidade negativa na medida do item, custo = custo médio (zero sem custo), **sem** `INSUFFICIENT_STOCK` mesmo deixando saldo negativo; `planCancelledSale` gera estorno (+) e, se usados, perda (−) com o mesmo custo, também sem bloqueio; perda comum continua bloqueada
+- [X] T011 [P] `src/domain/inventory/movement.ts` (`SALE_RECIPE`, rótulo "Venda", `planSale`, `planCancelledSale`) e `movement-reasons.ts` (motivos `LOSS/ORDER_CANCELLED` e `REVERSAL/ORDER_CANCELLED`, "Pedido cancelado")
+- [X] T012 [P] [teste] `src/domain/access/permissions.test.ts`: `CASHIER` ("Caixa") e as ações `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` com a matriz de [contracts/use-cases.md](contracts/use-cases.md#permissões-novas-srcdomainaccesspermissionsts); caixa com `order.read` e sem `catalog.read`; garçom só `tab.read`
+- [X] T013 [P] `src/domain/access/permissions.ts`
+- [X] T014 [teste] `tests/integration/billing/schema.test.ts`: uma conta aberta por mesa (índice parcial); `tab_payments`, `tab_payment_removals` e `tab_events` recusam `UPDATE`/`DELETE` (`APPEND_ONLY`); check do dinheiro (`received = amount + change`); `closed_at`/`closed_by` obrigatórios se `CLOSED`; `service_charge_rate` 0–20; `SALE_RECIPE` exige `order_id` e dispensa motivo; venda única por `(order_id, item_id)`
+- [X] T015 Migração `src/infra/db/migrations/0011_tabs.sql` e `src/infra/db/schema/billing.ts`: tabelas e colunas de [data-model.md](data-model.md), `ALTER TYPE role ADD VALUE 'CASHIER'`, `ALTER TYPE movement_type ADD VALUE 'SALE_RECIPE'`, seed dos dois motivos, `end_reason` com `RESCAN` nos acessos já encerrados, RLS e `GRANT` em todas
+- [X] T016 [teste] `tests/integration/billing/isolation.test.ts`: restaurante A não lê nem grava contas, pagamentos e eventos de B, com e sem o filtro da aplicação
+- [X] T017 [P] `src/application/billing/ports.ts` e `src/infra/db/repositories/billing-repository.ts`; `movements` ganha `insertSale`, `salesForOrder`
+- [X] T018 [teste] `src/components/layout/nav.test.tsx`: caixa vê só "Caixa", "Contas" e "Pedidos" e entra direto no Caixa; garçom passa a ver "Caixa" (só leitura)
+- [X] T019 `src/components/layout/nav.tsx` (itens Caixa e Contas filtrados por `can()`)
 
 **Ponto de checagem**: domínio verde, migração aplicada, isolamento provado.
 
@@ -43,24 +43,24 @@ Domínio puro, permissões e banco.
 **Teste independente**: 2 × X-Burger + 2 Fatia de queijo sem cebola → queijo −0,14 kg, pão −2 un,
 carne −0,3 kg, cebola sem saída.
 
-- [ ] T020 [US4] [teste] `tests/integration/billing/sale.test.ts`: `advanceOrderStatus` para `PREPARING` grava uma `SALE_RECIPE` por item com o consumo da 010 (exemplo da spec, com preparo explodido pelo rendimento), custo médio do momento, `order_id`, quem e quando; saldo = soma do livro; saldo negativo permitido; item sem custo baixa com custo zero; repetir a transição (duas abas) não baixa duas vezes; falha no meio desfaz a mudança de situação; ficha mudada depois do envio não muda a baixa
-- [ ] T021 [US4] `src/application/ordering/order-consumption.ts` (roda dentro da transação de quem chama), `src/application/inventory/sales.ts` (`recordOrderSale`, travando itens em ordem de id) e `advanceOrderStatus` em `src/application/ordering/kitchen.ts`
-- [ ] T022 [P] [US4] [teste] Página do item e lista de lançamentos: saída "Venda — pedido 7, Mesa 12", "Sem custo" quando custo zero, saldo negativo com texto de aviso (não só cor) — testes dos componentes existentes em `src/components/items/` e `src/components/movements/`
-- [ ] T023 [P] [US4] Ajustar os componentes de lançamentos e saldo do item; tela Repor conta saldo negativo como "Acabou"
-- [ ] T024 [US4] [teste] `tests/integration/reorder/reorder.test.ts` e `src/components/reports/`: gráficos da 006 contam a venda como "Venda", separada das famílias de perda
-- [ ] T025 [US4] `src/infra/db/repositories/report-repository.ts` e rótulos dos gráficos
+- [X] T020 [US4] [teste] `tests/integration/billing/sale.test.ts`: `advanceOrderStatus` para `PREPARING` grava uma `SALE_RECIPE` por item com o consumo da 010 (exemplo da spec, com preparo explodido pelo rendimento), custo médio do momento, `order_id`, quem e quando; saldo = soma do livro; saldo negativo permitido; item sem custo baixa com custo zero; repetir a transição (duas abas) não baixa duas vezes; falha no meio desfaz a mudança de situação; ficha mudada depois do envio não muda a baixa
+- [X] T021 [US4] `src/application/ordering/order-consumption.ts` (roda dentro da transação de quem chama), `src/application/inventory/sales.ts` (`recordOrderSale`, travando itens em ordem de id) e `advanceOrderStatus` em `src/application/ordering/kitchen.ts`
+- [X] T022 [P] [US4] [teste] Página do item e lista de lançamentos: saída "Venda — pedido 7, Mesa 12", "Sem custo" quando custo zero, saldo negativo com texto de aviso (não só cor) — testes dos componentes existentes em `src/components/items/` e `src/components/movements/`
+- [X] T023 [P] [US4] Ajustar os componentes de lançamentos e saldo do item; tela Repor conta saldo negativo como "Acabou"
+- [X] T024 [US4] [teste] `tests/integration/reorder/reorder.test.ts` e `src/components/reports/`: gráficos da 006 contam a venda como "Venda", separada das famílias de perda
+- [X] T025 [US4] `src/infra/db/repositories/report-repository.ts` e rótulos dos gráficos
 
 ## Fase 4: US1 — Ver a conta da mesa com o total (P1)
 
 **Objetivo**: o caixa vê as mesas com conta aberta e o total de cada uma.
 **Teste independente**: dois pedidos entregues da mesa 12 → subtotal R$ 77,00, taxa e total.
 
-- [ ] T026 [US1] [teste] `tests/integration/billing/tab-open.test.ts`: primeiro pedido abre a conta com a taxa do restaurante copiada; pedidos seguintes (dois celulares) entram na mesma; dois envios simultâneos de uma mesa sem conta criam uma conta só; mudar a taxa do restaurante não muda conta aberta; pedido sempre com `tab_id`
-- [ ] T027 [US1] `submitOrder` em `src/application/ordering/submit-order.ts` e `orders` no repositório (abre/acha a conta, trava, soma `version`)
-- [ ] T028 [US1] [teste] `tests/integration/billing/tabs.test.ts`: `listOpenTabs` (total, pedidos não entregues, `serverNow`) e `getTab` (linhas com `changes`, cancelado fora do total com motivo, pagamentos, eventos, `canClose`, `blockers`); permissões (`tab.read`; estoquista `FORBIDDEN` com auditoria `DENIED`)
-- [ ] T029 [US1] `src/application/billing/tabs.ts` (`listOpenTabs`, `getTab`) e `src/actions/billing.ts`
-- [ ] T030 [P] [US1] [teste] `src/components/billing/open-tabs.test.tsx` e `tab-detail.test.tsx`: mesa, total, "há 35 min", "2 pedidos ainda não foram entregues"; linhas com "+ 2 Fatia de queijo" e "SEM cebola"; cancelado riscado; subtotal, "Serviço 10%", total, pago, falta
-- [ ] T031 [US1] `src/components/billing/open-tabs.tsx`, `tab-detail.tsx`, `app/(app)/caixa/page.tsx`, `app/(app)/caixa/[id]/page.tsx` (com o `auto-refresh` da 009)
+- [X] T026 [US1] [teste] `tests/integration/billing/tab-open.test.ts`: primeiro pedido abre a conta com a taxa do restaurante copiada; pedidos seguintes (dois celulares) entram na mesma; dois envios simultâneos de uma mesa sem conta criam uma conta só; mudar a taxa do restaurante não muda conta aberta; pedido sempre com `tab_id`
+- [X] T027 [US1] `submitOrder` em `src/application/ordering/submit-order.ts` e `orders` no repositório (abre/acha a conta, trava, soma `version`)
+- [X] T028 [US1] [teste] `tests/integration/billing/tabs.test.ts`: `listOpenTabs` (total, pedidos não entregues, `serverNow`) e `getTab` (linhas com `changes`, cancelado fora do total com motivo, pagamentos, eventos, `canClose`, `blockers`); permissões (`tab.read`; estoquista `FORBIDDEN` com auditoria `DENIED`)
+- [X] T029 [US1] `src/application/billing/tabs.ts` (`listOpenTabs`, `getTab`) e `src/actions/billing.ts`
+- [X] T030 [P] [US1] [teste] `src/components/billing/open-tabs.test.tsx` e `tab-detail.test.tsx`: mesa, total, "há 35 min", "2 pedidos ainda não foram entregues"; linhas com "+ 2 Fatia de queijo" e "SEM cebola"; cancelado riscado; subtotal, "Serviço 10%", total, pago, falta
+- [X] T031 [US1] `src/components/billing/open-tabs.tsx`, `tab-detail.tsx`, `app/(app)/caixa/page.tsx`, `app/(app)/caixa/[id]/page.tsx` (com o `auto-refresh` da 009)
 - [ ] T032 [P] [US1] [teste] `src/components/billing/tab-print.test.tsx`: restaurante, mesa, linhas, subtotal, taxa, total e "Não é documento fiscal"
 - [ ] T033 [US1] `src/components/billing/tab-print.tsx` e `app/(app)/caixa/[id]/imprimir/page.tsx` (CSS de impressão)
 - [ ] T034 [US1] [teste] `tests/integration/billing/service-charge.test.ts`: `setServiceWaived` (tirar e pôr de volta, evento com quem e quando, `NO_SERVICE_CHARGE` em conta sem taxa, tirar recusado se o pago passaria do total) e `setServiceChargeRate` (só gerente, 0–20 ou desligada, auditoria `serviceChargeRate`, `STALE_RECORD`)
