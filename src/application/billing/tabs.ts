@@ -269,3 +269,25 @@ export async function closeTab(
     return ok(undefined);
   });
 }
+
+/** Esqueleto (vermelho). */
+export async function listTabs(
+  _deps: Deps,
+  _ctx: RequestContext,
+  _input: { from: string; to: string; tableId?: string },
+): Promise<
+  Result<{
+    tabs: import("./ports").ClosedTabRow[];
+    summary: { byMethod: { method: import("@/domain/billing/payment").PaymentMethod; amount: Decimal }[]; serviceCharge: Decimal; total: Decimal };
+  }>
+> {
+  return err("NOT_FOUND");
+}
+
+export async function reopenTab(
+  _deps: Deps,
+  _ctx: RequestContext,
+  _input: { tabId: string; reason: string; version: number },
+): Promise<Result<void>> {
+  return err("NOT_FOUND");
+}
