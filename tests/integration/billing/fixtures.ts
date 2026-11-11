@@ -1,5 +1,6 @@
 import { addMember, newRestaurant, ownerTestDb, type TestEnv } from "../harness";
-import { orderingScenario, unwrap } from "../ordering/fixtures";
+import { orderingScenario, scan, tableWithQr, unwrap } from "../ordering/fixtures";
+import { submitOrder } from "../../../src/application/ordering/submit-order";
 import { advanceOrderStatus, markDelivered } from "../../../src/application/ordering/kitchen";
 
 /**
@@ -33,5 +34,12 @@ export async function billingScenario(env: TestEnv) {
     if (!r.rows[0]) throw new Error("mesa sem conta aberta");
     return r.rows[0].id as string;
   }
-  return { m, s, chef, waiter, cashier, stockkeeper, advance, deliver, tabId };
+  /** Pedido de outra mesa (criada aqui, com um celular novo); devolve o pedido e a conta dela. */
+  async function placeAt(tableName: string, lines: unknown[]) {
+    const table = await tableWithQr(env, m, tableName);
+    const cookie = await scan(env, table.token);
+    const order = unwrap(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }));
+    return { ...order, tableId: table.tableId, cookie, tabId: await tabId(table.tableId) };
+  }
+  return { m, s, chef, waiter, cashier, stockkeeper, advance, deliver, tabId, placeAt };
 }
