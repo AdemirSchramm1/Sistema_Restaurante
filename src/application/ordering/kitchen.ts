@@ -1,6 +1,7 @@
 import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
+import { recordOrderSale } from "../inventory/sales";
 import type { OrderRecord } from "./ports";
 import {
   checkCancel,
@@ -104,12 +105,19 @@ async function move(
     if (current.version !== input.version) return err("STALE_RECORD");
     const t = checkTransition(current.status, input.to);
     if (!t.ok) return t;
-    return repos.orders.changeStatus(
+    const changed = await repos.orders.changeStatus(
       input.id,
       { from: current.status, to: input.to, reason: null, note: null },
       input.version,
       auditStamp(deps, ctx),
     );
+    if (!changed.ok) return changed;
+    // Spec 011, FR-006: os ingredientes saem da prateleira quando a cozinha começa o preparo.
+    if (input.to === "PREPARING") {
+      const sold = await recordOrderSale(deps, ctx, repos, input.id);
+      if (!sold.ok) return sold;
+    }
+    return ok(undefined);
   });
 }
 

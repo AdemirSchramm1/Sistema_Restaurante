@@ -1,4 +1,4 @@
-import type { Deps } from "../ports";
+import type { Deps, Repos } from "../ports";
 import { refKey, type ComponentRef } from "@/domain/inventory/recipe";
 import { lineConsumption } from "@/domain/ordering/consumption";
 import { d, type Decimal } from "@/domain/shared/decimal";
@@ -14,42 +14,45 @@ export async function orderConsumption(
   restaurantId: string,
   orderId: string,
 ): Promise<Result<Map<string, Decimal>>> {
-  return deps.tenant(restaurantId, async (repos) => {
-    const lines = await repos.orderChoices.forOrder(orderId);
-    if (!lines) return err("NOT_FOUND");
-    const graph = await repos.recipes.subRecipeGraph();
-    const refs = new Map<string, ComponentRef>();
-    const add = (r: ComponentRef) => refs.set(refKey(r), r);
-    lines.forEach((l) => {
-      l.versionLines.forEach((v) => add(v.component));
-      l.addons.forEach((a) => add(a.component));
-    });
-    graph.forEach((n) => n.lines.forEach((l) => add(l.component)));
-    const found = refs.size ? await repos.recipes.components([...refs.values()]) : [];
-    const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
-    const items = (id: string) => {
-      const c = byKey.get(refKey({ kind: "ITEM", id }));
-      return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
-    };
+  return deps.tenant(restaurantId, (repos) => consumptionFor(repos, orderId));
+}
 
-    const total = new Map<string, Decimal>();
-    for (const l of lines) {
-      const used = lineConsumption(
-        {
-          versionLines: l.versionLines,
-          removed: l.removals,
-          addons: l.addons.map((a) => ({
-            line: { component: a.component, quantity: a.quantity, unit: a.unit },
-            times: a.times,
-          })),
-          quantity: l.quantity,
-        },
-        graph,
-        items,
-      );
-      if (!used.ok) return used;
-      for (const [id, q] of used.value) total.set(id, (total.get(id) ?? d(0)).plus(q));
-    }
-    return ok(total);
+/** O mesmo cálculo, dentro da transação de quem chama (a baixa da spec 011 roda junto com a mudança de situação). */
+export async function consumptionFor(repos: Repos, orderId: string): Promise<Result<Map<string, Decimal>>> {
+  const lines = await repos.orderChoices.forOrder(orderId);
+  if (!lines) return err("NOT_FOUND");
+  const graph = await repos.recipes.subRecipeGraph();
+  const refs = new Map<string, ComponentRef>();
+  const add = (r: ComponentRef) => refs.set(refKey(r), r);
+  lines.forEach((l) => {
+    l.versionLines.forEach((v) => add(v.component));
+    l.addons.forEach((a) => add(a.component));
   });
+  graph.forEach((n) => n.lines.forEach((l) => add(l.component)));
+  const found = refs.size ? await repos.recipes.components([...refs.values()]) : [];
+  const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
+  const items = (id: string) => {
+    const c = byKey.get(refKey({ kind: "ITEM", id }));
+    return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+  };
+
+  const total = new Map<string, Decimal>();
+  for (const l of lines) {
+    const used = lineConsumption(
+      {
+        versionLines: l.versionLines,
+        removed: l.removals,
+        addons: l.addons.map((a) => ({
+          line: { component: a.component, quantity: a.quantity, unit: a.unit },
+          times: a.times,
+        })),
+        quantity: l.quantity,
+      },
+      graph,
+      items,
+    );
+    if (!used.ok) return used;
+    for (const [id, q] of used.value) total.set(id, (total.get(id) ?? d(0)).plus(q));
+  }
+  return ok(total);
 }
