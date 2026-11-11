@@ -27,7 +27,13 @@ async function pay(env: TestEnv, b: Scenario, tabId: string, method: PaymentMeth
 }
 
 /** Entrega os pedidos da conta, paga o que falta (como `payments` manda) e fecha. */
-async function settle(env: TestEnv, b: Scenario, tabId: string, orderIds: string[], payments: [PaymentMethod, string][]) {
+async function settle(
+  env: TestEnv,
+  b: Scenario,
+  tabId: string,
+  orderIds: string[],
+  payments: [PaymentMethod, string][],
+) {
   for (const id of orderIds) await b.deliver(id);
   for (const [method, amount] of payments) await pay(env, b, tabId, method, amount);
   const version = unwrap(await getTab(env.deps, b.cashier, tabId)).version;
@@ -42,15 +48,21 @@ async function twoClosedTabs(env: TestEnv) {
   const t12 = await b.tabId();
   const wrong = await pay(env, b, t12, "PIX", "10.00");
   unwrap(await removePayment(env.deps, b.cashier, { tabId: t12, paymentId: wrong }));
-  await settle(env, b, t12, [burgers.orderId, juice.orderId], [
-    ["PIX", "50.00"],
-    ["CASH", "34.70"],
-  ]);
+  await settle(
+    env,
+    b,
+    t12,
+    [burgers.orderId, juice.orderId],
+    [
+      ["PIX", "50.00"],
+      ["CASH", "34.70"],
+    ],
+  );
   env.clock.advance(30 * 60_000);
   const other = await b.placeAt("13", [b.s.juice()]);
   await settle(env, b, other.tabId, [other.orderId], [["CREDIT_CARD", "9.90"]]);
-  const today = (await db().query("select closed_day::text as day from table_tabs where id = $1", [t12])).rows[0]
-    .day as string;
+  const today = (await db().query("select closed_day::text as day from table_tabs where id = $1", [t12]))
+    .rows[0].day as string;
   return { ...b, t12, t13: other.tabId, table13: other.tableId, today };
 }
 
@@ -59,11 +71,19 @@ describe("contas fechadas (spec 011, US6)", () => {
     const env = testEnv();
     const t = await twoClosedTabs(env);
     const phone = await scan(env, t.s.table.token);
-    unwrap(await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }));
+    unwrap(
+      await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+    );
 
     const r = unwrap(await listTabs(env.deps, t.cashier, { from: t.today, to: t.today }));
     expect(
-      r.tabs.map((x) => [x.tableName, x.closedByName, money(x.subtotal), money(x.serviceCharge), money(x.total)]),
+      r.tabs.map((x) => [
+        x.tableName,
+        x.closedByName,
+        money(x.subtotal),
+        money(x.serviceCharge),
+        money(x.total),
+      ]),
     ).toEqual([
       ["13", "Caixa Carla", "9.00", "0.90", "9.90"],
       ["12", "Caixa Carla", "77.00", "7.70", "84.70"],
@@ -97,23 +117,35 @@ describe("contas fechadas (spec 011, US6)", () => {
     const b = await billingScenario(env);
     const o = await b.s.place([b.s.juice()]);
     await settle(env, b, await b.tabId(), [o.orderId], [["PIX", "9.90"]]);
-    expect(unwrap(await listTabs(env.deps, b.cashier, { from: "2026-10-31", to: "2026-10-31" })).tabs).toHaveLength(1);
-    expect(unwrap(await listTabs(env.deps, b.cashier, { from: "2026-11-01", to: "2026-11-01" })).tabs).toEqual([]);
+    expect(
+      unwrap(await listTabs(env.deps, b.cashier, { from: "2026-10-31", to: "2026-10-31" })).tabs,
+    ).toHaveLength(1);
+    expect(
+      unwrap(await listTabs(env.deps, b.cashier, { from: "2026-11-01", to: "2026-11-01" })).tabs,
+    ).toEqual([]);
   });
 
   it("período de até 31 dias, com o início antes do fim", async () => {
     const env = testEnv();
     const b = await billingScenario(env);
-    expect(code(await listTabs(env.deps, b.cashier, { from: "2026-10-01", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
-    expect(code(await listTabs(env.deps, b.cashier, { from: "2026-11-02", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
-    expect(code(await listTabs(env.deps, b.cashier, { from: "ontem", to: "2026-11-01" }))).toBe("INVALID_PERIOD");
+    expect(code(await listTabs(env.deps, b.cashier, { from: "2026-10-01", to: "2026-11-01" }))).toBe(
+      "INVALID_PERIOD",
+    );
+    expect(code(await listTabs(env.deps, b.cashier, { from: "2026-11-02", to: "2026-11-01" }))).toBe(
+      "INVALID_PERIOD",
+    );
+    expect(code(await listTabs(env.deps, b.cashier, { from: "ontem", to: "2026-11-01" }))).toBe(
+      "INVALID_PERIOD",
+    );
     unwrap(await listTabs(env.deps, b.cashier, { from: "2026-10-02", to: "2026-11-01" }));
   });
 
   it("garçom não vê as contas fechadas", async () => {
     const env = testEnv();
     const b = await billingScenario(env);
-    expect(code(await listTabs(env.deps, b.waiter, { from: "2026-10-31", to: "2026-10-31" }))).toBe("FORBIDDEN");
+    expect(code(await listTabs(env.deps, b.waiter, { from: "2026-10-31", to: "2026-10-31" }))).toBe(
+      "FORBIDDEN",
+    );
   });
 
   it("garçom abre a conta aberta, mas não a fechada, nem pelo link (FR-010)", async () => {
@@ -122,7 +154,9 @@ describe("contas fechadas (spec 011, US6)", () => {
     expect(code(await getTab(env.deps, t.waiter, t.t12))).toBe("FORBIDDEN");
     expect(unwrap(await getTab(env.deps, t.cashier, t.t12)).status).toBe("CLOSED");
     const phone = await scan(env, t.s.table.token);
-    unwrap(await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }));
+    unwrap(
+      await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+    );
     const [open] = unwrap(await listOpenTabs(env.deps, t.waiter)).tabs;
     expect(unwrap(await getTab(env.deps, t.waiter, open!.id)).status).toBe("OPEN");
   });
@@ -134,7 +168,13 @@ describe("reabrir conta (spec 011, US6)", () => {
     const t = await twoClosedTabs(env);
     const closed = unwrap(await getTab(env.deps, t.m, t.t12));
     env.clock.advance(60_000);
-    unwrap(await reopenTab(env.deps, t.m, { tabId: t.t12, reason: "  Cliente pediu a conta em dois CPFs  ", version: closed.version }));
+    unwrap(
+      await reopenTab(env.deps, t.m, {
+        tabId: t.t12,
+        reason: "  Cliente pediu a conta em dois CPFs  ",
+        version: closed.version,
+      }),
+    );
 
     const tab = unwrap(await getTab(env.deps, t.m, t.t12));
     expect([tab.status, tab.closedAt, tab.closedByName, money(tab.paid), money(tab.remaining)]).toEqual([
@@ -159,9 +199,9 @@ describe("reabrir conta (spec 011, US6)", () => {
       },
     ]);
     expect(unwrap(await listOpenTabs(env.deps, t.m)).tabs.map((x) => x.tableName)).toEqual(["12"]);
-    expect(unwrap(await listTabs(env.deps, t.m, { from: t.today, to: t.today })).tabs.map((x) => x.tableName)).toEqual([
-      "13",
-    ]);
+    expect(
+      unwrap(await listTabs(env.deps, t.m, { from: t.today, to: t.today })).tabs.map((x) => x.tableName),
+    ).toEqual(["13"]);
     const audit = await db().query(
       "select changes from audit_log where entity = 'table_tab' and entity_id = $1 and changes ? 'reason'",
       [t.t12],
@@ -186,7 +226,9 @@ describe("reabrir conta (spec 011, US6)", () => {
     const env = testEnv();
     const t = await twoClosedTabs(env);
     const { version } = unwrap(await getTab(env.deps, t.m, t.t12));
-    expect(code(await reopenTab(env.deps, t.cashier, { tabId: t.t12, reason: "Erro", version }))).toBe("FORBIDDEN");
+    expect(code(await reopenTab(env.deps, t.cashier, { tabId: t.t12, reason: "Erro", version }))).toBe(
+      "FORBIDDEN",
+    );
     expect(code(await reopenTab(env.deps, t.m, { tabId: t.t12, reason: "Erro", version: version - 1 }))).toBe(
       "STALE_RECORD",
     );
@@ -200,9 +242,13 @@ describe("reabrir conta (spec 011, US6)", () => {
     const env = testEnv();
     const t = await twoClosedTabs(env);
     const phone = await scan(env, t.s.table.token);
-    unwrap(await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }));
+    unwrap(
+      await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+    );
     const { version } = unwrap(await getTab(env.deps, t.m, t.t12));
-    expect(code(await reopenTab(env.deps, t.m, { tabId: t.t12, reason: "Erro", version }))).toBe("TABLE_HAS_OPEN_TAB");
+    expect(code(await reopenTab(env.deps, t.m, { tabId: t.t12, reason: "Erro", version }))).toBe(
+      "TABLE_HAS_OPEN_TAB",
+    );
     expect(unwrap(await getTab(env.deps, t.m, t.t12)).status).toBe("CLOSED");
   });
 });

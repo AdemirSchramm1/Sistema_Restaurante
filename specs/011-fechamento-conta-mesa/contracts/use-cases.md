@@ -9,7 +9,7 @@ abre `withTenantTx` e devolve `Result`. Dinheiro chega e sai como string decimal
 | Caso de uso | Permissão | Entrada | Saída | Erros |
 |---|---|---|---|---|
 | `listOpenTabs` | `tab.read` | – | `{ id, tableName, openedAt, total, pendingOrders, version }[]` por mesa + `serverNow` | – |
-| `getTab` | `tab.read` | `id` | conta com pedidos (linhas, `changes`, situação, motivo se cancelado), `subtotal`, `serviceRate`, `serviceWaived`, `serviceCharge`, `total`, `paid`, `remaining`, pagamentos (com tirados), eventos, `canClose`, `blockers` (`REMAINING`, `PENDING_ORDERS`), `version` | `NOT_FOUND` |
+| `getTab` | `tab.read`; conta fechada também `tab.history` (gerente e caixa) | `id` | conta com pedidos (linhas, `changes`, situação, motivo se cancelado), `subtotal`, `serviceRate`, `serviceWaived`, `serviceCharge`, `total`, `paid`, `remaining`, pagamentos (com tirados), eventos, `canClose`, `blockers` (`REMAINING`, `PENDING_ORDERS`), `version` | `NOT_FOUND` |
 | `addPayment` | `tab.pay` | `tabId`, `method`, `amount`, `received?` (só `CASH`), `clientRequestId` | `{ paymentId, change }` | `INVALID_AMOUNT`, `PAYMENT_EXCEEDS_REMAINING`, `RECEIVED_TOO_LOW`, `TAB_CLOSED`, `NOT_FOUND` |
 | `removePayment` | `tab.pay` | `tabId`, `paymentId` | – | `ALREADY_REMOVED`, `TAB_CLOSED`, `NOT_FOUND` |
 | `setServiceWaived` | `tab.pay` | `tabId`, `waived`, `version` | – | `NO_SERVICE_CHARGE`, `PAYMENT_EXCEEDS_REMAINING` (ver nota), `STALE_RECORD`, `TAB_CLOSED` |

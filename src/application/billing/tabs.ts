@@ -155,7 +155,11 @@ export async function getTab(deps: Deps, ctx: RequestContext, id: string): Promi
   if (!isId(id)) return err("NOT_FOUND");
   const allowed = await authorize(deps, ctx, "tab.read", TAB_ENTITY, id);
   if (!allowed.ok) return allowed;
-  return deps.tenant(ctx.restaurantId, (repos) => loadTab(deps, repos, id));
+  const tab = await deps.tenant(ctx.restaurantId, (repos) => loadTab(deps, repos, id));
+  if (!tab.ok || tab.value.status === "OPEN") return tab;
+  // Conta fechada é consulta de contas (FR-010): só gerente e caixa, mesmo pelo link.
+  const history = await authorize(deps, ctx, "tab.history", TAB_ENTITY, id);
+  return history.ok ? tab : history;
 }
 
 /** Pagamentos que valem (não tirados), no formato do domínio. */
@@ -197,7 +201,10 @@ export async function setServiceWaived(
     if (input.waived) {
       const { totals } = await currentTotals(repos, tab, true);
       if (totals.remaining.isNegative())
-        return err("PAYMENT_EXCEEDS_REMAINING", undefined, { total: totals.total.toFixed(2), paid: totals.paid.toFixed(2) });
+        return err("PAYMENT_EXCEEDS_REMAINING", undefined, {
+          total: totals.total.toFixed(2),
+          paid: totals.paid.toFixed(2),
+        });
     }
     const audit = auditStamp(deps, ctx);
     await repos.tabs.setServiceWaived(tab.id, input.waived, audit);
