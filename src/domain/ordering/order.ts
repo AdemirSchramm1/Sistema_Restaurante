@@ -52,6 +52,9 @@ export function checkCancel(
   return ok({ reason, note: text });
 }
 
+/** Esqueleto (vermelho). */
+export const leftTheShelf = (_s: OrderStatus): boolean => false;
+
 /** Mais de 20 minutos sem ficar pronto (spec 009, US4-7). */
 export function isLate(status: OrderStatus, submittedAt: Date, now: Date): boolean {
   if (status !== "RECEIVED" && status !== "PREPARING") return false;

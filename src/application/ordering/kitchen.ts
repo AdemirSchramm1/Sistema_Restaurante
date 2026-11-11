@@ -148,7 +148,7 @@ export async function markDelivered(
 export async function cancelOrder(
   deps: Deps,
   ctx: RequestContext,
-  input: { id: string; reason: CancelReason; note: string | null; version: number },
+  input: { id: string; reason: CancelReason; note: string | null; version: number; ingredientsUsed?: boolean },
 ): Promise<Result<void>> {
   const allowed = await authorize(deps, ctx, "order.cancel", ENTITY, input.id);
   if (!allowed.ok) return allowed;
