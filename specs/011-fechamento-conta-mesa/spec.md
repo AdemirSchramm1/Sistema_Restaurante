@@ -91,7 +91,7 @@ Como caixa, quero dividir a conta entre as pessoas da mesa, cada uma pagando a s
 **Teste independente**: conta de R$ 100,00, dividir por 3, registrar três pagamentos (R$ 33,34 no
 cartão, R$ 33,33 em Pix, R$ 33,33 em dinheiro) e fechar.
 
-**Cenários** [NEEDS CLARIFICATION: Q2]
+**Cenários** (Q2 decidida: partes iguais e valor livre)
 
 1. **Dividir por pessoas**: informo quantas pessoas (2 a 20). A tela mostra o valor de cada parte;
    os centavos que sobram vão para a primeira parte (R$ 100,00 ÷ 3 = R$ 33,34 + R$ 33,33 +
@@ -262,15 +262,13 @@ Como gerente, quero ver as contas fechadas e quanto entrou por forma de pagament
 
 ## Fora do escopo
 
-Desconto e cortesia na conta, couvert, transferir pedido entre mesas e juntar mesas, pagamento
+Desconto e cortesia na conta, couvert, dividir por itens (cada um paga o que consumiu), transferir pedido entre mesas e juntar mesas, pagamento
 pelo celular do cliente, integração com maquininha e Pix automático, nota fiscal (NFC-e), abertura
 e fechamento de caixa, pedido lançado pela equipe (balcão, telefone), delivery, CMV teórico do
 período (vem numa feature de indicadores, agora que as vendas existem).
 
 ## Perguntas em aberto
 
-- **Q2 — Como dividir a conta?** Proposta: dividir por pessoas em partes iguais e aceitar valor
-  livre (US3). Alternativa: também dividir por itens (cada um paga o que consumiu).
 - **Q3 — Taxa de serviço (10%)?** Proposta: o gerente liga e define a porcentagem (padrão 10%,
   ligada); o caixa pode tirar a taxa de uma conta quando o cliente pedir, e isso fica no histórico.
   Alternativa: sem taxa de serviço nesta versão.
@@ -281,3 +279,4 @@ período (vem numa feature de indicadores, agora que as vendas existem).
 |---|---|---|
 | 2026-11-11 | Conta e baixa do estoque na mesma feature? | Sim, pedido do dono; a 011 entrega a 005 do roadmap |
 | 2026-11-11 | Q1 — Quando o estoque baixa? | Quando a cozinha toca "Começar preparo" (não no envio nem no fechamento da conta) |
+| 2026-11-11 | Q2 — Como dividir a conta? | Partes iguais por pessoas e valor livre por pagamento; divisão por itens fica para depois |
