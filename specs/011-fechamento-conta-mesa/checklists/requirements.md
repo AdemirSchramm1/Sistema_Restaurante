@@ -13,7 +13,7 @@
 
 ## Completude dos requisitos
 
-- [ ] Nenhum marcador [NEEDS CLARIFICATION] restante
+- [x] Nenhum marcador [NEEDS CLARIFICATION] restante
 - [x] Requisitos testáveis e sem ambiguidade
 - [x] Critérios de sucesso mensuráveis
 - [x] Critérios de sucesso sem tecnologia
@@ -31,6 +31,6 @@
 
 ## Notas
 
-- Três perguntas para o dono (Q1 quando o estoque baixa, Q2 como dividir, Q3 taxa de serviço).
-  Cada uma já tem uma proposta escrita na spec; ao decidir, os marcadores saem e a decisão vai
-  para a tabela "Decisões". Depois disso a spec fica pronta para o `speckit plan`.
+- As três perguntas foram decididas pelo dono em 2026-11-11 (tabela "Decisões" da spec): baixa ao
+  começar o preparo; dividir em partes iguais e valor livre; taxa de serviço configurável (padrão
+  10%). Spec pronta para o `speckit plan`.

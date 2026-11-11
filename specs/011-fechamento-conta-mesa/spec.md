@@ -1,7 +1,6 @@
 # Feature 011 — Fechar a conta da mesa e baixar o estoque pelos pedidos
 
-**Branch**: `claude/project-thread-s5zyo4` · **Criada**: 2026-11-11 · **Status**: rascunho (aguarda
-decisões do dono)
+**Branch**: `claude/project-thread-s5zyo4` · **Criada**: 2026-11-11 · **Status**: em revisão
 
 **Pedido do dono**: "Então vamos melhorar o que já existe, depois passamos para outras partes:
 fechamento da conta da mesa (caixa: ver o total, dividir, registrar o pagamento e liberar a mesa),
@@ -44,13 +43,15 @@ subtotal R$ 77,00, a taxa de serviço e o total.
 3. Todos os pedidos enviados pela mesa enquanto a conta está aberta, de qualquer celular, entram
    nessa conta.
 4. Abrindo a conta, vejo as linhas de todos os pedidos (quantidade, produto, "+ 2 Fatia de queijo",
-   "**SEM** cebola", preço), o **subtotal**, a **taxa de serviço** [NEEDS CLARIFICATION: Q3], o
+   "**SEM** cebola", preço), o **subtotal**, a **taxa de serviço** ("Serviço 10%"), o
    **total**, quanto já foi **pago** e quanto **falta**.
 5. Pedido cancelado aparece riscado com o motivo e não entra no total.
 6. Pedido ainda não entregue (Recebido, Em preparo, Pronto) entra no total, marcado com a situação,
    e a tela avisa "2 pedidos ainda não foram entregues".
 7. A tela atualiza sozinha: um pedido novo da mesa aparece na conta em até 10 segundos.
-8. **Imprimir conta**: folha simples com o nome do restaurante, a mesa, as linhas, subtotal, taxa,
+8. **Tirar taxa de serviço** (o cliente não quer pagar): pede confirmação, a taxa vira R$ 0,00
+   nessa conta e o histórico da conta registra quem tirou e quando. **Pôr taxa de volta** desfaz.
+9. **Imprimir conta**: folha simples com o nome do restaurante, a mesa, as linhas, subtotal, taxa,
    total e "Não é documento fiscal".
 
 ### US2 — Registrar o pagamento e liberar a mesa (P1)
@@ -186,8 +187,9 @@ Como gerente, quero ver as contas fechadas e quanto entrou por forma de pagament
 
 - **FR-001** Cada mesa tem no máximo uma **conta aberta**. A conta abre com o primeiro pedido
   enviado sem conta aberta na mesa e recebe todos os pedidos da mesa até fechar.
-- **FR-002** Subtotal da conta = soma dos totais dos pedidos não cancelados. Taxa de serviço
-  conforme Q3. Total = subtotal + taxa. Pago = soma dos pagamentos não tirados. Falta = total −
+- **FR-002** Subtotal da conta = soma dos totais dos pedidos não cancelados. Taxa de serviço =
+  subtotal × porcentagem do restaurante, ou zero se a taxa está desligada no restaurante ou foi
+  tirada nessa conta. Total = subtotal + taxa. Pago = soma dos pagamentos não tirados. Falta = total −
   pago. Tudo em decimal exato, arredondado a centavos só na taxa (meio centavo para cima).
 - **FR-003** Pagamento: forma (lista fechada: Dinheiro, Pix, Cartão de débito, Cartão de crédito,
   Outro), valor (> 0), quem registrou e quando. Em dinheiro guarda também o recebido e o troco.
@@ -223,6 +225,10 @@ Como gerente, quero ver as contas fechadas e quanto entrou por forma de pagament
 - **FR-012** Isolamento por restaurante: contas, pagamentos e baixas nunca cruzam restaurantes.
 - **FR-013** Textos da tela em português do dia a dia, sem "sessão", "movimentação" ou "ficha
   técnica" para o caixa.
+- **FR-014** Taxa de serviço: o gerente liga ou desliga e define a porcentagem (0 a 20%, até 2
+  casas; padrão ligada em 10%) na tela Caixa. Mudar a configuração vale para as contas abertas a
+  partir daí; conta fechada guarda a taxa que teve. O caixa pode tirar e pôr de volta a taxa de uma
+  conta aberta, com registro de quem e quando.
 
 ## Entidades
 
@@ -234,7 +240,8 @@ Como gerente, quero ver as contas fechadas e quanto entrou por forma de pagament
 - **Saída por venda** (movimentação, tipo 7 do manual): item, quantidade, custo médio do momento,
   pedido e mesa de referência, quem e quando.
 - **Perda "Pedido cancelado"**: motivo novo na lista fechada de perdas, vinculada ao pedido.
-- **Configuração do restaurante**: taxa de serviço (Q3).
+- **Configuração do restaurante**: taxa de serviço ligada ou desligada e a porcentagem (padrão
+  ligada, 10%).
 
 ## Critérios de sucesso
 
@@ -267,11 +274,6 @@ pelo celular do cliente, integração com maquininha e Pix automático, nota fis
 e fechamento de caixa, pedido lançado pela equipe (balcão, telefone), delivery, CMV teórico do
 período (vem numa feature de indicadores, agora que as vendas existem).
 
-## Perguntas em aberto
-
-- **Q3 — Taxa de serviço (10%)?** Proposta: o gerente liga e define a porcentagem (padrão 10%,
-  ligada); o caixa pode tirar a taxa de uma conta quando o cliente pedir, e isso fica no histórico.
-  Alternativa: sem taxa de serviço nesta versão.
 
 ## Decisões
 
@@ -280,3 +282,4 @@ período (vem numa feature de indicadores, agora que as vendas existem).
 | 2026-11-11 | Conta e baixa do estoque na mesma feature? | Sim, pedido do dono; a 011 entrega a 005 do roadmap |
 | 2026-11-11 | Q1 — Quando o estoque baixa? | Quando a cozinha toca "Começar preparo" (não no envio nem no fechamento da conta) |
 | 2026-11-11 | Q2 — Como dividir a conta? | Partes iguais por pessoas e valor livre por pagamento; divisão por itens fica para depois |
+| 2026-11-11 | Q3 — Taxa de serviço? | Sim, configurável pelo gerente (padrão ligada, 10%); o caixa pode tirar de uma conta, com registro |
