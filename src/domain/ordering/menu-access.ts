@@ -11,6 +11,9 @@ export const WARN_SECONDS = 120;
 
 export type MenuAccessTimes = { openedAt: Date; expiresAt: Date; endedAt: Date | null };
 
+/** Por que o acesso acabou antes do prazo: QR code lido de novo no celular ou conta fechada (spec 011). */
+export type MenuAccessEndReason = "RESCAN" | "TAB_CLOSED";
+
 export const accessExpiresAt = (openedAt: Date): Date =>
   new Date(openedAt.getTime() + MENU_ACCESS_MINUTES * 60_000);
 

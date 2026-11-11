@@ -190,6 +190,8 @@ export type MovementRecord = {
   reversedById: string | null;
   supplierId: string | null;
   supplierName: string | null;
+  /** Pedido da venda, ou do estorno e da perda do cancelamento (spec 011). */
+  order: { id: string; number: number; tableName: string } | null;
 };
 export type NewMovement = {
   id: string;
@@ -210,6 +212,18 @@ export type NewMovement = {
   idempotencyKey: string | null;
   /** Só na compra (spec 007). */
   supplierId?: string | null;
+  /** Venda e cancelamento do pedido (spec 011). */
+  orderId?: string | null;
+};
+
+/** Venda gravada de um pedido, para o cancelamento (spec 011). */
+export type SaleMovement = {
+  id: string;
+  itemId: string;
+  quantity: Decimal;
+  unitCost: Decimal;
+  totalCost: Decimal;
+  reversed: boolean;
 };
 export type MovementFilter = { itemId?: string; type?: MovementType; limit?: number };
 
@@ -244,6 +258,8 @@ export interface MovementRepo {
   /** Trava a medida do item na primeira movimentação. */
   lockStockUnit(itemId: string, at: Date): Promise<void>;
   findByIdempotencyKey(key: string): Promise<string | null>;
+  /** Vendas do pedido, por item (spec 011). */
+  salesForOrder(orderId: string): Promise<SaleMovement[]>;
   get(id: string): Promise<MovementRecord | null>;
   list(filter: MovementFilter): Promise<MovementRecord[]>;
   insertRequest(r: {

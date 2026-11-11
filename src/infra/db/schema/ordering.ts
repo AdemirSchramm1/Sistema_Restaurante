@@ -17,6 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { base, editable } from "./common";
 import { items, recipes, recipeVersions, units } from "./catalog";
+import { tableTabs } from "./billing";
 
 /** Pedidos pelo QR code da mesa (feature 009, specs/009-pedidos-qr-mesa/data-model.md). */
 
@@ -27,6 +28,8 @@ export const orderStatusEnum = pgEnum("order_status", [
   "DELIVERED",
   "CANCELLED",
 ]);
+/** Por que o acesso ao cardápio acabou antes dos 20 minutos (spec 011). */
+export const menuAccessEndReasonEnum = pgEnum("menu_access_end_reason", ["RESCAN", "TAB_CLOSED"]);
 export const orderCancelReasonEnum = pgEnum("order_cancel_reason", [
   "CUSTOMER_GAVE_UP",
   "OUT_OF_PRODUCT",
@@ -66,12 +69,15 @@ export const menuAccesses = pgTable(
     openedAt: timestamp("opened_at", { withTimezone: true }).notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
+    endReason: menuAccessEndReasonEnum("end_reason"),
     ip: text("ip"),
     userAgent: text("user_agent"),
   },
   (t) => [
     index("menu_accesses_open").on(t.restaurantId, t.expiresAt),
+    index("menu_accesses_table").on(t.restaurantId, t.tableId, t.expiresAt),
     check("menu_accesses_twenty_minutes", sql`expires_at = opened_at + interval '20 minutes'`),
+    check("menu_accesses_end_reason", sql`(ended_at is null) = (end_reason is null)`),
   ],
 );
 
@@ -95,9 +101,12 @@ export const orders = pgTable(
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull(),
     statusChangedAt: timestamp("status_changed_at", { withTimezone: true }).notNull(),
     version: integer("version").notNull().default(1),
+    /** Conta da mesa (spec 011); nula só nos pedidos de antes da 011. */
+    tabId: uuid("tab_id").references(() => tableTabs.id),
   },
   (t) => [
     uniqueIndex("orders_client_request").on(t.menuAccessId, t.clientRequestId),
+    index("orders_tab").on(t.tabId),
     uniqueIndex("orders_day_number").on(t.restaurantId, t.businessDay, t.number),
     index("orders_open").on(t.restaurantId, t.status, t.submittedAt),
     index("orders_day").on(t.restaurantId, t.businessDay),

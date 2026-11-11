@@ -47,7 +47,6 @@ export const MOVEMENT_REASONS: readonly MovementReason[] = [
   r(9, "LOSS", "OPERATIONAL", "WRONG_ORDER", "Pedido feito errado"),
   r(10, "LOSS", "OPERATIONAL", "OVER_PORTION", "Porção maior que a do produto"),
   r(11, "LOSS", "OPERATIONAL", "OTHER", "Outro"),
-  r(12, "LOSS", "OPERATIONAL", "ORDER_CANCELLED", "Pedido cancelado", true),
   r(21, "ADJUSTMENT", "ADJUSTMENT", "SHELF_CHECK", "Conferi na prateleira"),
   r(22, "ADJUSTMENT", "ADJUSTMENT", "MISSED_ENTRY", "Lançamento esquecido"),
   r(23, "ADJUSTMENT", "ADJUSTMENT", "MISSING", "Sumiu (possível furto)"),
@@ -55,6 +54,8 @@ export const MOVEMENT_REASONS: readonly MovementReason[] = [
   r(31, "REVERSAL", "REVERSAL", "WRONG_ENTRY", "Lançado errado"),
   r(32, "REVERSAL", "REVERSAL", "DUPLICATE", "Lançado em dobro"),
   r(33, "REVERSAL", "REVERSAL", "OTHER", "Outro"),
+  // Spec 011: só o cancelamento de pedido usa (seed da migração 0011, posições 19 e 20).
+  r(12, "LOSS", "OPERATIONAL", "ORDER_CANCELLED", "Pedido cancelado", true),
   r(34, "REVERSAL", "REVERSAL", "ORDER_CANCELLED", "Pedido cancelado", true),
 ];
 
