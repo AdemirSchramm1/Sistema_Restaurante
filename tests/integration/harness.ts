@@ -22,6 +22,9 @@ export async function closeTestDbs() {
 }
 
 const TABLES = [
+  "tab_events",
+  "tab_payment_removals",
+  "tab_payments",
   "order_line_removals",
   "order_line_addons",
   "recipe_removables",
@@ -30,6 +33,7 @@ const TABLES = [
   "order_status_events",
   "order_lines",
   "orders",
+  "table_tabs",
   "order_day_counters",
   "menu_accesses",
   "dining_tables",
