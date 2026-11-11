@@ -1,7 +1,7 @@
 import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import type { TabEventRecord, TabPaymentRecord, TabStatus } from "./ports";
+import type { TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
 import { closeBlockers, isPendingOrder, tabTotals, type CloseBlocker } from "@/domain/billing/tab";
@@ -11,6 +11,10 @@ import { err, ok, type Result } from "@/domain/shared/result";
 /** Caixa: contas da mesa (spec 011, US1, US2 e US6; contracts/use-cases.md). */
 
 export const TAB_ENTITY = "table_tab";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Id malformado vira `NOT_FOUND` antes de chegar ao banco. */
+export const isId = (v: string) => UUID.test(v);
 
 export type OpenTabView = {
   id: string;
@@ -137,6 +141,7 @@ export async function loadTab(deps: Deps, repos: Repos, id: string): Promise<Res
 }
 
 export async function getTab(deps: Deps, ctx: RequestContext, id: string): Promise<Result<TabView>> {
+  if (!isId(id)) return err("NOT_FOUND");
   const allowed = await authorize(deps, ctx, "tab.read", TAB_ENTITY, id);
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, (repos) => loadTab(deps, repos, id));
@@ -145,6 +150,19 @@ export async function getTab(deps: Deps, ctx: RequestContext, id: string): Promi
 /** Pagamentos que valem (não tirados), no formato do domínio. */
 export const activePayments = (payments: { amount: Decimal; removedAt: Date | null }[]) =>
   payments.map((p) => ({ amount: p.amount, removed: p.removedAt !== null }));
+
+/** Pedidos, pagamentos e totais de agora da conta (já travada por quem chama). */
+export async function currentTotals(repos: Repos, tab: TabRecord, serviceWaived = tab.serviceWaived) {
+  const orders = await repos.orders.listForTab(tab.id);
+  const payments = await repos.tabs.payments(tab.id);
+  const totals = tabTotals({
+    orders,
+    payments: activePayments(payments),
+    serviceRate: tab.serviceRate,
+    serviceWaived,
+  });
+  return { orders, payments, totals };
+}
 
 /**
  * Tira (ou põe de volta) a taxa de serviço desta conta (US1-8). Tirar é recusado se o que já foi
@@ -155,6 +173,7 @@ export async function setServiceWaived(
   ctx: RequestContext,
   input: { tabId: string; waived: boolean; version: number },
 ): Promise<Result<void>> {
+  if (!isId(input.tabId)) return err("NOT_FOUND");
   const allowed = await authorize(deps, ctx, "tab.pay", TAB_ENTITY, input.tabId);
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, async (repos) => {
@@ -165,12 +184,7 @@ export async function setServiceWaived(
     if (tab.serviceRate === null) return err("NO_SERVICE_CHARGE");
     if (tab.serviceWaived === input.waived) return ok(undefined);
     if (input.waived) {
-      const totals = tabTotals({
-        orders: await repos.orders.listForTab(tab.id),
-        payments: activePayments(await repos.tabs.payments(tab.id)),
-        serviceRate: tab.serviceRate,
-        serviceWaived: true,
-      });
+      const { totals } = await currentTotals(repos, tab, true);
       if (totals.remaining.isNegative())
         return err("PAYMENT_EXCEEDS_REMAINING", undefined, { total: totals.total.toFixed(2), paid: totals.paid.toFixed(2) });
     }
