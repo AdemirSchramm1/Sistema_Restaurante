@@ -141,3 +141,12 @@ export async function getTab(deps: Deps, ctx: RequestContext, id: string): Promi
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, (repos) => loadTab(deps, repos, id));
 }
+
+/** Esqueleto (vermelho). */
+export async function setServiceWaived(
+  _deps: Deps,
+  _ctx: RequestContext,
+  _input: { tabId: string; waived: boolean; version: number },
+): Promise<Result<void>> {
+  return err("NOT_FOUND");
+}
