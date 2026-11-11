@@ -54,7 +54,7 @@
 | Estorno | – | `MovementType.REVERSAL` (`reverses_id`) | Uma vez por movimentação |
 | Lançamento | – | `stock_movement` | Nome na tela do menu "Lançamentos" |
 | Permissões de lançamento | – | `movement.purchase`, `movement.loss`, `adjustment.request`, `adjustment.approve`, `movement.reverse` | Ver spec 004, FR-006 |
-| Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE`, `WAITER` | Gerente, chef, estoquista, comprador, administrativo, garçom (`WAITER` entra na feature 009) |
+| Papel | – | `Role`: `MANAGER`, `CHEF`, `STOCKKEEPER`, `BUYER`, `ADMINISTRATIVE`, `WAITER`, `CASHIER` | Gerente, chef, estoquista, comprador, administrativo, garçom (`WAITER` entra na 009), caixa (`CASHIER` entra na 011) |
 | Vínculo do usuário com o restaurante | – | `membership` | |
 | Convite | – | `invitation` | |
 | Classe de armazenamento do grupo | – | `StorageClass`: `FOOD`, `CHEMICAL`, `OTHER_NON_FOOD` | Informativa desde a 002 |
@@ -77,6 +77,18 @@
 | Mudanças da linha | – | `changes` (`describeChanges`) | Texto da cozinha: "+ 2 Fatia de queijo", "SEM cebola" |
 | Consumo da linha | – | `lineConsumption` | O que uma linha do pedido usa de cada item; a 005 baixa isso |
 | Permissões de adicionais | – | `addon.read`, `addon.write` | Ver: gerente e chef. Mudar (inclusive preço): gerente |
+| Conta da mesa | – | `tab` (`table_tabs`) | Abre no primeiro pedido da mesa, fecha no caixa; uma aberta por mesa. Feature 011 |
+| Situação da conta | – | `TabStatus`: `OPEN`, `CLOSED` | Aberta, fechada |
+| Pagamento | – | `tab_payment` | Só inserção; "tirar pagamento" é `tab_payment_removal` |
+| Forma de pagamento | – | `PaymentMethod`: `CASH`, `PIX`, `DEBIT_CARD`, `CREDIT_CARD`, `OTHER` | Dinheiro, Pix, cartão de débito, cartão de crédito, outro |
+| Troco | – | `change` | Só em dinheiro: recebido − valor |
+| Taxa de serviço | – | `serviceCharge` (valor), `serviceRate` (porcentagem) | Padrão 10%; tirar da conta = `serviceWaived` |
+| Falta pagar | – | `remaining` | Total − pago |
+| Dividir por pessoas | – | `splitEvenly` | Centavos que sobram vão para a 1ª parte |
+| Fechar conta / liberar a mesa | – | `closeTab` | Encerra os acessos ao cardápio da mesa (`end_reason = TAB_CLOSED`) |
+| Saída por venda | – | `MovementType.SALE_RECIPE` | Lançada ao começar o preparo; pode deixar saldo negativo |
+| Caixa (papel) | – | `Role.CASHIER` | Vê Caixa, Contas e Pedidos |
+| Permissões da conta | – | `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` | Ver spec 011, FR-010 |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de
