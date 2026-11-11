@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import type { ActionState } from "@/actions/_session";
 import { KitchenBoard, type KitchenOrderView } from "./kitchen-board";
 
 afterEach(cleanup);
@@ -81,5 +82,41 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     fireEvent.change(reason, { target: { value: "OTHER" } });
     expect(screen.getByLabelText("Qual o motivo?")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Confirmar cancelamento" })).toBeTruthy();
+  });
+
+  it("cancelar pedido em preparo ou pronto pergunta se os ingredientes já foram usados (padrão Sim)", async () => {
+    const calls: Record<string, string>[] = [];
+    const cancel = async (_p: ActionState, form: FormData): Promise<ActionState> => {
+      calls.push(Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)])));
+      return { ok: true, data: null, at: 1 };
+    };
+    render(
+      <KitchenBoard
+        {...props}
+        cancel={cancel}
+        orders={[order({ status: "PREPARING", version: 2 }), order({ id: "o3", number: 3, status: "READY" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
+    const question = screen.getByRole("group", { name: "Os ingredientes já foram usados?" });
+    expect((within(question).getByRole("radio", { name: "Sim, vão para a perda" }) as HTMLInputElement).checked).toBe(
+      true,
+    );
+    expect(within(question).getByRole("radio", { name: "Não, voltam para o estoque" })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Motivo"), { target: { value: "CUSTOMER_GAVE_UP" } });
+    fireEvent.click(within(question).getByRole("radio", { name: "Não, voltam para o estoque" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Confirmar cancelamento" }));
+    });
+    expect(calls).toEqual([{ id: "o1", version: "2", reason: "CUSTOMER_GAVE_UP", ingredientsUsed: "false" }]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 3" }));
+    expect(screen.getByRole("group", { name: "Os ingredientes já foram usados?" })).toBeTruthy();
+  });
+
+  it("pedido só recebido não pergunta pelos ingredientes", () => {
+    render(<KitchenBoard {...props} orders={[order({})]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
+    expect(screen.queryByRole("group", { name: "Os ingredientes já foram usados?" })).toBeNull();
   });
 });
