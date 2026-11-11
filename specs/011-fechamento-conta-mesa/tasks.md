@@ -63,8 +63,8 @@ carne −0,3 kg, cebola sem saída.
 - [X] T031 [US1] `src/components/billing/open-tabs.tsx`, `tab-detail.tsx`, `app/(app)/caixa/page.tsx`, `app/(app)/caixa/[id]/page.tsx` (com o `auto-refresh` da 009)
 - [X] T032 [P] [US1] [teste] `src/components/billing/tab-print.test.tsx`: restaurante, mesa, linhas, subtotal, taxa, total e "Não é documento fiscal"
 - [X] T033 [US1] `src/components/billing/tab-print.tsx` e `app/(app)/caixa/[id]/imprimir/page.tsx` (CSS de impressão)
-- [ ] T034 [US1] [teste] `tests/integration/billing/service-charge.test.ts`: `setServiceWaived` (tirar e pôr de volta, evento com quem e quando, `NO_SERVICE_CHARGE` em conta sem taxa, tirar recusado se o pago passaria do total) e `setServiceChargeRate` (só gerente, 0–20 ou desligada, auditoria `serviceChargeRate`, `STALE_RECORD`)
-- [ ] T035 [US1] `src/application/billing/settings.ts`, `setServiceWaived` em `tabs.ts`, botões "Tirar taxa de serviço"/"Pôr taxa de volta" e a configuração da taxa no topo do Caixa (só gerente)
+- [X] T034 [US1] [teste] `tests/integration/billing/service-charge.test.ts`: `setServiceWaived` (tirar e pôr de volta, evento com quem e quando, `NO_SERVICE_CHARGE` em conta sem taxa, tirar recusado se o pago passaria do total) e `setServiceChargeRate` (só gerente, 0–20 ou desligada, auditoria `serviceChargeRate`, `STALE_RECORD`)
+- [X] T035 [US1] `src/application/billing/settings.ts`, `setServiceWaived` em `tabs.ts`, botões "Tirar taxa de serviço"/"Pôr taxa de volta" e a configuração da taxa no topo do Caixa (só gerente)
 
 ## Fase 5: US2 — Registrar o pagamento e liberar a mesa (P1)
 

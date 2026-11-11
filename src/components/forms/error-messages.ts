@@ -1,3 +1,4 @@
+import { d, formatBrDecimal } from "@/domain/shared/decimal";
 import type { DomainError, ErrorCode } from "@/domain/shared/result";
 
 /** Texto em pt-BR de cada código de erro (contracts/use-cases.md). */
@@ -101,8 +102,14 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   REVERSE_VIA_ORDER: "Esta saída veio de um pedido. Para desfazer, cancele o pedido na cozinha.",
 };
 
+/** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
+const money = (v: unknown) =>
+  `R$ ${formatBrDecimal(d(String(v)), { minPlaces: 2, maxPlaces: 2 })}`;
+
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
+  if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.paid !== undefined)
+    return `Já foram pagos ${money(error.details.paid)} e, sem a taxa, a conta fica em ${money(error.details.total)}. Tire um pagamento antes de tirar a taxa.`;
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
   if (error.code === "INSUFFICIENT_STOCK" && error.details?.available !== undefined)

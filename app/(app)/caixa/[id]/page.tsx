@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { getTab } from "@/application/billing/tabs";
+import { can } from "@/domain/access/permissions";
+import { setServiceWaivedAction } from "@/actions/billing";
+import { ServiceChargeToggle } from "@/components/billing/service-charge";
 import { TabDetail } from "@/components/billing/tab-detail";
 import { tabDetailView } from "@/components/billing/view";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
@@ -22,6 +25,8 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
     notFound();
   }
   const t = r.value;
+  const view = tabDetailView(t);
+  const canPay = t.status === "OPEN" && can(ctx.roles, "tab.pay");
   return (
     <div className="grid gap-4">
       {t.status === "OPEN" && <AutoRefresh seconds={10} />}
@@ -39,7 +44,12 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
           Imprimir conta
         </Link>
       </div>
-      <TabDetail tab={tabDetailView(t)} timezone={t.timezone} />
+      {canPay && (
+        <div className="flex flex-wrap items-start gap-3">
+          <ServiceChargeToggle tab={{ ...view, version: t.version }} action={setServiceWaivedAction} />
+        </div>
+      )}
+      <TabDetail tab={view} timezone={t.timezone} />
     </div>
   );
 }
