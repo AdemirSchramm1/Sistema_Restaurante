@@ -41,12 +41,12 @@ const report = {
 };
 
 describe("contas fechadas (spec 011, US6)", () => {
-  it("cada conta com a mesa, quando abriu e fechou, quem fechou, taxa e total, com link", () => {
+  it("cada conta com o dia, a mesa, quando abriu e fechou, quem fechou, taxa e total, com link", () => {
     render(<TabsReport {...report} timezone="America/Sao_Paulo" />);
     const rows = within(screen.getByRole("table", { name: "Contas fechadas" })).getAllByRole("row").slice(1);
     expect(rows.map((r) => [...r.querySelectorAll("td")].map((c) => c.textContent))).toEqual([
-      ["Mesa 13", "18:40", "19:05", "Caixa Carla", "R$ 0,90", "R$ 9,90"],
-      ["Mesa 12", "17:25", "18:10", "Caixa Carla", "R$ 7,70", "R$ 84,70"],
+      ["11/11/2026", "Mesa 13", "18:40", "19:05", "Caixa Carla", "R$ 0,90", "R$ 9,90"],
+      ["11/11/2026", "Mesa 12", "17:25", "18:10", "Caixa Carla", "R$ 7,70", "R$ 84,70"],
     ]);
     expect(screen.getByRole("link", { name: "Mesa 12" }).getAttribute("href")).toBe("/caixa/t12");
   });

@@ -9,12 +9,14 @@ import {
   addPaymentAction,
   closeTabAction,
   removePaymentAction,
+  reopenTabAction,
   setServiceWaivedAction,
 } from "@/actions/billing";
 import { CloseTabForm, PaymentList } from "@/components/billing/payment-form";
 import { PaymentPanel } from "@/components/billing/payment-panel";
 import { ServiceChargeToggle } from "@/components/billing/service-charge";
 import { TabDetail } from "@/components/billing/tab-detail";
+import { ReopenTabForm } from "@/components/billing/tabs-report";
 import { tabDetailView } from "@/components/billing/view";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
@@ -38,12 +40,16 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
   const t = r.value;
   const view = tabDetailView(t);
   const canPay = t.status === "OPEN" && can(ctx.roles, "tab.pay");
+  const canReopen = t.status === "CLOSED" && can(ctx.roles, "tab.reopen");
   const owing = t.remaining.gt(0);
   return (
     <div className="grid gap-4">
       {t.status === "OPEN" && <AutoRefresh seconds={10} />}
-      <Link href="/caixa" className="text-sm text-primary underline underline-offset-4">
-        Voltar para o caixa
+      <Link
+        href={t.status === "OPEN" ? "/caixa" : "/caixa/contas"}
+        className="text-sm text-primary underline underline-offset-4"
+      >
+        {t.status === "OPEN" ? "Voltar para o caixa" : "Voltar para as contas fechadas"}
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">
@@ -72,6 +78,11 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
             remove={canPay ? removePaymentAction : undefined}
           />
         </Card>
+        {canReopen && (
+          <Card className="grid gap-3">
+            <ReopenTabForm tab={{ id: t.id, version: t.version }} action={reopenTabAction} />
+          </Card>
+        )}
         {canPay && (
           <Card className="grid gap-3">
             <ServiceChargeToggle tab={{ ...view, version: t.version }} action={setServiceWaivedAction} />

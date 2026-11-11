@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { serverDeps } from "@/infra/server";
-import { closeTab, setServiceWaived } from "@/application/billing/tabs";
+import { closeTab, reopenTab, setServiceWaived } from "@/application/billing/tabs";
 import { addPayment, removePayment } from "@/application/billing/payments";
 import { setServiceChargeRate } from "@/application/billing/settings";
 import type { RequestContext } from "@/application/context";
@@ -95,4 +95,11 @@ export async function closeTabAction(_prev: ActionState, form: FormData): Promis
   const state = await run(tabId, (ctx) => closeTab(serverDeps(), ctx, { tabId, version: int(form, "version") }));
   if (state?.ok) redirect(`/caixa?fechada=${encodeURIComponent(text(form, "tableName"))}`);
   return state;
+}
+
+export async function reopenTabAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tabId = text(form, "tabId");
+  return run(tabId, (ctx) =>
+    reopenTab(serverDeps(), ctx, { tabId, reason: String(form.get("reason") ?? ""), version: int(form, "version") }),
+  );
 }
