@@ -26,7 +26,8 @@ test("gerente cria a conta e cadastra o tomate; não há mais tela de locais (sp
 
   await expect(page.getByText("Onde fica guardado")).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Itens" }).click();
+  // O item agora tem "Voltar para os itens" no topo: o clique é no menu.
+  await menu.getByRole("link", { name: "Itens" }).click();
   await page.getByLabel("Buscar").fill("tomate");
   await page.getByLabel("Buscar").press("Enter");
   await expect(page.getByRole("cell", { name: "01.02.0001" })).toBeVisible();
