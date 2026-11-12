@@ -169,7 +169,7 @@ export function TabDetail({
       </p>
       {closedText && <p className="font-medium">{closedText}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card className="grid content-start gap-3">
           <CardTitle>Pedidos</CardTitle>
           {tab.pendingOrders > 0 && (

@@ -41,7 +41,7 @@ export function TabsReport({
   if (!tabs.length) return <p className="text-sm text-muted-foreground">Nenhuma conta fechada no período.</p>;
   const day = (at: string) => new Date(at).toLocaleDateString("pt-BR", { timeZone: timezone });
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
+    <div className="grid items-start gap-4 lg:grid-cols-[1fr_2fr]">
       <Card className="grid content-start gap-2">
         <section aria-label="Resumo do período">
           <CardTitle>Resumo do período</CardTitle>

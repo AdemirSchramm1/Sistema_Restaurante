@@ -95,7 +95,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
         <ItemForm
           action={updateItemAction}
           subgroups={tree.ok ? subgroupOptions(tree.value, item.subgroupId) : []}

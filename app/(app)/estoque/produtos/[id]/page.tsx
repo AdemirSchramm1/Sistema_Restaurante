@@ -106,7 +106,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
         <RecipeForm
           key={`${v.recipe.version}`}
           action={updateRecipeAction}

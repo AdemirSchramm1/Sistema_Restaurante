@@ -38,7 +38,7 @@ export default async function Page({ params }: PageProps<"/pedidos/[id]">) {
           </>
         }
       />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card className="grid gap-2">
           <CardTitle>O que foi pedido</CardTitle>
           <ul className="grid gap-2">

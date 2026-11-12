@@ -153,7 +153,7 @@ export function DishOptions({
         </span>
       </div>
       <div className="grid gap-2">
-        <Button type="button" className="h-12 text-base" onClick={() => onAdd(line)}>
+        <Button type="button" size="xl" onClick={() => onAdd(line)}>
           Adicionar ao pedido
         </Button>
         <Button type="button" variant="ghost" className="h-11" onClick={onClose}>

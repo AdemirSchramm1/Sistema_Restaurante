@@ -89,8 +89,11 @@ export function Cart({
   };
 
   return (
-    <section className="grid gap-3" aria-label="Seu pedido">
-      <h2 className="text-lg font-semibold">Seu pedido</h2>
+    <section
+      className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+      aria-label="Seu pedido"
+    >
+      <h2 className="font-display text-xl font-semibold">Seu pedido</h2>
       {sent && (
         <Alert tone="success">
           <p className="font-semibold">Pedido enviado para a cozinha</p>
@@ -158,7 +161,7 @@ export function Cart({
           ))}
         </Alert>
       )}
-      <Button type="button" className="h-12 text-base" disabled={lines.length === 0} onClick={open}>
+      <Button type="button" size="xl" disabled={lines.length === 0} onClick={open}>
         Enviar pedido
       </Button>
 
@@ -195,7 +198,7 @@ export function Cart({
                 ))}
               </Alert>
             )}
-            <Button type="button" className="h-12 text-base" disabled={sending} onClick={confirm}>
+            <Button type="button" size="xl" disabled={sending} onClick={confirm}>
               Confirmar
             </Button>
             <Button

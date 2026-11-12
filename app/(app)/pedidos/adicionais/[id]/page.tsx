@@ -67,7 +67,7 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
           {a.componentName} está inativo. Este adicional não aparece no cardápio até trocar o que vai nele.
         </Alert>
       )}
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
         <Card>
           {/* Sem `key` pela versão: remontar depois de salvar apagaria o "Alterações salvas.". */}
           <AddonForm
