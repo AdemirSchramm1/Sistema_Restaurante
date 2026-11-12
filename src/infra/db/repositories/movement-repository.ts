@@ -3,7 +3,16 @@ import { alias } from "drizzle-orm/pg-core";
 import type { AdjustmentRequestRecord, MovementRecord, MovementRepo } from "@/application/inventory/ports";
 import { d } from "@/domain/shared/decimal";
 import type { Tx } from "../db";
-import { adjustmentRequests, items, stockBalances, stockMovements, suppliers, users } from "../schema";
+import {
+  adjustmentRequests,
+  diningTables,
+  items,
+  orders,
+  stockBalances,
+  stockMovements,
+  suppliers,
+  users,
+} from "../schema";
 import { dec, str, UNIT_CODE_BY_ID } from "./util";
 
 const recorder = alias(users, "recorder");
@@ -22,13 +31,17 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
         approvedByName: approver.name,
         reversedById: reversal.id,
         supplierName: suppliers.name,
+        orderNumber: orders.number,
+        orderTableName: diningTables.name,
       })
       .from(stockMovements)
       .innerJoin(items, eq(items.id, stockMovements.itemId))
       .leftJoin(recorder, eq(recorder.id, stockMovements.createdBy))
       .leftJoin(approver, eq(approver.id, stockMovements.approvedBy))
       .leftJoin(reversal, eq(reversal.reversesId, stockMovements.id))
-      .leftJoin(suppliers, eq(suppliers.id, stockMovements.supplierId));
+      .leftJoin(suppliers, eq(suppliers.id, stockMovements.supplierId))
+      .leftJoin(orders, eq(orders.id, stockMovements.orderId))
+      .leftJoin(diningTables, eq(diningTables.id, orders.tableId));
 
   type MovementRow = Awaited<ReturnType<ReturnType<typeof movementSelect>["execute"]>>[number];
   const toMovement = (r: MovementRow): MovementRecord => ({
@@ -54,6 +67,10 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
     reversedById: r.reversedById,
     supplierId: r.m.supplierId,
     supplierName: r.supplierName,
+    order:
+      r.m.orderId && r.orderNumber !== null && r.orderTableName !== null
+        ? { id: r.m.orderId, number: r.orderNumber, tableName: r.orderTableName }
+        : null,
   });
 
   const requestSelect = () =>
@@ -129,6 +146,7 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
         approvedBy: m.approvedBy,
         idempotencyKey: m.idempotencyKey,
         supplierId: m.supplierId ?? null,
+        orderId: m.orderId ?? null,
         createdAt: m.recordedAt,
         createdBy: m.recordedBy,
       });
@@ -165,6 +183,30 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
         .from(stockMovements)
         .where(eq(stockMovements.idempotencyKey, key));
       return r?.id ?? null;
+    },
+
+    async salesForOrder(orderId) {
+      const rows = await tx
+        .select({
+          id: stockMovements.id,
+          itemId: stockMovements.itemId,
+          quantity: stockMovements.quantity,
+          unitCost: stockMovements.unitCost,
+          totalCost: stockMovements.totalCost,
+          reversedById: reversal.id,
+        })
+        .from(stockMovements)
+        .leftJoin(reversal, eq(reversal.reversesId, stockMovements.id))
+        .where(and(eq(stockMovements.orderId, orderId), eq(stockMovements.type, "SALE_RECIPE")))
+        .orderBy(stockMovements.itemId);
+      return rows.map((r) => ({
+        id: r.id,
+        itemId: r.itemId,
+        quantity: d(r.quantity),
+        unitCost: d(r.unitCost),
+        totalCost: d(r.totalCost),
+        reversed: r.reversedById !== null,
+      }));
     },
 
     async get(id) {

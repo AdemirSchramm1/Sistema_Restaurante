@@ -105,18 +105,20 @@ Removidas na feature 002 (migração `0003_remove_locations`). O saldo é um só
 ### `movement_reasons` (feature 004)
 Lista fechada **global** (sem `restaurant_id`, só leitura): `movement_type`, `code`, `label`,
 `family`, `position`. Seed na migração `0005_stock_ledger`, igual a
-`src/domain/inventory/movement-reasons.ts` (teste de integração compara).
+`src/domain/inventory/movement-reasons.ts` (teste de integração compara). A `0011_tabs` acrescenta
+`LOSS/ORDER_CANCELLED` e `REVERSAL/ORDER_CANCELLED` ("Pedido cancelado"), marcados `system` no
+código: só o cancelamento do pedido usa, e o formulário não mostra.
 
 ### `stock_movements` (só inserção, feature 004)
 | Coluna | Tipo | Notas |
 |---|---|---|
-| type | enum `movement_type` | `PURCHASE`, `LOSS`, `ADJUSTMENT`, `REVERSAL` nesta versão |
+| type | enum `movement_type` | `PURCHASE`, `LOSS`, `ADJUSTMENT`, `REVERSAL`; `SALE_RECIPE` (venda pelo pedido, 011) |
 | item_id | uuid fk | |
 | quantity | numeric(14,4) | **Com sinal**, na medida do item (+ entra, − sai); nunca zero |
 | entered_quantity / entered_unit | numeric / text | Como foi digitado ("3" "Caixa"; "500" "g") |
 | unit_cost | numeric(14,4) | Custo no momento |
 | total_cost | numeric(14,2) | Com sinal |
-| reason_id | uuid fk null | Obrigatório, menos na compra (check `stock_movements_reason`) |
+| reason_id | uuid fk null | Obrigatório, menos na compra e na venda (check `stock_movements_reason`) |
 | notes | text null | Observação livre |
 | occurred_at | timestamptz | Data do fato |
 | created_at / created_by | timestamptz / uuid | Lançamento e quem lançou (no acerto, quem pediu) |
@@ -124,8 +126,16 @@ Lista fechada **global** (sem `restaurant_id`, só leitura): `movement_type`, `c
 | reverses_id | uuid null fk | Estorno aponta para a original; índice único (estorno único) |
 | idempotency_key | text null | Único por restaurante |
 | supplier_id | uuid null fk | De quem foi a compra (feature 007). Só em `PURCHASE` (check `stock_movements_supplier_purchase`) |
+| order_id | uuid null fk → `orders` | Pedido da venda (011). Obrigatório em `SALE_RECIPE` (check `stock_movements_sale_order`); só em venda, estorno e perda (check `stock_movements_order_type`) |
 
 Proteções: `app_user` só `SELECT, INSERT`; gatilho `app_reject_change` em `UPDATE`/`DELETE`; RLS.
+
+Venda (011): quantidade sempre negativa (check `stock_movements_sale_out`) e **uma por pedido e
+item**: índice único parcial `stock_movements_sale_once (order_id, item_id) where order_id is not
+null and reason_id is null`. O predicado não cita o tipo porque um valor novo de enum não pode ser
+usado na mesma transação da migração que o cria; dá no mesmo, porque estorno e perda do pedido
+sempre têm motivo. Índice `stock_movements_order (order_id)` para achar as vendas do pedido no
+cancelamento.
 
 ### `stock_balances` (projeção)
 `item_id` (pk), `restaurant_id`, `quantity`, `updated_at`. Atualizada **na mesma transação** que

@@ -30,7 +30,7 @@ Decisões da feature 004 (compras, perdas e saldo), 2026-11-02:
 | Tema | Decisão |
 |---|---|
 | Acerto manual (sistema × prateleira) | **Com aprovação.** Quem lança pede o acerto (quanto tem de verdade + motivo); um gerente que não seja quem pediu aprova ou recusa. O saldo só muda na aprovação |
-| Saldo negativo | Compra, perda, acerto e estorno nunca deixam saldo negativo. A exceção para vendas será decidida na 005 |
+| Saldo negativo | Compra, perda, acerto e estorno nunca deixam saldo negativo. A exceção para vendas foi decidida na 011 (ver abaixo) |
 | Valor da compra | Digita-se o **valor total pago**; o custo por medida é calculado |
 | Custo médio | Guardado com 8 casas para o estorno de compra voltar exatamente à média anterior; tela mostra 2 |
 
@@ -65,6 +65,23 @@ Decisões da feature 008 (Painel de custo dos produtos), 2026-11-02:
 | O que mais pesa | Pela linha do produto (item ou preparo), que é o nome que a pessoa vê |
 | Produtos afetados por preço de insumo | Quadro "Usado nos produtos" no item, com custo e % de cada produto |
 | CMV teórico do período | Espera as vendas da 005 |
+
+Decisões da feature 011 (Conta da mesa e baixa do estoque), 2026-11-11:
+
+| Tema | Decisão |
+|---|---|
+| Conta e baixa juntas | Pedido do dono: a 011 fecha o ciclo do pedido e entrega a 005 do roadmap |
+| Quando o estoque baixa (Q1) | Quando a cozinha toca "Começar preparo" (é quando os ingredientes saem da prateleira); não no envio nem no fechamento da conta |
+| Saldo negativo na venda | **Permitido, com aviso no item**: o pedido não pode parar. Compra, perda, acerto e estorno continuam bloqueados; a perda "Pedido cancelado" também não é bloqueada |
+| Pedido cancelado depois do preparo | A cozinha diz se os ingredientes foram usados: Sim → estorno da venda + perda "Pedido cancelado"; Não → só o estorno |
+| Dividir a conta (Q2) | Partes iguais por pessoas (2 a 20, centavos na primeira parte) e valor livre por pagamento; dividir por itens fica para depois |
+| Taxa de serviço (Q3) | Configurável pelo gerente (0 a 20%, padrão ligada em 10%); vale para as contas que abrirem depois. O caixa tira e põe de volta numa conta, com registro |
+| Valor do pagamento | Nunca passa do que falta, em nenhuma forma; no dinheiro, o recebido a mais vira troco |
+| Fechar a conta | Só com falta R$ 0,00 e todos os pedidos entregues ou cancelados; libera a mesa e fecha os cardápios abertos nela |
+| Reabrir a conta | Só o gerente, com motivo; recusada se a mesa já abriu outra conta |
+| Papel Caixa | Novo: vê só Caixa, Contas e Pedidos. O garçom vê a conta aberta para levar o total, sem receber nem ver contas fechadas |
+| Fiscal, maquininha, abertura e fechamento de caixa | Fora do escopo |
+| CMV teórico do período | Agora que as vendas existem, fica para uma feature de indicadores |
 
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em
 [`fontes/`](fontes/) para consulta.

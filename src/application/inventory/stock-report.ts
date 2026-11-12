@@ -3,6 +3,7 @@ import type { RequestContext } from "../context";
 import { authorize } from "../shared";
 import { parsePeriod, rankOutflow } from "@/domain/inventory/stock-report";
 import { reasonById } from "@/domain/inventory/movement-reasons";
+import { MOVEMENT_TYPE_LABELS } from "@/domain/inventory/movement";
 import { ok, type Result } from "@/domain/shared/result";
 import type { Decimal } from "@/domain/shared/decimal";
 
@@ -39,7 +40,13 @@ export async function stockReport(
       },
       most,
       least,
-      byReason: byReason.map((r) => ({ label: reasonById(r.reasonId)?.label ?? "Outro", value: r.value })),
+      byReason: byReason.map((r) => ({
+        label:
+          r.type === "SALE_RECIPE"
+            ? MOVEMENT_TYPE_LABELS.SALE_RECIPE
+            : ((r.reasonId && reasonById(r.reasonId)?.label) ?? "Outro"),
+        value: r.value,
+      })),
       weeks: await repos.reports.weekly(from, to, timezone),
     });
   });

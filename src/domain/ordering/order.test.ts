@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { CANCEL_REASONS, ORDER_STATUS_LABELS, checkCancel, checkTransition, isLate, isFinal } from "./order";
+import {
+  CANCEL_REASONS,
+  ORDER_STATUS_LABELS,
+  checkCancel,
+  checkTransition,
+  isLate,
+  isFinal,
+  leftTheShelf,
+} from "./order";
 
 describe("situações do pedido (spec 009, FR-008)", () => {
   it("anda um passo por vez: Recebido → Em preparo → Pronto → Entregue", () => {
@@ -45,9 +53,9 @@ describe("cancelar pedido (spec 009, US4-6)", () => {
     expect(CANCEL_REASONS).toEqual(["CUSTOMER_GAVE_UP", "OUT_OF_PRODUCT", "IMPROPER_ORDER", "OTHER"]);
   });
 
-  it("cancela qualquer pedido ainda não entregue", () => {
+  it("cancela qualquer pedido ainda não entregue (depois do preparo, dizendo se usou os ingredientes)", () => {
     for (const s of ["RECEIVED", "PREPARING", "READY"] as const)
-      expect(checkCancel(s, "CUSTOMER_GAVE_UP", null)).toEqual({
+      expect(checkCancel(s, "CUSTOMER_GAVE_UP", null, s === "RECEIVED" ? null : true)).toEqual({
         ok: true,
         value: { reason: "CUSTOMER_GAVE_UP", note: null },
       });
@@ -86,5 +94,20 @@ describe("pedido atrasado (spec 009, US4-7)", () => {
     expect(isLate("RECEIVED", sent, after(21))).toBe(true);
     expect(isLate("PREPARING", sent, after(21))).toBe(true);
     expect(isLate("READY", sent, after(60))).toBe(false);
+  });
+});
+
+describe("cancelar depois do preparo (spec 011, US5)", () => {
+  it("em preparo e pronto já baixaram o estoque; recebido não", () => {
+    expect(leftTheShelf("RECEIVED")).toBe(false);
+    expect(leftTheShelf("PREPARING")).toBe(true);
+    expect(leftTheShelf("READY")).toBe(true);
+  });
+
+  it("cancelar o que já baixou exige dizer se os ingredientes foram usados", () => {
+    const r = checkCancel("PREPARING", "CUSTOMER_GAVE_UP", null, null);
+    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual(["INGREDIENTS_USED_REQUIRED", "ingredientsUsed"]);
+    expect(checkCancel("READY", "CUSTOMER_GAVE_UP", null, false).ok).toBe(true);
+    expect(checkCancel("RECEIVED", "CUSTOMER_GAVE_UP", null, null).ok).toBe(true);
   });
 });

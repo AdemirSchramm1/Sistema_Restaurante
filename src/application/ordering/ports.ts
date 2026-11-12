@@ -5,6 +5,7 @@ import type { ComponentRef, RecipeLineData } from "@/domain/inventory/recipe";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
 import type { CatalogProduct, PricedLine } from "@/domain/ordering/checkout";
 import type { MenuProductRow } from "@/domain/ordering/menu";
+import type { MenuAccessEndReason } from "@/domain/ordering/menu-access";
 import type { Audit } from "../access/ports";
 
 /** Repositórios dos pedidos pelo QR code (spec 009) e dos adicionais (spec 010). */
@@ -37,14 +38,17 @@ export type MenuAccessRecord = {
   openedAt: Date;
   expiresAt: Date;
   endedAt: Date | null;
+  endReason: MenuAccessEndReason | null;
 };
 
 export interface MenuAccessRepo {
   insert(
-    a: MenuAccessRecord & { tokenHash: string; ip: string | null; userAgent: string | null },
+    a: Omit<MenuAccessRecord, "endReason"> & { tokenHash: string; ip: string | null; userAgent: string | null },
   ): Promise<void>;
   get(id: string): Promise<MenuAccessRecord | null>;
-  end(id: string, at: Date): Promise<void>;
+  end(id: string, at: Date, reason: MenuAccessEndReason): Promise<void>;
+  /** Encerra os acessos ainda abertos da mesa (conta fechada, spec 011). Devolve quantos. */
+  endOpenForTable(tableId: string, at: Date, reason: MenuAccessEndReason): Promise<number>;
 }
 
 export type OrderingSettings = {
@@ -74,6 +78,8 @@ export type OrderRecord = {
   tableId: string;
   tableName: string;
   menuAccessId: string;
+  /** Conta da mesa (spec 011); nula nos pedidos de antes da 011. */
+  tabId: string | null;
   status: OrderStatus;
   cancelReason: CancelReason | null;
   cancelNote: string | null;
@@ -95,6 +101,7 @@ export type OrderEventRecord = {
 export type NewOrder = {
   id: string;
   tableId: string;
+  tabId: string;
   menuAccessId: string;
   clientRequestId: string;
   businessDay: string;
@@ -125,6 +132,8 @@ export interface OrderRepo {
   listByStatus(statuses: readonly OrderStatus[]): Promise<OrderRecord[]>;
   /** Mais novo primeiro. */
   listForAccess(menuAccessId: string): Promise<OrderRecord[]>;
+  /** Pedidos da conta, mais antigo primeiro (spec 011). */
+  listForTab(tabId: string): Promise<OrderRecord[]>;
   list(filter: OrderFilter): Promise<OrderRecord[]>;
   /** Muda a situação com trava otimista e grava o evento. */
   changeStatus(

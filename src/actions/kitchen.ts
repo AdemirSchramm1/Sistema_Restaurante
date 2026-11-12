@@ -35,8 +35,16 @@ export async function advanceOrderStatusAction(_prev: ActionState, form: FormDat
 export async function cancelOrderAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const reason = String(form.get("reason") ?? "") as CancelReason;
   const note = form.get("note");
+  // Spec 011, US5: só vem depois do preparo ("Sim" = perda, "Não" = volta para o estoque).
+  const used = form.get("ingredientsUsed");
+  const ingredientsUsed = used === "true" ? true : used === "false" ? false : undefined;
   return run("/pedidos/cozinha", (ctx) =>
-    cancelOrder(serverDeps(), ctx, { ...meta(form), reason, note: typeof note === "string" ? note : null }),
+    cancelOrder(serverDeps(), ctx, {
+      ...meta(form),
+      reason,
+      note: typeof note === "string" ? note : null,
+      ingredientsUsed,
+    }),
   );
 }
 

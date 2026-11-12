@@ -41,7 +41,7 @@ export function calculateReorder(p: ReorderInput) {
   return { safetyStock, reorderPoint, parLevel, orderQuantity: quantity };
 }
 
-/** Pedir = Par − (saldo − CMD × LT) − em trânsito, nunca negativo. */
+/** Pedir = Par − (saldo − CMD × LT) − em trânsito, nunca negativo. Saldo negativo (spec 011) conta como zero. */
 export function orderQuantity(p: {
   parLevel: Decimal;
   balance: Decimal;
@@ -49,7 +49,7 @@ export function orderQuantity(p: {
   leadTimeDays: number;
   inTransit?: Decimal;
 }): Decimal {
-  const atArrival = p.balance.sub(p.averageDailyUsage.mul(p.leadTimeDays));
+  const atArrival = max0(p.balance).sub(p.averageDailyUsage.mul(p.leadTimeDays));
   return max0(p.parLevel.sub(atArrival).sub(p.inTransit ?? ZERO));
 }
 

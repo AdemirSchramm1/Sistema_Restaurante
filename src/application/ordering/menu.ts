@@ -42,6 +42,7 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
     if (!loaded.ok) return loaded;
     const { access, table, settings } = loaded.value;
     const now = deps.clock.now();
+    if (access.endReason === "TAB_CLOSED") return err("TABLE_TAB_CLOSED");
     if (!isAccessOpen(access, now)) return err("ACCESS_EXPIRED");
     if (!table.active) return err("TABLE_INACTIVE");
     if (!settings.acceptingQrOrders) return err("ORDERING_PAUSED");

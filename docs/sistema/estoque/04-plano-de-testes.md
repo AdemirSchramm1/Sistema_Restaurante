@@ -78,15 +78,19 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | E | Lançar compra em caixas, perda com motivo, estornar a perda e ver o saldo |
 | E | Chef pede acerto; gerente aprova; saldo muda |
 
-## 005 — Baixa automática por pedido
+## 005 — Baixa automática por pedido (feita na 011)
 
 | Nível | Teste |
 |---|---|
-| U | Pedido de 2 X-Burger baixa 2 × cada item do produto |
-| I | Pedido lançado gera uma saída por item, com a versão do produto vigente |
-| I | Pedido repetido (mesmo identificador) não baixa duas vezes |
-| I | Saldo negativo por pedido: conforme a decisão da spec 004 (permitir com alerta) |
-| E | Lançar um pedido manual e ver o estoque dos itens cair |
+| U | Venda: quantidade com 4 casas, custo médio do momento, sem custo = zero, nunca bloqueia (`movement`, `planSale`) |
+| U | Cancelamento depois do preparo: estorno e, se usados, perda com a mesma quantidade e custo (`movement`, `planCancelledSale`) |
+| U | Venda não se estorna à mão (`REVERSE_VIA_ORDER`); Repor conta saldo negativo como zero (`reorder`) |
+| U | Saldo negativo com o aviso em texto; "Venda" e "Sem custo" nos lançamentos; venda fora do formulário |
+| I | 2 × X-Burger com + 2 Fatia de queijo e sem cebola baixa queijo 0,14 kg, pão 2, carne 0,3 kg e nada de cebola (`billing/sale`) |
+| I | Uma vez por pedido (toque duplo e duas telas), versão do envio, saldo negativo, falha desfaz a mudança de situação (`billing/sale`) |
+| I | Cancelar depois do preparo: "Sim" estorna e lança a perda, "Não" só estorna; nada editado; dois cancelamentos ao mesmo tempo estornam uma vez (`billing/cancel-stock`) |
+| I | Gráficos contam a venda, separada das perdas (`billing/sale-report`) |
+| E | Começar preparo baixa o queijo (0,86 kg) e lança três vendas; cancelar com "Não" lança o estorno "Pedido cancelado" (`billing.spec.ts`) |
 
 ## 006 — Alerta de reposição
 
@@ -130,7 +134,8 @@ Legenda: **U** = unidade (domínio), **I** = integração (banco real), **E** = 
 | I | Item usado direto e por preparo; isolamento entre restaurantes |
 | E | Comprar itens, cadastrar o X-Burger, definir o preço, ver no painel e no item; acessibilidade de Custos |
 
-CMV teórico do período e variância esperam as vendas da 005 (casos em
+CMV teórico do período e variância ficam para uma feature de indicadores, agora que as vendas
+existem (casos em
 [02-regras-de-calculo](02-regras-de-calculo.md#cmv-e-indicadores--cogsts-indicatorsts)).
 
 Fora do plano por decisão do dono: recebimento com conferência cega, temperatura, quarentena,

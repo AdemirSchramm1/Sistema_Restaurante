@@ -1,5 +1,6 @@
 import { sql, type SQL } from "drizzle-orm";
 import type { OutflowByItem, ReorderRow, ReportRepo } from "@/application/inventory/ports";
+import type { MovementType } from "@/domain/inventory/movement";
 import { d } from "@/domain/shared/decimal";
 import type { Tx } from "../db";
 import { dec, UNIT_CODE_BY_ID } from "./util";
@@ -140,15 +141,15 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
     },
 
     async outflowByReason(from, to) {
-      const r = await rows<{ reason_id: string; value: string }>(
+      const r = await rows<{ type: MovementType; reason_id: string | null; value: string }>(
         tx,
-        sql`select m.reason_id, -sum(m.total_cost) as value
+        sql`select m.type, m.reason_id, -sum(m.total_cost) as value
               from stock_movements m
              where ${inPeriod(from, to)} and ${OUTFLOW("m")}
-             group by m.reason_id
+             group by m.type, m.reason_id
              order by value desc`,
       );
-      return r.map((x) => ({ reasonId: x.reason_id, value: d(x.value) }));
+      return r.map((x) => ({ type: x.type, reasonId: x.reason_id, value: d(x.value) }));
     },
 
     async totals(from, to) {

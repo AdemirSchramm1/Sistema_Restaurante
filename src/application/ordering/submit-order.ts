@@ -30,6 +30,8 @@ export async function submitOrder(
     if (!loaded.ok) return loaded;
     const { access, table, settings } = loaded.value;
     const now = deps.clock.now();
+    // Conta fechada pelo caixa (spec 011): o celular precisa ler o QR code de novo.
+    if (access.endReason === "TAB_CLOSED") return err("TABLE_TAB_CLOSED");
     if (!canSubmitWith(access, now)) return err("ACCESS_EXPIRED");
 
     const same = await repos.orders.findByClientRequest(access.id, input.value.clientRequestId);
@@ -48,9 +50,22 @@ export async function submitOrder(
 
     const orderId = deps.ids.next();
     const total = orderTotal(priced.value);
+    // Conta da mesa (spec 011, FR-001): abre no primeiro pedido, com a taxa do restaurante de agora.
+    const rate = (await repos.billingSettings.get()).serviceChargeRate;
+    const tab = await repos.tabs.openForOrder(table.id, now, rate);
+    if (tab.opened)
+      await repos.tabs.addEvent({
+        id: deps.ids.next(),
+        tabId: tab.id,
+        kind: "OPENED",
+        details: { orderId },
+        userId: null,
+        at: now,
+      });
     const saved = await repos.orders.insert({
       id: orderId,
       tableId: table.id,
+      tabId: tab.id,
       menuAccessId: access.id,
       clientRequestId: input.value.clientRequestId,
       businessDay: today,

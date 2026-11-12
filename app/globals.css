@@ -50,4 +50,9 @@ body {
   .no-print {
     display: none !important;
   }
+  /* Conta da mesa (spec 011): cabe em papel de impressora térmica de 80 mm ou em A4. */
+  .tab-print {
+    max-width: 72mm;
+    font-size: 10pt;
+  }
 }

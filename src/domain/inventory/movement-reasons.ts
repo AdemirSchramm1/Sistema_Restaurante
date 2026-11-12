@@ -1,4 +1,4 @@
-/** Motivos em lista fechada (docs/produto/estoque/06-movimentacoes.md). Iguais ao seed da migração 0005. */
+/** Motivos em lista fechada (docs/produto/estoque/06-movimentacoes.md). Iguais ao seed das migrações 0005 e 0011. */
 export type ReasonMovementType = "LOSS" | "ADJUSTMENT" | "REVERSAL";
 export type ReasonFamily = "PREP" | "SPOILAGE" | "OPERATIONAL" | "ADJUSTMENT" | "REVERSAL";
 export type MovementReason = {
@@ -7,6 +7,8 @@ export type MovementReason = {
   code: string;
   label: string;
   family: ReasonFamily;
+  /** Só o sistema usa (cancelamento de pedido, spec 011): fora das listas e recusado à mão. */
+  system?: true;
 };
 
 export const REASON_FAMILY_LABELS: Record<ReasonFamily, string> = {
@@ -23,12 +25,14 @@ const r = (
   family: ReasonFamily,
   code: string,
   label: string,
-) => ({
+  system = false,
+): MovementReason => ({
   id: `0193a100-0000-7000-8000-${String(n).padStart(12, "0")}`,
   movementType,
   family,
   code,
   label,
+  ...(system ? { system: true as const } : {}),
 });
 
 export const MOVEMENT_REASONS: readonly MovementReason[] = [
@@ -50,7 +54,14 @@ export const MOVEMENT_REASONS: readonly MovementReason[] = [
   r(31, "REVERSAL", "REVERSAL", "WRONG_ENTRY", "Lançado errado"),
   r(32, "REVERSAL", "REVERSAL", "DUPLICATE", "Lançado em dobro"),
   r(33, "REVERSAL", "REVERSAL", "OTHER", "Outro"),
+  // Spec 011: só o cancelamento de pedido usa (seed da migração 0011, posições 19 e 20).
+  r(12, "LOSS", "OPERATIONAL", "ORDER_CANCELLED", "Pedido cancelado", true),
+  r(34, "REVERSAL", "REVERSAL", "ORDER_CANCELLED", "Pedido cancelado", true),
 ];
+
+/** Motivos que a pessoa escolhe nos formulários. */
+export const manualReasons = (type: ReasonMovementType): MovementReason[] =>
+  MOVEMENT_REASONS.filter((x) => x.movementType === type && !x.system);
 
 export const reasonById = (id: string) => MOVEMENT_REASONS.find((x) => x.id === id);
 export const reasonByCode = (type: ReasonMovementType, code: string) =>

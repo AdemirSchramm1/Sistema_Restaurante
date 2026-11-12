@@ -25,6 +25,7 @@ import { setReorderLevelsAction } from "@/actions/reorder";
 import { itemUsage } from "@/application/inventory/product-costs";
 import { ItemUsage } from "@/components/costs/item-usage";
 import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { StockBalance } from "@/components/items/stock-balance";
 
 export const metadata: Metadata = { title: "Item" };
 
@@ -101,12 +102,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         <aside className="grid content-start gap-6">
           <Card className="grid gap-2 text-sm">
             <CardTitle>Estoque e custos</CardTitle>
-            <p className="text-base" data-testid="item-balance">
-              Em estoque:{" "}
-              <strong>
-                {formatBrDecimal(balance, { maxPlaces: 4 })} {item.stockUnit}
-              </strong>
-            </p>
+            <StockBalance balance={balance} unit={item.stockUnit} />
             <p className="text-muted-foreground">
               Custos calculados sozinhos pelas compras. Não dá para editar.
             </p>

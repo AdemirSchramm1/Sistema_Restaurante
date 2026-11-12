@@ -146,3 +146,124 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   await expect(page.getByText("SEM cebola")).toBeVisible();
   expect(await seriousViolations(page), "detalhe do pedido").toEqual([]);
 });
+
+test("caixa, conta da mesa, conta impressa, contas fechadas e cancelar depois do preparo sem falhas graves (spec 011)", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  await signUp(page, `Caixa Acessível ${Date.now()}`);
+  await newItem(page, "Laranja", "kg");
+  await newDish(page, "Suco", [{ component: "Laranja (kg)", quantity: "300", unit: "g" }], "9,00");
+  await createTables(page, 1, 1);
+  const table = await qrPath(page, "1");
+
+  await page.goto("/caixa");
+  await expect(page.getByText("Nenhuma mesa com conta aberta.")).toBeVisible();
+  await page.getByText("Taxa de serviço do restaurante").click();
+  await expect(page.getByLabel("Taxa de serviço (%)")).toBeVisible();
+  expect(await seriousViolations(page), "/caixa sem contas, com a taxa do restaurante").toEqual([]);
+
+  // Dois sucos do celular: o primeiro é entregue; o segundo, cancelado depois do preparo.
+  const phoneContext = await browser.newContext({ ...devices["Pixel 7"], locale: "pt-BR" });
+  const cell = await phoneContext.newPage();
+  await cell.goto(table);
+  for (const n of [1, 2]) {
+    await cell.getByRole("button", { name: "Adicionar Suco" }).click();
+    await cell.getByRole("button", { name: "Enviar pedido" }).click();
+    await cell
+      .getByRole("dialog", { name: "Confira o pedido" })
+      .getByRole("button", { name: "Confirmar" })
+      .click();
+    await expect(cell.getByRole("status").filter({ hasText: "Pedido enviado para a cozinha" })).toContainText(
+      `Pedido nº ${n}`,
+    );
+  }
+  await phoneContext.close();
+
+  await page.goto("/pedidos/cozinha");
+  const preparing = page.getByRole("region", { name: "Em preparo" });
+  for (const n of [1, 2]) {
+    await page
+      .getByRole("article", { name: `Pedido ${n}, Mesa 1` })
+      .getByRole("button", { name: "Começar preparo" })
+      .click();
+    await expect(preparing.getByRole("article", { name: `Pedido ${n}, Mesa 1` })).toBeVisible({
+      timeout: 10_000,
+    });
+  }
+  const second = preparing.getByRole("article", { name: "Pedido 2, Mesa 1" });
+  await second.getByRole("button", { name: "Cancelar pedido 2" }).click();
+  await expect(second.getByRole("group", { name: "Os ingredientes já foram usados?" })).toBeVisible();
+  expect(await seriousViolations(page), "cozinha: cancelar depois do preparo").toEqual([]);
+  await second.getByLabel("Motivo").selectOption({ label: "Cliente desistiu" });
+  await second.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await expect(second).toHaveCount(0, { timeout: 10_000 });
+  await preparing
+    .getByRole("article", { name: "Pedido 1, Mesa 1" })
+    .getByRole("button", { name: "Pronto" })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Prontos" }).getByRole("article", { name: "Pedido 1, Mesa 1" }),
+  ).toBeVisible({
+    timeout: 10_000,
+  });
+  await page.goto("/pedidos/garcom");
+  await page
+    .getByRole("article", { name: "Mesa 1, pedido 1" })
+    .getByRole("button", { name: "Entregue" })
+    .click();
+  await expect(page.getByText("Nenhum pedido pronto para levar.")).toBeVisible();
+
+  await page.goto("/caixa");
+  const card = page.getByRole("link", { name: /Mesa 1/ });
+  await expect(card).toContainText("R$ 9,90");
+  expect(await seriousViolations(page), "/caixa com conta aberta").toEqual([]);
+
+  await card.click();
+  await expect(page.getByRole("heading", { name: "Mesa 1 · conta aberta" })).toBeVisible();
+  const tabUrl = new URL(page.url()).pathname;
+  expect(await seriousViolations(page), "conta aberta").toEqual([]);
+  await page.getByText("Dividir a conta").click();
+  await page.getByLabel("Dividir por quantas pessoas?").fill("2");
+  await expect(page.getByText("Parte 1 de 2: R$ 4,95")).toBeVisible();
+  await page.getByRole("button", { name: "Tirar taxa de serviço" }).click();
+  await expect(page.getByRole("button", { name: "Sim, tirar a taxa" })).toBeVisible();
+  expect(await seriousViolations(page), "conta aberta: dividir e confirmar tirar a taxa").toEqual([]);
+  await page.getByRole("button", { name: "Voltar", exact: true }).click();
+
+  const pay = page.getByRole("form", { name: "Lançar pagamento" });
+  await pay.getByRole("radio", { name: "Dinheiro" }).check();
+  await pay.getByLabel("Recebido em dinheiro (R$)").fill("20,00");
+  await expect(pay.getByText("Troco: R$ 10,10")).toBeVisible();
+  expect(await seriousViolations(page), "pagamento em dinheiro com troco").toEqual([]);
+  await pay.getByRole("button", { name: "Lançar pagamento" }).click();
+  await expect(page.getByRole("region", { name: "Total da conta" }).getByRole("row").last()).toHaveText(
+    "FaltaR$ 0,00",
+  );
+  await page.getByRole("button", { name: "Tirar pagamento de R$ 9,90 (Dinheiro)" }).click();
+  await expect(page.getByRole("button", { name: "Sim, tirar" })).toBeVisible();
+  expect(await seriousViolations(page), "conta paga, confirmando tirar o pagamento").toEqual([]);
+  await page.getByRole("button", { name: "Voltar", exact: true }).click();
+
+  await page.getByRole("link", { name: "Imprimir conta" }).click();
+  await expect(page.getByText("Não é documento fiscal")).toBeVisible();
+  expect(await seriousViolations(page), "conta impressa").toEqual([]);
+  await page.getByRole("link", { name: "Voltar para a conta" }).click();
+
+  await page.getByRole("button", { name: "Fechar conta" }).click();
+  await expect(page).toHaveURL(/\/caixa\?fechada=1$/);
+  expect(await seriousViolations(page), "/caixa com o aviso de conta fechada").toEqual([]);
+  await page.getByRole("link", { name: "Contas fechadas" }).click();
+  await expect(page.getByRole("table", { name: "Contas fechadas" })).toBeVisible();
+  expect(await seriousViolations(page), "/caixa/contas").toEqual([]);
+  await page.goto("/caixa/contas?de=2026-01-01&ate=2026-01-02");
+  await expect(page.getByText("Nenhuma conta fechada no período.")).toBeVisible();
+  expect(await seriousViolations(page), "/caixa/contas sem contas").toEqual([]);
+
+  await page.goto(tabUrl);
+  await expect(page.getByRole("heading", { name: "Mesa 1 · conta fechada" })).toBeVisible();
+  await page.getByRole("button", { name: "Reabrir conta" }).click();
+  await expect(page.getByLabel("Motivo da reabertura")).toBeVisible();
+  expect(await seriousViolations(page), "conta fechada, reabrindo").toEqual([]);
+});

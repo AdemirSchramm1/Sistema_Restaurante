@@ -5,6 +5,7 @@ import type { AccessRepos } from "./access/ports";
 import type { CatalogRepos } from "./inventory/ports";
 import type { SupplierRepos } from "./suppliers/ports";
 import type { OrderingRepos } from "./ordering/ports";
+import type { BillingRepos } from "./billing/ports";
 
 export interface Clock {
   now(): Date;
@@ -54,7 +55,11 @@ export interface AuditRepo {
   ): Promise<(AuditEntry & { occurredAt: Date; userName: string | null })[]>;
 }
 
-export type Repos = AccessRepos & CatalogRepos & SupplierRepos & OrderingRepos & { audit: AuditRepo };
+export type Repos = AccessRepos &
+  CatalogRepos &
+  SupplierRepos &
+  OrderingRepos &
+  BillingRepos & { audit: AuditRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {

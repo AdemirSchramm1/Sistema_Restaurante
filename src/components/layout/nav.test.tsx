@@ -6,8 +6,13 @@ import { MainNav, homeFor, navFor } from "./nav";
 const labels = (roles: Parameters<typeof navFor>[0]) => navFor(roles).map((n) => n.label);
 
 describe("menu por permissão (spec 009, T022)", () => {
-  it("garçom vê só Garçom e Pedidos", () => {
-    expect(labels(["WAITER"])).toEqual(["Garçom", "Pedidos"]);
+  it("garçom vê Garçom, Caixa (só para ver a conta, spec 011) e Pedidos", () => {
+    expect(labels(["WAITER"])).toEqual(["Garçom", "Caixa", "Pedidos"]);
+  });
+
+  it("caixa vê só Caixa, Contas e Pedidos e entra direto no Caixa (spec 011)", () => {
+    expect(labels(["CASHIER"])).toEqual(["Caixa", "Contas", "Pedidos"]);
+    expect(homeFor(["CASHIER"])).toBe("/caixa");
   });
 
   it("chef vê a cozinha, os adicionais e o estoque, mas não mesas nem equipe", () => {
@@ -21,13 +26,24 @@ describe("menu por permissão (spec 009, T022)", () => {
 
   it("gerente vê tudo", () => {
     expect(labels(["MANAGER"])).toEqual(
-      expect.arrayContaining(["Mesas", "Cozinha", "Garçom", "Pedidos", "Adicionais", "Itens", "Equipe"]),
+      expect.arrayContaining([
+        "Mesas",
+        "Cozinha",
+        "Garçom",
+        "Caixa",
+        "Contas",
+        "Pedidos",
+        "Adicionais",
+        "Itens",
+        "Equipe",
+      ]),
     );
   });
 
   it("estoquista não vê nada dos pedidos", () => {
     const l = labels(["STOCKKEEPER"]);
-    for (const x of ["Mesas", "Cozinha", "Garçom", "Pedidos", "Adicionais"]) expect(l).not.toContain(x);
+    for (const x of ["Mesas", "Cozinha", "Garçom", "Caixa", "Contas", "Pedidos", "Adicionais"])
+      expect(l).not.toContain(x);
     expect(l).toContain("Itens");
   });
 

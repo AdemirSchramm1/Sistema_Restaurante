@@ -1,3 +1,4 @@
+import { d, formatBrDecimal } from "@/domain/shared/decimal";
 import type { DomainError, ErrorCode } from "@/domain/shared/result";
 
 /** Texto em pt-BR de cada código de erro (contracts/use-cases.md). */
@@ -84,10 +85,43 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_LABEL: "O texto do botão precisa ter até 40 letras.",
   DUPLICATE_OPTION: "Esta opção já está na lista.",
   TOO_MANY_OPTIONS: "Use até 10 adicionais e 10 itens para tirar por produto.",
+  INVALID_RATE: "A taxa de serviço precisa ser de 0% a 20%, com até 2 casas (ex.: 10 ou 12,5).",
+  INVALID_PEOPLE: "Divida por 2 a 20 pessoas.",
+  PAYMENT_EXCEEDS_REMAINING: "O valor passa do que falta pagar.",
+  RECEIVED_TOO_LOW: "O valor recebido em dinheiro é menor que o valor do pagamento.",
+  REMAINING_NOT_ZERO: "Ainda falta pagar.",
+  PENDING_ORDERS: "A mesa tem pedidos que ainda não foram entregues.",
+  TAB_CLOSED: "Esta conta já foi fechada.",
+  TAB_NOT_CLOSED: "Esta conta já está aberta.",
+  TABLE_TAB_CLOSED: "Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo.",
+  ALREADY_REMOVED: "Este pagamento já foi tirado.",
+  NO_SERVICE_CHARGE: "Esta conta não tem taxa de serviço.",
+  REASON_REQUIRED: "Diga o motivo.",
+  TABLE_HAS_OPEN_TAB: "A mesa já tem outra conta aberta. Feche-a antes.",
+  INGREDIENTS_USED_REQUIRED: "Diga se os ingredientes já foram usados.",
+  REVERSE_VIA_ORDER: "Esta saída veio de um pedido. Para desfazer, cancele o pedido na cozinha.",
 };
+
+/** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
+const money = (v: unknown) =>
+  `R$ ${formatBrDecimal(d(String(v)), { minPlaces: 2, maxPlaces: 2 })}`;
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
+  if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.paid !== undefined)
+    return `Já foram pagos ${money(error.details.paid)} e, sem a taxa, a conta fica em ${money(error.details.total)}. Tire um pagamento antes de tirar a taxa.`;
+  if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.remaining !== undefined)
+    return `O valor passa do que falta pagar (${money(error.details.remaining)}).`;
+  if (error.code === "REMAINING_NOT_ZERO" && error.details?.remaining !== undefined) {
+    const remaining = d(String(error.details.remaining));
+    return remaining.isNegative()
+      ? `Foi pago ${money(remaining.abs())} a mais. Tire um pagamento e lance de novo com o valor certo.`
+      : `Ainda falta pagar ${money(remaining)}.`;
+  }
+  if (error.code === "PENDING_ORDERS" && typeof error.details?.pending === "number")
+    return error.details.pending === 1
+      ? "1 pedido ainda não foi entregue. Feche a conta depois que ele chegar à mesa ou for cancelado."
+      : `${error.details.pending} pedidos ainda não foram entregues. Feche a conta depois que eles chegarem à mesa ou forem cancelados.`;
   if (error.code === "ITEM_DUPLICATE_DESCRIPTION" && error.details?.existingCode)
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
   if (error.code === "INSUFFICIENT_STOCK" && error.details?.available !== undefined)

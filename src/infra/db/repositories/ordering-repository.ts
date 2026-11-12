@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import type {
   DiningTableRecord,
   DiningTableRepo,
@@ -17,6 +17,7 @@ import { refKey } from "@/domain/inventory/recipe";
 import { compareTableNames } from "@/domain/ordering/table-name";
 import { describeChanges } from "@/domain/ordering/customization";
 import { isOnMenu } from "@/domain/ordering/menu";
+import { SUBMIT_GRACE_SECONDS } from "@/domain/ordering/menu-access";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import {
@@ -127,6 +128,7 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
     openedAt: menuAccesses.openedAt,
     expiresAt: menuAccesses.expiresAt,
     endedAt: menuAccesses.endedAt,
+    endReason: menuAccesses.endReason,
   };
   return {
     async insert(a) {
@@ -147,11 +149,27 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
       const [r] = await tx.select(cols).from(menuAccesses).where(eq(menuAccesses.id, id));
       return r ?? null;
     },
-    async end(id, at) {
+    async end(id, at, reason) {
       await tx
         .update(menuAccesses)
-        .set({ endedAt: at })
+        .set({ endedAt: at, endReason: reason })
         .where(and(eq(menuAccesses.id, id), sql`${menuAccesses.endedAt} is null`));
+    },
+    async endOpenForTable(tableId, at, reason) {
+      // Inclui quem ainda está na tolerância do "Confirmar" do último segundo.
+      const graceStart = new Date(at.getTime() - SUBMIT_GRACE_SECONDS * 1000);
+      const r = await tx
+        .update(menuAccesses)
+        .set({ endedAt: at, endReason: reason })
+        .where(
+          and(
+            eq(menuAccesses.tableId, tableId),
+            sql`${menuAccesses.endedAt} is null`,
+            gt(menuAccesses.expiresAt, graceStart),
+          ),
+        )
+        .returning({ id: menuAccesses.id });
+      return r.length;
     },
   };
 }
@@ -192,6 +210,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         tableId: orders.tableId,
         tableName: diningTables.name,
         menuAccessId: orders.menuAccessId,
+        tabId: orders.tabId,
         status: orders.status,
         cancelReason: orders.cancelReason,
         cancelNote: orders.cancelNote,
@@ -276,6 +295,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       restaurantId,
       createdAt: o.submittedAt,
       tableId: o.tableId,
+      tabId: o.tabId,
       menuAccessId: o.menuAccessId,
       clientRequestId: o.clientRequestId,
       businessDay: o.businessDay,
@@ -408,6 +428,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       load(inArray(orders.status, [...statuses]), [asc(orders.submittedAt), asc(orders.number)]),
     listForAccess: (menuAccessId) =>
       load(eq(orders.menuAccessId, menuAccessId), [desc(orders.submittedAt), desc(orders.number)]),
+    listForTab: (tabId) => load(eq(orders.tabId, tabId), [asc(orders.submittedAt), asc(orders.number)]),
     list: (f) =>
       load(
         and(

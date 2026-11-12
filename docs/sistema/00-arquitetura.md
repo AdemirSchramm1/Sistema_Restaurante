@@ -58,11 +58,16 @@ src/
       recipe.ts
       expiry.ts
       *.test.ts        # testes ao lado do código
+    ordering/          # pedidos pelo QR code, adicionar e tirar (009, 010)
+    billing/           # conta da mesa: totais, taxa, pagamento, divisão, fechar (011)
   application/
     inventory/
       register-entry.ts
       register-exit.ts
+      sales.ts         # baixa pelo pedido e cancelamento depois do preparo (011)
       ...
+    ordering/
+    billing/           # caixa: contas, pagamentos, fechar, contas fechadas, reabrir (011)
   infra/
     db/
       schema/          # tabelas
@@ -90,6 +95,9 @@ specs/
 
 | Decisão | Opções | Quando |
 |---|---|---|
-| Saldo negativo em vendas | Permitir com alerta × bloquear | `speckit clarify` da feature 003 |
+| – | – | – |
+
+Decididas: saldo negativo em vendas é permitido com aviso no item (feature 011; ver
+[estoque/03](estoque/03-movimentacoes-e-saldo.md#saldo-negativo)).
 
 Registre cada decisão tomada como ADR curto em `docs/sistema/adr/NNNN-titulo.md`.

@@ -33,7 +33,7 @@ type Common = { occurredAt: Date; notes: string | null; idempotencyKey: string |
 const cleanNotes = (n: string | null) => (n && n.trim() ? n.trim().slice(0, 500) : null);
 
 /** Grava a linha, o saldo e a auditoria; trava a medida do item. */
-async function write(
+export async function writeMovement(
   deps: Deps,
   ctx: RequestContext,
   repos: Repos,
@@ -110,7 +110,7 @@ export async function registerPurchase(
     const plan = planPurchase(item, { ...cmd, unit: supplier.value.unit }, deps.clock.now());
     if (!plan.ok) return plan;
     const { newAverageCost, newLastCost, ...line } = plan.value;
-    const movementId = await write(
+    const movementId = await writeMovement(
       deps,
       ctx,
       repos,
@@ -153,7 +153,7 @@ export async function registerLoss(
     if (!item) return err("NOT_FOUND", "itemId");
     const plan = planLoss(item, { ...cmd, reason: reasonById(cmd.reasonId) }, deps.clock.now());
     if (!plan.ok) return plan;
-    const movementId = await write(
+    const movementId = await writeMovement(
       deps,
       ctx,
       repos,
@@ -329,7 +329,7 @@ export async function reverseMovement(
     );
     if (!plan.ok) return plan;
     const { newAverageCost, ...line } = plan.value;
-    const id = await write(
+    const id = await writeMovement(
       deps,
       ctx,
       repos,

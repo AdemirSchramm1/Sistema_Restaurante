@@ -1,4 +1,15 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { base, editable } from "./common";
 import { users } from "./auth";
@@ -10,6 +21,7 @@ export const roleEnum = pgEnum("role", [
   "BUYER",
   "ADMINISTRATIVE",
   "WAITER",
+  "CASHIER",
 ]);
 export const invitationStatusEnum = pgEnum("invitation_status", [
   "PENDING",
@@ -18,17 +30,23 @@ export const invitationStatusEnum = pgEnum("invitation_status", [
   "EXPIRED",
 ]);
 
-export const restaurants = pgTable("restaurants", {
-  id: uuid("id").primaryKey(),
-  name: text("name").notNull(),
-  timezone: text("timezone").notNull().default("America/Sao_Paulo"),
-  /** Chave "Recebendo pedidos pelo QR code" (spec 009, US6). */
-  acceptingQrOrders: boolean("accepting_qr_orders").notNull().default(true),
-  nextGroupCode: integer("next_group_code").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  createdBy: uuid("created_by"),
-  ...editable,
-});
+export const restaurants = pgTable(
+  "restaurants",
+  {
+    id: uuid("id").primaryKey(),
+    name: text("name").notNull(),
+    timezone: text("timezone").notNull().default("America/Sao_Paulo"),
+    /** Chave "Recebendo pedidos pelo QR code" (spec 009, US6). */
+    acceptingQrOrders: boolean("accepting_qr_orders").notNull().default(true),
+    /** Taxa de serviço em % (spec 011, FR-014); nula = desligada. */
+    serviceChargeRate: numeric("service_charge_rate", { precision: 5, scale: 2 }).default("10.00"),
+    nextGroupCode: integer("next_group_code").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    createdBy: uuid("created_by"),
+    ...editable,
+  },
+  () => [check("restaurants_service_charge_rate", sql`service_charge_rate between 0 and 20`)],
+);
 
 export const memberships = pgTable("memberships", {
   ...base,

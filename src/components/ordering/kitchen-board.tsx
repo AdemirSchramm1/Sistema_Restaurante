@@ -10,6 +10,7 @@ import {
   CANCEL_REASONS,
   CANCEL_REASON_LABELS,
   ORDER_STATUS_LABELS,
+  leftTheShelf,
   type OrderStatus,
 } from "@/domain/ordering/order";
 import { LineChanges } from "./line-changes";
@@ -71,6 +72,19 @@ function CancelForm({
           <span>Qual o motivo?</span>
           <Input name="note" maxLength={CANCEL_NOTE_MAX} required />
         </label>
+      )}
+      {leftTheShelf(order.status) && (
+        <fieldset className="grid gap-1 text-sm">
+          <legend className="mb-1">Os ingredientes já foram usados?</legend>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="ingredientsUsed" value="true" defaultChecked />
+            Sim, vão para a perda
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="ingredientsUsed" value="false" />
+            Não, voltam para o estoque
+          </label>
+        </fieldset>
       )}
       <Button type="button" size="sm" variant="ghost" onClick={onClose}>
         Voltar

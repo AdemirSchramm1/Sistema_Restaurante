@@ -55,8 +55,9 @@ Menu "Gráficos", período de 7, 30 ou 90 dias:
 - Saídas por motivo e entradas × saídas por semana.
 
 Tudo em R$ (custo gravado na movimentação), porque kg, l e un não se comparam. **Saída** é o que
-diminuiu o estoque, sem contar estornos nem o que foi estornado: hoje perdas e acertos para menos;
-com a 005, também os pedidos. Barras simples (HTML e CSS), sem biblioteca de gráficos.
+diminuiu o estoque, sem contar estornos nem o que foi estornado: perdas, acertos para menos e,
+desde a 011, as vendas pelos pedidos (em "por motivo", **Venda** fica separada das perdas). Barras
+simples (HTML e CSS), sem biblioteca de gráficos.
 
 ## Painel de custo dos produtos (feature 008)
 
@@ -74,8 +75,8 @@ Exemplo (caso de teste): X-Burger com pão R$ 1,00, 150 g de carne a R$ 40/kg e 
 R$ 50/kg custa R$ 8,50; vendido a R$ 28,00 → 30,4%, dentro da faixa, sobra R$ 19,50; a carne é 71%
 do custo. A R$ 20,00 → 42,5%, alto.
 
-Sem a baixa por pedido (005) não há quantidade vendida, então o CMV teórico do período e a variância
-ficam para depois. O painel é o custo de **uma unidade** hoje.
+A baixa por pedido chegou com a 011, mas o CMV teórico do período e a variância ficam para uma
+feature de indicadores. O painel é o custo de **uma unidade** hoje.
 
 ## Investigação quando a variância sobe
 

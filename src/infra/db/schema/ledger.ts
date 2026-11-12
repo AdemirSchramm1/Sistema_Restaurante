@@ -14,9 +14,16 @@ import {
 import { base, editable } from "./common";
 import { items } from "./catalog";
 import { suppliers } from "./suppliers";
+import { orders } from "./ordering";
 
 /** Livro de movimentações (feature 004, docs/sistema/estoque/03-movimentacoes-e-saldo.md). */
-export const movementTypeEnum = pgEnum("movement_type", ["PURCHASE", "LOSS", "ADJUSTMENT", "REVERSAL"]);
+export const movementTypeEnum = pgEnum("movement_type", [
+  "PURCHASE",
+  "LOSS",
+  "ADJUSTMENT",
+  "REVERSAL",
+  "SALE_RECIPE",
+]);
 export const adjustmentStatusEnum = pgEnum("adjustment_status", [
   "PENDING",
   "APPROVED",
@@ -56,6 +63,8 @@ export const stockMovements = pgTable(
     idempotencyKey: text("idempotency_key"),
     /** De quem foi a compra (feature 007). Só na compra. */
     supplierId: uuid("supplier_id").references(() => suppliers.id),
+    /** Pedido da venda e do estorno ou perda do cancelamento (feature 011). */
+    orderId: uuid("order_id").references(() => orders.id),
   },
   (t) => [
     uniqueIndex("stock_movements_reverses")
@@ -66,13 +75,25 @@ export const stockMovements = pgTable(
       .where(sql`idempotency_key is not null`),
     index("stock_movements_item").on(t.restaurantId, t.itemId, t.createdAt),
     index("stock_movements_recorded").on(t.restaurantId, t.createdAt),
-    check("stock_movements_reason", sql`(type = 'PURCHASE') = (reason_id is null)`),
+    // `type::text`: o valor SALE_RECIPE entra no tipo na mesma migração (0011) e não pode aparecer como literal.
+    check("stock_movements_reason", sql`(type::text in ('PURCHASE', 'SALE_RECIPE')) = (reason_id is null)`),
     check("stock_movements_reversal", sql`(type = 'REVERSAL') = (reverses_id is not null)`),
     check("stock_movements_purchase_in", sql`type <> 'PURCHASE' or quantity > 0`),
     check("stock_movements_loss_out", sql`type <> 'LOSS' or quantity < 0`),
     check("stock_movements_not_zero", sql`quantity <> 0`),
     check("stock_movements_supplier_purchase", sql`supplier_id is null or type = 'PURCHASE'`),
     index("stock_movements_supplier").on(t.restaurantId, t.supplierId, t.itemId, t.createdAt),
+    check("stock_movements_sale_order", sql`type::text <> 'SALE_RECIPE' or order_id is not null`),
+    check("stock_movements_sale_out", sql`type::text <> 'SALE_RECIPE' or quantity < 0`),
+    check(
+      "stock_movements_order_type",
+      sql`order_id is null or type::text in ('SALE_RECIPE', 'REVERSAL', 'LOSS')`,
+    ),
+    // Venda = com pedido e sem motivo (estorno e perda do cancelamento têm motivo): baixa uma vez só.
+    uniqueIndex("stock_movements_sale_once")
+      .on(t.orderId, t.itemId)
+      .where(sql`order_id is not null and reason_id is null`),
+    index("stock_movements_order").on(t.orderId).where(sql`order_id is not null`),
   ],
 );
 

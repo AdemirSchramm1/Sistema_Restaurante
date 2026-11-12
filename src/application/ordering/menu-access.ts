@@ -12,7 +12,7 @@ async function endPrevious(deps: Deps, cookie: string | null) {
   const prev = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
   if (!prev) return;
   await deps.tenant(prev.restaurantId, async (repos) => {
-    await repos.menuAccesses.end(prev.menuAccessId, deps.clock.now());
+    await repos.menuAccesses.end(prev.menuAccessId, deps.clock.now(), "RESCAN");
     return ok(undefined);
   });
 }
