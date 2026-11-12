@@ -1,19 +1,15 @@
 import { requireContext, currentUser } from "@/actions/_session";
 import { signOutAction } from "@/actions/auth";
 import { serverDeps } from "@/infra/server";
-import { ok } from "@/domain/shared/result";
-import { can, ROLE_LABELS } from "@/domain/access/permissions";
+import { ROLE_LABELS } from "@/domain/access/permissions";
 import { MainNav } from "@/components/layout/nav";
-import { countReorderAlerts } from "@/application/inventory/reorder";
+import { getShellInfo } from "@/application/shell";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await requireContext();
-  const user = await currentUser();
-  const r = await serverDeps().tenant(ctx.restaurantId, async (repos) => ok(await repos.restaurants.get()));
-  const restaurant = r.ok ? r.value : null;
-  // Só conta para quem vê o estoque: o garçom não gera tentativa negada a cada tela.
-  const reorder = can(ctx.roles, "catalog.read") ? await countReorderAlerts(serverDeps(), ctx) : null;
-  const toReorder = reorder?.ok ? reorder.value : 0;
+  const [user, shell] = await Promise.all([currentUser(), getShellInfo(serverDeps(), ctx)]);
+  const restaurant = shell.ok ? { name: shell.value.restaurantName } : null;
+  const toReorder = shell.ok ? (shell.value.reorderCount ?? 0) : 0;
   return (
     <div className="min-h-screen">
       <header className="no-print border-b border-border">

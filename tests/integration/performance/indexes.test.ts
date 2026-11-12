@@ -16,7 +16,7 @@ import { getTab, listOpenTabs, listTabs } from "../../../src/application/billing
 import { listItems } from "../../../src/application/inventory/list-items";
 import { listGroupTree } from "../../../src/application/inventory/list-group-tree";
 import { listRecipes } from "../../../src/application/inventory/recipes";
-import { countReorderAlerts } from "../../../src/application/inventory/reorder";
+import { getShellInfo } from "../../../src/application/shell";
 import { listSuppliers } from "../../../src/application/suppliers/suppliers";
 
 /**
@@ -63,7 +63,7 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
       fornecedores: () => listSuppliers(deps, b.m, { status: "all" }),
       mesas: () => listTables(deps, b.m, { includeInactive: true }),
       adicionais: () => listAddons(deps, b.m, { includeInactive: true }),
-      "aviso do Repor": () => countReorderAlerts(deps, b.m),
+      "cabeçalho (nome e Repor)": () => getShellInfo(deps, b.m),
     };
 
     const problems: string[] = [];

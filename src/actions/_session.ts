@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { serverDeps } from "@/infra/server";
@@ -20,17 +21,23 @@ export async function requestOrigin(): Promise<Origin> {
   };
 }
 
-/** Contexto do usuário logado, ou null. */
-export async function currentContext(): Promise<RequestContext | null> {
-  const deps = serverDeps();
-  const session = await deps.betterAuth.api.getSession({ headers: await headers() });
+/**
+ * Sessão do Better Auth. `cache()` do React: layouts e página do mesmo carregamento leem a sessão
+ * uma vez só (spec 012, R3). Fora da renderização (Server Action), roda a cada chamada.
+ */
+const currentSession = cache(async () =>
+  serverDeps().betterAuth.api.getSession({ headers: await headers() }),
+);
+
+/** Contexto do usuário logado, ou null. Uma vez por carregamento de tela (spec 012, R3). */
+export const currentContext = cache(async (): Promise<RequestContext | null> => {
+  const session = await currentSession();
   if (!session) return null;
-  return resolveContext(deps, session.user.id, await requestOrigin());
-}
+  return resolveContext(serverDeps(), session.user.id, await requestOrigin());
+});
 
 export async function currentUser() {
-  const session = await serverDeps().betterAuth.api.getSession({ headers: await headers() });
-  return session?.user ?? null;
+  return (await currentSession())?.user ?? null;
 }
 
 /** Para páginas: exige sessão com restaurante. */
