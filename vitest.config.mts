@@ -29,11 +29,17 @@ export default defineConfig({
         },
       },
     ],
+    // Régua por pasta (spec 012, FR-012). Os casos de uso são cobertos pelos testes de integração;
+    // aqui entram o domínio, os componentes de tela e os leitores de formulário.
     coverage: {
       provider: "v8",
-      include: ["src/domain/**/*.ts"],
-      exclude: ["src/domain/**/*.test.ts"],
-      thresholds: { lines: 90 },
+      include: ["src/domain/**/*.ts", "src/components/**/*.{ts,tsx}", "src/application/**/*-input.ts"],
+      exclude: ["**/*.test.{ts,tsx}"],
+      thresholds: {
+        "src/domain/**": { lines: 95, branches: 90, functions: 95 },
+        "src/components/**": { lines: 90, branches: 80 },
+        "src/application/**": { lines: 90, branches: 80 },
+      },
     },
   },
 });

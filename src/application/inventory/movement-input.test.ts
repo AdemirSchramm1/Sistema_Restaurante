@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { movementToday, parseMovementDate, parseMovementForm } from "./movement-input";
+import { movementToday, parseMovementDate, parseMovementForm, parseReversalForm } from "./movement-input";
 
 const ITEM = "0193a000-0000-7000-8000-000000000123";
 const REASON = "0193a100-0000-7000-8000-000000000003";
@@ -141,5 +141,32 @@ describe("compra com fornecedor (spec 007, US4)", () => {
       NOW,
     );
     expect(code(r)).toBe("UNKNOWN_UNIT");
+  });
+});
+
+describe("formulário de estorno (spec 004)", () => {
+  const MOVEMENT = "0193a200-0000-7000-8000-000000000009";
+
+  it("lê o lançamento, o motivo e os textos opcionais", () => {
+    expect(
+      parseReversalForm({
+        movementId: MOVEMENT,
+        reasonId: REASON,
+        notes: "  digitado errado ",
+        idempotencyKey: "",
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        movementId: MOVEMENT,
+        cmd: { reasonId: REASON, notes: "digitado errado", idempotencyKey: null },
+      },
+    });
+  });
+
+  it("lançamento malformado não existe; motivo malformado aponta o campo", () => {
+    expect(code(parseReversalForm({ movementId: "x", reasonId: REASON }))).toBe("NOT_FOUND");
+    const r = parseReversalForm({ movementId: MOVEMENT, reasonId: "" });
+    expect([code(r), field(r)]).toEqual(["INVALID_REASON", "reasonId"]);
   });
 });
