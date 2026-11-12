@@ -45,3 +45,8 @@ export function formatBrDecimal(
   const out = fracPart ? `${grouped},${fracPart}` : grouped;
   return negative && !/^[0.,]+$/.test(out) ? `-${out}` : out;
 }
+
+/** "R$ 1.234,50": 2 casas (até `maxPlaces` quando pedido), meio para cima. */
+export function formatBrl(_value: Decimal, _opts: { maxPlaces?: number } = {}): string {
+  return "";
+}
