@@ -41,6 +41,8 @@ E se liga ao fluxo **Spec Kit**:
 - [00 — Visão geral da arquitetura](sistema/00-arquitetura.md)
 - [01 — Desenvolvimento guiado por testes (TDD)](sistema/01-tdd.md)
 - [02 — Convenções de código](sistema/02-convencoes.md)
+- [03 — Padrões do front (cores, fontes, componentes)](sistema/03-padroes-do-front.md)
+- [04 — Desempenho (regras e como medir)](sistema/04-desempenho.md)
 - [Glossário PT → código](sistema/glossario.md)
 - [ADRs (decisões de arquitetura)](sistema/adr/)
 - Módulo de Estoque

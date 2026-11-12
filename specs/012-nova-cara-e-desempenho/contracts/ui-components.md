@@ -47,7 +47,32 @@ números tabulares.
 | `title` | texto | vira o `h1` da tela, na fonte de títulos |
 | `description` | texto, opcional | frase curta do que a tela faz |
 | `actions` | nós React, opcional | botões e links à direita (abaixo do título no celular) |
+| `badges` | nós React, opcional | selos ao lado do título (inativo, esgotado hoje, código do item) |
 | `back` | `{ href, label }`, opcional | link "voltar" acima do título |
+
+## `ActionForm` (`forms/action-form.tsx`)
+
+Formulário curto ligado a uma Server Action: campos escondidos (`hidden`), filhos opcionais e um
+botão (`submitLabel`, `variant` padrão `outline`, `size` padrão `sm`). Mostra a recusa do servidor
+e, se houver `successMessage`, o aviso de salvo, que some enquanto o próximo envio está a caminho.
+Substitui os antigos `*-active-toggle` (inativar item e produto, bloquear fornecedor).
+
+## `useFormAction` (`forms/use-form-action.ts`)
+
+Devolve `state`, `pending`, `error`, `formProps` e `saved`. `saved` é verdadeiro só quando o servidor
+confirmou o último envio e nenhum outro está a caminho: é ele que liga o aviso "Alterações salvas"
+de todos os formulários.
+
+## `BarList` (`reports/bar-list.tsx`)
+
+`title`, `rows` (`{ key, label, href?, amount, valueText, detail? }`) e `color` (1 a 4, as cores
+`chart-*` do tema; padrão 1). `PairedBars` usa as cores 1 e 2.
+
+## `Brand`, `BrandMark` (`layout/brand.tsx`)
+
+`BrandMark` é o chapéu de cozinheiro em páprica (decorativo). `Brand` junta a marca, o nome
+(`name`) e uma legenda opcional (`caption`); aparece no menu lateral, nas telas de entrada e em
+"não encontrado".
 
 ## `EmptyState` (`ui/empty-state.tsx`)
 

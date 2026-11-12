@@ -144,4 +144,47 @@ Medido hoje: domínio com 99,7% das linhas, 94,7% dos desvios e 98,5% das funç�
 linhas); componentes com 88,6% das linhas e 75,7% dos desvios (sem régua).
 
 **Decisão**: régua por pasta no Vitest. Domínio: 95% das linhas, 90% dos desvios e 95% das funções.
-Componentes: 90% das linhas e 80% dos desvios, depois dos testes novos.
+Componentes: 90% das linhas e 80% dos desvios, depois dos testes novos. Os leitores de formulário
+(`src/application/**/*-input.ts`) entram com 90/80: são funções puras, testadas em unidade.
+
+Depois dos testes novos: componentes com 97,8% das linhas e 87% dos desvios; domínio com 99,7%,
+94,8% e 98,6%.
+
+## R12 Depois
+
+Medido em 2026-11-12, mesmo método e mesmo computador da linha de base (R1): `pnpm build && pnpm
+start`, restaurante recém-criado, gerente logado. Scripts em [`scripts/perf/`](../../scripts/perf/).
+
+**Consultas por carregamento de tela** (3 carregamentos iguais; meta SC-001: −50%)
+
+| Tela | Antes | Depois | Queda |
+|---|---|---|---|
+| `/estoque/itens` | 44 | 18 | −59% |
+| `/estoque/repor` | 38 | 12 | −68% |
+| `/pedidos/cozinha` | 35 | 17 | −51% |
+| `/equipe` | 35 | 17 | −51% |
+| `/caixa` | 34 | 16 | −53% |
+
+**Tempo até o primeiro byte com o banco a 5 ms** (mediana de 15; meta SC-002: −40%)
+
+| Tela | Antes | Depois | Queda |
+|---|---|---|---|
+| `/estoque/itens` | 111,9 ms | 58,2 ms | −48% |
+| `/caixa` | 109,2 ms | 55,6 ms | −49% |
+| `/pedidos/cozinha` | 109,0 ms | 55,8 ms | −49% |
+| `/estoque/repor` | 106,7 ms | 53,5 ms | −50% |
+| `/equipe` | 109,5 ms | 55,7 ms | −49% |
+
+Com o banco local (~0,1 ms) a diferença é menor, porque ali o tempo é quase todo de renderização:
+itens 23,8 → 18,3 ms, caixa 21,1 → 15,2 ms, cozinha 21,1 → 14,1 ms, repor 21,3 → 13,8 ms e equipe
+20,9 → 17,0 ms (medidas com ruído de ±3 ms).
+
+**O que mudou o caixa.** Na primeira medição depois das mudanças o caixa ficou em 71,3 ms (−35%):
+a página lia a taxa de serviço só depois da lista de contas, numa segunda transação em série. As
+duas leituras passaram a sair juntas (`Promise.all`), e o mesmo foi feito no cardápio do cliente
+(pratos e pedidos da mesa), que é a tela mais sensível a demora porque roda no celular.
+
+**O que sobrou.** Cada tela da equipe ainda faz 3 consultas de sessão e contexto (sessão, usuário,
+membro), 5 do cabeçalho (`begin`, `set_config`, nome, Repor, `commit`) e as da página. Juntar o
+cabeçalho e a página numa transação só pouparia mais 3 idas, mas layout e página do App Router
+renderizam separados; fica para quando o tempo de tela voltar a ser problema.

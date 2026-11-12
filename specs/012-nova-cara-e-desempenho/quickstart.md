@@ -16,15 +16,24 @@ Método completo em [docs/sistema/04-desempenho.md](../../docs/sistema/04-desemp
 
 ```bash
 pnpm build
-node scripts/perf/latency-proxy.mjs 5440 5432 2.5 &        # banco a 5 ms (ida e volta)
-DATABASE_URL=postgres://app_login:app_login@localhost:5440/restaurante pnpm start &
+docker exec sistema_restaurante-db-1 psql -U postgres \
+  -c "alter system set log_statement = 'all'" -c "select pg_reload_conf()"
+pnpm start &
 node scripts/perf/session-cookie.mjs > /tmp/cookie.txt     # cria um restaurante e guarda o cookie
+node scripts/perf/statements.mjs /tmp/cookie.txt /estoque/itens /estoque/repor /pedidos/cozinha /equipe /caixa
+
+# Banco a 5 ms (ida e volta): reinicie o app passando pelo proxy
+node scripts/perf/latency-proxy.mjs 5440 5432 2.5 &
+DATABASE_URL=postgres://app_login:app_login@localhost:5440/restaurante pnpm start &
 scripts/perf/ttfb.sh /tmp/cookie.txt /estoque/itens /caixa /pedidos/cozinha /estoque/repor /equipe
 ```
+
+Esperado: as consultas e os tempos de [research.md](research.md#r12-depois) (12 a 18 consultas;
+~55 ms com o banco a 5 ms).
 
 ## Testes
 
 ```bash
-pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration
+pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration
 pnpm test:e2e   # inclui o axe nas telas
 ```
