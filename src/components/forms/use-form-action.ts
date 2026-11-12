@@ -28,6 +28,7 @@ export function useFormAction(action: Action, { resetOnSuccess = false } = {}) {
   return {
     state,
     pending,
+    saved: false,
     error: state && !state.ok ? state.error : null,
     formProps: { ref: formRef, action: formAction, onSubmit },
   };
