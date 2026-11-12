@@ -15,7 +15,9 @@ import { priceOrFree } from "@/components/ordering/format";
 import { AddonForm } from "@/components/ordering/addon-form";
 import { ActionForm } from "@/components/forms/action-form";
 import { HistoryList } from "@/components/audit/history-list";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Adicional" };
 
@@ -45,7 +47,7 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
       {sp.criado && <Alert tone="success">Adicional cadastrado.</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold">{a.name}</h1>
-        {!a.active && <Badge tone="muted">inativo</Badge>}
+        {!a.active && <Badge tone="neutral">inativo</Badge>}
         <span className="text-sm text-muted-foreground">{priceOrFree(a.price)}</span>
         {canWrite && (
           <ActionForm

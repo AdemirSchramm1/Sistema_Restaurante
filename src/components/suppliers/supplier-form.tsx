@@ -3,7 +3,8 @@
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Input } from "@/components/ui/input";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import type { ActionState } from "@/actions/_session";
 import { WEEKDAY_LABELS, WEEKDAY_NAMES } from "@/domain/suppliers/supplier";

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { ActionState } from "@/actions/_session";
 import type { SubmitOrderResult } from "@/application/ordering/submit-order";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   applyPriceChanges,
@@ -91,15 +92,12 @@ export function Cart({
     <section className="grid gap-3" aria-label="Seu pedido">
       <h2 className="text-lg font-semibold">Seu pedido</h2>
       {sent && (
-        <div
-          role="status"
-          className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-900"
-        >
+        <Alert tone="success">
           <p className="font-semibold">Pedido enviado para a cozinha</p>
-          <p className="text-sm">
+          <p>
             Pedido nº {sent.number} · {brl(sent.total)}
           </p>
-        </div>
+        </Alert>
       )}
       {lines.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nada no pedido ainda.</p>
@@ -154,11 +152,11 @@ export function Cart({
         <span data-testid="cart-total">{brl(total)}</span>
       </p>
       {!confirming && messages.length > 0 && (
-        <div role="alert" className="grid gap-1 rounded bg-amber-100 p-2 text-sm text-amber-900">
+        <Alert tone="warning" role="alert">
           {messages.map((m) => (
             <p key={m}>{m}</p>
           ))}
-        </div>
+        </Alert>
       )}
       <Button type="button" className="h-12 text-base" disabled={lines.length === 0} onClick={open}>
         Enviar pedido
@@ -169,7 +167,7 @@ export function Cart({
           role="dialog"
           aria-modal="true"
           aria-label="Confira o pedido"
-          className="fixed inset-0 z-50 grid place-items-end bg-black/40 sm:place-items-center"
+          className="fixed inset-0 z-50 grid place-items-end bg-overlay sm:place-items-center"
         >
           <div className="grid max-h-[90vh] w-full max-w-md gap-3 overflow-y-auto rounded-t-xl bg-background p-4 sm:rounded-xl">
             <h2 className="text-lg font-semibold">Confira o pedido</h2>
@@ -191,11 +189,11 @@ export function Cart({
               <span>{brl(total)}</span>
             </p>
             {messages.length > 0 && (
-              <div role="alert" className="grid gap-1 rounded bg-amber-100 p-2 text-sm text-amber-900">
+              <Alert tone="warning" role="alert">
                 {messages.map((m) => (
                   <p key={m}>{m}</p>
                 ))}
-              </div>
+              </Alert>
             )}
             <Button type="button" className="h-12 text-base" disabled={sending} onClick={confirm}>
               Confirmar

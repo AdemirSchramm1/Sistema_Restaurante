@@ -20,7 +20,7 @@ export function SoldOutList({
         {dishes.map((x) => (
           <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span>
-              {x.name} {x.soldOut && <strong className="text-red-800">· esgotado hoje</strong>}
+              {x.name} {x.soldOut && <strong className="text-destructive">· esgotado hoje</strong>}
             </span>
             <ActionForm
               action={action}

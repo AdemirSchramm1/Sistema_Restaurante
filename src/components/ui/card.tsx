@@ -1,31 +1,12 @@
-import * as React from "react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
+/** Cartão do padrão (spec 012): borda, fundo `card` e sombra leve. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("rounded-lg border border-border bg-card p-6 shadow-xs", className)} {...props} />
-  );
-}
-
-export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-lg font-semibold", className)} {...props} />;
-}
-
-export function Badge({
-  className,
-  tone = "default",
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement> & { tone?: "default" | "muted" | "warn" }) {
-  const tones = {
-    default: "bg-primary/10 text-primary",
-    muted: "bg-muted text-muted-foreground",
-    warn: "bg-amber-100 text-amber-900",
-  };
-  return (
-    <span
+    <div
       className={cn(
-        "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium",
-        tones[tone],
+        "rounded-xl border border-border bg-card p-5 text-foreground shadow-sm sm:p-6",
         className,
       )}
       {...props}
@@ -33,29 +14,19 @@ export function Badge({
   );
 }
 
-export function Alert({
+export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("mb-4 grid gap-1", className)} {...props} />;
+}
+
+/** Título do cartão: `h2` por padrão; `as` muda o nível para manter a ordem dos títulos. */
+export function CardTitle({
   className,
-  tone = "error",
+  as: Heading = "h2",
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { tone?: "error" | "info" | "success" }) {
-  const tones = {
-    error: "border-destructive/40 bg-destructive/5 text-destructive",
-    info: "border-border bg-muted text-foreground",
-    success: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  };
-  return (
-    <div
-      role={tone === "error" ? "alert" : "status"}
-      className={cn("rounded-md border px-4 py-3 text-sm", tones[tone], className)}
-      {...props}
-    />
-  );
+}: React.HTMLAttributes<HTMLHeadingElement> & { as?: "h2" | "h3" | "h4" }) {
+  return <Heading className={cn("text-lg font-semibold leading-tight", className)} {...props} />;
 }
 
-export function CardHeader(_props: React.HTMLAttributes<HTMLDivElement>) {
-  return null;
-}
-
-export function CardDescription(_props: React.HTMLAttributes<HTMLParagraphElement>) {
-  return null;
+export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cn("text-sm text-muted-foreground", className)} {...props} />;
 }

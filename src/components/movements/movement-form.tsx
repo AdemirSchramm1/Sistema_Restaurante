@@ -4,15 +4,11 @@ import { useMemo, useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import type { ActionState } from "@/actions/_session";
 import { MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
-import {
-  manualReasons,
-  REASON_FAMILY_LABELS,
-  type ReasonFamily,
-} from "@/domain/inventory/movement-reasons";
+import { manualReasons, REASON_FAMILY_LABELS, type ReasonFamily } from "@/domain/inventory/movement-reasons";
 import { compatibleUnits } from "@/domain/inventory/recipe";
 import { convert, unitByCode, type UnitCode } from "@/domain/inventory/units";
 import { d, formatBrDecimal, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";

@@ -6,7 +6,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { UNIT_OPTION_LABELS } from "@/components/items/item-form";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Select } from "@/components/ui/input";
 import { compatibleUnits } from "@/domain/inventory/recipe";
 import { UNITS, type UnitCode } from "@/domain/inventory/units";

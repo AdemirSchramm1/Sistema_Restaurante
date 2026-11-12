@@ -9,7 +9,7 @@ import { can } from "@/domain/access/permissions";
 import { formatBrDecimal } from "@/domain/shared/decimal";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Itens" };
@@ -103,8 +103,8 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
                 <Link className="text-primary underline underline-offset-4" href={`/estoque/itens/${r.id}`}>
                   {r.description}
                 </Link>{" "}
-                {!r.active && <Badge tone="muted">inativo</Badge>}
-                {r.atReorderPoint && <Badge tone="warn">Repor</Badge>}
+                {!r.active && <Badge tone="neutral">inativo</Badge>}
+                {r.atReorderPoint && <Badge tone="warning">Repor</Badge>}
               </Td>
               <Td>
                 {r.groupName} › {r.subgroupName}

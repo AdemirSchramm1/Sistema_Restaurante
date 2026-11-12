@@ -40,7 +40,9 @@ export function OpenTabs({ tabs, serverNow }: { tabs: OpenTabCard[]; serverNow: 
               <span className="text-lg font-semibold">{brl(d(t.total))}</span>
               {state && <span className="text-sm font-medium">{state}</span>}
               {t.pendingOrders > 0 && (
-                <span className="text-sm text-amber-900">{pendingText(t.pendingOrders)}</span>
+                <span className="text-sm font-medium text-warning-soft-foreground">
+                  {pendingText(t.pendingOrders)}
+                </span>
               )}
             </Link>
           </li>

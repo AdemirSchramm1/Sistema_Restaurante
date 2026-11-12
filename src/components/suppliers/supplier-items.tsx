@@ -5,7 +5,7 @@ import { ActionForm } from "@/components/forms/action-form";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
 import type { ActionState } from "@/actions/_session";
@@ -235,7 +235,7 @@ export function SupplierItems({
           {rows.map((r) => (
             <tr key={r.id} className="align-top">
               <Td>
-                {r.itemName} {r.preferred && <Badge>Preferido</Badge>}
+                {r.itemName} {r.preferred && <Badge tone="primary">Preferido</Badge>}
               </Td>
               <Td>{packageText(r)}</Td>
               <Td>{money(d(r.price), 4)}</Td>

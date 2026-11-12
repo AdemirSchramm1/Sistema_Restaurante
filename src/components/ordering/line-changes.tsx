@@ -8,7 +8,7 @@ export function LineChanges({ changes }: { changes: readonly string[] }) {
     <ul className="ml-4 grid gap-0.5 text-sm">
       {changes.map((c) =>
         c.startsWith("SEM ") ? (
-          <li key={c} className="text-red-800">
+          <li key={c} className="text-destructive">
             <strong>SEM</strong>
             {c.slice(3)}
           </li>

@@ -18,7 +18,9 @@ import { supplierToValues } from "@/components/suppliers/supplier-form-values";
 import { SupplierActiveToggle } from "@/components/suppliers/supplier-active-toggle";
 import { SupplierItems, type SupplierItemRow } from "@/components/suppliers/supplier-items";
 import { HistoryList } from "@/components/audit/history-list";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Fornecedor" };
 
@@ -67,7 +69,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
       {sp.criado && <Alert tone="success">Fornecedor cadastrado. Agora diga o que ele vende.</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold">{supplier.name}</h1>
-        {!supplier.active && <Badge tone="warn">bloqueado</Badge>}
+        {!supplier.active && <Badge tone="danger">bloqueado</Badge>}
         {supplier.cnpj && (
           <span className="font-mono text-sm text-muted-foreground">{formatCnpj(supplier.cnpj)}</span>
         )}

@@ -127,7 +127,7 @@ export function KitchenBoard({
                 <article
                   key={o.id}
                   aria-label={`Pedido ${o.number}, Mesa ${o.tableName}`}
-                  className={`grid gap-2 rounded-lg border p-3 ${o.late ? "border-red-400 border-2" : fresh ? "border-primary border-2" : "border-border"}`}
+                  className={`grid gap-2 rounded-lg border p-3 ${o.late ? "border-destructive border-2" : fresh ? "border-primary border-2" : "border-border"}`}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-xl">Mesa {o.tableName}</strong>
@@ -141,7 +141,7 @@ export function KitchenBoard({
                       </span>
                     )}
                     {o.late && (
-                      <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-900">
+                      <span className="rounded bg-danger-soft px-2 py-0.5 text-xs font-semibold text-danger-soft-foreground">
                         Atrasado
                       </span>
                     )}

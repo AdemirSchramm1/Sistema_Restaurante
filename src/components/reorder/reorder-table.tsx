@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReorderAlert } from "@/application/inventory/reorder";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { Alert, Badge } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 const q = (v: Decimal) => formatBrDecimal(v, { maxPlaces: 2 });
@@ -52,7 +53,7 @@ export function ReorderTable({ rows }: { rows: ReorderAlert[] }) {
               <Link className="text-primary underline underline-offset-4" href={`/estoque/itens/${a.itemId}`}>
                 {a.name}
               </Link>{" "}
-              {a.balance.lte(0) && <Badge tone="warn">acabou</Badge>}
+              {a.balance.lte(0) && <Badge tone="danger">acabou</Badge>}
             </Td>
             <Td>
               {q(a.balance)} {a.unit}

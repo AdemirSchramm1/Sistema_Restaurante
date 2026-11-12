@@ -10,7 +10,7 @@ import { OpenTabs } from "@/components/billing/open-tabs";
 import { ServiceRateForm } from "@/components/billing/service-charge";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Caixa" };
 export const dynamic = "force-dynamic";

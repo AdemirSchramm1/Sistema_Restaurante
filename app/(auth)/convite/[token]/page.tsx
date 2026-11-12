@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { serverDeps } from "@/infra/server";
 import { peekInvitation } from "@/application/access/accept-invitation";
 import { messageFor } from "@/components/forms/error-messages";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { AcceptForm } from "./accept-form";
 
 export const metadata: Metadata = { title: "Aceitar convite" };

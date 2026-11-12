@@ -3,7 +3,7 @@ import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { listProductCosts } from "@/application/inventory/product-costs";
 import { ProductCostTable } from "@/components/costs/product-cost-table";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Custos" };
 

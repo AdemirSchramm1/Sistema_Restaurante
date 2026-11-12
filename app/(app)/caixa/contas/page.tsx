@@ -9,7 +9,7 @@ import { messageFor } from "@/components/forms/error-messages";
 import { TabsReport } from "@/components/billing/tabs-report";
 import { NoAccess } from "@/components/layout/no-access";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
 
 export const metadata: Metadata = { title: "Contas fechadas" };
@@ -89,7 +89,10 @@ export default async function Page({ searchParams }: PageProps<"/caixa/contas">)
             total: t.total.toFixed(2),
           }))}
           summary={{
-            byMethod: r.value.summary.byMethod.map((m) => ({ method: m.method, amount: m.amount.toFixed(2) })),
+            byMethod: r.value.summary.byMethod.map((m) => ({
+              method: m.method,
+              amount: m.amount.toFixed(2),
+            })),
             serviceCharge: r.value.summary.serviceCharge.toFixed(2),
             total: r.value.summary.total.toFixed(2),
           }}

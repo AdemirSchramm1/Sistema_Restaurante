@@ -17,7 +17,8 @@ import { TableQrCard } from "@/components/ordering/table-qr-card";
 import { TableRangeForm } from "@/components/ordering/table-range-form";
 import { NoAccess } from "@/components/layout/no-access";
 import { buttonVariants } from "@/components/ui/button";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 
 export const metadata: Metadata = { title: "Mesas" };

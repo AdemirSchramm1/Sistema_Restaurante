@@ -120,7 +120,11 @@ describe("TextLink", () => {
 describe("EmptyState", () => {
   it("mostra o título, a explicação e a ação; o ícone é enfeite", () => {
     render(
-      <EmptyState icon={Package} title="Nenhum item ainda." action={<a href="/estoque/itens/novo">Novo item</a>}>
+      <EmptyState
+        icon={Package}
+        title="Nenhum item ainda."
+        action={<TextLink href="/estoque/itens/novo">Novo item</TextLink>}
+      >
         Cadastre o primeiro item.
       </EmptyState>,
     );

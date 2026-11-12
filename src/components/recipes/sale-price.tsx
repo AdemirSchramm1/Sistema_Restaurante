@@ -67,7 +67,7 @@ export function SalePrice(p: SalePriceProps) {
             </strong>
             .
           </p>
-          <p className={p.marginNegative ? "font-medium text-red-800" : undefined}>
+          <p className={p.marginNegative ? "font-medium text-destructive" : undefined}>
             {p.marginNegative ? `Prejuízo de ${p.marginText} por venda.` : `Sobra ${p.marginText} por venda.`}
           </p>
           <p className="text-muted-foreground">

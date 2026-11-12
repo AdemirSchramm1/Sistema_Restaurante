@@ -10,7 +10,7 @@ import { money, percent } from "@/components/costs/format";
 import { priceOrFree } from "@/components/ordering/format";
 import { NoAccess } from "@/components/layout/no-access";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Adicionais" };
@@ -64,7 +64,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/adicion
                   >
                     {a.name}
                   </Link>{" "}
-                  {!a.active && <Badge tone="muted">inativo</Badge>}
+                  {!a.active && <Badge tone="neutral">inativo</Badge>}
                 </Td>
                 <Td>
                   {a.componentName} · {formatBrDecimal(a.quantity)} {a.unit}

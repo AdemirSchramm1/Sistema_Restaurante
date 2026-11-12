@@ -7,6 +7,7 @@ import {
   type CostBand,
   type ProductCost,
 } from "@/domain/inventory/product-cost";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, Td, Th } from "@/components/ui/table";
 import { money, percent, products, wholePercent } from "./format";
@@ -16,10 +17,11 @@ import { money, percent, products, wholePercent } from "./format";
  * navegador; a barra é HTML e CSS e o valor está sempre escrito ao lado.
  */
 
-const BAND_STYLE: Record<CostBand, { bar: string; badge: string }> = {
-  OK: { bar: "bg-emerald-600", badge: "bg-emerald-100 text-emerald-900" },
-  WARN: { bar: "bg-amber-500", badge: "bg-amber-100 text-amber-900" },
-  HIGH: { bar: "bg-red-600", badge: "bg-red-100 text-red-900" },
+/** Faixa de custo com as cores do tema: manjericão (ok), açafrão (atenção) e beterraba (alto). */
+const BAND_STYLE: Record<CostBand, { bar: string; tone: BadgeTone; text: string }> = {
+  OK: { bar: "bg-chart-3", tone: "success", text: "text-success-soft-foreground" },
+  WARN: { bar: "bg-chart-2", tone: "warning", text: "text-warning-soft-foreground" },
+  HIGH: { bar: "bg-destructive", tone: "danger", text: "text-danger-soft-foreground" },
 };
 
 const link = "text-primary underline underline-offset-4";
@@ -28,15 +30,15 @@ function Summary({ s }: { s: ProductCostPanel["summary"] }) {
   const lines = [
     s.high > 0 && {
       key: "high",
-      tone: "text-red-800",
+      tone: BAND_STYLE.HIGH.text,
       text: `${products(s.high)} com custo alto (acima de 40% do preço)`,
     },
     s.warn > 0 && {
       key: "warn",
-      tone: "text-amber-800",
+      tone: BAND_STYLE.WARN.text,
       text: `${products(s.warn)} em atenção (entre 35% e 40%)`,
     },
-    s.ok > 0 && { key: "ok", tone: "text-emerald-800", text: `${products(s.ok)} dentro da faixa (até 35%)` },
+    s.ok > 0 && { key: "ok", tone: BAND_STYLE.OK.text, text: `${products(s.ok)} dentro da faixa (até 35%)` },
     s.noPrice > 0 && {
       key: "noPrice",
       tone: "text-muted-foreground",
@@ -66,9 +68,7 @@ function ShareCell({ p }: { p: ProductCost }) {
     <div className="grid min-w-40 gap-1">
       <div className="flex items-center gap-2">
         <strong className="tabular-nums">{percent(p.share)}</strong>
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ${style.badge}`}>
-          {COST_BAND_LABELS[p.band]}
-        </span>
+        <Badge tone={style.tone}>{COST_BAND_LABELS[p.band]}</Badge>
       </div>
       <div className="relative h-2.5 w-full rounded-full bg-muted" aria-hidden="true">
         <div
@@ -88,7 +88,8 @@ function ShareCell({ p }: { p: ProductCost }) {
 
 function MarginCell({ p }: { p: ProductCost }) {
   if (!p.margin) return <span className="text-muted-foreground">—</span>;
-  if (p.margin.isNegative()) return <strong className="text-red-800">Prejuízo de {money(p.margin)}</strong>;
+  if (p.margin.isNegative())
+    return <strong className="text-destructive">Prejuízo de {money(p.margin)}</strong>;
   return <span className="whitespace-nowrap tabular-nums">{money(p.margin)}</span>;
 }
 

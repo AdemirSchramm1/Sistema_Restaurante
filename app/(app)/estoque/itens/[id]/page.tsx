@@ -24,7 +24,9 @@ import { getReorderView } from "@/application/inventory/reorder";
 import { setReorderLevelsAction } from "@/actions/reorder";
 import { itemUsage } from "@/application/inventory/product-costs";
 import { ItemUsage } from "@/components/costs/item-usage";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { StockBalance } from "@/components/items/stock-balance";
 
 export const metadata: Metadata = { title: "Item" };
@@ -63,7 +65,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         <Badge className="font-mono" aria-label="Código do item">
           {item.code}
         </Badge>
-        {!item.active && <Badge tone="muted">inativo</Badge>}
+        {!item.active && <Badge tone="neutral">inativo</Badge>}
         <span className="text-sm text-muted-foreground">
           {ITEM_TYPE_LABELS[item.type]} · {item.groupName} › {item.subgroupName}
         </span>

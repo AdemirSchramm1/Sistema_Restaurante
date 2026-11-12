@@ -1,7 +1,7 @@
 import { ActionForm } from "@/components/forms/action-form";
 import { reverseMovementAction } from "@/actions/movements";
 import { Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 import type { MovementView } from "@/application/inventory/movements";
 import { MOVEMENT_TYPE_LABELS } from "@/domain/inventory/movement";
@@ -53,7 +53,7 @@ export function MovementTable({
             <Td>{date(m.occurredAt)}</Td>
             {showItem && <Td>{m.itemName}</Td>}
             <Td>
-              {MOVEMENT_TYPE_LABELS[m.type]} {m.reversedById && <Badge tone="muted">estornado</Badge>}
+              {MOVEMENT_TYPE_LABELS[m.type]} {m.reversedById && <Badge tone="neutral">estornado</Badge>}
             </Td>
             <Td>
               {qty(m.quantity)} {m.stockUnit}

@@ -10,7 +10,7 @@ import { messageFor } from "@/components/forms/error-messages";
 import { brl } from "@/components/ordering/cart-state";
 import { NoAccess } from "@/components/layout/no-access";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
 

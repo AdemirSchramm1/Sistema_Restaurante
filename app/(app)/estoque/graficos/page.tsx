@@ -6,7 +6,8 @@ import { stockReport } from "@/application/inventory/stock-report";
 import { PERIOD_OPTIONS } from "@/domain/inventory/stock-report";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { BarList, PairedBars } from "@/components/reports/bar-list";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Gráficos" };
@@ -107,7 +108,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/grafico
           </p>
           <BarList
             title="Itens que menos saíram"
-            barClassName="bg-sky-500"
+            color={4}
             rows={least.map((x) => ({
               key: x.itemId,
               label: x.name,
@@ -122,7 +123,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/grafico
           <CardTitle>Saídas por motivo</CardTitle>
           <BarList
             title="Saídas por motivo"
-            barClassName="bg-amber-500"
+            color={2}
             rows={byReason.map((x) => ({
               key: x.label,
               label: x.label,

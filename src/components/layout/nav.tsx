@@ -36,7 +36,7 @@ export function MainNav({ roles, reorderCount }: { roles: readonly Role[]; reord
           {n.label}
           {n.href === "/estoque/repor" && reorderCount > 0 && (
             <span
-              className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-900"
+              className="ml-1 rounded-full bg-warning px-1.5 py-0.5 text-xs font-semibold text-warning-foreground"
               aria-label={`${reorderCount} ${reorderCount === 1 ? "item" : "itens"} para repor`}
             >
               {reorderCount}

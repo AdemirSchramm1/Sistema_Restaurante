@@ -7,7 +7,7 @@ import { RECIPE_KINDS, RECIPE_KIND_LABELS, type RecipeKind } from "@/domain/inve
 import { can } from "@/domain/access/permissions";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Produtos" };
@@ -82,7 +82,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/produto
                 >
                   {r.name}
                 </Link>{" "}
-                {!r.active && <Badge tone="muted">inativo</Badge>}
+                {!r.active && <Badge tone="neutral">inativo</Badge>}
               </Td>
               <Td>{r.kind === "SUB_RECIPE" ? "Preparo" : "Vendido"}</Td>
               <Td>{r.lineCount}</Td>

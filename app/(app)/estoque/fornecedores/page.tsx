@@ -8,7 +8,7 @@ import { formatCnpj } from "@/domain/suppliers/cnpj";
 import { WEEKDAY_LABELS } from "@/domain/suppliers/supplier";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Fornecedores" };
@@ -75,7 +75,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/fornece
                 >
                   {r.name}
                 </Link>{" "}
-                {!r.active && <Badge tone="warn">bloqueado</Badge>}
+                {!r.active && <Badge tone="danger">bloqueado</Badge>}
               </Td>
               <Td className="font-mono text-xs">{r.cnpj ? formatCnpj(r.cnpj) : "—"}</Td>
               <Td>{[r.contactName, r.phone].filter(Boolean).join(" · ") || "—"}</Td>

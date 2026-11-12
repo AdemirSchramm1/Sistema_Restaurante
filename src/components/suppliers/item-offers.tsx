@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { OfferView } from "@/application/suppliers/suppliers";
 import type { UnitCode } from "@/domain/inventory/units";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 
 const money = (v: Decimal, max = 2) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: max })}`;
@@ -48,9 +48,9 @@ export function ItemOffers({
               >
                 {o.supplierName}
               </Link>{" "}
-              {o.preferred && <Badge>Preferido</Badge>}{" "}
-              {o.cheapest && <Badge tone="muted">mais barato</Badge>}{" "}
-              {!o.supplierActive && <Badge tone="warn">bloqueado</Badge>}
+              {o.preferred && <Badge tone="primary">Preferido</Badge>}{" "}
+              {o.cheapest && <Badge tone="success">mais barato</Badge>}{" "}
+              {!o.supplierActive && <Badge tone="danger">bloqueado</Badge>}
             </Td>
             <Td>
               {o.packageLabel

@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { requestPasswordResetAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Field } from "@/components/forms/form-error";
 
 export default function Page() {

@@ -5,7 +5,8 @@ import type { ActionState } from "@/actions/_session";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { FormError } from "@/components/forms/form-error";
 import { Button } from "@/components/ui/button";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
 import { defaultRemovalLabel, MAX_ADDON_TIMES, MAX_OPTIONS } from "@/domain/ordering/customization";
 import type { RecipeKind } from "@/domain/inventory/recipe";
@@ -171,7 +172,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                   )}
                 </div>
                 {r.orphan && (
-                  <p className="text-xs text-amber-900">
+                  <p className="text-xs font-medium text-warning-soft-foreground">
                     {r.name} saiu do produto: este botão não aparece mais no cardápio. Remova da lista.
                   </p>
                 )}

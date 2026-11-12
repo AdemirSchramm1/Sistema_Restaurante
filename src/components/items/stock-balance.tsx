@@ -1,4 +1,5 @@
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { Alert } from "@/components/ui/alert";
 
 /**
  * Saldo do item na sua medida. Negativo só acontece pela venda (spec 011, FR-007): o aviso vem em
@@ -15,9 +16,9 @@ export function StockBalance({ balance, unit }: { balance: Decimal; unit: string
         </strong>
       </p>
       {negative && (
-        <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
+        <Alert tone="warning" role="alert">
           O estoque está menor que o que o sistema esperava. Lance a compra que faltou ou peça um acerto.
-        </p>
+        </Alert>
       )}
     </>
   );
