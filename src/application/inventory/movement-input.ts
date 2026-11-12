@@ -12,6 +12,11 @@ const UNIT_CODES = UNITS.map((u) => u.code) as string[];
 
 const optText = (v: unknown) => formText(v) || null;
 
+/** Dia de hoje (AAAA-MM-DD) em Brasília: o valor padrão do campo de data do lançamento. */
+export function movementToday(_now: Date): string {
+  return "";
+}
+
 /** "2026-10-30" → meio-dia daquele dia em Brasília; hoje (ou vazio) → agora. Inválida → null. */
 export function parseMovementDate(value: string, now: Date): Date | null {
   const t = value.trim();

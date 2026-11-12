@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMovementDate, parseMovementForm } from "./movement-input";
+import { movementToday, parseMovementDate, parseMovementForm } from "./movement-input";
 
 const ITEM = "0193a000-0000-7000-8000-000000000123";
 const REASON = "0193a100-0000-7000-8000-000000000003";
@@ -14,6 +14,13 @@ describe("data do lançamento (fuso de São Paulo)", () => {
     expect(parseMovementDate("2026-10-30", NOW)?.toISOString()).toBe("2026-10-30T15:00:00.000Z");
     expect(parseMovementDate("", NOW)).toEqual(NOW);
     expect(parseMovementDate("30/10/2026", NOW)).toBeNull();
+  });
+
+  it("o dia de hoje do formulário segue Brasília, não UTC", () => {
+    expect(movementToday(NOW)).toBe("2026-11-02");
+    // 01:48 em UTC ainda é 22:48 do dia anterior em Brasília
+    expect(movementToday(new Date("2026-11-12T01:48:00Z"))).toBe("2026-11-11");
+    expect(movementToday(new Date("2026-11-12T03:00:00Z"))).toBe("2026-11-12");
   });
 });
 
