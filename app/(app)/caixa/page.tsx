@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Receipt } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Caixa" };
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export const dynamic = "force-dynamic";
 /** Caixa (spec 011, US1): mesas com conta aberta; atualiza sozinho a cada 10 segundos. */
 export default async function Page({ searchParams }: PageProps<"/caixa">) {
   const ctx = await requireContext();
-  const closed = (await searchParams).fechada;
+  const closed = firstParam((await searchParams).fechada);
   const deps = serverDeps();
   const r = await listOpenTabs(deps, ctx);
   if (!r.ok) return <NoAccess />;
@@ -41,7 +42,7 @@ export default async function Page({ searchParams }: PageProps<"/caixa">) {
           )
         }
       />
-      {typeof closed === "string" && closed && (
+      {closed && (
         <Alert tone="success">{`Conta da Mesa ${closed} fechada. A mesa está livre para o próximo cliente.`}</Alert>
       )}
       <OpenTabs

@@ -7,15 +7,14 @@ import {
 import { unitByCode, type UnitCode } from "@/domain/inventory/units";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
+import { formText } from "../form-input";
 
 const LINE_KEY = /^lines\.(\d{1,3})\.(component|quantity|unit)$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED = new Set(["name", "kind", "yieldQuantity", "yieldUnit"]);
 
-const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-
 function decimalOrNull(v: unknown, field: string): Result<Decimal | null> {
-  const t = text(v);
+  const t = formText(v);
   if (!t) return ok(null);
   const r = parseBrDecimal(t);
   return r.ok ? r : err("INVALID_NUMBER", field);
@@ -35,7 +34,7 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
     } else if (!ALLOWED.has(k)) return err("VALIDATION", undefined, { keys: [k] });
   }
 
-  const kind = text(raw.kind) as RecipeKind;
+  const kind = formText(raw.kind) as RecipeKind;
   if (!RECIPE_KINDS.includes(kind)) return err("VALIDATION", "kind");
 
   let yieldQuantity: Decimal | null = null;
@@ -44,7 +43,7 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
     const q = decimalOrNull(raw.yieldQuantity, "yieldQuantity");
     if (!q.ok) return q;
     yieldQuantity = q.value;
-    const u = text(raw.yieldUnit);
+    const u = formText(raw.yieldUnit);
     if (u && !unitByCode(u)) return err("UNKNOWN_UNIT", "yieldUnit");
     yieldUnit = (u || null) as UnitCode | null;
   }
@@ -54,30 +53,29 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
   for (const [pos, i] of indexes.entries()) {
     if (pos !== i) return err("VALIDATION", `lines.${pos}.component`);
     const row = rows.get(i)!;
-    const [kindPart, id] = text(row.component).split(":");
+    const [kindPart, id] = formText(row.component).split(":");
     if ((kindPart !== "ITEM" && kindPart !== "RECIPE") || !id || !UUID.test(id))
       return err("VALIDATION", `lines.${i}.component`);
     const q = decimalOrNull(row.quantity, `lines.${i}.quantity`);
     if (!q.ok) return q;
     if (!q.value) return err("INVALID_QUANTITY", `lines.${i}.quantity`);
-    const unit = text(row.unit);
+    const unit = formText(row.unit);
     if (!unitByCode(unit)) return err("UNKNOWN_UNIT", `lines.${i}.unit`);
     lines.push({ component: { kind: kindPart, id }, quantity: q.value, unit: unit as UnitCode });
   }
 
-  return ok({ name: text(raw.name), kind, yieldQuantity, yieldUnit, lines });
+  return ok({ name: formText(raw.name), kind, yieldQuantity, yieldUnit, lines });
 }
 
 /** Formulário do preço de venda (spec 008, US1). Em branco = sem preço. */
 export function parseSalePriceForm(
   raw: Record<string, unknown>,
 ): Result<{ id: string; version: number; salePrice: Decimal | null }> {
-  const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-  const id = text(raw.id);
-  const v = text(raw.version);
+  const id = formText(raw.id);
+  const v = formText(raw.version);
   const version = /^\d+$/.test(v) ? Number.parseInt(v, 10) : 0;
   if (!UUID.test(id) || version < 1) return err("VALIDATION");
-  const price = text(raw.salePrice);
+  const price = formText(raw.salePrice);
   if (!price) return ok({ id, version, salePrice: null });
   const parsed = parseBrDecimal(price);
   if (!parsed.ok) return err("INVALID_PRICE", "salePrice");

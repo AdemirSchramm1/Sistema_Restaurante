@@ -11,11 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/page-header";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Contas fechadas" };
 export const dynamic = "force-dynamic";
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 /** Contas fechadas por dia (até 31 dias) e mesa, com o resumo por forma de pagamento (spec 011, US6). */
 export default async function Page({ searchParams }: PageProps<"/caixa/contas">) {
@@ -29,9 +28,9 @@ export default async function Page({ searchParams }: PageProps<"/caixa/contas">)
   }));
   const tz = settings.ok ? settings.value.timezone : "America/Sao_Paulo";
   const today = businessDay(deps.clock.now(), tz);
-  const from = one(sp.de) ?? today;
-  const to = one(sp.ate) ?? today;
-  const tableId = one(sp.mesa);
+  const from = firstParam(sp.de) ?? today;
+  const to = firstParam(sp.ate) ?? today;
+  const tableId = firstParam(sp.mesa);
 
   // As mesas do filtro são as que fecharam conta no período.
   const all = await listTabs(deps, ctx, { from, to });

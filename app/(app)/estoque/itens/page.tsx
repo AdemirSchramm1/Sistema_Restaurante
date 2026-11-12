@@ -14,21 +14,22 @@ import { Table, Td, Th } from "@/components/ui/table";
 import { TextLink } from "@/components/ui/text-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Plus } from "lucide-react";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Itens" };
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default async function Page({ searchParams }: PageProps<"/estoque/itens">) {
   const ctx = await requireContext();
   const sp = await searchParams;
   const deps = serverDeps();
   const filter = {
-    q: one(sp.q),
-    groupId: one(sp.grupo),
-    type: ITEM_TYPES.includes(one(sp.tipo) as ItemType) ? (one(sp.tipo) as ItemType) : undefined,
-    status: (one(sp.situacao) as "active" | "inactive" | "all") ?? "active",
-    page: Number.parseInt(one(sp.pagina) ?? "1", 10),
+    q: firstParam(sp.q),
+    groupId: firstParam(sp.grupo),
+    type: ITEM_TYPES.includes(firstParam(sp.tipo) as ItemType)
+      ? (firstParam(sp.tipo) as ItemType)
+      : undefined,
+    status: (["active", "inactive", "all"] as const).find((s) => s === firstParam(sp.situacao)) ?? "active",
+    page: Number.parseInt(firstParam(sp.pagina) ?? "1", 10),
   };
   const [list, tree] = await Promise.all([listItems(deps, ctx, filter), listGroupTree(deps, ctx)]);
   const rows = list.ok ? list.value.rows : [];

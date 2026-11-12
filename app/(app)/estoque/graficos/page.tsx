@@ -10,13 +10,12 @@ import { Alert } from "@/components/ui/alert";
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Gráficos" };
 
 const money = (v: Decimal) => formatBrl(v);
 const qty = (v: Decimal, unit: string) => `${formatBrDecimal(v, { maxPlaces: 2 })} ${unit}`;
-const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
-
 function Tile({ label, value, href }: { label: string; value: string; href?: string }) {
   const body = (
     <>
@@ -40,7 +39,7 @@ function Tile({ label, value, href }: { label: string; value: string; href?: str
 export default async function Page({ searchParams }: PageProps<"/estoque/graficos">) {
   const ctx = await requireContext();
   const sp = await searchParams;
-  const r = await stockReport(serverDeps(), ctx, one(sp.dias));
+  const r = await stockReport(serverDeps(), ctx, firstParam(sp.dias));
   if (!r.ok) return <Alert>Não foi possível carregar os gráficos.</Alert>;
   const { period, summary, most, least, byReason, weeks, timezone } = r.value;
   const dateBr = (iso: string) => {

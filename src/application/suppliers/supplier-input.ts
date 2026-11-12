@@ -1,6 +1,7 @@
 import type { SupplierData, SupplierItemData } from "@/domain/suppliers/supplier";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
+import { formText } from "../form-input";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SUPPLIER_FIELDS = [
@@ -17,11 +18,10 @@ const SUPPLIER_FIELDS = [
   "notes",
 ] as const;
 
-const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-const optText = (v: unknown) => text(v) || null;
+const optText = (v: unknown) => formText(v) || null;
 
 function optDecimal(v: unknown, field: string, code: ErrorCode): Result<Decimal | null> {
-  const t = text(v);
+  const t = formText(v);
   if (!t) return ok(null);
   const r = parseBrDecimal(t);
   return r.ok ? r : err(code, field);
@@ -35,16 +35,16 @@ export function parseSupplierForm(raw: Record<string, unknown>): Result<Supplier
   const daysRaw = raw.deliveryDays;
   const days = (
     Array.isArray(daysRaw) ? daysRaw : daysRaw === undefined || daysRaw === "" ? [] : [daysRaw]
-  ).map(text);
+  ).map(formText);
   if (days.some((day) => !/^[0-6]$/.test(day))) return err("VALIDATION", "deliveryDays");
 
-  const lead = text(raw.leadTimeDays);
+  const lead = formText(raw.leadTimeDays);
   if (lead && !/^\d{1,3}$/.test(lead)) return err("VALIDATION", "leadTimeDays");
   const minOrder = optDecimal(raw.minOrderValue, "minOrderValue", "INVALID_AMOUNT");
   if (!minOrder.ok) return minOrder;
 
   return ok({
-    name: text(raw.name),
+    name: formText(raw.name),
     legalName: optText(raw.legalName),
     cnpj: optText(raw.cnpj),
     contactName: optText(raw.contactName),
@@ -63,9 +63,9 @@ export function parseSupplierItemForm(
   raw: Record<string, unknown>,
   { requireItem = true } = {},
 ): Result<SupplierItemData> {
-  const itemId = text(raw.itemId);
+  const itemId = formText(raw.itemId);
   if (requireItem && !UUID.test(itemId)) return err("VALIDATION", "itemId");
-  const priceText = text(raw.price);
+  const priceText = formText(raw.price);
   if (!priceText) return err("INVALID_PRICE", "price");
   const price = parseBrDecimal(priceText);
   if (!price.ok) return err("INVALID_PRICE", "price");

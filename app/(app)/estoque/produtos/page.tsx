@@ -12,17 +12,19 @@ import { Table, Td, Th } from "@/components/ui/table";
 import { TextLink } from "@/components/ui/text-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Plus } from "lucide-react";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Produtos" };
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default async function Page({ searchParams }: PageProps<"/estoque/produtos">) {
   const ctx = await requireContext();
   const sp = await searchParams;
-  const kind = RECIPE_KINDS.includes(one(sp.tipo) as RecipeKind) ? (one(sp.tipo) as RecipeKind) : undefined;
-  const status = (["active", "inactive", "all"] as const).find((s) => s === one(sp.situacao)) ?? "active";
-  const filter = { q: one(sp.q), kind, status };
+  const kind = RECIPE_KINDS.includes(firstParam(sp.tipo) as RecipeKind)
+    ? (firstParam(sp.tipo) as RecipeKind)
+    : undefined;
+  const status =
+    (["active", "inactive", "all"] as const).find((s) => s === firstParam(sp.situacao)) ?? "active";
+  const filter = { q: firstParam(sp.q), kind, status };
   const list = await listRecipes(serverDeps(), ctx, filter);
   const rows = list.ok ? list.value : [];
 

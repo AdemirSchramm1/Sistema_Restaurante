@@ -1,10 +1,10 @@
 import type { ComponentRef } from "@/domain/inventory/recipe";
 import { err, ok, type Result } from "@/domain/shared/result";
+import { formText } from "../form-input";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY = /^(addons|removables)\.(\d{1,2})\.(addonId|maxTimes|component|label)$/;
 const ALLOWED = new Set(["recipeId", "version"]);
-const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 export type CustomizationForm = {
   addons: { addonId: string; maxTimes: number }[];
@@ -25,7 +25,7 @@ export function parseCustomizationForm(raw: Record<string, unknown>): Result<Cus
     }
     const list = rows[m[1] as "addons" | "removables"];
     const i = Number.parseInt(m[2]!, 10);
-    list.set(i, { ...list.get(i), [m[3]!]: text(v) });
+    list.set(i, { ...list.get(i), [m[3]!]: formText(v) });
   }
   const sorted = <T>(m: Map<number, T>) => [...m.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
   const addons: CustomizationForm["addons"] = [];

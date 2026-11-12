@@ -13,16 +13,16 @@ import { Table, Td, Th } from "@/components/ui/table";
 import { TextLink } from "@/components/ui/text-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Plus } from "lucide-react";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Fornecedores" };
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default async function Page({ searchParams }: PageProps<"/estoque/fornecedores">) {
   const ctx = await requireContext();
   const sp = await searchParams;
-  const status = (["active", "blocked", "all"] as const).find((s) => s === one(sp.situacao)) ?? "active";
-  const filter = { q: one(sp.q), status };
+  const status =
+    (["active", "blocked", "all"] as const).find((s) => s === firstParam(sp.situacao)) ?? "active";
+  const filter = { q: firstParam(sp.q), status };
   const list = await listSuppliers(serverDeps(), ctx, filter);
   const rows = list.ok ? list.value : [];
 
