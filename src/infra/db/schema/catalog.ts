@@ -66,6 +66,8 @@ export const itemSubgroups = pgTable(
   },
   (t) => [
     uniqueIndex("item_subgroups_code").on(t.groupId, t.code),
+    // Árvore de grupos do restaurante (spec 012, R2).
+    index("item_subgroups_restaurant_code").on(t.restaurantId, t.code),
     uniqueIndex("item_subgroups_active_name")
       .on(t.groupId, sql`lower(${t.name})`)
       .where(sql`active`),
@@ -138,6 +140,8 @@ export const recipes = pgTable(
     uniqueIndex("recipes_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),
+    // Cardápio e listas por tipo, ativos ou não (spec 012, R2).
+    index("recipes_kind_name").on(t.restaurantId, t.kind, t.nameNormalized),
     check("recipes_sale_price_positive", sql`sale_price > 0`),
     check("recipes_sale_price_dish", sql`sale_price is null or kind = 'DISH'`),
     check("recipes_sold_out_dish", sql`sold_out_on is null or kind = 'DISH'`),

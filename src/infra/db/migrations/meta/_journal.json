@@ -85,6 +85,13 @@
       "when": 1794364659085,
       "tag": "0011_tabs",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794445084012,
+      "tag": "0012_performance",
+      "breakpoints": true
     }
   ]
 }
