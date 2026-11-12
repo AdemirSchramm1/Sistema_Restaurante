@@ -8,6 +8,7 @@ import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { items, supplierItems, suppliers } from "../schema";
 import { dec, isUniqueViolation, str, UNIT_CODE_BY_ID, withSavepoint } from "./util";
+import { groupBy } from "@/domain/shared/collections";
 
 type Audit = { at: Date; by: string | null };
 
@@ -210,15 +211,14 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
         })
         .from(supplierItems)
         .where(sql`${supplierItems.packageLabel} is not null`);
+      const packsBySupplier = groupBy(packs, (p) => p.supplierId);
       return list.map((s) => ({
         ...s,
-        packages: packs
-          .filter((p) => p.supplierId === s.id)
-          .map((p) => ({
-            itemId: p.itemId,
-            packageLabel: p.packageLabel!,
-            packageQuantity: d(p.packageQuantity!),
-          })),
+        packages: (packsBySupplier.get(s.id) ?? []).map((p) => ({
+          itemId: p.itemId,
+          packageLabel: p.packageLabel!,
+          packageQuantity: d(p.packageQuantity!),
+        })),
       }));
     },
 

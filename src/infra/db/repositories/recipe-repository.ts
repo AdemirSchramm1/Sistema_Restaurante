@@ -14,6 +14,7 @@ import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { items, recipeLines, recipes, recipeVersions } from "../schema";
 import { dec, isUniqueViolation, str, UNIT_CODE_BY_ID, UNIT_IDS, withSavepoint } from "./util";
+import { groupBy } from "@/domain/shared/collections";
 
 type VersionRow = typeof recipeVersions.$inferSelect;
 type LineRow = typeof recipeLines.$inferSelect;
@@ -55,6 +56,7 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
         ),
       )
       .orderBy(asc(recipeLines.position));
+    const linesByVersion = groupBy(lines, (l) => l.recipeVersionId);
     for (const v of versions)
       out.set(v.id, {
         id: v.id,
@@ -62,7 +64,7 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
         validFrom: v.validFrom,
         yieldQuantity: dec(v.yieldQuantity),
         yieldUnit: v.yieldUnitId ? UNIT_CODE_BY_ID[v.yieldUnitId]! : null,
-        lines: lines.filter((l) => l.recipeVersionId === v.id).map(toLine),
+        lines: (linesByVersion.get(v.id) ?? []).map(toLine),
       });
     return out;
   }
