@@ -43,4 +43,14 @@ describe("ActionForm", () => {
     expect(await screen.findByText("Salvo.")).toBeTruthy();
     expect((screen.getByLabelText("Nome") as HTMLInputElement).value).toBe("");
   });
+
+  it("o botão usa o tamanho pedido; o padrão é o pequeno", () => {
+    const { unmount } = render(<ActionForm action={succeeding} submitLabel="Salvar" />);
+    expect(screen.getByRole("button", { name: "Salvar" }).className).toContain("h-8");
+    unmount();
+    render(<ActionForm action={succeeding} submitLabel="Pronto" size="lg" variant="success" />);
+    const button = screen.getByRole("button", { name: "Pronto" });
+    expect(button.className).toContain("h-11");
+    expect(button.className).toContain("bg-success");
+  });
 });

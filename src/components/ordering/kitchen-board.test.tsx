@@ -119,4 +119,38 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
     expect(screen.queryByRole("group", { name: "Os ingredientes já foram usados?" })).toBeNull();
   });
+
+  it("cada etapa tem a sua cor: Recebido açafrão, Em preparo páprica, Pronto manjericão (spec 012)", () => {
+    render(
+      <KitchenBoard
+        {...props}
+        orders={[
+          order({}),
+          order({ id: "o2", number: 2, status: "PREPARING" }),
+          order({ id: "o3", number: 3, status: "READY" }),
+        ]}
+      />,
+    );
+    const stage = (name: string) => screen.getByRole("region", { name }).getAttribute("data-stage");
+    expect([stage("Recebidos"), stage("Em preparo"), stage("Prontos")]).toEqual([
+      "warning",
+      "primary",
+      "success",
+    ]);
+    const card = (n: number) => screen.getByRole("article", { name: `Pedido ${n}, Mesa 12` }).className;
+    expect(card(1)).toContain("border-l-warning");
+    expect(card(2)).toContain("border-l-primary");
+    expect(card(3)).toContain("border-l-success");
+  });
+
+  it("os botões da cozinha são grandes para o toque e 'Pronto' é verde manjericão (spec 012)", () => {
+    render(
+      <KitchenBoard {...props} orders={[order({}), order({ id: "o2", number: 2, status: "PREPARING" })]} />,
+    );
+    const start = screen.getByRole("button", { name: "Começar preparo" });
+    const done = screen.getByRole("button", { name: "Pronto" });
+    expect(start.className).toContain("h-11");
+    expect(done.className).toContain("h-11");
+    expect(done.className).toContain("bg-success");
+  });
 });
