@@ -305,10 +305,11 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       submittedAt: o.submittedAt,
       statusChangedAt: o.submittedAt,
     });
-    for (const [position, l] of o.lines.entries()) {
-      const lineId = ids();
-      await tx.insert(orderLines).values({
-        id: lineId,
+    // Em lote (spec 012, R6): o número de idas ao banco não cresce com o número de linhas.
+    const lines = o.lines.map((l, position) => ({ id: ids(), position, l }));
+    await tx.insert(orderLines).values(
+      lines.map(({ id, position, l }) => ({
+        id,
         restaurantId,
         createdAt: o.submittedAt,
         orderId: o.id,
@@ -318,25 +319,24 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         quantity: l.quantity,
         basePrice: l.basePrice.toFixed(2),
         unitPrice: l.unitPrice.toFixed(2),
-      });
-      if (l.addons.length) {
-        const current = await tx
-          .select({
-            id: addons.id,
-            itemId: addons.itemId,
-            subRecipeId: addons.subRecipeId,
-            quantity: addons.quantity,
-            unitId: addons.unitId,
-          })
-          .from(addons)
-          .where(
-            inArray(
-              addons.id,
-              l.addons.map((a) => a.addonId),
-            ),
-          );
-        const byId = new Map(current.map((a) => [a.id, a]));
-        await tx.insert(orderLineAddons).values(
+      })),
+    );
+    const addonIds = [...new Set(o.lines.flatMap((l) => l.addons.map((a) => a.addonId)))];
+    if (addonIds.length) {
+      // Cópia do que o adicional baixa hoje: o pedido guarda o consumo do envio (spec 010).
+      const current = await tx
+        .select({
+          id: addons.id,
+          itemId: addons.itemId,
+          subRecipeId: addons.subRecipeId,
+          quantity: addons.quantity,
+          unitId: addons.unitId,
+        })
+        .from(addons)
+        .where(inArray(addons.id, addonIds));
+      const byId = new Map(current.map((a) => [a.id, a]));
+      await tx.insert(orderLineAddons).values(
+        lines.flatMap(({ id: lineId, l }) =>
           l.addons.map((a) => {
             const c = byId.get(a.addonId)!;
             return {
@@ -354,20 +354,20 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
               unitId: c.unitId,
             };
           }),
-        );
-      }
-      if (l.removals.length)
-        await tx.insert(orderLineRemovals).values(
-          l.removals.map((r) => ({
-            id: ids(),
-            restaurantId,
-            createdAt: o.submittedAt,
-            orderLineId: lineId,
-            ...componentCols(r.component),
-            label: r.label,
-          })),
-        );
+        ),
+      );
     }
+    const removals = lines.flatMap(({ id: lineId, l }) =>
+      l.removals.map((r) => ({
+        id: ids(),
+        restaurantId,
+        createdAt: o.submittedAt,
+        orderLineId: lineId,
+        ...componentCols(r.component),
+        label: r.label,
+      })),
+    );
+    if (removals.length) await tx.insert(orderLineRemovals).values(removals);
     await tx.insert(orderStatusEvents).values({
       id: ids(),
       restaurantId,
