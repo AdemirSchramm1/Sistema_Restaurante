@@ -25,10 +25,24 @@ export const NAV: readonly NavEntry[] = [
 
 export const navFor = (roles: readonly Role[]): NavEntry[] => NAV.filter((n) => can(roles, n.action));
 
+export type NavSection = { id: string; label: string; entries: NavEntry[] };
+
+export const navSections = (_roles: readonly Role[]): NavSection[] => [];
+
+export const activeHref = (_pathname: string, _hrefs: readonly string[]): string | null => null;
+
 /** Primeira tela depois do login: a primeira do menu do papel. */
 export const homeFor = (roles: readonly Role[]): string => navFor(roles)[0]?.href ?? "/sem-acesso";
 
-export function MainNav({ roles, reorderCount }: { roles: readonly Role[]; reorderCount: number }) {
+export function MainNav({
+  roles,
+  reorderCount,
+}: {
+  roles: readonly Role[];
+  reorderCount: number;
+  pathname?: string;
+  onNavigate?: () => void;
+}) {
   return (
     <nav className="flex flex-wrap gap-4 text-sm" aria-label="Menu principal">
       {navFor(roles).map((n) => (
