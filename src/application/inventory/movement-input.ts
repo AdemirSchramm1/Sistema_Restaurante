@@ -13,15 +13,13 @@ const UNIT_CODES = UNITS.map((u) => u.code) as string[];
 const optText = (v: unknown) => formText(v) || null;
 
 /** Dia de hoje (AAAA-MM-DD) em Brasília: o valor padrão do campo de data do lançamento. */
-export function movementToday(_now: Date): string {
-  return "";
-}
+export const movementToday = (now: Date): string =>
+  new Date(now.getTime() - 3 * 3600_000).toISOString().slice(0, 10);
 
 /** "2026-10-30" → meio-dia daquele dia em Brasília; hoje (ou vazio) → agora. Inválida → null. */
 export function parseMovementDate(value: string, now: Date): Date | null {
   const t = value.trim();
-  const today = new Date(now.getTime() - 3 * 3600_000).toISOString().slice(0, 10);
-  if (!t || t === today) return now;
+  if (!t || t === movementToday(now)) return now;
   if (!DATE.test(t)) return null;
   const at = new Date(`${t}T12:00:00${OFFSET}`);
   return Number.isNaN(at.getTime()) ? null : at;

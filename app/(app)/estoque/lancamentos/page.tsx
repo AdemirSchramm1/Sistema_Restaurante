@@ -8,6 +8,7 @@ import {
   movementItemOptions,
 } from "@/application/inventory/movements";
 import { purchaseSupplierOptions } from "@/application/suppliers/suppliers";
+import { movementToday } from "@/application/inventory/movement-input";
 import { can } from "@/domain/access/permissions";
 import { MOVEMENT_TYPES, MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
@@ -65,7 +66,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
     packageFactor: i.purchaseFactor?.toString() ?? null,
     balance: i.balance.toString(),
   }));
-  const today = new Date(deps.clock.now().getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+  const today = movementToday(deps.clock.now());
   const requests = pending.ok ? pending.value : [];
 
   return (
