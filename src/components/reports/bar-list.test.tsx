@@ -32,6 +32,15 @@ describe("gráfico de barras (spec 006, FR-007)", () => {
     );
   });
 
+  it("a barra usa uma das cores de gráfico do tema (spec 012)", () => {
+    const rows = [{ key: "a", label: "Carne", amount: d(1), valueText: "R$ 1,00" }];
+    const { unmount } = render(<BarList title="Padrão" rows={rows} />);
+    expect(screen.getByTestId("bar").className).toContain("bg-chart-1");
+    unmount();
+    render(<BarList title="Mirtilo" rows={rows} color={4} />);
+    expect(screen.getByTestId("bar").className).toContain("bg-chart-4");
+  });
+
   it("sem dados diz que não há nada no período", () => {
     render(<BarList title="Saídas por motivo" rows={[]} />);
     expect(screen.getByText("Nada no período.")).toBeTruthy();
@@ -69,6 +78,10 @@ describe("gráfico de barras (spec 006, FR-007)", () => {
     );
     const bars = (i: number) => within(items[i]!).getAllByTestId("bar").map(width);
     expect(bars(0)).toEqual(["100%", "25%"]);
+    const colors = within(items[0]!)
+      .getAllByTestId("bar")
+      .map((b) => b.className.match(/bg-chart-\d/)?.[0]);
+    expect(colors).toEqual(["bg-chart-1", "bg-chart-2"]);
     expect(bars(1)).toEqual(["0%", "50%"]);
     expect(items[0]!.textContent).toContain("Entradas: R$ 200,00");
     expect(items[0]!.textContent).toContain("Saídas: R$ 50,00");
