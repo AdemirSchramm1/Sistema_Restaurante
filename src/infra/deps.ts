@@ -2,6 +2,7 @@ import { v7 as uuidv7 } from "uuid";
 import type { BetterAuthPlugin } from "better-auth";
 import type { Clock, Deps, GlobalLookups, Mailer, Repos } from "@/application/ports";
 import type { Result } from "@/domain/shared/result";
+import type { Role } from "@/domain/access/permissions";
 import { withTenantTx, type Db, type Tx } from "./db/db";
 import { auditRepository } from "./db/repositories/audit-repository";
 import {
@@ -68,13 +69,15 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
 function globalLookups(db: Db): GlobalLookups {
   return {
     async membershipForUser(userId) {
-      const r = await db.$client.query<{ restaurant_id: string; membership_id: string; active: boolean }>(
-        "select * from app_membership_for_user($1)",
-        [userId],
-      );
+      const r = await db.$client.query<{
+        restaurant_id: string;
+        membership_id: string;
+        active: boolean;
+        roles: Role[];
+      }>("select * from app_membership_for_user($1)", [userId]);
       const row = r.rows[0];
       return row
-        ? { restaurantId: row.restaurant_id, membershipId: row.membership_id, active: row.active }
+        ? { restaurantId: row.restaurant_id, membershipId: row.membership_id, active: row.active, roles: row.roles }
         : null;
     },
     async invitationByTokenHash(hash) {
