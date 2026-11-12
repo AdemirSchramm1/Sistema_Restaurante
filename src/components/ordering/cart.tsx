@@ -8,7 +8,6 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   applyPriceChanges,
-  brl,
   cartTotal,
   lineChanges,
   lineTotal,
@@ -19,6 +18,7 @@ import {
   type PriceChanges,
   type Unavailable,
 } from "./cart-state";
+import { brl } from "./format";
 import { LineChanges } from "./line-changes";
 
 export type SubmitInput = { clientRequestId: string; lines: ReturnType<typeof toOrderLines> };

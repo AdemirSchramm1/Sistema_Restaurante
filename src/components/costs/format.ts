@@ -1,7 +1,7 @@
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 
-/** "R$ 8,50" (2 casas, meio para cima). */
-export const money = (v: Decimal) => `R$ ${formatBrDecimal(v.abs(), { minPlaces: 2, maxPlaces: 2 })}`;
+/** "R$ 8,50" (2 casas, meio para cima), sem sinal: o texto ao lado diz se é prejuízo. */
+export const money = (v: Decimal) => formatBrl(v.abs());
 /** "30,4%" (1 casa). */
 export const percent = (v: Decimal) => `${formatBrDecimal(v, { maxPlaces: 1 })}%`;
 /** "71%" (inteiro). */

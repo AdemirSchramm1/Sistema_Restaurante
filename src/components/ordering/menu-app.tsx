@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
 import { AutoRefresh } from "./auto-refresh";
 import { Cart, type SubmitFn } from "./cart";
-import { addToCart, brl, type CartLine } from "./cart-state";
+import { brl } from "./format";
+import { addToCart, type CartLine } from "./cart-state";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
 

@@ -4,7 +4,8 @@ import { useState } from "react";
 import type { MenuProduct } from "@/application/ordering/menu";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
 import { Button } from "@/components/ui/button";
-import { brl, lineTotal, priceOrFree, type CartLineData } from "./cart-state";
+import { brl, priceOrFree } from "./format";
+import { lineTotal, type CartLineData } from "./cart-state";
 
 const big = "h-11 min-w-11 text-lg";
 

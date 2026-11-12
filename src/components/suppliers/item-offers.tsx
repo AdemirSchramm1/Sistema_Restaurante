@@ -1,11 +1,11 @@
 import type { OfferView } from "@/application/suppliers/suppliers";
 import type { UnitCode } from "@/domain/inventory/units";
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
 import { TextLink } from "@/components/ui/text-link";
 
-const money = (v: Decimal, max = 2) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: max })}`;
+const money = (v: Decimal, max = 2) => formatBrl(v, { maxPlaces: max });
 
 /** Quem vende o item e por quanto, para comparar (spec 007, US3). */
 export function ItemOffers({

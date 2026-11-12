@@ -9,7 +9,7 @@ const base: ProductCustomizationProps = {
   recipeId: "r1",
   kind: "DISH",
   version: 4,
-  addons: [{ addonId: "a1", name: "Fatia de queijo", price: "3,00", maxTimes: 2 }],
+  addons: [{ addonId: "a1", name: "Fatia de queijo", price: "3.00", maxTimes: 2 }],
   removables: [{ component: "ITEM:cebola", name: "Cebola", label: "Sem cebola", orphan: false }],
   candidates: [
     { component: "ITEM:pao", name: "Pão" },
@@ -17,9 +17,9 @@ const base: ProductCustomizationProps = {
     { component: "ITEM:picles", name: "Picles" },
   ],
   available: [
-    { addonId: "a1", name: "Fatia de queijo", price: "3,00" },
-    { addonId: "a2", name: "Bacon", price: "4,00" },
-    { addonId: "a3", name: "Gelo", price: "0,00" },
+    { addonId: "a1", name: "Fatia de queijo", price: "3.00" },
+    { addonId: "a2", name: "Bacon", price: "4.00" },
+    { addonId: "a3", name: "Gelo", price: "0.00" },
   ],
   canEdit: true,
   action: async () => null,

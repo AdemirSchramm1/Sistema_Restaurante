@@ -36,7 +36,6 @@ export function isUniqueViolation(e: unknown, constraint?: string): boolean {
   return p?.code === "23505" && (!constraint || p.constraint === constraint);
 }
 
-
 let savepointSeq = 0;
 /** Roda `fn` dentro de um SAVEPOINT: se falhar (ex.: violação de unicidade), a transação continua utilizável. */
 export async function withSavepoint<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {

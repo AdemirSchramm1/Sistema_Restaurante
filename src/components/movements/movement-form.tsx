@@ -11,7 +11,7 @@ import { MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/move
 import { manualReasons, REASON_FAMILY_LABELS, type ReasonFamily } from "@/domain/inventory/movement-reasons";
 import { compatibleUnits } from "@/domain/inventory/recipe";
 import { convert, unitByCode, type UnitCode } from "@/domain/inventory/units";
-import { d, formatBrDecimal, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { d, formatBrDecimal, formatBrl, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 
 export type MovementItemOption = {
   id: string;
@@ -47,7 +47,7 @@ type Props = {
 const newKey = () =>
   typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
 const br = (v: Decimal) => formatBrDecimal(v, { maxPlaces: 4 });
-const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
+const money = (v: Decimal) => formatBrl(v);
 
 /** Lançamento de compra, perda ou pedido de acerto (spec 004). */
 export function MovementForm({ action, items, types, today, suppliers = [] }: Props) {

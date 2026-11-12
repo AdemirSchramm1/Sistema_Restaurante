@@ -10,8 +10,9 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
 import { defaultRemovalLabel, MAX_ADDON_TIMES, MAX_OPTIONS } from "@/domain/ordering/customization";
 import type { RecipeKind } from "@/domain/inventory/recipe";
+import { priceOrFree } from "./format";
 
-/** Valores já formatados no servidor (preço com vírgula, componente como "ITEM:id"). */
+/** Valores prontos do servidor (preço como "3.00", componente como "ITEM:id"). */
 export type ProductCustomizationProps = {
   recipeId: string;
   kind: RecipeKind;
@@ -24,7 +25,6 @@ export type ProductCustomizationProps = {
   action: (prev: ActionState, form: FormData) => Promise<ActionState>;
 };
 
-const priceLabel = (p: string) => (/^0+(,0+)?$/.test(p) ? "Grátis" : `R$ ${p}`);
 const TIMES = Array.from({ length: MAX_ADDON_TIMES }, (_, i) => i + 1);
 
 /**
@@ -76,7 +76,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
               <li key={a.addonId} className="flex flex-wrap items-center gap-2 text-sm">
                 <input type="hidden" name={`addons.${i}.addonId`} value={a.addonId} />
                 <span className="font-medium">{a.name}</span>
-                <span className="text-muted-foreground">{priceLabel(a.price)}</span>
+                <span className="text-muted-foreground">{priceOrFree(a.price)}</span>
                 <label className="flex items-center gap-1">
                   <span>até</span>
                   <Select
@@ -123,7 +123,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                 <option value="">Escolha um adicional</option>
                 {freeAddons.map((a) => (
                   <option key={a.addonId} value={a.addonId}>
-                    {a.name} · {priceLabel(a.price)}
+                    {a.name} · {priceOrFree(a.price)}
                   </option>
                 ))}
               </Select>

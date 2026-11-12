@@ -10,7 +10,7 @@ import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
 import type { ActionState } from "@/actions/_session";
 import type { UnitCode } from "@/domain/inventory/units";
-import { d, formatBrDecimal, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { d, formatBrDecimal, formatBrl, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { pricePerUnit } from "@/domain/suppliers/supplier";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -32,7 +32,7 @@ export type SupplierItemRow = {
   lastPurchase: { date: string; unitCost: string } | null;
 };
 
-const money = (v: Decimal, max = 2) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: max })}`;
+const money = (v: Decimal, max = 2) => formatBrl(v, { maxPlaces: max });
 const br = (v: string) => formatBrDecimal(d(v), { maxPlaces: 4 });
 
 export const packageText = (r: Pick<SupplierItemRow, "packageLabel" | "packageQuantity" | "unit">) =>

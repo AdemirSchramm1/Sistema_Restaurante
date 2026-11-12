@@ -4,7 +4,7 @@ import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { stockReport } from "@/application/inventory/stock-report";
 import { PERIOD_OPTIONS } from "@/domain/inventory/stock-report";
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { BarList, PairedBars } from "@/components/reports/bar-list";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Gráficos" };
 
-const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
+const money = (v: Decimal) => formatBrl(v);
 const qty = (v: Decimal, unit: string) => `${formatBrDecimal(v, { maxPlaces: 2 })} ${unit}`;
 const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 

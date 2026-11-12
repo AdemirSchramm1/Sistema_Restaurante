@@ -4,7 +4,7 @@ import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { getOrder } from "@/application/ordering/orders";
 import { CANCEL_REASON_LABELS, ORDER_STATUS_LABELS } from "@/domain/ordering/order";
-import { brl } from "@/components/ordering/cart-state";
+import { brl } from "@/components/ordering/format";
 import { LineChanges } from "@/components/ordering/line-changes";
 import { Card, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";

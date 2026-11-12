@@ -6,7 +6,7 @@ import { businessDay } from "@/domain/ordering/business-day";
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus } from "@/domain/ordering/order";
 import { can } from "@/domain/access/permissions";
 import { messageFor } from "@/components/forms/error-messages";
-import { brl } from "@/components/ordering/cart-state";
+import { brl } from "@/components/ordering/format";
 import { NoAccess } from "@/components/layout/no-access";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";

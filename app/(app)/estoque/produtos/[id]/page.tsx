@@ -12,7 +12,7 @@ import { ProductCustomization } from "@/components/ordering/product-customizatio
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
 import { RECIPE_KIND_LABELS } from "@/domain/inventory/recipe";
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { RecipeForm, type ComponentOption } from "@/components/recipes/recipe-form";
 import { recipeToValues } from "@/components/recipes/recipe-form-values";
 import { RecipeActiveToggle } from "@/components/recipes/recipe-active-toggle";
@@ -27,8 +27,7 @@ import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Produto" };
 
-const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
-const brPrice = (v: Decimal) => formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 });
+const money = (v: Decimal) => formatBrl(v);
 
 export default async function Page({ params, searchParams }: PageProps<"/estoque/produtos/[id]">) {
   const ctx = await requireContext();
@@ -137,7 +136,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
               recipeId={v.recipe.id}
               kind={v.recipe.kind}
               version={custom.value.version}
-              addons={custom.value.addons.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              addons={custom.value.addons.map((a) => ({ ...a, price: a.price.toFixed(2) }))}
               removables={custom.value.removables.map((r) => ({
                 component: `${r.component.kind}:${r.component.id}`,
                 name: nameOf(r.component.kind, r.component.id) ?? r.label.replace(/^sem\s+/i, ""),
@@ -148,7 +147,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
                 component: `${c.component.kind}:${c.component.id}`,
                 name: c.name,
               }))}
-              available={custom.value.available.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              available={custom.value.available.map((a) => ({ ...a, price: a.price.toFixed(2) }))}
               canEdit={can(ctx.roles, "addon.write") && v.recipe.active}
               action={setProductCustomizationAction}
             />

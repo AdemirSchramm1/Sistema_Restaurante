@@ -7,7 +7,7 @@ import { getItem } from "@/application/inventory/get-item";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
-import { Decimal, formatBrDecimal } from "@/domain/shared/decimal";
+import { Decimal, formatBrDecimal, formatBrl } from "@/domain/shared/decimal";
 import { ITEM_TYPE_LABELS } from "@/domain/inventory/item";
 import { ItemForm } from "@/components/items/item-form";
 import { itemToValues } from "@/components/items/item-form-values";
@@ -55,8 +55,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   // Sugestão arredondada para cima em 2 casas só na tela (spec 006, FR-005).
   const up = (v: Decimal) => formatBrDecimal(v.toDecimalPlaces(2, Decimal.ROUND_CEIL), { maxPlaces: 2 });
   const suggestion = reorder.ok ? reorder.value.suggestion : null;
-  const money = (v: typeof item.averageCost) =>
-    v ? `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 4 })}` : "—";
+  const money = (v: typeof item.averageCost) => (v ? formatBrl(v, { maxPlaces: 4 }) : "—");
 
   return (
     <div className="grid gap-6">
