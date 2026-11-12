@@ -51,3 +51,11 @@ export function Alert({
     />
   );
 }
+
+export function CardHeader(_props: React.HTMLAttributes<HTMLDivElement>) {
+  return null;
+}
+
+export function CardDescription(_props: React.HTMLAttributes<HTMLParagraphElement>) {
+  return null;
+}
