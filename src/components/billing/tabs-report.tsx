@@ -8,6 +8,7 @@ import { d } from "@/domain/shared/decimal";
 import { ActionForm } from "@/components/forms/action-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
 import { brl } from "@/components/ordering/format";
 import { timeIn } from "./format";
@@ -125,13 +126,7 @@ export function ReopenTabForm({ tab, action }: { tab: { id: string; version: num
     >
       <label className="grid gap-1 text-sm font-medium">
         Motivo da reabertura
-        <textarea
-          name="reason"
-          required
-          maxLength={REOPEN_REASON_MAX}
-          rows={2}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        />
+        <Textarea name="reason" required maxLength={REOPEN_REASON_MAX} rows={2} />
       </label>
       <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
         Voltar

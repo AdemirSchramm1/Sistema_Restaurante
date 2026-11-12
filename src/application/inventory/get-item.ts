@@ -14,9 +14,6 @@ export type ItemView = {
   balance: Decimal;
 };
 
-export const effectiveInCogsOf = (item: Pick<Item, "inCogsOverride" | "groupInCogs">) =>
-  item.inCogsOverride ?? item.groupInCogs;
-
 export async function getItem(deps: Deps, ctx: RequestContext, id: string): Promise<Result<ItemView>> {
   const allowed = await authorize(deps, ctx, "catalog.read", "item", id);
   if (!allowed.ok) return allowed;

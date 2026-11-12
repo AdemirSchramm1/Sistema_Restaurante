@@ -70,10 +70,11 @@ export function PaymentForm({
           {PAYMENT_METHODS.map((m) => (
             <label
               key={m}
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm font-medium transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground"
             >
               <input
                 type="radio"
+                className="accent-primary"
                 name="method"
                 value={m}
                 checked={method === m}
