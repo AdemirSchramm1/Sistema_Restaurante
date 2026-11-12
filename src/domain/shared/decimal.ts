@@ -47,6 +47,6 @@ export function formatBrDecimal(
 }
 
 /** "R$ 1.234,50": 2 casas (até `maxPlaces` quando pedido), meio para cima. */
-export function formatBrl(_value: Decimal, _opts: { maxPlaces?: number } = {}): string {
-  return "";
+export function formatBrl(value: Decimal, opts: { maxPlaces?: number } = {}): string {
+  return `R$ ${formatBrDecimal(value, { minPlaces: 2, maxPlaces: opts.maxPlaces ?? 2 })}`;
 }
