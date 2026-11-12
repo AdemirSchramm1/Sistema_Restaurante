@@ -1,11 +1,13 @@
 "use client";
 
+import type { ActionState } from "@/actions/_session";
 import { useFormAction } from "@/components/forms/use-form-action";
-import { setItemCogsOverrideAction } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { FormError } from "@/components/forms/form-error";
+
+type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
 const yesNo = (v: boolean) => (v ? "sim" : "não");
 
@@ -16,6 +18,7 @@ export function CogsOverride({
   groupInCogs,
   effective,
   canEdit,
+  action,
 }: {
   id: string;
   version: number;
@@ -23,8 +26,9 @@ export function CogsOverride({
   groupInCogs: boolean;
   effective: boolean;
   canEdit: boolean;
+  action: Action;
 }) {
-  const { state, pending, formProps } = useFormAction(setItemCogsOverrideAction);
+  const { state, pending, formProps } = useFormAction(action);
   return (
     <Card className="grid gap-2 text-sm">
       <CardTitle>Conta no custo dos pratos?</CardTitle>

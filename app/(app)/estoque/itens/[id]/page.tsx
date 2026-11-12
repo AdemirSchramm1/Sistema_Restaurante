@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { updateItemAction } from "@/actions/items";
+import { setItemActiveAction, setItemCogsOverrideAction, updateItemAction } from "@/actions/items";
 import { serverDeps } from "@/infra/server";
 import { getItem } from "@/application/inventory/get-item";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
@@ -12,7 +12,7 @@ import { ITEM_TYPE_LABELS } from "@/domain/inventory/item";
 import { ItemForm } from "@/components/items/item-form";
 import { itemToValues } from "@/components/items/item-form-values";
 import { subgroupOptions } from "@/components/items/subgroup-options";
-import { ItemActiveToggle } from "@/components/items/item-active-toggle";
+import { ActionForm } from "@/components/forms/action-form";
 import { CogsOverride } from "@/components/items/cogs-override";
 import { HistoryList } from "@/components/audit/history-list";
 import { MovementTable } from "@/components/movements/movement-table";
@@ -72,7 +72,15 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
           </>
         }
         description={`${ITEM_TYPE_LABELS[item.type]} · ${item.groupName} › ${item.subgroupName}`}
-        actions={canWrite && <ItemActiveToggle id={item.id} version={item.version} active={item.active} />}
+        actions={
+          canWrite && (
+            <ActionForm
+              action={setItemActiveAction}
+              hidden={{ id: item.id, version: item.version, active: String(!item.active) }}
+              submitLabel={item.active ? "Inativar" : "Reativar"}
+            />
+          )
+        }
       />
       <p className="text-sm">
         Controlado em <strong>{item.stockUnit}</strong>
@@ -151,6 +159,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             groupInCogs={item.groupInCogs}
             effective={effectiveInCogs}
             canEdit={can(ctx.roles, "item.cogs_override")}
+            action={setItemCogsOverrideAction}
           />
           <Card className="grid gap-2">
             <CardTitle>Histórico</CardTitle>

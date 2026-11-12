@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { setProductCustomizationAction, setSalePriceAction, updateRecipeAction } from "@/actions/recipes";
+import {
+  setProductCustomizationAction,
+  setRecipeActiveAction,
+  setSalePriceAction,
+  updateRecipeAction,
+} from "@/actions/recipes";
 import { serverDeps } from "@/infra/server";
 import { getRecipe, recipeFormOptions } from "@/application/inventory/recipes";
 import { getProductCustomization } from "@/application/ordering/customization";
@@ -15,7 +20,6 @@ import { RECIPE_KIND_LABELS } from "@/domain/inventory/recipe";
 import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { RecipeForm, type ComponentOption } from "@/components/recipes/recipe-form";
 import { recipeToValues } from "@/components/recipes/recipe-form-values";
-import { RecipeActiveToggle } from "@/components/recipes/recipe-active-toggle";
 import { HistoryList } from "@/components/audit/history-list";
 import { SalePrice } from "@/components/recipes/sale-price";
 import { money as moneyText, percent } from "@/components/costs/format";
@@ -94,7 +98,11 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
               />
             )}
             {canWrite && (
-              <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
+              <ActionForm
+                action={setRecipeActiveAction}
+                hidden={{ id: v.recipe.id, version: v.recipe.version, active: String(!v.recipe.active) }}
+                submitLabel={v.recipe.active ? "Inativar" : "Reativar"}
+              />
             )}
           </>
         }

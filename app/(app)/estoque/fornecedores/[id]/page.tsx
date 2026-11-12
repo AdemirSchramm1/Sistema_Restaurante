@@ -4,6 +4,7 @@ import { requireContext } from "@/actions/_session";
 import {
   addSupplierItemAction,
   removeSupplierItemAction,
+  setSupplierActiveAction,
   updateSupplierAction,
   updateSupplierItemAction,
 } from "@/actions/suppliers";
@@ -15,7 +16,7 @@ import { can } from "@/domain/access/permissions";
 import { formatCnpj } from "@/domain/suppliers/cnpj";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { supplierToValues } from "@/components/suppliers/supplier-form-values";
-import { SupplierActiveToggle } from "@/components/suppliers/supplier-active-toggle";
+import { ActionForm } from "@/components/forms/action-form";
 import { SupplierItems, type SupplierItemRow } from "@/components/suppliers/supplier-items";
 import { HistoryList } from "@/components/audit/history-list";
 import { Alert } from "@/components/ui/alert";
@@ -75,7 +76,11 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         description={supplier.cnpj && <span className="font-mono">{formatCnpj(supplier.cnpj)}</span>}
         actions={
           canWrite && (
-            <SupplierActiveToggle id={supplier.id} version={supplier.version} active={supplier.active} />
+            <ActionForm
+              action={setSupplierActiveAction}
+              hidden={{ id: supplier.id, version: supplier.version, active: String(!supplier.active) }}
+              submitLabel={supplier.active ? "Bloquear" : "Desbloquear"}
+            />
           )
         }
       />
