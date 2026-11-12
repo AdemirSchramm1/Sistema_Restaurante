@@ -1,7 +1,7 @@
 import type { SupplierData, SupplierItemData } from "@/domain/suppliers/supplier";
-import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
-import { formText, isId, optionalText } from "../form-input";
+import { parseBrDecimal } from "@/domain/shared/decimal";
+import { err, ok, type Result } from "@/domain/shared/result";
+import { formText, isId, optionalDecimal, optionalText } from "../form-input";
 
 const SUPPLIER_FIELDS = [
   "name",
@@ -17,13 +17,6 @@ const SUPPLIER_FIELDS = [
   "notes",
 ] as const;
 
-function optDecimal(v: unknown, field: string, code: ErrorCode): Result<Decimal | null> {
-  const t = formText(v);
-  if (!t) return ok(null);
-  const r = parseBrDecimal(t);
-  return r.ok ? r : err(code, field);
-}
-
 /** Formulário do fornecedor (texto, vírgula decimal) → SupplierData. A validação de regra fica no domínio. */
 export function parseSupplierForm(raw: Record<string, unknown>): Result<SupplierData> {
   const unknown = Object.keys(raw).filter((k) => !(SUPPLIER_FIELDS as readonly string[]).includes(k));
@@ -37,7 +30,7 @@ export function parseSupplierForm(raw: Record<string, unknown>): Result<Supplier
 
   const lead = formText(raw.leadTimeDays);
   if (lead && !/^\d{1,3}$/.test(lead)) return err("VALIDATION", "leadTimeDays");
-  const minOrder = optDecimal(raw.minOrderValue, "minOrderValue", "INVALID_AMOUNT");
+  const minOrder = optionalDecimal(raw.minOrderValue, "minOrderValue", "INVALID_AMOUNT");
   if (!minOrder.ok) return minOrder;
 
   return ok({
@@ -66,7 +59,7 @@ export function parseSupplierItemForm(
   if (!priceText) return err("INVALID_PRICE", "price");
   const price = parseBrDecimal(priceText);
   if (!price.ok) return err("INVALID_PRICE", "price");
-  const qty = optDecimal(raw.packageQuantity, "packageQuantity", "INVALID_FACTOR");
+  const qty = optionalDecimal(raw.packageQuantity, "packageQuantity", "INVALID_FACTOR");
   if (!qty.ok) return qty;
   return ok({
     itemId,

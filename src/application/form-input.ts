@@ -1,6 +1,6 @@
 import type { ComponentRef } from "@/domain/inventory/recipe";
-import type { Decimal } from "@/domain/shared/decimal";
-import { ok, type ErrorCode, type Result } from "@/domain/shared/result";
+import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
 
 /**
  * Leitura do que vem de formulários e de JSON (spec 012, FR-011). Só formato: a regra de negócio
@@ -15,12 +15,16 @@ export const formText = (v: unknown): string => (typeof v === "string" ? v.trim(
 /** Campo opcional: em branco vira null. */
 export const optionalText = (v: unknown): string | null => formText(v) || null;
 
+/** Número opcional com vírgula decimal: em branco vira null; inválido aponta o campo. */
 export function optionalDecimal(
-  _v: unknown,
-  _field: string,
-  _code: ErrorCode = "INVALID_NUMBER",
+  v: unknown,
+  field: string,
+  code: ErrorCode = "INVALID_NUMBER",
 ): Result<Decimal | null> {
-  return ok(null);
+  const t = formText(v);
+  if (!t) return ok(null);
+  const r = parseBrDecimal(t);
+  return r.ok ? r : err(code, field);
 }
 
 /** Id no formato do banco. Malformado é recusado antes de chegar ao banco. */

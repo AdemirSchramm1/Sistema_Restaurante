@@ -7,17 +7,10 @@ import {
 import { unitByCode, type UnitCode } from "@/domain/inventory/units";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
-import { componentRef, formText, isId } from "../form-input";
+import { componentRef, formText, isId, optionalDecimal } from "../form-input";
 
 const LINE_KEY = /^lines\.(\d{1,3})\.(component|quantity|unit)$/;
 const ALLOWED = new Set(["name", "kind", "yieldQuantity", "yieldUnit"]);
-
-function decimalOrNull(v: unknown, field: string): Result<Decimal | null> {
-  const t = formText(v);
-  if (!t) return ok(null);
-  const r = parseBrDecimal(t);
-  return r.ok ? r : err("INVALID_NUMBER", field);
-}
 
 /**
  * Converte o formulário de produto em RecipeData. As linhas chegam como
@@ -39,7 +32,7 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
   let yieldQuantity: Decimal | null = null;
   let yieldUnit: UnitCode | null = null;
   if (kind === "SUB_RECIPE") {
-    const q = decimalOrNull(raw.yieldQuantity, "yieldQuantity");
+    const q = optionalDecimal(raw.yieldQuantity, "yieldQuantity");
     if (!q.ok) return q;
     yieldQuantity = q.value;
     const u = formText(raw.yieldUnit);
@@ -54,7 +47,7 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
     const row = rows.get(i)!;
     const component = componentRef(row.component);
     if (!component) return err("VALIDATION", `lines.${i}.component`);
-    const q = decimalOrNull(row.quantity, `lines.${i}.quantity`);
+    const q = optionalDecimal(row.quantity, `lines.${i}.quantity`);
     if (!q.ok) return q;
     if (!q.value) return err("INVALID_QUANTITY", `lines.${i}.quantity`);
     const unit = formText(row.unit);
