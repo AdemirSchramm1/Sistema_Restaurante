@@ -38,3 +38,33 @@ describe("mensagens com valores da conta da mesa (spec 011)", () => {
     expect(messageFor({ code: "REMAINING_NOT_ZERO" })).toBe("Ainda falta pagar.");
   });
 });
+
+describe("mensagens com detalhes do estoque e do cadastro", () => {
+  it("nome repetido diz o código do item que já existe", () => {
+    expect(messageFor({ code: "ITEM_DUPLICATE_DESCRIPTION", details: { existingCode: "01.02.0003" } })).toBe(
+      "Já existe um item ativo com este nome neste grupo (01.02.0003).",
+    );
+  });
+
+  it("estoque insuficiente diz quanto há, com vírgula", () => {
+    expect(messageFor({ code: "INSUFFICIENT_STOCK", details: { available: "2.5", unit: "kg" } })).toBe(
+      "Não há estoque suficiente: só há 2,5 kg.",
+    );
+  });
+
+  it("preparo em uso lista onde", () => {
+    expect(messageFor({ code: "RECIPE_IN_USE", details: { usedBy: ["Lasanha", "Pizza"] } })).toBe(
+      "Este preparo está em uso em: Lasanha, Pizza. Tire dele primeiro.",
+    );
+  });
+
+  it("CNPJ repetido diz de qual fornecedor", () => {
+    expect(messageFor({ code: "CNPJ_IN_USE", details: { existingName: "Ceasa" } })).toBe(
+      "Já existe um fornecedor com este CNPJ: Ceasa.",
+    );
+  });
+
+  it("código sem mensagem própria cai na mensagem geral", () => {
+    expect(messageFor({ code: "NOPE" as never })).toBe("Algo deu errado.");
+  });
+});

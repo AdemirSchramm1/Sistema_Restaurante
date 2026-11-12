@@ -135,4 +135,62 @@ describe("conta da mesa (spec 011, US1)", () => {
     );
     expect(screen.getByText("Fechada às 18:10 por Caixa Carla")).toBeTruthy();
   });
+
+  it("fechada em outro dia diz a data; sem nome, só a hora", () => {
+    render(
+      <TabDetail
+        tab={tab({ status: "CLOSED", closedAt: "2026-11-12T04:05:00.000Z", blockers: [] })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
+    expect(screen.getByText("Fechada em 12/11/2026 às 01:05")).toBeTruthy();
+  });
+
+  it("histórico em ordem, com hora, o que aconteceu e quem fez", () => {
+    const at = "2026-11-11T21:00:00.000Z";
+    render(
+      <TabDetail
+        tab={tab({
+          events: [
+            { kind: "OPENED", reason: null, userName: null, at: "2026-11-11T20:25:00.000Z" },
+            {
+              kind: "PAYMENT_ADDED",
+              reason: null,
+              details: { amount: "50.00", method: "PIX" },
+              userName: "Carla",
+              at,
+            },
+            {
+              kind: "PAYMENT_REMOVED",
+              reason: null,
+              details: { amount: "50.00", method: "CASH" },
+              userName: "Carla",
+              at,
+            },
+            { kind: "SERVICE_WAIVED", reason: null, userName: "Carla", at },
+            { kind: "SERVICE_RESTORED", reason: null, userName: "Carla", at },
+            { kind: "CLOSED", reason: null, details: { total: "84.70" }, userName: "Carla", at },
+            { kind: "REOPENED", reason: "Cobrou errado", userName: "Gerente Gil", at },
+            { kind: "OUTRO", reason: null, userName: "Carla", at },
+          ],
+        })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
+    const history = screen.getByText("Histórico da conta").parentElement!;
+    expect(
+      within(history)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
+      "17:25 · Conta aberta pelo primeiro pedido · Cliente pelo QR code",
+      "18:00 · Pagamento lançado: R$ 50,00, Pix · Carla",
+      "18:00 · Pagamento tirado: R$ 50,00, Dinheiro · Carla",
+      "18:00 · Taxa de serviço tirada · Carla",
+      "18:00 · Taxa de serviço posta de volta · Carla",
+      "18:00 · Conta fechada: R$ 84,70 · Carla",
+      "18:00 · Conta reaberta. Motivo: Cobrou errado · Gerente Gil",
+      "18:00 · OUTRO · Carla",
+    ]);
+  });
 });
