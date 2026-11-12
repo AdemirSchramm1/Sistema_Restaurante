@@ -4,6 +4,7 @@ import { serverDeps } from "@/infra/server";
 import { listProductCosts } from "@/application/inventory/product-costs";
 import { ProductCostTable } from "@/components/costs/product-cost-table";
 import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Custos" };
 
@@ -14,12 +15,10 @@ export default async function Page() {
 
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Custo dos produtos</h1>
-      <p className="max-w-3xl text-sm text-muted-foreground">
-        Quanto custa fazer uma unidade de cada produto vendido, pelo custo médio dos itens de hoje, e quanto
-        do preço vai em ingredientes. A faixa comum vai até 35% do preço; acima de 40% sobra pouco para pagar
-        o resto (equipe, aluguel, lucro).
-      </p>
+      <PageHeader
+        title="Custo dos produtos"
+        description="Quanto custa fazer uma unidade de cada produto vendido, pelo custo médio dos itens de hoje, e quanto do preço vai em ingredientes. A faixa comum vai até 35% do preço; acima de 40% sobra pouco para pagar o resto (equipe, aluguel, lucro)."
+      />
       {panel.ok ? (
         <ProductCostTable panel={panel.value} />
       ) : (

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
@@ -18,6 +17,8 @@ import { HistoryList } from "@/components/audit/history-list";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Adicional" };
 
@@ -45,19 +46,22 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Adicional cadastrado.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{a.name}</h1>
-        {!a.active && <Badge tone="neutral">inativo</Badge>}
-        <span className="text-sm text-muted-foreground">{priceOrFree(a.price)}</span>
-        {canWrite && (
-          <ActionForm
-            action={setAddonActiveAction}
-            hidden={{ id: a.id, version: a.version, active: String(!a.active) }}
-            submitLabel={a.active ? "Inativar" : "Reativar"}
-            variant="ghost"
-          />
-        )}
-      </div>
+      <PageHeader
+        title={a.name}
+        back={{ href: "/pedidos/adicionais", label: "Voltar para os adicionais" }}
+        badges={!a.active && <Badge tone="neutral">inativo</Badge>}
+        description={priceOrFree(a.price)}
+        actions={
+          canWrite && (
+            <ActionForm
+              action={setAddonActiveAction}
+              hidden={{ id: a.id, version: a.version, active: String(!a.active) }}
+              submitLabel={a.active ? "Inativar" : "Reativar"}
+              variant="outline"
+            />
+          )
+        }
+      />
       {a.componentInactive && (
         <Alert>
           {a.componentName} está inativo. Este adicional não aparece no cardápio até trocar o que vai nele.
@@ -107,12 +111,7 @@ export default async function Page({ params, searchParams }: PageProps<"/pedidos
               <ul className="grid gap-1">
                 {a.usedBy.map((p) => (
                   <li key={p.id}>
-                    <Link
-                      href={`/estoque/produtos/${p.id}`}
-                      className="text-primary underline-offset-4 hover:underline"
-                    >
-                      {p.name}
-                    </Link>
+                    <TextLink href={`/estoque/produtos/${p.id}`}>{p.name}</TextLink>
                   </li>
                 ))}
               </ul>

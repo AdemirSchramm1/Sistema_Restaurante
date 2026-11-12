@@ -23,6 +23,7 @@ import { COST_BAND_LABELS, evaluateProductCost } from "@/domain/inventory/produc
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Produto" };
 
@@ -73,28 +74,32 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Produto cadastrado.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{v.recipe.name}</h1>
-        {!v.recipe.active && <Badge tone="neutral">inativo</Badge>}
-        <span className="text-sm text-muted-foreground">
-          {RECIPE_KIND_LABELS[v.recipe.kind]} · versão {v.versionNumber} desde{" "}
-          {v.validFrom.toLocaleDateString("pt-BR", { timeZone: timezone })}
-        </span>
-        {canWrite && (
-          <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
-        )}
-        {onMenu && (
+      <PageHeader
+        title={v.recipe.name}
+        back={{ href: "/estoque/produtos", label: "Voltar para os produtos" }}
+        badges={
           <>
-            {onMenu.soldOut && <Badge tone="warning">esgotado hoje</Badge>}
-            <ActionForm
-              action={setProductSoldOutAction}
-              hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
-              submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
-              variant="ghost"
-            />
+            {!v.recipe.active && <Badge tone="neutral">inativo</Badge>}
+            {onMenu?.soldOut && <Badge tone="warning">esgotado hoje</Badge>}
           </>
-        )}
-      </div>
+        }
+        description={`${RECIPE_KIND_LABELS[v.recipe.kind]} · versão ${v.versionNumber} desde ${v.validFrom.toLocaleDateString("pt-BR", { timeZone: timezone })}`}
+        actions={
+          <>
+            {onMenu && (
+              <ActionForm
+                action={setProductSoldOutAction}
+                hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
+                submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
+                variant="outline"
+              />
+            )}
+            {canWrite && (
+              <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
+            )}
+          </>
+        }
+      />
       {isPrep && v.usedBy.length > 0 && (
         <p className="text-sm">
           Usado em: <strong>{v.usedBy.join(", ")}</strong>

@@ -1,9 +1,9 @@
-import Link from "next/link";
 import type { OfferView } from "@/application/suppliers/suppliers";
 import type { UnitCode } from "@/domain/inventory/units";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
 
 const money = (v: Decimal, max = 2) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: max })}`;
 
@@ -21,10 +21,7 @@ export function ItemOffers({
     return (
       <p className="text-sm text-muted-foreground">
         Nenhum fornecedor vende este item ainda. Cadastre na página do{" "}
-        <Link className="text-primary underline underline-offset-4" href="/estoque/fornecedores">
-          fornecedor
-        </Link>
-        .
+        <TextLink href="/estoque/fornecedores">fornecedor</TextLink>.
       </p>
     );
   return (
@@ -42,12 +39,7 @@ export function ItemOffers({
         {offers.map((o) => (
           <tr key={o.id}>
             <Td>
-              <Link
-                className="text-primary underline underline-offset-4"
-                href={`/estoque/fornecedores/${o.supplierId}`}
-              >
-                {o.supplierName}
-              </Link>{" "}
+              <TextLink href={`/estoque/fornecedores/${o.supplierId}`}>{o.supplierName}</TextLink>{" "}
               {o.preferred && <Badge tone="primary">Preferido</Badge>}{" "}
               {o.cheapest && <Badge tone="success">mais barato</Badge>}{" "}
               {!o.supplierActive && <Badge tone="danger">bloqueado</Badge>}

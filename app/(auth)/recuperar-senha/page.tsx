@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { requestPasswordResetAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
 import { Field } from "@/components/forms/form-error";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default function Page() {
   const [state, action, pending] = useActionState(requestPasswordResetAction, null);
   return (
     <>
-      <h1 className="text-2xl font-semibold">Recuperar senha</h1>
+      <PageHeader title="Recuperar senha" description="Mandamos um link para você criar uma senha nova." />
       {state?.ok ? (
         <Alert tone="info">
           Se o e-mail estiver cadastrado, você vai receber um link para criar uma nova senha.
@@ -27,9 +28,9 @@ export default function Page() {
           </Button>
         </form>
       )}
-      <Link className="text-sm text-primary underline underline-offset-4" href="/entrar">
+      <TextLink href="/entrar" className="text-sm">
         Voltar para entrar
-      </Link>
+      </TextLink>
     </>
   );
 }

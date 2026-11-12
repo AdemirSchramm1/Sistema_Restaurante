@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -13,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Pedidos" };
 export const dynamic = "force-dynamic";
@@ -45,7 +46,10 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
 
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Pedidos</h1>
+      <PageHeader
+        title="Pedidos"
+        description="Todos os pedidos das mesas, do período e da situação escolhidos."
+      />
       <form className="flex flex-wrap items-end gap-3" role="search">
         <div className="grid gap-1">
           <Label htmlFor="de">De</Label>
@@ -93,9 +97,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
             {rows.map((o) => (
               <tr key={o.id}>
                 <Td>
-                  <Link href={`/pedidos/${o.id}`} className="text-primary underline-offset-4 hover:underline">
-                    {o.number}
-                  </Link>
+                  <TextLink href={`/pedidos/${o.id}`}>{o.number}</TextLink>
                 </Td>
                 <Td>{date(o.businessDay)}</Td>
                 <Td>{time(o.submittedAt)}</Td>

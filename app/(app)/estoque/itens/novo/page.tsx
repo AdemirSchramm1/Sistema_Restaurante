@@ -8,6 +8,7 @@ import { can } from "@/domain/access/permissions";
 import { ItemForm } from "@/components/items/item-form";
 import { emptyItemValues } from "@/components/items/item-form-values";
 import { subgroupOptions } from "@/components/items/subgroup-options";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Novo item" };
 
@@ -17,7 +18,7 @@ export default async function Page() {
   const tree = await listGroupTree(serverDeps(), ctx);
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Novo item</h1>
+      <PageHeader title="Novo item" back={{ href: "/estoque/itens", label: "Voltar para os itens" }} />
       <ItemForm
         action={createItemAction}
         subgroups={tree.ok ? subgroupOptions(tree.value) : []}

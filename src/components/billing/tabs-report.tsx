@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import type { ActionState } from "@/actions/_session";
 import { PAYMENT_METHOD_LABELS, type PaymentMethod } from "@/domain/billing/payment";
@@ -12,6 +11,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
 import { brl } from "@/components/ordering/format";
 import { timeIn } from "./format";
+import { TextLink } from "@/components/ui/text-link";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
@@ -91,9 +91,7 @@ export function TabsReport({
             <tr key={t.id}>
               <Td>{day(t.closedAt)}</Td>
               <Td>
-                <Link href={`/caixa/${t.id}`} className="text-primary underline-offset-4 hover:underline">
-                  {`Mesa ${t.tableName}`}
-                </Link>
+                <TextLink href={`/caixa/${t.id}`}>{`Mesa ${t.tableName}`}</TextLink>
               </Td>
               <Td>{timeIn(t.openedAt, timezone)}</Td>
               <Td>{timeIn(t.closedAt, timezone)}</Td>

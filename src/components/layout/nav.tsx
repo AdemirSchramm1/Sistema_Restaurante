@@ -159,7 +159,7 @@ export function MainNav({
     sections.flatMap((s) => s.entries.map((e) => e.href)),
   );
   return (
-    <nav aria-label="Menu principal" className="grid gap-5">
+    <nav aria-label="Menu principal" className="grid gap-4">
       {sections.map((s) => (
         <div key={s.id} className="grid gap-1">
           <p
@@ -178,7 +178,7 @@ export function MainNav({
                     aria-current={active ? "page" : undefined}
                     onClick={onNavigate}
                     className={cn(
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-1.5",
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-primary",
                       active
                         ? "bg-sidebar-accent text-sidebar-foreground"

@@ -77,10 +77,10 @@ export function AppShell({
           id={PANEL_ID}
           className={cn(
             open ? "flex" : "hidden",
-            "max-h-[calc(100dvh-3.5rem)] flex-col overflow-y-auto border-t border-sidebar-border lg:flex lg:max-h-none lg:flex-1 lg:border-t-0",
+            "max-h-[calc(100dvh-3.5rem)] flex-col border-t border-sidebar-border lg:flex lg:max-h-none lg:min-h-0 lg:flex-1 lg:border-t-0",
           )}
         >
-          <div className="flex-1 px-3 py-4 lg:py-2">
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 lg:py-2">
             <MainNav
               roles={roles}
               reorderCount={reorderCount}
@@ -88,15 +88,17 @@ export function AppShell({
               onNavigate={() => setOpen(false)}
             />
           </div>
-          <div className="border-t border-sidebar-border px-5 py-4 text-sm">
-            <p className="truncate font-medium">{userName}</p>
-            <p className="truncate text-xs text-sidebar-muted">
-              {roles.map((r) => ROLE_LABELS[r]).join(", ")}
-            </p>
-            <form action={signOut} className="mt-3">
+          <div className="flex shrink-0 items-center gap-3 border-t border-sidebar-border px-5 py-3 text-sm">
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{userName}</p>
+              <p className="truncate text-xs text-sidebar-muted">
+                {roles.map((r) => ROLE_LABELS[r]).join(", ")}
+              </p>
+            </div>
+            <form action={signOut}>
               <button
                 type="submit"
-                className="-mx-2 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 font-medium text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-sidebar-primary"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 font-medium text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-sidebar-primary"
               >
                 <LogOut aria-hidden="true" className="size-4" />
                 Sair

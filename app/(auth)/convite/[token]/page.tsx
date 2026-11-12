@@ -1,10 +1,11 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { serverDeps } from "@/infra/server";
 import { peekInvitation } from "@/application/access/accept-invitation";
 import { messageFor } from "@/components/forms/error-messages";
 import { Alert } from "@/components/ui/alert";
 import { AcceptForm } from "./accept-form";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Aceitar convite" };
 
@@ -14,21 +15,19 @@ export default async function Page({ params }: PageProps<"/convite/[token]">) {
   if (!inv.ok)
     return (
       <>
-        <h1 className="text-2xl font-semibold">Convite</h1>
+        <PageHeader title="Convite" />
         <Alert>{messageFor(inv.error)}</Alert>
-        <Link className="text-sm text-primary underline underline-offset-4" href="/entrar">
+        <TextLink href="/entrar" className="text-sm">
           Ir para o login
-        </Link>
+        </TextLink>
       </>
     );
   return (
     <>
-      <div>
-        <h1 className="text-2xl font-semibold">Entrar na equipe do {inv.value.restaurantName}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Defina seu nome e uma senha para {inv.value.email}.
-        </p>
-      </div>
+      <PageHeader
+        title={`Entrar na equipe do ${inv.value.restaurantName}`}
+        description={`Defina seu nome e uma senha para ${inv.value.email}.`}
+      />
       <AcceptForm token={token} email={inv.value.email} />
     </>
   );

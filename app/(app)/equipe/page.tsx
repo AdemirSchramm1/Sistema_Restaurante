@@ -14,6 +14,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Equipe" };
 
@@ -43,7 +44,10 @@ export default async function Page() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Equipe</h1>
+      <PageHeader
+        title="Equipe"
+        description="Quem trabalha no restaurante e o que cada pessoa pode fazer no sistema."
+      />
       <Card className="grid gap-3">
         <CardTitle>Convidar pessoa</CardTitle>
         <ActionForm

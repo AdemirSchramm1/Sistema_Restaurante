@@ -18,6 +18,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input, Select } from "@/components/ui/input";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Grupos" };
 
@@ -29,7 +30,10 @@ export default async function Page() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Grupos e subgrupos</h1>
+      <PageHeader
+        title="Grupos e subgrupos"
+        description="Como os itens se organizam. O código de cada item começa pelo do grupo e pelo do subgrupo (GG.SS.NNNN)."
+      />
       {manage && (
         <Card className="grid gap-3">
           <CardTitle>Novo grupo</CardTitle>

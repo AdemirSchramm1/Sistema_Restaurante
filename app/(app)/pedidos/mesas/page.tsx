@@ -20,6 +20,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Printer } from "lucide-react";
 
 export const metadata: Metadata = { title: "Mesas" };
 
@@ -38,14 +41,18 @@ export default async function Page() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Mesas e QR codes</h1>
-        {active.length > 0 && (
-          <Link href="/pedidos/mesas/imprimir" className={buttonVariants({ variant: "outline" })}>
-            Imprimir todos
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Mesas e QR codes"
+        description="Cada mesa tem o seu QR code. O cliente escaneia, vê o cardápio e pede pelo celular."
+        actions={
+          active.length > 0 && (
+            <Link href="/pedidos/mesas/imprimir" className={buttonVariants({ variant: "outline" })}>
+              <Printer aria-hidden="true" />
+              Imprimir todos
+            </Link>
+          )
+        }
+      />
 
       {settings.ok && (
         <Card className="grid gap-2" aria-label="Recebendo pedidos pelo QR code">
@@ -95,12 +102,7 @@ export default async function Page() {
                   />
                 )}
                 <div className="grid gap-2 text-sm">
-                  <Link
-                    href={`/pedidos/mesas/imprimir?ids=${t.id}`}
-                    className="text-primary underline underline-offset-4"
-                  >
-                    Imprimir este QR code
-                  </Link>
+                  <TextLink href={`/pedidos/mesas/imprimir?ids=${t.id}`}>Imprimir este QR code</TextLink>
                   <ActionForm
                     action={renameTableAction}
                     hidden={{ id: t.id, version: t.version }}

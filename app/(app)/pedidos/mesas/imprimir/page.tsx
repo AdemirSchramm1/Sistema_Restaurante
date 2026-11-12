@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -6,6 +5,7 @@ import { tableQrCodes } from "@/application/ordering/tables";
 import { TableQrCard } from "@/components/ordering/table-qr-card";
 import { PrintButton } from "@/components/ordering/print-button";
 import { NoAccess } from "@/components/layout/no-access";
+import { TextLink } from "@/components/ui/text-link";
 
 export const metadata: Metadata = { title: "Imprimir QR codes" };
 
@@ -19,9 +19,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/mesas/i
   return (
     <div className="grid gap-4">
       <div className="no-print flex flex-wrap items-center gap-3">
-        <Link href="/pedidos/mesas" className="text-primary underline underline-offset-4">
-          Voltar para as mesas
-        </Link>
+        <TextLink href="/pedidos/mesas">Voltar para as mesas</TextLink>
         <PrintButton />
       </div>
       <ul className="qr-sheet grid grid-cols-2 gap-4 sm:grid-cols-3">

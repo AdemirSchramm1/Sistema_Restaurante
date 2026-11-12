@@ -22,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Lançamentos" };
 
@@ -69,10 +70,10 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Lançamentos</h1>
-      <p className="text-sm text-muted-foreground">
-        Compras, perdas e acertos. O saldo de cada item é a soma destes lançamentos; para corrigir, estorne.
-      </p>
+      <PageHeader
+        title="Lançamentos"
+        description="Compras, perdas e acertos. O saldo de cada item é a soma destes lançamentos; para corrigir, estorne."
+      />
 
       {types.length > 0 && (
         <Card className="grid gap-4">

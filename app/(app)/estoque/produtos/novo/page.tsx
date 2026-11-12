@@ -7,6 +7,7 @@ import { recipeFormOptions } from "@/application/inventory/recipes";
 import { can } from "@/domain/access/permissions";
 import { RecipeForm } from "@/components/recipes/recipe-form";
 import { emptyRecipeValues } from "@/components/recipes/recipe-form-values";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Novo produto" };
 
@@ -16,7 +17,10 @@ export default async function Page() {
   const options = await recipeFormOptions(serverDeps(), ctx);
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Novo produto</h1>
+      <PageHeader
+        title="Novo produto"
+        back={{ href: "/estoque/produtos", label: "Voltar para os produtos" }}
+      />
       <RecipeForm
         action={createRecipeAction}
         options={options.ok ? options.value : { items: [], preps: [] }}

@@ -28,6 +28,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { StockBalance } from "@/components/items/stock-balance";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Item" };
 
@@ -60,17 +61,20 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Item cadastrado com o código {item.code}.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{item.description}</h1>
-        <Badge className="font-mono" aria-label="Código do item">
-          {item.code}
-        </Badge>
-        {!item.active && <Badge tone="neutral">inativo</Badge>}
-        <span className="text-sm text-muted-foreground">
-          {ITEM_TYPE_LABELS[item.type]} · {item.groupName} › {item.subgroupName}
-        </span>
-        {canWrite && <ItemActiveToggle id={item.id} version={item.version} active={item.active} />}
-      </div>
+      <PageHeader
+        title={item.description}
+        back={{ href: "/estoque/itens", label: "Voltar para os itens" }}
+        badges={
+          <>
+            <Badge className="font-mono" aria-label="Código do item">
+              {item.code}
+            </Badge>
+            {!item.active && <Badge tone="neutral">inativo</Badge>}
+          </>
+        }
+        description={`${ITEM_TYPE_LABELS[item.type]} · ${item.groupName} › ${item.subgroupName}`}
+        actions={canWrite && <ItemActiveToggle id={item.id} version={item.version} active={item.active} />}
+      />
       <p className="text-sm">
         Controlado em <strong>{item.stockUnit}</strong>
         {purchaseSummary ? ` · compra: ${purchaseSummary}` : " · comprado solto"}

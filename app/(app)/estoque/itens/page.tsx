@@ -11,6 +11,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Plus } from "lucide-react";
 
 export const metadata: Metadata = { title: "Itens" };
 
@@ -41,14 +44,18 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Itens</h1>
-        {can(ctx.roles, "item.write") && (
-          <Link href="/estoque/itens/novo" className={buttonVariants()}>
-            Novo item
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Itens"
+        description="Tudo o que o restaurante compra e guarda, com o saldo de hoje."
+        actions={
+          can(ctx.roles, "item.write") && (
+            <Link href="/estoque/itens/novo" className={buttonVariants()}>
+              <Plus aria-hidden="true" />
+              Novo item
+            </Link>
+          )
+        }
+      />
       <form className="grid gap-2 sm:grid-cols-5" role="search">
         <Input
           name="q"
@@ -100,9 +107,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
             <tr key={r.id}>
               <Td className="font-mono">{r.code}</Td>
               <Td>
-                <Link className="text-primary underline underline-offset-4" href={`/estoque/itens/${r.id}`}>
-                  {r.description}
-                </Link>{" "}
+                <TextLink href={`/estoque/itens/${r.id}`}>{r.description}</TextLink>{" "}
                 {!r.active && <Badge tone="neutral">inativo</Badge>}
                 {r.atReorderPoint && <Badge tone="warning">Repor</Badge>}
               </Td>

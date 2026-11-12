@@ -1,7 +1,8 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { SignInForm } from "./sign-in-form";
 import { Alert } from "@/components/ui/alert";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -9,16 +10,12 @@ export default async function Page({ searchParams }: PageProps<"/entrar">) {
   const sp = await searchParams;
   return (
     <>
-      <h1 className="text-2xl font-semibold">Entrar</h1>
+      <PageHeader title="Entrar" description="Use o e-mail e a senha da sua conta." />
       {sp["senha-redefinida"] && <Alert tone="success">Senha redefinida. Entre com a nova senha.</Alert>}
       <SignInForm />
       <div className="flex justify-between text-sm">
-        <Link className="text-primary underline underline-offset-4" href="/recuperar-senha">
-          Esqueci a senha
-        </Link>
-        <Link className="text-primary underline underline-offset-4" href="/criar-conta">
-          Criar conta do restaurante
-        </Link>
+        <TextLink href="/recuperar-senha">Esqueci a senha</TextLink>
+        <TextLink href="/criar-conta">Criar conta do restaurante</TextLink>
       </div>
     </>
   );

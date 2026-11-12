@@ -1,7 +1,7 @@
-import Link from "next/link";
 import type { ItemUsageRow } from "@/application/inventory/product-costs";
 import { Card, CardTitle } from "@/components/ui/card";
 import { money, percent } from "./format";
+import { TextLink } from "@/components/ui/text-link";
 
 /** Quadro "Usado nos produtos" da página do item (spec 008, US3). */
 export function ItemUsage({ rows }: { rows: ItemUsageRow[] }) {
@@ -19,12 +19,7 @@ export function ItemUsage({ rows }: { rows: ItemUsageRow[] }) {
             {rows.map((r) => (
               <li key={r.id} className="flex flex-wrap justify-between gap-x-2">
                 <span>
-                  <Link
-                    className="text-primary underline underline-offset-4"
-                    href={`/estoque/produtos/${r.id}`}
-                  >
-                    {r.name}
-                  </Link>
+                  <TextLink href={`/estoque/produtos/${r.id}`}>{r.name}</TextLink>
                   {r.kind === "SUB_RECIPE" && <span className="text-muted-foreground"> (preparo)</span>}
                 </span>
                 <span className="tabular-nums text-muted-foreground">

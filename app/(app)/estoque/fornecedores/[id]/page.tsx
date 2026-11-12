@@ -21,6 +21,7 @@ import { HistoryList } from "@/components/audit/history-list";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Fornecedor" };
 
@@ -67,16 +68,17 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Fornecedor cadastrado. Agora diga o que ele vende.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{supplier.name}</h1>
-        {!supplier.active && <Badge tone="danger">bloqueado</Badge>}
-        {supplier.cnpj && (
-          <span className="font-mono text-sm text-muted-foreground">{formatCnpj(supplier.cnpj)}</span>
-        )}
-        {canWrite && (
-          <SupplierActiveToggle id={supplier.id} version={supplier.version} active={supplier.active} />
-        )}
-      </div>
+      <PageHeader
+        title={supplier.name}
+        back={{ href: "/estoque/fornecedores", label: "Voltar para os fornecedores" }}
+        badges={!supplier.active && <Badge tone="danger">bloqueado</Badge>}
+        description={supplier.cnpj && <span className="font-mono">{formatCnpj(supplier.cnpj)}</span>}
+        actions={
+          canWrite && (
+            <SupplierActiveToggle id={supplier.id} version={supplier.version} active={supplier.active} />
+          )
+        }
+      />
       {!supplier.active && (
         <p className="text-sm text-muted-foreground">
           Bloqueado: não aparece para escolher na compra. O histórico continua.

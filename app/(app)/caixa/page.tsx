@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -11,6 +10,10 @@ import { ServiceRateForm } from "@/components/billing/service-charge";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
 import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/page-header";
+import { Receipt } from "lucide-react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Caixa" };
 export const dynamic = "force-dynamic";
@@ -26,14 +29,18 @@ export default async function Page({ searchParams }: PageProps<"/caixa">) {
   return (
     <div className="grid gap-4">
       <AutoRefresh seconds={10} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Caixa</h1>
-        {can(ctx.roles, "tab.history") && (
-          <Link href="/caixa/contas" className="text-sm text-primary underline underline-offset-4">
-            Contas fechadas
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Caixa"
+        description="Mesas com conta aberta. A tela se atualiza sozinha."
+        actions={
+          can(ctx.roles, "tab.history") && (
+            <Link href="/caixa/contas" className={buttonVariants({ variant: "outline" })}>
+              <Receipt aria-hidden="true" />
+              Contas fechadas
+            </Link>
+          )
+        }
+      />
       {typeof closed === "string" && closed && (
         <Alert tone="success">{`Conta da Mesa ${closed} fechada. A mesa está livre para o próximo cliente.`}</Alert>
       )}
