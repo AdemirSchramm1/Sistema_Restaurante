@@ -21,7 +21,12 @@ const tab = (over: Partial<TabDetailView> = {}): TabDetailView => ({
       cancelNote: null,
       total: "68.00",
       lines: [
-        { quantity: 2, productName: "X-Burger", unitPrice: "34.00", changes: ["+ 2 Fatia de queijo", "SEM cebola"] },
+        {
+          quantity: 2,
+          productName: "X-Burger",
+          unitPrice: "34.00",
+          changes: ["+ 2 Fatia de queijo", "SEM cebola"],
+        },
       ],
     },
     {
@@ -93,10 +98,20 @@ describe("conta da mesa (spec 011, US1)", () => {
   });
 
   it("taxa tirada aparece como tirada; restaurante sem taxa não mostra a linha", () => {
-    render(<TabDetail tab={tab({ serviceWaived: true, serviceCharge: "0.00", total: "77.00" })} timezone="America/Sao_Paulo" />);
+    render(
+      <TabDetail
+        tab={tab({ serviceWaived: true, serviceCharge: "0.00", total: "77.00" })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
     expect(summary()[1]).toBe("Serviço 10% (tirado)R$ 0,00");
     cleanup();
-    render(<TabDetail tab={tab({ serviceRate: null, serviceCharge: "0.00", total: "77.00" })} timezone="America/Sao_Paulo" />);
+    render(
+      <TabDetail
+        tab={tab({ serviceRate: null, serviceCharge: "0.00", total: "77.00" })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
     expect(summary().some((r) => r?.startsWith("Serviço"))).toBe(false);
   });
 
@@ -109,7 +124,12 @@ describe("conta da mesa (spec 011, US1)", () => {
   it("conta fechada mostra quem fechou e quando", () => {
     render(
       <TabDetail
-        tab={tab({ status: "CLOSED", closedAt: "2026-11-11T21:10:00.000Z", closedByName: "Caixa Carla", blockers: [] })}
+        tab={tab({
+          status: "CLOSED",
+          closedAt: "2026-11-11T21:10:00.000Z",
+          closedByName: "Caixa Carla",
+          blockers: [],
+        })}
         timezone="America/Sao_Paulo"
       />,
     );

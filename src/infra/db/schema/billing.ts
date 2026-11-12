@@ -19,7 +19,13 @@ import { diningTables } from "./ordering";
 /** Conta da mesa e pagamentos (feature 011, specs/011-fechamento-conta-mesa/data-model.md). */
 
 export const tabStatusEnum = pgEnum("tab_status", ["OPEN", "CLOSED"]);
-export const paymentMethodEnum = pgEnum("payment_method", ["CASH", "PIX", "DEBIT_CARD", "CREDIT_CARD", "OTHER"]);
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "CASH",
+  "PIX",
+  "DEBIT_CARD",
+  "CREDIT_CARD",
+  "OTHER",
+]);
 export const tabEventKindEnum = pgEnum("tab_event_kind", [
   "OPENED",
   "PAYMENT_ADDED",

@@ -283,11 +283,23 @@ describe("venda pelo pedido (spec 011, US4 e FR-006)", () => {
   });
 
   it("não bloqueia por saldo: a venda pode deixar o saldo negativo", () => {
-    expect(view(planSale(cheese({ balance: d("0.1") }), d("0.2")))).toEqual(["-0.2", "50", "-10", "0.2", "kg"]);
+    expect(view(planSale(cheese({ balance: d("0.1") }), d("0.2")))).toEqual([
+      "-0.2",
+      "50",
+      "-10",
+      "0.2",
+      "kg",
+    ]);
   });
 
   it("item sem custo ainda sai com custo zero", () => {
-    expect(view(planSale(cheese({ averageCost: null }), d("0.14")))).toEqual(["-0.14", "0", "0", "0.14", "kg"]);
+    expect(view(planSale(cheese({ averageCost: null }), d("0.14")))).toEqual([
+      "-0.14",
+      "0",
+      "0",
+      "0.14",
+      "kg",
+    ]);
   });
 
   it("item inativo também baixa", () => {
@@ -315,11 +327,11 @@ describe("pedido cancelado depois do preparo (spec 011, US5 e FR-008)", () => {
     reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
     loss: reasonByCode("LOSS", "ORDER_CANCELLED"),
   };
-  const line = (p: { quantity: { toString(): string }; unitCost: { toString(): string }; totalCost: { toString(): string } }) => [
-    p.quantity.toString(),
-    p.unitCost.toString(),
-    p.totalCost.toString(),
-  ];
+  const line = (p: {
+    quantity: { toString(): string };
+    unitCost: { toString(): string };
+    totalCost: { toString(): string };
+  }) => [p.quantity.toString(), p.unitCost.toString(), p.totalCost.toString()];
 
   it("motivos 'Pedido cancelado' no estorno e na perda (família erro na operação)", () => {
     expect(reasons.reversal?.label).toBe("Pedido cancelado");
@@ -368,7 +380,13 @@ describe("pedido cancelado depois do preparo (spec 011, US5 e FR-008)", () => {
       NOW,
     );
     expect(code(manualLoss)).toBe("INVALID_REASON");
-    const burnt = { type: "LOSS" as const, quantity: d(-1), unitCost: d(3), totalCost: d(-3), reversed: false };
+    const burnt = {
+      type: "LOSS" as const,
+      quantity: d(-1),
+      unitCost: d(3),
+      totalCost: d(-3),
+      reversed: false,
+    };
     expect(code(planReversal(burnt, tomato(), reasons.reversal))).toBe("INVALID_REASON");
   });
 

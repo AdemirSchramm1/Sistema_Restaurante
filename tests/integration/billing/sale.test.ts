@@ -2,7 +2,11 @@ import { describe, it, expect } from "vitest";
 import { addMember, newRestaurant, ownerTestDb, testEnv, type TestEnv } from "../harness";
 import { code, orderingScenario, unwrap } from "../ordering/fixtures";
 import { advanceOrderStatus } from "../../../src/application/ordering/kitchen";
-import { listMovements, registerPurchase, reverseMovement } from "../../../src/application/inventory/movements";
+import {
+  listMovements,
+  registerPurchase,
+  reverseMovement,
+} from "../../../src/application/inventory/movements";
 import { updateRecipe } from "../../../src/application/inventory/recipes";
 import { reasonByCode } from "../../../src/domain/inventory/movement-reasons";
 import type { Deps } from "../../../src/application/ports";
@@ -182,8 +186,13 @@ describe("baixa do estoque ao começar o preparo (spec 011, US4)", () => {
     expect(sale.recordedByName).toBe("Chef Ana");
     const reason = reasonByCode("REVERSAL", "WRONG_ENTRY")!;
     expect(
-      code(await reverseMovement(env.deps, m, sale.id, { reasonId: reason.id, notes: null, idempotencyKey: null })),
+      code(
+        await reverseMovement(env.deps, m, sale.id, {
+          reasonId: reason.id,
+          notes: null,
+          idempotencyKey: null,
+        }),
+      ),
     ).toBe("REVERSE_VIA_ORDER");
   });
 });
-

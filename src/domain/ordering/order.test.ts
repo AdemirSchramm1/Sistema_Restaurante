@@ -106,7 +106,10 @@ describe("cancelar depois do preparo (spec 011, US5)", () => {
 
   it("cancelar o que já baixou exige dizer se os ingredientes foram usados", () => {
     const r = checkCancel("PREPARING", "CUSTOMER_GAVE_UP", null, null);
-    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual(["INGREDIENTS_USED_REQUIRED", "ingredientsUsed"]);
+    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual([
+      "INGREDIENTS_USED_REQUIRED",
+      "ingredientsUsed",
+    ]);
     expect(checkCancel("READY", "CUSTOMER_GAVE_UP", null, false).ok).toBe(true);
     expect(checkCancel("RECEIVED", "CUSTOMER_GAVE_UP", null, null).ok).toBe(true);
   });

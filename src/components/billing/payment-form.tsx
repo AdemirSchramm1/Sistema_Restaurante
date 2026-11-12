@@ -209,7 +209,10 @@ export function PaymentList({
         const value = brl(d(p.amount));
         const label = PAYMENT_METHOD_LABELS[p.method];
         return (
-          <li key={p.id} className={`grid gap-1 rounded-md border border-border p-2 text-sm ${removed ? "text-muted-foreground" : ""}`}>
+          <li
+            key={p.id}
+            className={`grid gap-1 rounded-md border border-border p-2 text-sm ${removed ? "text-muted-foreground" : ""}`}
+          >
             <div className="flex justify-between gap-2">
               <span className="font-medium">{label}</span>
               {removed ? <del>{value}</del> : <strong>{value}</strong>}

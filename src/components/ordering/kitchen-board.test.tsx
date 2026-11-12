@@ -99,9 +99,9 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
     const question = screen.getByRole("group", { name: "Os ingredientes já foram usados?" });
-    expect((within(question).getByRole("radio", { name: "Sim, vão para a perda" }) as HTMLInputElement).checked).toBe(
-      true,
-    );
+    expect(
+      (within(question).getByRole("radio", { name: "Sim, vão para a perda" }) as HTMLInputElement).checked,
+    ).toBe(true);
     expect(within(question).getByRole("radio", { name: "Não, voltam para o estoque" })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Motivo"), { target: { value: "CUSTOMER_GAVE_UP" } });
     fireEvent.click(within(question).getByRole("radio", { name: "Não, voltam para o estoque" }));

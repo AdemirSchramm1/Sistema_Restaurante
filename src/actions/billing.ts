@@ -65,7 +65,11 @@ export async function addPaymentAction(_prev: ActionState, form: FormData): Prom
   const tabId = text(form, "tabId");
   const method = text(form, "method");
   if (!isPaymentMethod(method))
-    return { ok: false, error: { code: "VALIDATION", field: "method", message: "Escolha a forma de pagamento." }, at: Date.now() };
+    return {
+      ok: false,
+      error: { code: "VALIDATION", field: "method", message: "Escolha a forma de pagamento." },
+      at: Date.now(),
+    };
   const amount = money(form, "amount");
   if (!amount.ok) return toState(amount);
   if (!amount.value) return toState(err("INVALID_AMOUNT", "amount"));
@@ -92,7 +96,9 @@ export async function removePaymentAction(_prev: ActionState, form: FormData): P
 /** Fechou: volta para o Caixa, que mostra a mesa livre. */
 export async function closeTabAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const tabId = text(form, "tabId");
-  const state = await run(tabId, (ctx) => closeTab(serverDeps(), ctx, { tabId, version: int(form, "version") }));
+  const state = await run(tabId, (ctx) =>
+    closeTab(serverDeps(), ctx, { tabId, version: int(form, "version") }),
+  );
   if (state?.ok) redirect(`/caixa?fechada=${encodeURIComponent(text(form, "tableName"))}`);
   return state;
 }
@@ -100,6 +106,10 @@ export async function closeTabAction(_prev: ActionState, form: FormData): Promis
 export async function reopenTabAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const tabId = text(form, "tabId");
   return run(tabId, (ctx) =>
-    reopenTab(serverDeps(), ctx, { tabId, reason: String(form.get("reason") ?? ""), version: int(form, "version") }),
+    reopenTab(serverDeps(), ctx, {
+      tabId,
+      reason: String(form.get("reason") ?? ""),
+      version: int(form, "version"),
+    }),
   );
 }

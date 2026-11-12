@@ -42,13 +42,22 @@ async function setup(env: TestEnv) {
     }),
   );
   const order = await b.s.place([b.s.burger(2)]);
-  const before = { queijo: await balance(b.s.queijo), carne: await balance(b.s.carne), pao: await balance(b.s.pao) };
+  const before = {
+    queijo: await balance(b.s.queijo),
+    carne: await balance(b.s.carne),
+    pao: await balance(b.s.pao),
+  };
   await b.advance(order.orderId, "PREPARING");
   const sales = await ledger(order.orderId);
   return { ...b, orderId: order.orderId, before, sales };
 }
 
-const cancel = (env: TestEnv, t: Awaited<ReturnType<typeof setup>>, version: number, ingredientsUsed?: boolean) =>
+const cancel = (
+  env: TestEnv,
+  t: Awaited<ReturnType<typeof setup>>,
+  version: number,
+  ingredientsUsed?: boolean,
+) =>
   cancelOrder(env.deps, t.chef, {
     id: t.orderId,
     reason: "CUSTOMER_GAVE_UP",
@@ -62,7 +71,14 @@ describe("cancelar pedido e o estoque (spec 011, US5)", () => {
     const env = testEnv();
     const b = await billingScenario(env);
     const order = await b.s.place([b.s.burger(2)]);
-    unwrap(await cancelOrder(env.deps, b.chef, { id: order.orderId, reason: "CUSTOMER_GAVE_UP", note: null, version: 1 }));
+    unwrap(
+      await cancelOrder(env.deps, b.chef, {
+        id: order.orderId,
+        reason: "CUSTOMER_GAVE_UP",
+        note: null,
+        version: 1,
+      }),
+    );
     expect(await ledger(order.orderId)).toEqual([]);
   });
 
@@ -70,7 +86,10 @@ describe("cancelar pedido e o estoque (spec 011, US5)", () => {
     const env = testEnv();
     const t = await setup(env);
     const r = await cancel(env, t, 2);
-    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual(["INGREDIENTS_USED_REQUIRED", "ingredientsUsed"]);
+    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual([
+      "INGREDIENTS_USED_REQUIRED",
+      "ingredientsUsed",
+    ]);
     const o = await db().query("select status from orders where id = $1", [t.orderId]);
     expect(o.rows[0].status).toBe("PREPARING");
     expect(await ledger(t.orderId)).toEqual(t.sales);
@@ -79,7 +98,11 @@ describe("cancelar pedido e o estoque (spec 011, US5)", () => {
   it("'Sim, já foram usados': estorna cada venda e lança a mesma saída como perda 'Pedido cancelado'", async () => {
     const env = testEnv();
     const t = await setup(env);
-    const afterSale = { queijo: await balance(t.s.queijo), carne: await balance(t.s.carne), pao: await balance(t.s.pao) };
+    const afterSale = {
+      queijo: await balance(t.s.queijo),
+      carne: await balance(t.s.carne),
+      pao: await balance(t.s.pao),
+    };
     env.clock.advance(60_000);
     unwrap(await cancel(env, t, 2, true));
 
@@ -95,15 +118,19 @@ describe("cancelar pedido e o estoque (spec 011, US5)", () => {
         ["REVERSAL", back, sale.unit_cost, reversal, t.chef.userId],
       ]);
       expect(mine.find((r) => r.type === "REVERSAL")!.reverses_id).toBe(
-        (await db().query("select id from stock_movements where order_id = $1 and item_id = $2 and type = 'SALE_RECIPE'", [
-          t.orderId,
-          sale.item_id,
-        ])).rows[0].id,
+        (
+          await db().query(
+            "select id from stock_movements where order_id = $1 and item_id = $2 and type = 'SALE_RECIPE'",
+            [t.orderId, sale.item_id],
+          )
+        ).rows[0].id,
       );
     }
-    expect({ queijo: await balance(t.s.queijo), carne: await balance(t.s.carne), pao: await balance(t.s.pao) }).toEqual(
-      afterSale,
-    );
+    expect({
+      queijo: await balance(t.s.queijo),
+      carne: await balance(t.s.carne),
+      pao: await balance(t.s.pao),
+    }).toEqual(afterSale);
   });
 
   it("'Não': só estorna e o saldo volta ao de antes do preparo", async () => {
@@ -113,7 +140,11 @@ describe("cancelar pedido e o estoque (spec 011, US5)", () => {
     const rows = await ledger(t.orderId);
     expect(rows.filter((r) => r.type === "LOSS")).toEqual([]);
     expect(rows.filter((r) => r.type === "REVERSAL")).toHaveLength(t.sales.length);
-    expect({ queijo: await balance(t.s.queijo), carne: await balance(t.s.carne), pao: await balance(t.s.pao) }).toEqual({
+    expect({
+      queijo: await balance(t.s.queijo),
+      carne: await balance(t.s.carne),
+      pao: await balance(t.s.pao),
+    }).toEqual({
       queijo: t.before.queijo,
       carne: "0.0000",
       pao: "0.0000",

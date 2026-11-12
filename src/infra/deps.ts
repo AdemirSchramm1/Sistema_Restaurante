@@ -77,7 +77,12 @@ function globalLookups(db: Db): GlobalLookups {
       }>("select * from app_membership_for_user($1)", [userId]);
       const row = r.rows[0];
       return row
-        ? { restaurantId: row.restaurant_id, membershipId: row.membership_id, active: row.active, roles: row.roles }
+        ? {
+            restaurantId: row.restaurant_id,
+            membershipId: row.membership_id,
+            active: row.active,
+            roles: row.roles,
+          }
         : null;
     },
     async invitationByTokenHash(hash) {

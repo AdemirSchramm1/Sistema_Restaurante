@@ -14,7 +14,9 @@ import type { OrderStatus } from "../ordering/order";
 const order = (status: OrderStatus, total: string) => ({ status, total: d(total) });
 const pay = (amount: string, removed = false) => ({ amount: d(amount), removed });
 const money = (t: TabTotals) =>
-  Object.fromEntries(Object.entries(t).map(([k, v]) => [k, (v as { toFixed(n: number): string }).toFixed(2)]));
+  Object.fromEntries(
+    Object.entries(t).map(([k, v]) => [k, (v as { toFixed(n: number): string }).toFixed(2)]),
+  );
 const code = (r: { ok: boolean; error?: { code: string } }) => (r.ok ? "OK" : r.error!.code);
 
 /** Mesa 12: 2 × X-Burger com queijo (R$ 68,00) e 1 Suco (R$ 9,00); um suco cancelado. */
@@ -112,7 +114,10 @@ describe("fechar a conta (spec 011, US2 e FR-004)", () => {
 
 describe("reabrir conta (spec 011, US6)", () => {
   it("motivo obrigatório, sem espaços nas pontas, até 140 letras", () => {
-    expect(checkReopenReason("  Cliente pediu dois CPFs  ")).toEqual({ ok: true, value: "Cliente pediu dois CPFs" });
+    expect(checkReopenReason("  Cliente pediu dois CPFs  ")).toEqual({
+      ok: true,
+      value: "Cliente pediu dois CPFs",
+    });
     const empty = checkReopenReason("   ");
     expect(empty.ok ? null : [empty.error.code, empty.error.field]).toEqual(["REASON_REQUIRED", "reason"]);
     const long = checkReopenReason("x".repeat(141));

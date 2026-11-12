@@ -103,8 +103,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 };
 
 /** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
-const money = (v: unknown) =>
-  `R$ ${formatBrDecimal(d(String(v)), { minPlaces: 2, maxPlaces: 2 })}`;
+const money = (v: unknown) => `R$ ${formatBrDecimal(d(String(v)), { minPlaces: 2, maxPlaces: 2 })}`;
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";

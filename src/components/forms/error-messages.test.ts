@@ -5,13 +5,15 @@ describe("mensagens com valores da conta da mesa (spec 011)", () => {
   it("tirar a taxa com o pago acima do novo total diz os valores e o que fazer", () => {
     expect(
       messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", details: { total: "77.00", paid: "80.00" } }),
-    ).toBe("Já foram pagos R$ 80,00 e, sem a taxa, a conta fica em R$ 77,00. Tire um pagamento antes de tirar a taxa.");
+    ).toBe(
+      "Já foram pagos R$ 80,00 e, sem a taxa, a conta fica em R$ 77,00. Tire um pagamento antes de tirar a taxa.",
+    );
   });
 
   it("pagamento acima do que falta diz quanto falta (US2-3)", () => {
-    expect(messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", field: "amount", details: { remaining: "40.00" } })).toBe(
-      "O valor passa do que falta pagar (R$ 40,00).",
-    );
+    expect(
+      messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", field: "amount", details: { remaining: "40.00" } }),
+    ).toBe("O valor passa do que falta pagar (R$ 40,00).");
   });
 
   it("fechar com falta diz quanto; com pago a mais, quanto e o que fazer (US2-6)", () => {

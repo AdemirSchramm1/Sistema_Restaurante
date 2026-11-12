@@ -11,7 +11,8 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(import.meta.dirname, "../../..");
 const PALETTE =
   "red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone";
-const UTILITY = "bg|text|border|ring|outline|fill|stroke|from|via|to|accent|caret|decoration|divide|shadow|placeholder";
+const UTILITY =
+  "bg|text|border|ring|outline|fill|stroke|from|via|to|accent|caret|decoration|divide|shadow|placeholder";
 const RAW = new RegExp(
   `(?<![\\w-])(?:${UTILITY})-(?:(?:${PALETTE})-\\d{2,3}|white|black)(?:/\\d{1,3})?(?![\\w-])`,
   "g",
@@ -39,13 +40,15 @@ describe("sem cor solta fora do tema (spec 012, FR-005)", () => {
   });
 
   it("app/ e src/components/ usam só as cores do tema", () => {
-    const offenders = [...sources(path.join(ROOT, "app")), ...sources(path.join(ROOT, "src/components"))].flatMap(
-      (file) =>
-        readFileSync(file, "utf8")
-          .split("\n")
-          .flatMap((line, i) =>
-            (line.match(RAW) ?? []).map((c) => `${path.relative(ROOT, file)}:${i + 1} ${c}`),
-          ),
+    const offenders = [
+      ...sources(path.join(ROOT, "app")),
+      ...sources(path.join(ROOT, "src/components")),
+    ].flatMap((file) =>
+      readFileSync(file, "utf8")
+        .split("\n")
+        .flatMap((line, i) =>
+          (line.match(RAW) ?? []).map((c) => `${path.relative(ROOT, file)}:${i + 1} ${c}`),
+        ),
     );
     expect(offenders).toEqual([]);
   });

@@ -108,7 +108,11 @@ export interface TabRepo {
    * Conta aberta da mesa, travada até o fim da transação; abre uma (com a taxa dada) se não houver.
    * Dois envios ao mesmo tempo abrem uma conta só. Conta que já existia ganha +1 na versão.
    */
-  openForOrder(tableId: string, at: Date, serviceRate: Decimal | null): Promise<{ id: string; opened: boolean }>;
+  openForOrder(
+    tableId: string,
+    at: Date,
+    serviceRate: Decimal | null,
+  ): Promise<{ id: string; opened: boolean }>;
   get(id: string): Promise<TabRecord | null>;
   /** Conta travada até o fim da transação (SELECT … FOR UPDATE). */
   lock(id: string): Promise<TabRecord | null>;

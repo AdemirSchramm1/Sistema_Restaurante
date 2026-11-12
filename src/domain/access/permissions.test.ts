@@ -95,7 +95,11 @@ describe("pedidos pelo QR code (spec 009, FR-010) e adicionais (spec 010, FR-008
   });
 
   it("garçom só vê prontos, marca entregue, consulta pedidos e vê a conta (spec 011); não vê estoque", () => {
-    expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual(["order.deliver", "order.read", "tab.read"]);
+    expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual([
+      "order.deliver",
+      "order.read",
+      "tab.read",
+    ]);
     expect(can(["WAITER"], "catalog.read")).toBe(false);
   });
 

@@ -17,6 +17,7 @@ export function serviceCharge(subtotal: Decimal, rate: Decimal | null, waived: b
 /** Porcentagem de 0 a 20, com até 2 casas; vazia desliga a taxa (FR-014). */
 export function checkServiceRate(rate: Decimal | null): Result<Decimal | null> {
   if (rate === null) return ok(null);
-  if (rate.lt(0) || rate.gt(MAX_RATE) || rate.decimalPlaces() > 2) return err("INVALID_RATE", "serviceChargeRate");
+  if (rate.lt(0) || rate.gt(MAX_RATE) || rate.decimalPlaces() > 2)
+    return err("INVALID_RATE", "serviceChargeRate");
   return ok(rate);
 }

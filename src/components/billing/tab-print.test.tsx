@@ -22,7 +22,12 @@ const tab: TabDetailView = {
       cancelNote: null,
       total: "68.00",
       lines: [
-        { quantity: 2, productName: "X-Burger", unitPrice: "34.00", changes: ["+ 2 Fatia de queijo", "SEM cebola"] },
+        {
+          quantity: 2,
+          productName: "X-Burger",
+          unitPrice: "34.00",
+          changes: ["+ 2 Fatia de queijo", "SEM cebola"],
+        },
       ],
     },
     {
@@ -95,7 +100,14 @@ describe("conta impressa (spec 011, US1-9)", () => {
     render(
       <TabPrint
         {...props}
-        tab={{ ...tab, serviceRate: null, serviceCharge: "0.00", total: "77.00", paid: "50.00", remaining: "27.00" }}
+        tab={{
+          ...tab,
+          serviceRate: null,
+          serviceCharge: "0.00",
+          total: "77.00",
+          paid: "50.00",
+          remaining: "27.00",
+        }}
       />,
     );
     const rows = screen.getAllByRole("row").map((r) => r.textContent);

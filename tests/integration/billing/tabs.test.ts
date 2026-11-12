@@ -47,13 +47,25 @@ describe("caixa: contas abertas e a conta da mesa (spec 011, US1)", () => {
     const juice = await b.s.place([b.s.juice()]);
     const extra = await b.s.place([b.s.juice()]);
     await b.deliver(burgers.orderId);
-    unwrap(await cancelOrder(env.deps, b.chef, { id: extra.orderId, reason: "CUSTOMER_GAVE_UP", note: null, version: 1 }));
+    unwrap(
+      await cancelOrder(env.deps, b.chef, {
+        id: extra.orderId,
+        reason: "CUSTOMER_GAVE_UP",
+        note: null,
+        version: 1,
+      }),
+    );
 
     const tab = unwrap(await getTab(env.deps, b.cashier, await b.tabId()));
     expect(tab.tableName).toBe("12");
     expect(tab.status).toBe("OPEN");
     expect(
-      tab.orders.map((o) => ({ number: o.number, status: o.status, cancelReason: o.cancelReason, total: money(o.total) })),
+      tab.orders.map((o) => ({
+        number: o.number,
+        status: o.status,
+        cancelReason: o.cancelReason,
+        total: money(o.total),
+      })),
     ).toEqual([
       { number: burgers.number, status: "DELIVERED", cancelReason: null, total: "68.00" },
       { number: juice.number, status: "RECEIVED", cancelReason: null, total: "9.00" },
@@ -74,7 +86,14 @@ describe("caixa: contas abertas e a conta da mesa (spec 011, US1)", () => {
       total: money(tab.total),
       paid: money(tab.paid),
       remaining: money(tab.remaining),
-    }).toEqual({ subtotal: "77.00", rate: "10", service: "7.70", total: "84.70", paid: "0.00", remaining: "84.70" });
+    }).toEqual({
+      subtotal: "77.00",
+      rate: "10",
+      service: "7.70",
+      total: "84.70",
+      paid: "0.00",
+      remaining: "84.70",
+    });
     expect(tab.pendingOrders).toBe(1);
     expect(tab.canClose).toBe(false);
     expect(tab.blockers).toEqual(["REMAINING_NOT_ZERO", "PENDING_ORDERS"]);

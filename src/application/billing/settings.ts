@@ -31,7 +31,11 @@ export async function setServiceChargeRate(
   if (!rate.ok) return rate;
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.billingSettings.get();
-    const r = await repos.billingSettings.setServiceChargeRate(rate.value, input.version, auditStamp(deps, ctx));
+    const r = await repos.billingSettings.setServiceChargeRate(
+      rate.value,
+      input.version,
+      auditStamp(deps, ctx),
+    );
     if (!r.ok) return r;
     const before = current.serviceChargeRate?.toFixed(2) ?? null;
     const after = rate.value?.toFixed(2) ?? null;

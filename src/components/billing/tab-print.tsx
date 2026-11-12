@@ -35,7 +35,10 @@ export function TabPrint({
   const remaining = d(tab.remaining);
   const date = new Date(printedAt).toLocaleDateString("pt-BR", { timeZone: timezone });
   return (
-    <article className="tab-print mx-auto grid max-w-sm gap-3 font-mono text-sm" aria-label={`Conta da mesa ${tab.tableName}`}>
+    <article
+      className="tab-print mx-auto grid max-w-sm gap-3 font-mono text-sm"
+      aria-label={`Conta da mesa ${tab.tableName}`}
+    >
       <header className="grid gap-0.5 text-center">
         <h1 className="text-base font-bold">{restaurantName}</h1>
         <p>{`Mesa ${tab.tableName}`}</p>
@@ -63,7 +66,9 @@ export function TabPrint({
           )}
           <Row label="Total" value={brl(d(tab.total))} strong />
           {!paid.isZero() && <Row label="Pago" value={brl(paid)} />}
-          {!paid.isZero() && <Row label="Falta" value={brl(remaining.isNegative() ? d(0) : remaining)} strong />}
+          {!paid.isZero() && (
+            <Row label="Falta" value={brl(remaining.isNegative() ? d(0) : remaining)} strong />
+          )}
         </tbody>
       </table>
       <p className="text-center font-semibold">Não é documento fiscal</p>

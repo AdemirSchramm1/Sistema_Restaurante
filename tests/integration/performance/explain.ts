@@ -45,7 +45,8 @@ export function explainingEnv(env: TestEnv) {
   /** Leituras da tabela inteira desde a última chamada: "tabela ← consulta". */
   function fullScans(): string[] {
     const found = plans.flatMap((plan) => {
-      const query = /Query Text: ([\s\S]*?)(?:\n\S|$)/.exec(plan)?.[1]?.replace(/\s+/g, " ").slice(0, 160) ?? "";
+      const query =
+        /Query Text: ([\s\S]*?)(?:\n\S|$)/.exec(plan)?.[1]?.replace(/\s+/g, " ").slice(0, 160) ?? "";
       return [...plan.matchAll(/Seq Scan on (\w+)/g)]
         .map((m) => m[1]!)
         .filter((t) => !GLOBAL_CATALOGS.has(t))

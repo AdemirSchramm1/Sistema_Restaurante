@@ -19,14 +19,22 @@ export function ServiceChargeToggle({
   tab,
   action,
 }: {
-  tab: { id: string; version: number; serviceRate: string | null; serviceWaived: boolean; serviceCharge: string };
+  tab: {
+    id: string;
+    version: number;
+    serviceRate: string | null;
+    serviceWaived: boolean;
+    serviceCharge: string;
+  };
   action: Action;
 }) {
   const [confirmingVersion, setConfirmingVersion] = useState<number | null>(null);
   if (tab.serviceRate === null) return null;
   const hidden = { tabId: tab.id, version: tab.version };
   if (tab.serviceWaived)
-    return <ActionForm action={action} hidden={{ ...hidden, waived: "false" }} submitLabel="Pôr taxa de volta" />;
+    return (
+      <ActionForm action={action} hidden={{ ...hidden, waived: "false" }} submitLabel="Pôr taxa de volta" />
+    );
   if (confirmingVersion !== tab.version)
     return (
       <Button type="button" size="sm" variant="outline" onClick={() => setConfirmingVersion(tab.version)}>
@@ -51,7 +59,15 @@ export function ServiceChargeToggle({
 }
 
 /** Porcentagem da taxa do restaurante (só gerente). Vazia desliga a taxa (FR-004). */
-export function ServiceRateForm({ rate, version, action }: { rate: string | null; version: number; action: Action }) {
+export function ServiceRateForm({
+  rate,
+  version,
+  action,
+}: {
+  rate: string | null;
+  version: number;
+  action: Action;
+}) {
   return (
     <ActionForm
       action={action}

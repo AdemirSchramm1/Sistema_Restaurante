@@ -30,7 +30,9 @@ describe("contexto do login numa consulta (spec 012, FR-007)", () => {
     const env = testEnv();
     const m = await newRestaurant(env);
     const other = await addMember(env, m, ["WAITER"]);
-    await ownerTestDb().$client.query("update memberships set active = false where id = $1", [other.membershipId]);
+    await ownerTestDb().$client.query("update memberships set active = false where id = $1", [
+      other.membershipId,
+    ]);
     expect(await resolveContext(env.deps, other.userId, { channel: "test" })).toBeNull();
 
     const created = await env.deps.auth.createUser({
@@ -46,7 +48,9 @@ describe("contexto do login numa consulta (spec 012, FR-007)", () => {
     const env = testEnv();
     const m = await newRestaurant(env);
     const other = await addMember(env, m, ["WAITER"]);
-    await ownerTestDb().$client.query("delete from membership_roles where membership_id = $1", [other.membershipId]);
+    await ownerTestDb().$client.query("delete from membership_roles where membership_id = $1", [
+      other.membershipId,
+    ]);
     const ctx = await resolveContext(env.deps, other.userId, { channel: "test" });
     expect(ctx?.roles).toEqual([]);
   });

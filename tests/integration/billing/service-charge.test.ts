@@ -70,9 +70,9 @@ describe("tirar a taxa de serviço de uma conta (spec 011, US1-8)", () => {
     const env = testEnv();
     const t = await setup(env);
     await t.s.place([t.s.juice()]);
-    expect(code(await setServiceWaived(env.deps, t.cashier, { tabId: t.id, waived: true, version: t.version }))).toBe(
-      "STALE_RECORD",
-    );
+    expect(
+      code(await setServiceWaived(env.deps, t.cashier, { tabId: t.id, waived: true, version: t.version })),
+    ).toBe("STALE_RECORD");
   });
 
   it("conta sem taxa não tem o que tirar", async () => {
@@ -90,7 +90,11 @@ describe("tirar a taxa de serviço de uma conta (spec 011, US1-8)", () => {
     const env = testEnv();
     const t = await setup(env);
     await paid(env, t.m.restaurantId, t.id, t.cashier.userId, "80.00");
-    const r = await setServiceWaived(env.deps, t.cashier, { tabId: t.id, waived: true, version: t.version + 1 });
+    const r = await setServiceWaived(env.deps, t.cashier, {
+      tabId: t.id,
+      waived: true,
+      version: t.version + 1,
+    });
     expect(code(r)).toBe("PAYMENT_EXCEEDS_REMAINING");
     const tab = unwrap(await getTab(env.deps, t.cashier, t.id));
     expect([tab.serviceWaived, money(tab.total)]).toEqual([false, "84.70"]);
@@ -105,17 +109,19 @@ describe("tirar a taxa de serviço de uma conta (spec 011, US1-8)", () => {
         where id = $1`,
       [t.id, env.clock.now(), t.cashier.userId],
     );
-    expect(code(await setServiceWaived(env.deps, t.cashier, { tabId: t.id, waived: true, version: t.version + 1 }))).toBe(
-      "TAB_CLOSED",
-    );
+    expect(
+      code(
+        await setServiceWaived(env.deps, t.cashier, { tabId: t.id, waived: true, version: t.version + 1 }),
+      ),
+    ).toBe("TAB_CLOSED");
   });
 
   it("só gerente e caixa tiram a taxa; garçom é recusado e fica na auditoria", async () => {
     const env = testEnv();
     const t = await setup(env);
-    expect(code(await setServiceWaived(env.deps, t.waiter, { tabId: t.id, waived: true, version: t.version }))).toBe(
-      "FORBIDDEN",
-    );
+    expect(
+      code(await setServiceWaived(env.deps, t.waiter, { tabId: t.id, waived: true, version: t.version })),
+    ).toBe("FORBIDDEN");
     const denied = await db().query(
       "select count(*)::int as n from audit_log where action = 'DENIED' and user_id = $1 and entity = 'table_tab'",
       [t.waiter.userId],
@@ -154,8 +160,12 @@ describe("taxa de serviço do restaurante (spec 011, FR-004)", () => {
     const env = testEnv();
     const b = await billingScenario(env);
     const { version } = unwrap(await getServiceChargeSettings(env.deps, b.m));
-    expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("20.01"), version }))).toBe("INVALID_RATE");
-    expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("10.555"), version }))).toBe("INVALID_RATE");
+    expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("20.01"), version }))).toBe(
+      "INVALID_RATE",
+    );
+    expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("10.555"), version }))).toBe(
+      "INVALID_RATE",
+    );
     expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("-1"), version }))).toBe("INVALID_RATE");
     unwrap(await setServiceChargeRate(env.deps, b.m, { rate: d("0"), version }));
     expect(code(await setServiceChargeRate(env.deps, b.m, { rate: d("15"), version }))).toBe("STALE_RECORD");
@@ -165,7 +175,9 @@ describe("taxa de serviço do restaurante (spec 011, FR-004)", () => {
     const env = testEnv();
     const b = await billingScenario(env);
     const { version } = unwrap(await getServiceChargeSettings(env.deps, b.cashier));
-    expect(code(await setServiceChargeRate(env.deps, b.cashier, { rate: d("12"), version }))).toBe("FORBIDDEN");
+    expect(code(await setServiceChargeRate(env.deps, b.cashier, { rate: d("12"), version }))).toBe(
+      "FORBIDDEN",
+    );
     expect(code(await getServiceChargeSettings(env.deps, b.stockkeeper))).toBe("FORBIDDEN");
   });
 });

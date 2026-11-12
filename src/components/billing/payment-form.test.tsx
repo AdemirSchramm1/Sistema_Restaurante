@@ -20,7 +20,8 @@ const click = async (name: string | RegExp) => {
     fireEvent.click(screen.getByRole("button", { name }));
   });
 };
-const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
+const type = (label: string, value: string) =>
+  fireEvent.change(screen.getByLabelText(label), { target: { value } });
 const valueOf = (label: string) => (screen.getByLabelText(label) as HTMLInputElement).value;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -62,7 +63,11 @@ describe("lançar pagamento (spec 011, US2-1 a US2-3)", () => {
   it("recusa do servidor aparece em português, com o que foi digitado, e repetir usa o mesmo id", async () => {
     const s = spy({
       ok: false,
-      error: { code: "PAYMENT_EXCEEDS_REMAINING", field: "amount", message: "O valor passa do que falta pagar (R$ 40,00)." },
+      error: {
+        code: "PAYMENT_EXCEEDS_REMAINING",
+        field: "amount",
+        message: "O valor passa do que falta pagar (R$ 40,00).",
+      },
       at: 1,
     });
     render(<PaymentForm tabId="t12" remaining="40.00" action={s.action} />);
@@ -90,7 +95,9 @@ describe("lançar pagamento (spec 011, US2-1 a US2-3)", () => {
 
   it("valor pedido de fora (parte da divisão) preenche o campo", () => {
     const { rerender } = render(<PaymentForm tabId="t12" remaining="100.00" action={spy().action} />);
-    rerender(<PaymentForm tabId="t12" remaining="100.00" action={spy().action} fill={{ amount: "33.34", at: 1 }} />);
+    rerender(
+      <PaymentForm tabId="t12" remaining="100.00" action={spy().action} fill={{ amount: "33.34", at: 1 }} />,
+    );
     expect(valueOf("Valor (R$)")).toBe("33,34");
   });
 });
@@ -99,7 +106,12 @@ describe("fechar a conta (spec 011, US2-6)", () => {
   it("desabilitado com o motivo enquanto falta pagar ou há pedido não entregue", () => {
     render(
       <CloseTabForm
-        tab={{ id: "t12", version: 5, remaining: "34.70", blockers: ["REMAINING_NOT_ZERO", "PENDING_ORDERS"] }}
+        tab={{
+          id: "t12",
+          version: 5,
+          remaining: "34.70",
+          blockers: ["REMAINING_NOT_ZERO", "PENDING_ORDERS"],
+        }}
         action={spy().action}
       />,
     );
@@ -120,7 +132,9 @@ describe("fechar a conta (spec 011, US2-6)", () => {
 
   it("sem pendência, fecha com a versão que a tela mostrou", async () => {
     const s = spy();
-    render(<CloseTabForm tab={{ id: "t12", version: 5, remaining: "0.00", blockers: [] }} action={s.action} />);
+    render(
+      <CloseTabForm tab={{ id: "t12", version: 5, remaining: "0.00", blockers: [] }} action={s.action} />,
+    );
     await click("Fechar conta");
     expect(s.calls).toEqual([{ tabId: "t12", version: "5" }]);
   });
