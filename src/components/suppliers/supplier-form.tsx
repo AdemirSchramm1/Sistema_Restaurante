@@ -20,7 +20,7 @@ type Props = {
 
 /** Cadastro do fornecedor: só o nome é obrigatório (spec 007, US1). */
 export function SupplierForm({ action, initial, meta, readOnly, submitLabel }: Props) {
-  const { state, pending, formProps } = useFormAction(action);
+  const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
   const v = (k: string) => String(initial[k] ?? "");
@@ -47,7 +47,7 @@ export function SupplierForm({ action, initial, meta, readOnly, submitLabel }: P
         </>
       )}
       <FormError error={error} />
-      {state?.ok && <Alert tone="success">Alterações salvas.</Alert>}
+      {saved && <Alert tone="success">Alterações salvas.</Alert>}
 
       <fieldset disabled={readOnly} className="grid gap-6">
         <Card className="grid gap-4">

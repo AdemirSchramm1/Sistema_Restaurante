@@ -175,7 +175,7 @@ function AddForm({
 }
 
 function EditForm({ row, action }: { row: SupplierItemRow; action: Action }) {
-  const { pending, error, state, formProps } = useFormAction(action);
+  const { pending, error, saved, formProps } = useFormAction(action);
   return (
     <form {...formProps} className="flex flex-wrap items-end gap-3" aria-label={`Editar ${row.itemName}`}>
       <input type="hidden" name="id" value={row.id} />
@@ -184,7 +184,7 @@ function EditForm({ row, action }: { row: SupplierItemRow; action: Action }) {
       <Button type="submit" size="sm" variant="outline" disabled={pending}>
         Salvar
       </Button>
-      {state?.ok && (
+      {saved && (
         <p role="status" className="text-sm">
           Salvo.
         </p>

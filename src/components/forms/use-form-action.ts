@@ -9,7 +9,8 @@ type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
  * `useActionState` sem o reset automático do React 19: quando o servidor recusa, o que a pessoa
  * digitou continua no formulário. O `action` fica no `<form>` para funcionar sem JavaScript; com
  * JavaScript, o `onSubmit` envia por conta própria. `resetOnSuccess` limpa os campos depois de
- * salvar (formulários de criação).
+ * salvar (formulários de criação). Use `saved` para o aviso de salvo: ele some enquanto o próximo
+ * envio está a caminho.
  */
 export function useFormAction(action: Action, { resetOnSuccess = false } = {}) {
   const [state, formAction, pending] = useActionState(action, null);
@@ -28,7 +29,8 @@ export function useFormAction(action: Action, { resetOnSuccess = false } = {}) {
   return {
     state,
     pending,
-    saved: false,
+    /** O servidor confirmou o último envio e nenhum outro está a caminho. */
+    saved: Boolean(state?.ok) && !pending,
     error: state && !state.ok ? state.error : null,
     formProps: { ref: formRef, action: formAction, onSubmit },
   };

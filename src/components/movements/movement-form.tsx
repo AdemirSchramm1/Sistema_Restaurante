@@ -51,7 +51,7 @@ const money = (v: Decimal) => formatBrl(v);
 
 /** Lançamento de compra, perda ou pedido de acerto (spec 004). */
 export function MovementForm({ action, items, types, today, suppliers = [] }: Props) {
-  const { state, pending, formProps } = useFormAction(action);
+  const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
 
@@ -127,7 +127,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
     <form {...formProps} className="grid gap-4" aria-label="Lançamento">
       <input type="hidden" name="idempotencyKey" value={key} />
       <FormError error={error} />
-      {state?.ok && !pending && (
+      {saved && (
         <Alert tone="success">
           {type === "ADJUSTMENT" ? "Pedido de acerto enviado para aprovação." : "Lançamento registrado."}
         </Alert>

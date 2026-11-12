@@ -10,8 +10,8 @@ type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
 /** "Criar várias mesas" de um número a outro; diz quantas criou e quais já existiam. */
 export function TableRangeForm({ action }: { action: Action }) {
-  const { state, pending, formProps } = useFormAction(action, { resetOnSuccess: true });
-  const done = state?.ok ? (state.data as { created: number; skipped: string[] }) : null;
+  const { state, pending, saved, formProps } = useFormAction(action, { resetOnSuccess: true });
+  const done = saved && state?.ok ? (state.data as { created: number; skipped: string[] }) : null;
   return (
     <form {...formProps} className="flex flex-wrap items-end gap-2" aria-label="Criar várias mesas">
       <div className="grid gap-1">

@@ -32,7 +32,7 @@ const TIMES = Array.from({ length: MAX_ADDON_TIMES }, (_, i) => i + 1);
  * versão nova do produto.
  */
 export function ProductCustomization(props: ProductCustomizationProps) {
-  const { state, pending, formProps } = useFormAction(props.action);
+  const { state, pending, saved, formProps } = useFormAction(props.action);
   const [addons, setAddons] = useState(props.addons);
   const [removables, setRemovables] = useState(props.removables);
   const [pickAddon, setPickAddon] = useState("");
@@ -66,7 +66,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
         <input type="hidden" name="recipeId" value={props.recipeId} />
         <input type="hidden" name="version" value={props.version} />
         <FormError error={state && !state.ok ? state.error : null} />
-        {state?.ok && <Alert tone="success">Quadro salvo.</Alert>}
+        {saved && <Alert tone="success">Quadro salvo.</Alert>}
 
         <fieldset className="grid gap-2" aria-label="Adicionar">
           <legend className="font-medium">Adicionar</legend>

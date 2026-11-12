@@ -29,7 +29,7 @@ export function ActionForm({
   children?: React.ReactNode;
   "aria-label"?: string;
 }) {
-  const { state, pending, formProps } = useFormAction(action, { resetOnSuccess: true });
+  const { state, pending, saved, formProps } = useFormAction(action, { resetOnSuccess: true });
   return (
     <form
       {...formProps}
@@ -43,7 +43,7 @@ export function ActionForm({
       <Button type="submit" size={size} variant={variant} disabled={pending}>
         {submitLabel}
       </Button>
-      {state?.ok && !pending && successMessage && (
+      {saved && successMessage && (
         <p role="status" className="text-sm">
           {successMessage}
         </p>

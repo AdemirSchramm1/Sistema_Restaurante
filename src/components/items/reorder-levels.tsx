@@ -30,7 +30,7 @@ export type ReorderLevelsProps = {
 
 /** Quadro "Aviso de reposição" da página do item (spec 006, US1). */
 export function ReorderLevels(p: ReorderLevelsProps) {
-  const { state, pending, formProps } = useFormAction(p.action);
+  const { state, pending, saved, formProps } = useFormAction(p.action);
   const [point, setPoint] = useState(p.reorderPoint ?? "");
   const [par, setPar] = useState(p.parLevel ?? "");
   const s = p.suggestion;
@@ -90,7 +90,7 @@ export function ReorderLevels(p: ReorderLevelsProps) {
             Salvar aviso
           </Button>
           <FormError error={state && !state.ok ? state.error : null} />
-          {state?.ok && <p role="status">Aviso salvo.</p>}
+          {saved && <p role="status">Aviso salvo.</p>}
         </form>
       )}
       {s ? (
