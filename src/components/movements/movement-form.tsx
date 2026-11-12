@@ -127,7 +127,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
     <form {...formProps} className="grid gap-4" aria-label="Lançamento">
       <input type="hidden" name="idempotencyKey" value={key} />
       <FormError error={error} />
-      {state?.ok && (
+      {state?.ok && !pending && (
         <Alert tone="success">
           {type === "ADJUSTMENT" ? "Pedido de acerto enviado para aprovação." : "Lançamento registrado."}
         </Alert>

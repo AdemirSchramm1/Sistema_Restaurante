@@ -43,7 +43,7 @@ export function ActionForm({
       <Button type="submit" size={size} variant={variant} disabled={pending}>
         {submitLabel}
       </Button>
-      {state?.ok && successMessage && (
+      {state?.ok && !pending && successMessage && (
         <p role="status" className="text-sm">
           {successMessage}
         </p>
