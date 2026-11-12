@@ -24,9 +24,12 @@ export default async function Page({ searchParams }: PageProps<"/caixa">) {
   const ctx = await requireContext();
   const closed = firstParam((await searchParams).fechada);
   const deps = serverDeps();
-  const r = await listOpenTabs(deps, ctx);
+  // As duas leituras são independentes: em paralelo, a tela espera uma ida ao banco a menos.
+  const [r, settings] = await Promise.all([
+    listOpenTabs(deps, ctx),
+    can(ctx.roles, "tab.settings") ? getServiceChargeSettings(deps, ctx) : null,
+  ]);
   if (!r.ok) return <NoAccess />;
-  const settings = can(ctx.roles, "tab.settings") ? await getServiceChargeSettings(deps, ctx) : null;
   return (
     <div className="grid gap-4">
       <AutoRefresh seconds={10} />

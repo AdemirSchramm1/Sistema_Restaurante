@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   const cookie = (await cookies()).get(MENU_ACCESS_COOKIE)?.value ?? null;
   const deps = serverDeps();
-  const menu = await getMenu(deps, cookie);
+  // Cardápio e pedidos da mesa são leituras independentes: em paralelo no celular do cliente.
+  const [menu, orders] = await Promise.all([getMenu(deps, cookie), listAccessOrders(deps, cookie)]);
   if (!menu.ok)
     return (
       <div className="grid min-h-[60vh] place-items-center text-center">
@@ -21,6 +22,5 @@ export default async function Page() {
         </p>
       </div>
     );
-  const orders = await listAccessOrders(deps, cookie);
   return <MenuApp menu={menu.value} orders={orders.ok ? orders.value : []} submit={submitOrderAction} />;
 }
