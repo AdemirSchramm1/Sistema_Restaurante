@@ -44,6 +44,25 @@ describe("ActionForm", () => {
     expect((screen.getByLabelText("Nome") as HTMLInputElement).value).toBe("");
   });
 
+  it("o aviso de salvo some enquanto o próximo envio salva", async () => {
+    let finish: () => void = () => {};
+    let calls = 0;
+    const action = (): Promise<ActionState> => {
+      calls += 1;
+      if (calls === 1) return Promise.resolve({ ok: true, data: null, at: 1 });
+      return new Promise((resolve) => {
+        finish = () => resolve({ ok: true, data: null, at: 2 });
+      });
+    };
+    render(<ActionForm action={action} submitLabel="Salvar" successMessage="Salvo." />);
+    await submit("Salvar");
+    expect(screen.getByText("Salvo.")).toBeTruthy();
+    await submit("Salvar");
+    expect(screen.queryByText("Salvo.")).toBeNull();
+    await act(async () => finish());
+    expect(screen.getByText("Salvo.")).toBeTruthy();
+  });
+
   it("o botão usa o tamanho pedido; o padrão é o pequeno", () => {
     const { unmount } = render(<ActionForm action={succeeding} submitLabel="Salvar" />);
     expect(screen.getByRole("button", { name: "Salvar" }).className).toContain("h-8");
