@@ -1,4 +1,6 @@
 import type { ComponentRef } from "@/domain/inventory/recipe";
+import type { Decimal } from "@/domain/shared/decimal";
+import { ok, type ErrorCode, type Result } from "@/domain/shared/result";
 
 /**
  * Leitura do que vem de formulários e de JSON (spec 012, FR-011). Só formato: a regra de negócio
@@ -12,6 +14,14 @@ export const formText = (v: unknown): string => (typeof v === "string" ? v.trim(
 
 /** Campo opcional: em branco vira null. */
 export const optionalText = (v: unknown): string | null => formText(v) || null;
+
+export function optionalDecimal(
+  _v: unknown,
+  _field: string,
+  _code: ErrorCode = "INVALID_NUMBER",
+): Result<Decimal | null> {
+  return ok(null);
+}
 
 /** Id no formato do banco. Malformado é recusado antes de chegar ao banco. */
 export const isId = (v: string): boolean => UUID.test(v);

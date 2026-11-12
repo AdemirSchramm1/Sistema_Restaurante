@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { componentRef, formDataToObject, formText, isId, optionalText } from "./form-input";
+import { componentRef, formDataToObject, formText, isId, optionalDecimal, optionalText } from "./form-input";
 
 const ID = "0193a000-0000-7000-8000-000000000123";
 
@@ -22,6 +22,26 @@ describe("optionalText", () => {
   it("campo opcional em branco vira null; com texto, vem aparado", () => {
     expect(optionalText("  Entregar pela manhã ")).toBe("Entregar pela manhã");
     for (const v of ["", "   ", undefined, null, 3]) expect(optionalText(v)).toBeNull();
+  });
+});
+
+describe("optionalDecimal", () => {
+  it("em branco é null; com vírgula vira decimal exato", () => {
+    expect(optionalDecimal("", "price")).toEqual({ ok: true, value: null });
+    expect(optionalDecimal(undefined, "price")).toEqual({ ok: true, value: null });
+    const r = optionalDecimal(" 1.234,56 ", "price");
+    expect(r.ok && r.value?.toFixed(2)).toBe("1234.56");
+  });
+
+  it("texto que não é número aponta o campo com o código pedido", () => {
+    expect(optionalDecimal("dois", "parLevel")).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_NUMBER", field: "parLevel" },
+    });
+    expect(optionalDecimal("1,2,3", "minOrderValue", "INVALID_AMOUNT")).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_AMOUNT", field: "minOrderValue" },
+    });
   });
 });
 
