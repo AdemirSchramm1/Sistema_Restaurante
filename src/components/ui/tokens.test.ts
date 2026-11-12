@@ -5,7 +5,8 @@ import { contrastRatio, luminanceOfOklch, parseOklch } from "@/lib/contrast";
 
 /**
  * Tema da spec 012 (FR-001, FR-002): toda cor de texto do tema tem contraste de pelo menos 4,5:1
- * com o fundo onde aparece, no modo claro e no escuro (WCAG AA).
+ * com o fundo onde aparece, no modo claro e no escuro (WCAG AA). Borda de campo, anel de foco e
+ * barra de gráfico precisam de 3:1 com o fundo para serem vistos (WCAG 1.4.11).
  */
 
 const css = readFileSync(path.resolve(import.meta.dirname, "../../../app/globals.css"), "utf8");
@@ -51,7 +52,31 @@ const PAIRS: [string, string][] = [
   ["sidebar-muted", "sidebar"],
   ["sidebar-foreground", "sidebar-accent"],
   ["sidebar-primary", "sidebar"],
+  ["sidebar-primary", "sidebar-accent"],
+  ["success-soft-foreground", "card"],
+  ["warning-soft-foreground", "card"],
+  ["danger-soft-foreground", "card"],
+  ["info-soft-foreground", "card"],
 ];
+
+/** [cor, fundo] de bordas, foco e barras: o que não é texto mas precisa ser visto. */
+const NON_TEXT_PAIRS: [string, string][] = [
+  ["input", "card"],
+  ["input", "background"],
+  ["ring", "background"],
+  ["ring", "card"],
+  ["chart-1", "muted"],
+  ["chart-2", "muted"],
+  ["chart-3", "muted"],
+  ["chart-4", "muted"],
+];
+
+function below(theme: Map<string, string>, pairs: [string, string][], min: number): string[] {
+  return pairs
+    .map(([text, bg]) => ({ pair: `${text} sobre ${bg}`, ratio: ratio(theme, text, bg) }))
+    .filter((p) => p.ratio < min)
+    .map((p) => `${p.pair}: ${p.ratio.toFixed(2)}`);
+}
 
 function ratio(theme: Map<string, string>, text: string, bg: string): number {
   const t = parseOklch(theme.get(text) ?? "");
@@ -70,10 +95,11 @@ describe("tema com a paleta de comida (spec 012, FR-001 e FR-002)", () => {
     ["escuro", dark],
   ] as const) {
     it(`modo ${name}: todo par de texto e fundo tem contraste de pelo menos 4,5:1`, () => {
-      const low = PAIRS.map(([text, bg]) => ({ pair: `${text} sobre ${bg}`, ratio: ratio(theme, text, bg) }))
-        .filter((p) => p.ratio < 4.5)
-        .map((p) => `${p.pair}: ${p.ratio.toFixed(2)}`);
-      expect(low).toEqual([]);
+      expect(below(theme, PAIRS, 4.5)).toEqual([]);
+    });
+
+    it(`modo ${name}: borda de campo, foco e barras têm contraste de pelo menos 3:1`, () => {
+      expect(below(theme, NON_TEXT_PAIRS, 3)).toEqual([]);
     });
   }
 });
