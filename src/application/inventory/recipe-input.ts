@@ -7,10 +7,9 @@ import {
 import { unitByCode, type UnitCode } from "@/domain/inventory/units";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
-import { formText } from "../form-input";
+import { componentRef, formText, isId } from "../form-input";
 
 const LINE_KEY = /^lines\.(\d{1,3})\.(component|quantity|unit)$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED = new Set(["name", "kind", "yieldQuantity", "yieldUnit"]);
 
 function decimalOrNull(v: unknown, field: string): Result<Decimal | null> {
@@ -53,15 +52,14 @@ export function parseRecipeForm(raw: Record<string, unknown>): Result<RecipeData
   for (const [pos, i] of indexes.entries()) {
     if (pos !== i) return err("VALIDATION", `lines.${pos}.component`);
     const row = rows.get(i)!;
-    const [kindPart, id] = formText(row.component).split(":");
-    if ((kindPart !== "ITEM" && kindPart !== "RECIPE") || !id || !UUID.test(id))
-      return err("VALIDATION", `lines.${i}.component`);
+    const component = componentRef(row.component);
+    if (!component) return err("VALIDATION", `lines.${i}.component`);
     const q = decimalOrNull(row.quantity, `lines.${i}.quantity`);
     if (!q.ok) return q;
     if (!q.value) return err("INVALID_QUANTITY", `lines.${i}.quantity`);
     const unit = formText(row.unit);
     if (!unitByCode(unit)) return err("UNKNOWN_UNIT", `lines.${i}.unit`);
-    lines.push({ component: { kind: kindPart, id }, quantity: q.value, unit: unit as UnitCode });
+    lines.push({ component, quantity: q.value, unit: unit as UnitCode });
   }
 
   return ok({ name: formText(raw.name), kind, yieldQuantity, yieldUnit, lines });
@@ -74,7 +72,7 @@ export function parseSalePriceForm(
   const id = formText(raw.id);
   const v = formText(raw.version);
   const version = /^\d+$/.test(v) ? Number.parseInt(v, 10) : 0;
-  if (!UUID.test(id) || version < 1) return err("VALIDATION");
+  if (!isId(id) || version < 1) return err("VALIDATION");
   const price = formText(raw.salePrice);
   if (!price) return ok({ id, version, salePrice: null });
   const parsed = parseBrDecimal(price);

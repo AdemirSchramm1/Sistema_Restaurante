@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { createAddon, setAddonActive, updateAddon } from "@/application/ordering/addons";
 import { parseAddonForm } from "@/application/ordering/addon-input";
-import { formDataToObject } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
 import { withContext, type ActionState } from "./_session";
 
 /** Adicionais (spec 010, US1). */

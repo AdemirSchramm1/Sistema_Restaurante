@@ -2,15 +2,12 @@ import { UNITS, type UnitCode } from "@/domain/inventory/units";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
 import type { AdjustmentRequestCommand, LossCommand, PurchaseCommand, ReversalCommand } from "./movements";
-import { formText } from "../form-input";
+import { formText, isId, optionalText } from "../form-input";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 /** Fuso dos restaurantes nesta versão (Brasília, sem horário de verão desde 2019). */
 const OFFSET = "-03:00";
 const UNIT_CODES = UNITS.map((u) => u.code) as string[];
-
-const optText = (v: unknown) => formText(v) || null;
 
 /** Dia de hoje (AAAA-MM-DD) em Brasília: o valor padrão do campo de data do lançamento. */
 export const movementToday = (now: Date): string =>
@@ -52,11 +49,11 @@ export function parseMovementForm(raw: Record<string, unknown>, now: Date): Resu
   const type = formText(raw.type);
   if (!["PURCHASE", "LOSS", "ADJUSTMENT"].includes(type)) return err("VALIDATION", "type");
   const itemId = formText(raw.itemId);
-  if (!UUID.test(itemId)) return err("VALIDATION", "itemId");
-  const notes = optText(raw.notes);
-  const idempotencyKey = optText(raw.idempotencyKey);
+  if (!isId(itemId)) return err("VALIDATION", "itemId");
+  const notes = optionalText(raw.notes);
+  const idempotencyKey = optionalText(raw.idempotencyKey);
   const reasonId = formText(raw.reasonId);
-  if (type !== "PURCHASE" && !UUID.test(reasonId)) return err("INVALID_REASON", "reasonId");
+  if (type !== "PURCHASE" && !isId(reasonId)) return err("INVALID_REASON", "reasonId");
 
   if (type === "ADJUSTMENT") {
     const counted = decimal(raw.countedQuantity, "countedQuantity");
@@ -77,8 +74,8 @@ export function parseMovementForm(raw: Record<string, unknown>, now: Date): Resu
   if (!occurredAt) return err("VALIDATION", "occurredAt");
 
   if (type === "PURCHASE") {
-    const supplierId = optText(raw.supplierId);
-    if (supplierId && !UUID.test(supplierId)) return err("VALIDATION", "supplierId");
+    const supplierId = optionalText(raw.supplierId);
+    if (supplierId && !isId(supplierId)) return err("VALIDATION", "supplierId");
     const totalPaid = decimal(raw.totalPaid, "totalPaid", "INVALID_AMOUNT");
     if (!totalPaid.ok) return totalPaid;
     return ok({
@@ -114,11 +111,11 @@ export function parseReversalForm(
   raw: Record<string, unknown>,
 ): Result<{ movementId: string; cmd: ReversalCommand }> {
   const movementId = formText(raw.movementId);
-  if (!UUID.test(movementId)) return err("NOT_FOUND");
+  if (!isId(movementId)) return err("NOT_FOUND");
   const reasonId = formText(raw.reasonId);
-  if (!UUID.test(reasonId)) return err("INVALID_REASON", "reasonId");
+  if (!isId(reasonId)) return err("INVALID_REASON", "reasonId");
   return ok({
     movementId,
-    cmd: { reasonId, notes: optText(raw.notes), idempotencyKey: optText(raw.idempotencyKey) },
+    cmd: { reasonId, notes: optionalText(raw.notes), idempotencyKey: optionalText(raw.idempotencyKey) },
   });
 }

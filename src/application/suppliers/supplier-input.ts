@@ -1,9 +1,8 @@
 import type { SupplierData, SupplierItemData } from "@/domain/suppliers/supplier";
 import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
-import { formText } from "../form-input";
+import { formText, isId, optionalText } from "../form-input";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SUPPLIER_FIELDS = [
   "name",
   "legalName",
@@ -17,8 +16,6 @@ const SUPPLIER_FIELDS = [
   "paymentTerms",
   "notes",
 ] as const;
-
-const optText = (v: unknown) => formText(v) || null;
 
 function optDecimal(v: unknown, field: string, code: ErrorCode): Result<Decimal | null> {
   const t = formText(v);
@@ -45,16 +42,16 @@ export function parseSupplierForm(raw: Record<string, unknown>): Result<Supplier
 
   return ok({
     name: formText(raw.name),
-    legalName: optText(raw.legalName),
-    cnpj: optText(raw.cnpj),
-    contactName: optText(raw.contactName),
-    phone: optText(raw.phone),
-    email: optText(raw.email),
+    legalName: optionalText(raw.legalName),
+    cnpj: optionalText(raw.cnpj),
+    contactName: optionalText(raw.contactName),
+    phone: optionalText(raw.phone),
+    email: optionalText(raw.email),
     deliveryDays: days.map(Number),
     leadTimeDays: lead ? Number.parseInt(lead, 10) : null,
     minOrderValue: minOrder.value,
-    paymentTerms: optText(raw.paymentTerms),
-    notes: optText(raw.notes),
+    paymentTerms: optionalText(raw.paymentTerms),
+    notes: optionalText(raw.notes),
   });
 }
 
@@ -64,7 +61,7 @@ export function parseSupplierItemForm(
   { requireItem = true } = {},
 ): Result<SupplierItemData> {
   const itemId = formText(raw.itemId);
-  if (requireItem && !UUID.test(itemId)) return err("VALIDATION", "itemId");
+  if (requireItem && !isId(itemId)) return err("VALIDATION", "itemId");
   const priceText = formText(raw.price);
   if (!priceText) return err("INVALID_PRICE", "price");
   const price = parseBrDecimal(priceText);
@@ -73,7 +70,7 @@ export function parseSupplierItemForm(
   if (!qty.ok) return qty;
   return ok({
     itemId,
-    packageLabel: optText(raw.packageLabel),
+    packageLabel: optionalText(raw.packageLabel),
     packageQuantity: qty.value,
     price: price.value,
     preferred: raw.preferred === "on" || raw.preferred === "true",

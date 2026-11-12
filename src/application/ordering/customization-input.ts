@@ -1,8 +1,7 @@
 import type { ComponentRef } from "@/domain/inventory/recipe";
 import { err, ok, type Result } from "@/domain/shared/result";
-import { formText } from "../form-input";
+import { componentRef, formText, isId } from "../form-input";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY = /^(addons|removables)\.(\d{1,2})\.(addonId|maxTimes|component|label)$/;
 const ALLOWED = new Set(["recipeId", "version"]);
 
@@ -30,15 +29,14 @@ export function parseCustomizationForm(raw: Record<string, unknown>): Result<Cus
   const sorted = <T>(m: Map<number, T>) => [...m.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
   const addons: CustomizationForm["addons"] = [];
   for (const [i, a] of sorted(rows.addons).entries()) {
-    if (!UUID.test(a.addonId ?? "")) return err("VALIDATION", `addons.${i}`);
+    if (!isId(a.addonId ?? "")) return err("VALIDATION", `addons.${i}`);
     addons.push({ addonId: a.addonId!, maxTimes: Number.parseInt(a.maxTimes ?? "", 10) });
   }
   const removables: CustomizationForm["removables"] = [];
   for (const [i, r] of sorted(rows.removables).entries()) {
-    const [kind, id] = (r.component ?? "").split(":");
-    if ((kind !== "ITEM" && kind !== "RECIPE") || !UUID.test(id ?? ""))
-      return err("VALIDATION", `removables.${i}`);
-    removables.push({ component: { kind, id: id! }, label: r.label ? r.label : null });
+    const component = componentRef(r.component);
+    if (!component) return err("VALIDATION", `removables.${i}`);
+    removables.push({ component, label: r.label ? r.label : null });
   }
   return ok({ addons, removables });
 }

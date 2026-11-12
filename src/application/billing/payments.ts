@@ -1,7 +1,8 @@
 import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
-import { TAB_ENTITY, currentTotals, isId } from "./tabs";
+import { isId } from "../form-input";
+import { TAB_ENTITY, currentTotals } from "./tabs";
 import { checkPayment, type PaymentMethod } from "@/domain/billing/payment";
 import type { Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";

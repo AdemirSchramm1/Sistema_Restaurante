@@ -6,7 +6,7 @@ import { serverDeps } from "@/infra/server";
 import { createRecipe, setRecipeActive, updateRecipe } from "@/application/inventory/recipes";
 import { parseRecipeForm, parseSalePriceForm } from "@/application/inventory/recipe-input";
 import { setRecipeSalePrice } from "@/application/inventory/product-costs";
-import { formDataToObject } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
 import { setProductCustomization } from "@/application/ordering/customization";
 import { parseCustomizationForm } from "@/application/ordering/customization-input";
 import { withContext, type ActionState } from "./_session";

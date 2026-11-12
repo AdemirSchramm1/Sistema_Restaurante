@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { setReorderLevels } from "@/application/inventory/reorder";
 import { parseReorderForm } from "@/application/inventory/reorder-input";
-import { formDataToObject } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
 import { withContext, type ActionState } from "./_session";
 
 /** Salva o aviso de reposição do item (spec 006, US1). */
