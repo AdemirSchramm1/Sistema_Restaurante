@@ -6,6 +6,8 @@ import { brl } from "@/components/ordering/format";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
+import { WRAPPING_BUTTON } from "./feedback";
 import { MoveButtons, type FormAction } from "./move-buttons";
 import { DeleteSection, NewSectionForm, RenameSectionForm } from "./section-form";
 
@@ -124,12 +126,15 @@ export function MenuBoard({
     <div className="grid gap-4">
       <div className="flex flex-wrap gap-2">
         {canCreateProduct && (
-          <Link href="/pedidos/cardapio/novo" className={buttonVariants({ size: "lg" })}>
+          <Link href="/pedidos/cardapio/novo" className={cn(buttonVariants({ size: "lg" }), WRAPPING_BUTTON)}>
             <Plus aria-hidden="true" />
             Novo produto
           </Link>
         )}
-        <Link href="/pedidos/cardapio/ver" className={buttonVariants({ variant: "outline", size: "lg" })}>
+        <Link
+          href="/pedidos/cardapio/ver"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }), WRAPPING_BUTTON)}
+        >
           <Eye aria-hidden="true" />
           Ver como o cliente
         </Link>

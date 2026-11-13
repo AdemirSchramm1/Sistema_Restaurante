@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { MAX_SECTION_NAME } from "@/domain/menu/section";
-import { Problem, Saved } from "./feedback";
+import { Problem, Saved, WRAPPING_BUTTON } from "./feedback";
 import type { FormAction } from "./move-buttons";
 
 /** Campo do nome com o erro do servidor ligado a ele (spec 013, US2.1). */
@@ -20,7 +20,7 @@ function NameField({
 }) {
   const id = useId();
   return (
-    <div className="grid min-w-0 flex-1 gap-1.5">
+    <div className="grid min-w-0 flex-1 basis-48 gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
@@ -42,7 +42,7 @@ export function NewSectionForm({ action }: { action: FormAction }) {
   return (
     <form {...formProps} aria-label="Nova seção" className="flex flex-wrap items-end gap-2">
       <NameField label="Nome da seção nova" error={error?.message ?? null} />
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" className={WRAPPING_BUTTON} disabled={pending}>
         Criar seção
       </Button>
       {saved && <Saved>Seção criada</Saved>}
@@ -67,7 +67,7 @@ export function RenameSectionForm({
         defaultValue={section.name}
         error={error?.message ?? null}
       />
-      <Button type="submit" variant="outline" size="lg" disabled={pending}>
+      <Button type="submit" variant="outline" size="lg" className={WRAPPING_BUTTON} disabled={pending}>
         Salvar nome
       </Button>
       {saved && <Saved />}
@@ -94,7 +94,13 @@ export function DeleteSection({
   const { pending, error, formProps } = useFormAction(action);
   if (!asking)
     return (
-      <Button type="button" variant="outline" size="lg" onClick={() => setAsking(true)}>
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className={WRAPPING_BUTTON}
+        onClick={() => setAsking(true)}
+      >
         Apagar {section.name}
       </Button>
     );
@@ -107,10 +113,16 @@ export function DeleteSection({
     >
       <input type="hidden" name="id" value={section.id} />
       <p className="basis-full text-sm font-medium">{destination(section.name, section.productCount)}</p>
-      <Button type="submit" variant="destructive" size="lg" disabled={pending}>
+      <Button type="submit" variant="destructive" size="lg" className={WRAPPING_BUTTON} disabled={pending}>
         Apagar seção
       </Button>
-      <Button type="button" variant="outline" size="lg" onClick={() => setAsking(false)}>
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className={WRAPPING_BUTTON}
+        onClick={() => setAsking(false)}
+      >
         Cancelar
       </Button>
       {error && <Problem>{error.message}</Problem>}
