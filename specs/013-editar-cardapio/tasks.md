@@ -145,14 +145,14 @@ Bloqueia todas as histórias.
 **Objetivo**: seções, fotos e descrições no cardápio do cliente, certo em toda a matriz.
 **Teste independente**: abrir o cardápio de dados fixos em cada tela da matriz e passar em todas as asserções.
 
-- [ ] T085 [US6] [teste] `tests/integration/ordering/menu.test.ts`: `getMenu` devolve `showSectionTitles` e `sections` conforme [contracts/use-cases.md](contracts/use-cases.md#cardápio-do-cliente-estende-a-rota-pública-da-009), com descrição e foto; faz uma consulta a mais que antes e o mesmo número com 2 ou 40 produtos; nada de outro restaurante
-- [ ] T086 [US6] `src/application/ordering/menu.ts` e `menuRepository` passam a usar `buildCustomerMenu`
-- [ ] T087 [P] [US6] [teste] `src/components/ordering/product-photo.test.tsx`: `<img>` com `srcset` das larguras, `sizes` de [research.md, R5](research.md#r5-imagem-no-cardápio), `width` e `height` em 4:3, `alt` com o nome do produto, `loading="lazy"` por padrão e `eager` quando pedido; sem foto não desenha nada
-- [ ] T088 [P] [US6] `src/components/ordering/product-photo.tsx`
-- [ ] T089 [P] [US6] [teste] `src/components/ordering/product-card.test.tsx`: foto, nome inteiro, descrição, preço e botão com nome acessível "Adicionar {nome}" ou "Escolher {nome}"; sem descrição não deixa parágrafo vazio; sem foto não deixa espaço
-- [ ] T090 [P] [US6] `src/components/ordering/product-card.tsx`
-- [ ] T091 [P] [US6] [teste] `src/components/ordering/section-bar.test.tsx`: `nav` com nome "Seções do cardápio", um link por seção para a âncora do título, seção atual com `aria-current`, não aparece quando `showSectionTitles` é falso
-- [ ] T092 [P] [US6] `src/components/ordering/section-bar.tsx`
+- [x] T085 [US6] [teste] `tests/integration/ordering/menu.test.ts`: `getMenu` devolve `showSectionTitles` e `sections` conforme [contracts/use-cases.md](contracts/use-cases.md#cardápio-do-cliente-estende-a-rota-pública-da-009), com descrição e foto; faz uma consulta a mais que antes e o mesmo número com 2 ou 40 produtos; nada de outro restaurante
+- [x] T086 [US6] `src/application/ordering/menu.ts` e `menuRepository` passam a usar `buildCustomerMenu`
+- [x] T087 [P] [US6] [teste] `src/components/ordering/product-photo.test.tsx`: `<img>` com `srcset` das larguras, `sizes` de [research.md, R5](research.md#r5-imagem-no-cardápio), `width` e `height` em 4:3, `alt` com o nome do produto, `loading="lazy"` por padrão e `eager` quando pedido; sem foto não desenha nada
+- [x] T088 [P] [US6] `src/components/ordering/product-photo.tsx`
+- [x] T089 [P] [US6] [teste] `src/components/ordering/product-card.test.tsx`: foto, nome inteiro, descrição, preço e botão com nome acessível "Adicionar {nome}" ou "Escolher {nome}"; sem descrição não deixa parágrafo vazio; sem foto não deixa espaço
+- [x] T090 [P] [US6] `src/components/ordering/product-card.tsx`
+- [x] T091 [P] [US6] [teste] `src/components/ordering/section-bar.test.tsx`: `nav` com nome "Seções do cardápio", um link por seção para a âncora do título, seção atual com `aria-current`, não aparece quando `showSectionTitles` é falso
+- [x] T092 [P] [US6] `src/components/ordering/section-bar.tsx`
 - [ ] T093 [US6] [teste] `src/components/ordering/menu-app.test.tsx`: títulos de seção como `h2` com âncora; sem títulos quando `showSectionTitles` é falso; a busca procura em todas as seções e mantém a ordem do cardápio; as duas primeiras fotos `eager`; a atualização a cada 10 s troca foto e ordem sem perder o carrinho; os casos da 009 e da 010 continuam passando
 - [ ] T094 [US6] `src/components/ordering/menu-app.tsx`
 - [ ] T095 [US6] [teste] `src/components/ordering/dish-options.test.tsx`: a tela do prato mostra a foto maior e a descrição inteira com as quebras de linha
