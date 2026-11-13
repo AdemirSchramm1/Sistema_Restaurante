@@ -35,6 +35,10 @@ const toRecord = (r: typeof recipes.$inferSelect, current: RecipeVersionRecord):
   current,
 });
 
+/** Próxima posição livre entre os produtos vendidos sem seção ("Outros") do restaurante. */
+const END_OF_OTHERS = sql<number>`(select coalesce(max(o.menu_position), 0) + 1 from recipes o
+  where o.kind = 'DISH' and o.menu_section_id is null and o.restaurant_id = app_current_restaurant())`;
+
 export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
   /** Versão mais nova de cada produto. */
   const latest = tx
@@ -109,6 +113,8 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
           name: r.name.trim(),
           nameNormalized: r.nameNormalized,
           kind: r.kind,
+          // Produto vendido novo entra no fim de "Outros" (spec 013, US3.2); preparo não tem posição.
+          menuPosition: r.kind === "DISH" ? END_OF_OTHERS : 0,
           createdAt: audit.at,
           createdBy: audit.by,
           updatedAt: audit.at,
@@ -122,7 +128,23 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
         optimistic(
           id,
           version,
-          { name: r.name.trim(), nameNormalized: r.nameNormalized, kind: r.kind },
+          {
+            name: r.name.trim(),
+            nameNormalized: r.nameNormalized,
+            kind: r.kind,
+            // Trocar de tipo tira o produto do cardápio ou põe no fim de "Outros" (spec 013).
+            ...(r.kind === "DISH"
+              ? {
+                  menuPosition: sql`case when ${recipes.kind} = 'DISH' then ${recipes.menuPosition} else ${END_OF_OTHERS} end`,
+                }
+              : {
+                  description: null,
+                  menuSectionId: null,
+                  menuPosition: 0,
+                  photoBase: null,
+                  photoWidths: null,
+                }),
+          },
           audit,
         ),
       ),

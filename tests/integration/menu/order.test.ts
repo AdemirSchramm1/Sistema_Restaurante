@@ -93,10 +93,10 @@ describe("ordem dos produtos (spec 013, US3)", () => {
     expect({ ...after, menu_position: 0 }).toEqual({ ...before, menu_position: 0 });
     expect([before.menu_position, after.menu_position]).toEqual([2, 1]);
     expect(unwrap(await getRecipe(env.deps, s.m, s.salada)).versionNumber).toBe(versionBefore);
-    const lines = await ownerTestDb().execute<{ product_name: string; unit_price: string }>(
-      sql`select product_name, unit_price from order_lines where order_id = ${sent.orderId}`,
+    const lines = await ownerTestDb().execute<{ recipe_id: string; unit_price: string }>(
+      sql`select recipe_id, unit_price from order_lines where order_id = ${sent.orderId}`,
     );
-    expect(lines.rows).toEqual([{ product_name: "X-Salada", unit_price: "26.00" }]);
+    expect(lines.rows).toEqual([{ recipe_id: s.salada, unit_price: "26.00" }]);
   });
 
   it("dois movimentos ao mesmo tempo terminam com todos os produtos e sem posição repetida", async () => {
