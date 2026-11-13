@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { BoardProduct, MenuBoard as Board } from "@/application/menu/board";
 import { MenuBoard, type MenuBoardActions } from "./menu-board";
 
@@ -113,7 +113,7 @@ describe("tela Cardápio (spec 013, US2)", () => {
 
   it("apagar avisa quantos produtos vão para Outros", () => {
     show();
-    within(sectionOf("Lanches")).getByRole("button", { name: "Apagar Lanches" }).click();
+    fireEvent.click(within(sectionOf("Lanches")).getByRole("button", { name: "Apagar Lanches" }));
     expect(screen.getByText("Os 2 produtos de Lanches vão para Outros")).toBeTruthy();
   });
 

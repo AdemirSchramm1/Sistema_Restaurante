@@ -71,18 +71,18 @@ Bloqueia todas as histórias.
 - [x] T034 [P] [US2] `src/application/menu/section-input.ts`
 - [x] T035 [US2] [teste] `tests/integration/menu/board.test.ts`: `getMenuBoard` devolve as seções na ordem com `canMoveUp` e `canMoveDown`, seção vazia aparece, "Outros" só com produtos, cada produto com preço (`null` = sem preço), `active`, `soldOutToday` e foto; preparo não aparece; faz o mesmo número de consultas com 2 ou com 20 produtos
 - [x] T036 [US2] `src/application/menu/board.ts`
-- [ ] T037 [P] [US2] [teste] `src/components/menu/move-buttons.test.tsx`: botões "Subir {nome}" e "Descer {nome}" com nome acessível, desligados quando `canMoveUp` ou `canMoveDown` é falso, enviam `id` e `direction`, funcionam com Enter e espaço
-- [ ] T038 [P] [US2] `src/components/menu/move-buttons.tsx`
-- [ ] T039 [P] [US2] [teste] `src/components/menu/section-form.test.tsx`: criar e renomear com `useFormAction`; erro do servidor no campo ("Já existe a seção Lanches"); "Salvo" só com a confirmação do servidor; apagar pede confirmação com "Os 4 produtos de Lanches vão para Outros"
-- [ ] T040 [P] [US2] `src/components/menu/section-form.tsx`
-- [ ] T041 [US2] [teste] `src/components/menu/menu-board.test.tsx`: títulos das seções como `h2` na ordem, "Outros" no fim, lista vazia com `EmptyState` ("Crie a primeira seção…"), selos "Sem preço", "Inativo", "Esgotado hoje" e "Sem foto", link de cada produto para `/pedidos/cardapio/{id}`, botões "Nova seção", "Novo produto" e "Ver como o cliente"
-- [ ] T042 [US2] `src/components/menu/menu-board.tsx`
-- [ ] T043 [US2] [teste] `src/components/layout/nav.test.tsx`: "Cardápio" aparece em Operação só para quem tem `menu.write`; em `/pedidos/cardapio` só "Cardápio" fica com `aria-current` (não "Pedidos")
-- [ ] T044 [US2] Entrada "Cardápio" em `src/components/layout/nav.tsx`
+- [x] T037 [P] [US2] [teste] `src/components/menu/move-buttons.test.tsx`: botões "Subir {nome}" e "Descer {nome}" com nome acessível, desligados quando `canMoveUp` ou `canMoveDown` é falso, enviam `id` e `direction`, funcionam com Enter e espaço
+- [x] T038 [P] [US2] `src/components/menu/move-buttons.tsx`
+- [x] T039 [P] [US2] [teste] `src/components/menu/section-form.test.tsx`: criar e renomear com `useFormAction`; erro do servidor no campo ("Já existe a seção Lanches"); "Salvo" só com a confirmação do servidor; apagar pede confirmação com "Os 4 produtos de Lanches vão para Outros"
+- [x] T040 [P] [US2] `src/components/menu/section-form.tsx`
+- [x] T041 [US2] [teste] `src/components/menu/menu-board.test.tsx`: títulos das seções como `h2` na ordem, "Outros" no fim, lista vazia com `EmptyState` ("Crie a primeira seção…"), selos "Sem preço", "Inativo", "Esgotado hoje" e "Sem foto", link de cada produto para `/pedidos/cardapio/{id}`, botões "Nova seção", "Novo produto" e "Ver como o cliente"
+- [x] T042 [US2] `src/components/menu/menu-board.tsx`
+- [x] T043 [US2] [teste] `src/components/layout/nav.test.tsx`: "Cardápio" aparece em Operação só para quem tem `menu.write`; em `/pedidos/cardapio` só "Cardápio" fica com `aria-current` (não "Pedidos")
+- [x] T044 [US2] Entrada "Cardápio" em `src/components/layout/nav.tsx`
 - [ ] T045 [US2] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): chef abre Cardápio pelo menu, cria três seções, renomeia uma, sobe "Bebidas", apaga "Entradas" confirmando; estoquista cai em "Sem acesso"
 - [ ] T046 [US2] Ações de seção em `src/actions/menu-board.ts` e tela `app/(app)/pedidos/cardapio/page.tsx`
 - [ ] T047 [US2] [teste] `tests/screens/menu-board.spec.ts` (vermelho): na tela Cardápio, nas 6 telas da equipe × 2 modos, `expectNoSideScroll`, `expectNoClippedText`, `expectTapTargets`, `expectReadableAt200` e axe sem falha grave
-- [ ] T048 [US2] [teste] `src/components/ui/input.test.tsx`, `select.test.tsx` e `textarea.test.tsx`: `size="lg"` dá 44 px de altura; sem `size` continua 40 px
+- [x] T048 [US2] [teste] `src/components/ui/input.test.tsx`, `select.test.tsx` e `textarea.test.tsx`: `size="lg"` dá 44 px de altura; sem `size` continua 40 px
 - [ ] T049 [US2] `size="lg"` em `src/components/ui/input.tsx`, `select.tsx` e `textarea.tsx`, e as classes de layout da tela Cardápio que o T047 exigir, uma asserção por vez
 
 **Ponto de conferência**: T045 e T047 verdes nos dois motores.

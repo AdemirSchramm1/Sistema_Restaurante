@@ -76,7 +76,8 @@ describe("menu lateral por área (spec 012, US2)", () => {
         "Estoque",
         ["Itens", "Produtos", "Lançamentos", "Repor", "Gráficos", "Custos", "Fornecedores", "Grupos"],
       ],
-      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Pedidos"]],
+      // "Cardápio" entrou na spec 013 (tela da equipe para editar o cardápio).
+      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Pedidos", "Cardápio"]],
       ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
     ]);
   });
