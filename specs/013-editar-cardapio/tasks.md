@@ -170,8 +170,8 @@ Bloqueia todas as histórias.
 **Objetivo**: pré-visualização em tamanho de celular e de tablet.
 **Teste independente**: tocar "Ver como o cliente" e alternar Celular, Tablet em pé e Tablet deitado.
 
-- [ ] T102 [P] [US5] [teste] `tests/integration/menu/preview.test.ts`: `getMenuPreview` devolve o mesmo `CustomerMenu` que o `getMenu` da mesma hora, sem abrir acesso, sem contar pedido e sem gravar nada (nenhuma linha nova em `menu_accesses` nem em `audit_log`); exige `menu.write`
-- [ ] T103 [US5] `src/application/menu/preview.ts`
+- [x] T102 [P] [US5] [teste] `tests/integration/menu/preview.test.ts`: `getMenuPreview` devolve o mesmo `CustomerMenu` que o `getMenu` da mesma hora, sem abrir acesso, sem contar pedido e sem gravar nada (nenhuma linha nova em `menu_accesses` nem em `audit_log`); exige `menu.write`
+- [x] T103 [US5] `src/application/menu/preview.ts`
 - [ ] T104 [P] [US5] [teste] `src/components/ordering/menu-app.test.tsx`: com `preview`, mostra a faixa "Pré-visualização: pedidos não são enviados", não tem botão de enviar, contador de tempo nem atualização automática
 - [ ] T105 [US5] Modo `preview` em `src/components/ordering/menu-app.tsx`
 - [ ] T106 [P] [US5] [teste] `src/components/menu/preview-frame.test.tsx`: botões "Celular", "Tablet em pé" e "Tablet deitado" com `aria-pressed`; a moldura (`iframe` com título "Cardápio como o cliente vê") muda para 390, 768 e 1024 px; começa em "Celular"
