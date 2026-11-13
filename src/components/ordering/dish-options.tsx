@@ -6,12 +6,15 @@ import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
 import { Button } from "@/components/ui/button";
 import { brl, priceOrFree } from "./format";
 import { lineTotal, type CartLineData } from "./cart-state";
+import { ProductPhoto } from "./product-photo";
 
 const big = "h-11 min-w-11 text-lg";
+/** Na tela do prato a foto ocupa a largura do conteúdo (até 640 px). */
+const DISH_SIZES = "(min-width: 672px) 640px, 100vw";
 
 /**
- * Tela do prato: só botões, nenhum campo de texto (spec 010, US3; decisão "Só botões"). Mudança que
- * não está nos botões é com o garçom.
+ * Tela do prato: a foto maior e a descrição inteira (spec 013, US6) e só botões, nenhum campo de
+ * texto (spec 010, US3; decisão "Só botões"). Mudança que não está nos botões é com o garçom.
  */
 export function DishOptions({
   product,
@@ -47,11 +50,17 @@ export function DishOptions({
     });
 
   return (
-    <section className="grid gap-4" aria-label={product.name}>
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="text-xl font-semibold">{product.name}</h2>
+    <section className="mx-auto grid w-full max-w-2xl gap-4" aria-label={product.name}>
+      <ProductPhoto photo={product.photo} name={product.name} eager sizes={DISH_SIZES} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <h2 className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">{product.name}</h2>
         <span className="text-lg">{brl(product.price)}</span>
       </div>
+      {product.description && (
+        <p data-testid="dish-description" className="whitespace-pre-line text-base text-muted-foreground">
+          {product.description}
+        </p>
+      )}
 
       {product.addons.length > 0 && (
         <div className="grid gap-2">

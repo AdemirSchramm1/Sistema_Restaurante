@@ -1,21 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AccessOrderView, MenuProduct, MenuView } from "@/application/ordering/menu";
 import { normalizeDescription } from "@/domain/inventory/description";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
 import { AutoRefresh } from "./auto-refresh";
 import { Cart, type SubmitFn } from "./cart";
-import { brl } from "./format";
 import { addToCart, type CartLine } from "./cart-state";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
+import { ProductCard } from "./product-card";
+import { SectionBar, sectionAnchor } from "./section-bar";
+
+/** Cartões por linha: 1 no celular, 2 a partir de 640 px, 3 a partir de 1024 px (contracts/screens.md). */
+const CARDS = "grid gap-3 sm:grid-cols-2 lg:grid-cols-3";
+/** Quantas fotos carregam junto com a página; as outras, só quando chegam perto da tela (US6.10). */
+const EAGER_PHOTOS = 2;
 
 /**
- * Cardápio do celular, sem login (spec 009 US2/US3, spec 010 US3): lista com busca, tela do prato
- * com botões, carrinho, tempo do acesso e "Meus pedidos".
+ * Seção que está na tela, para marcar na barra. Vale a última que cruzou a faixa logo abaixo da
+ * barra; sair da faixa não desmarca, para a barra nunca ficar sem seção no meio da rolagem.
+ */
+function useCurrentSection(anchors: readonly string[]): string | null {
+  const [current, setCurrent] = useState<string | null>(null);
+  const key = anchors.join(" ");
+  useEffect(() => {
+    if (!key || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const seen = entries.find((e) => e.isIntersecting);
+        if (seen) setCurrent(seen.target.id.slice("secao-".length));
+      },
+      { rootMargin: "-64px 0px -60% 0px" },
+    );
+    for (const id of key.split(" ")) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [key]);
+  return current;
+}
+
+/**
+ * Cardápio do cliente, sem login (spec 009 US2/US3, spec 010 US3, spec 013 US6): seções com barra
+ * no topo, cartões com foto e descrição, busca, tela do prato com botões, carrinho, tempo do acesso
+ * e "Meus pedidos". O carrinho fica no estado desta tela: a atualização automática troca o cardápio
+ * sem mexer nele.
  */
 export function MenuApp({
   menu,
@@ -34,6 +66,25 @@ export function MenuApp({
   const query = normalizeDescription(q);
   const all = menu.sections.flatMap((s) => s.products);
   const shown = query ? all.filter((p) => normalizeDescription(p.name).includes(query)) : all;
+  const titled = menu.showSectionTitles && !query && !open && !expired;
+  const current = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
+  /** As primeiras fotos na ordem da tela. */
+  const eager = new Set(
+    shown
+      .filter((p) => p.photo)
+      .slice(0, EAGER_PHOTOS)
+      .map((p) => p.id),
+  );
+  const cards = (products: readonly MenuProduct[]) =>
+    products.map((p) => (
+      <ProductCard
+        key={p.id}
+        product={p}
+        eager={eager.has(p.id)}
+        onAdd={() => add(p)}
+        onOpen={() => setOpen(p)}
+      />
+    ));
   const add = (p: MenuProduct) => {
     if (p.addons.length === 0 && p.removables.length === 0)
       setLines((c) =>
@@ -87,28 +138,29 @@ export function MenuApp({
               onChange={(e) => setQ(e.target.value)}
               className="h-11 text-base"
             />
-            <ul className="grid gap-3" aria-label="Cardápio">
-              {shown.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-xs"
-                >
-                  <div className="grid gap-0.5">
-                    <span className="text-base font-medium leading-snug">{p.name}</span>
-                    <span className="text-base font-semibold tabular-nums text-primary">{brl(p.price)}</span>
-                  </div>
-                  <Button
-                    type="button"
-                    className="h-11"
-                    aria-label={`Adicionar ${p.name}`}
-                    onClick={() => add(p)}
-                  >
-                    Adicionar
-                  </Button>
-                </li>
-              ))}
-              {shown.length === 0 && <li className="text-sm text-muted-foreground">Nada com esse nome.</li>}
-            </ul>
+            {titled ? (
+              <>
+                <SectionBar sections={menu.sections} current={current} />
+                {menu.sections.map((section) => (
+                  <section key={section.id ?? "outros"} className="grid gap-3">
+                    <h2
+                      id={sectionAnchor(section.id)}
+                      className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
+                    >
+                      {section.name}
+                    </h2>
+                    <ul className={CARDS} aria-label={section.name}>
+                      {cards(section.products)}
+                    </ul>
+                  </section>
+                ))}
+              </>
+            ) : (
+              <ul className={CARDS} aria-label="Cardápio">
+                {cards(shown)}
+                {shown.length === 0 && <li className="text-sm text-muted-foreground">Nada com esse nome.</li>}
+              </ul>
+            )}
             {menu.ordersLeft > 0 ? (
               <Cart lines={lines} onChange={setLines} submit={submit} />
             ) : (
