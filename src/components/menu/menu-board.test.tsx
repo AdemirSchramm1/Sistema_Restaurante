@@ -105,6 +105,11 @@ describe("tela Cardápio (spec 013, US2)", () => {
     expect(lanches.getByRole<HTMLButtonElement>("button", { name: "Descer Lanches" }).disabled).toBe(true);
     expect(lanches.getByLabelText<HTMLInputElement>("Nome da seção Lanches").value).toBe("Lanches");
     expect(lanches.getByRole("button", { name: "Apagar Lanches" })).toBeTruthy();
+    // Renomear e apagar ficam recolhidos, para a lista de produtos não ficar longe do título.
+    const details = lanches.getByText("Renomear ou apagar").closest("details")!;
+    expect(details.open).toBe(false);
+    expect(details.contains(lanches.getByLabelText("Nome da seção Lanches"))).toBe(true);
+    expect(details.contains(lanches.getByRole("button", { name: "Subir Lanches" }))).toBe(false);
     const outros = within(sectionOf("Outros"));
     expect(outros.queryByRole("button", { name: /Outros/ })).toBeNull();
     expect(outros.queryByLabelText(/Nome da seção/)).toBeNull();
