@@ -30,12 +30,26 @@ const product: MenuProductView = {
   ],
 };
 type Sent = Record<string, FormDataEntryValue>;
-function setup(answer: ActionState = { ok: true, data: null, at: 1 }, over: Partial<MenuProductView> = {}) {
-  const sent = { details: [] as Sent[], removed: [] as Sent[] };
+function setup(
+  answer: ActionState = { ok: true, data: null, at: 1 },
+  over: Partial<MenuProductView> = {},
+  can: { editRecipe?: boolean; sellOut?: boolean } = {},
+) {
+  const sent = { details: [] as Sent[], removed: [] as Sent[], price: [] as Sent[], soldOut: [] as Sent[] };
   const view = render(
     <ProductMenuForm
       product={{ ...product, ...over }}
+      canEditRecipe={can.editRecipe ?? true}
+      canSellOut={can.sellOut ?? true}
       actions={{
+        setPrice: async (_p, form) => {
+          sent.price.push(Object.fromEntries(form));
+          return answer;
+        },
+        setSoldOut: async (_p, form) => {
+          sent.soldOut.push(Object.fromEntries(form));
+          return answer;
+        },
         setDetails: async (_p, form) => {
           sent.details.push(Object.fromEntries(form));
           return answer;
@@ -95,7 +109,11 @@ describe("tela do produto no Cardápio", () => {
     view.rerender(
       <ProductMenuForm
         product={{ ...product, version: 8 }}
+        canEditRecipe
+        canSellOut
         actions={{
+          setPrice: async () => null,
+          setSoldOut: async () => null,
           setDetails: async (_p, form) => {
             sent.details.push(Object.fromEntries(form));
             return null;
@@ -154,5 +172,120 @@ describe("tela do produto no Cardápio", () => {
     });
     expect(sent.removed).toEqual([{ id: "p1" }]);
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
+const stale: ActionState = {
+  ok: false,
+  error: {
+    code: "STALE_RECORD",
+    message: "Outra pessoa alterou este registro. Revise os dados atuais antes de salvar.",
+  },
+  at: 1,
+};
+const price = () => screen.getByRole("form", { name: "Preço" });
+const click = (scope: HTMLElement, name: string) =>
+  act(async () => {
+    fireEvent.click(within(scope).getByRole("button", { name }));
+  });
+
+describe("preço e Esgotado hoje na tela do produto (spec 013, US4)", () => {
+  it("mostra o preço com vírgula e salva sozinho, com o seu Salvo", async () => {
+    const { sent } = setup();
+    const field = within(price()).getByLabelText("Preço (R$)") as HTMLInputElement;
+    expect(field.value).toBe("28,00");
+    expect(field.getAttribute("inputmode")).toBe("decimal");
+    expect(field.className).toContain("h-11");
+    fireEvent.change(field, { target: { value: "31,50" } });
+    await click(price(), "Salvar preço");
+    expect(sent.price).toEqual([{ id: "p1", version: "7", salePrice: "31,50" }]);
+    expect(within(price()).getByRole("status").textContent).toBe("Salvo");
+    // O Salvo do preço não é o da descrição.
+    expect(within(details()).queryByRole("status")).toBeNull();
+    expect(sent.details).toEqual([]);
+  });
+
+  it("produto sem preço: campo vazio e a dica de que em branco é sem preço", () => {
+    setup(undefined, { price: null });
+    const field = within(price()).getByLabelText("Preço (R$)") as HTMLInputElement;
+    expect(field.value).toBe("");
+    expect(document.getElementById(field.getAttribute("aria-describedby")!)!.textContent).toBe(
+      "Em branco, o produto fica sem preço e não aparece para o cliente.",
+    );
+  });
+
+  it("preço recusado: o erro fica no campo e o que foi digitado continua", async () => {
+    setup({
+      ok: false,
+      error: { code: "INVALID_PRICE", field: "salePrice", message: "Informe um preço maior que zero." },
+      at: 1,
+    });
+    const field = within(price()).getByLabelText("Preço (R$)") as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "0" } });
+    await click(price(), "Salvar preço");
+    expect(field.value).toBe("0");
+    expect(field.getAttribute("aria-invalid")).toBe("true");
+    expect(within(price()).getByRole("alert").textContent).toBe("Informe um preço maior que zero.");
+    expect(field.getAttribute("aria-describedby")!.split(" ")).toHaveLength(2);
+  });
+
+  it("STALE_RECORD no preço e na descrição: pede para recarregar a tela", async () => {
+    setup(stale);
+    await click(price(), "Salvar preço");
+    expect(within(price()).getByRole("alert").textContent).toBe(
+      "Outra pessoa mudou este produto. Recarregue a tela.",
+    );
+    await save();
+    expect(within(details()).getByRole("alert").textContent).toBe(
+      "Outra pessoa mudou este produto. Recarregue a tela.",
+    );
+  });
+
+  it("Esgotado hoje marca e mostra o selo; Disponível de novo desmarca", async () => {
+    const { sent, view } = setup();
+    const soldOut = () => screen.getByRole("form", { name: "Disponibilidade de hoje" });
+    expect(within(soldOut()).queryByText("Esgotado hoje", { selector: "span" })).toBeNull();
+    await click(soldOut(), "Marcar como esgotado hoje");
+    expect(sent.soldOut).toEqual([{ recipeId: "p1", soldOut: "true" }]);
+    expect(within(soldOut()).getByRole("status").textContent).toBe("Salvo");
+    view.unmount();
+
+    const again = setup(undefined, { soldOutToday: true });
+    expect(within(soldOut()).getByText("Esgotado hoje", { selector: "span" })).toBeTruthy();
+    await click(soldOut(), "Disponível de novo");
+    expect(again.sent.soldOut).toEqual([{ recipeId: "p1", soldOut: "false" }]);
+  });
+
+  it("erro ao marcar esgotado aparece junto do botão", async () => {
+    setup({ ok: false, error: { code: "FORBIDDEN", message: "Você não tem permissão." }, at: 1 });
+    const soldOut = screen.getByRole("form", { name: "Disponibilidade de hoje" });
+    await click(soldOut, "Marcar como esgotado hoje");
+    expect(within(soldOut).getByRole("alert").textContent).toBe("Você não tem permissão.");
+  });
+
+  it("link Editar nome e ingredientes leva ao produto da 003", () => {
+    setup();
+    const link = screen.getByRole("link", { name: "Editar nome e ingredientes" });
+    expect(link.getAttribute("href")).toBe("/estoque/produtos/p1");
+    expect(link.className).toContain("min-h-11");
+  });
+
+  it("sem recipe.write: vê o preço mas não muda, e não tem o link do produto", () => {
+    setup(undefined, {}, { editRecipe: false });
+    expect(screen.queryByRole("form", { name: "Preço" })).toBeNull();
+    expect(screen.getByText("Preço: R$ 28,00")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Editar nome e ingredientes" })).toBeNull();
+    cleanup();
+    setup(undefined, { price: null }, { editRecipe: false });
+    expect(screen.getByText("Sem preço")).toBeTruthy();
+  });
+
+  it("sem product.sold_out: não mostra o botão de esgotado", () => {
+    setup(undefined, { soldOutToday: true }, { sellOut: false });
+    expect(screen.queryByRole("form", { name: "Disponibilidade de hoje" })).toBeNull();
+    expect(screen.getByText("Esgotado hoje")).toBeTruthy();
+    cleanup();
+    setup(undefined, {}, { sellOut: false });
+    expect(screen.queryByText("Esgotado hoje")).toBeNull();
   });
 });
