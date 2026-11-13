@@ -137,6 +137,20 @@ test.describe("expectTapTargets", () => {
     await fails(() => expectTapTargets(scope), /sobrepostos.*Subir.*Descer/s);
   });
 
+  test("o que está dentro de um quadro recolhido (details fechado) não conta", async ({ page }) => {
+    const scope = await show(
+      page,
+      `<details>
+         <summary style="display:flex;min-height:44px;align-items:center">Renomear ou apagar</summary>
+         <button style="height:30px;width:80px;padding:0">Apagar</button>
+       </details>
+       <button style="min-height:44px;min-width:120px">Novo produto</button>`,
+    );
+    await expectTapTargets(scope);
+    await scope.locator("summary").click();
+    await fails(() => expectTapTargets(scope), /menor que 44.*Apagar/s);
+  });
+
   test("caixa de marcar conta pela área do rótulo", async ({ page }) => {
     const scope = await show(
       page,

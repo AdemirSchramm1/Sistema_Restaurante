@@ -85,6 +85,8 @@ async function tapTargets(scope: Locator): Promise<Target[]> {
       if (el instanceof HTMLInputElement && el.type === "hidden") continue;
       const style = getComputedStyle(el);
       if (style.visibility === "hidden" || style.display === "none") continue;
+      // Dentro de um <details> fechado o elemento tem estilo, mas não está na tela.
+      if (!el.checkVisibility()) continue;
       let box: Element = el;
       if (el instanceof HTMLInputElement && ["checkbox", "radio", "file"].includes(el.type)) {
         const label = el.closest("label") ?? (el.id ? document.querySelector(`label[for="${el.id}"]`) : null);
