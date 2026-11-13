@@ -47,7 +47,8 @@ export function PreviewFrame({ src }: { src: string }) {
           title="Cardápio como o cliente vê"
           src={src}
           style={{ width: `${size.width}px`, height: `${size.height}px` }}
-          className="mx-auto block max-w-none rounded-lg border border-border bg-background max-sm:!h-[75vh] max-sm:!w-full"
+          // `box-content`: a largura escolhida é a do conteúdo; a borda fica por fora.
+          className="mx-auto box-content block max-w-none rounded-lg border border-border bg-background max-sm:!h-[75vh] max-sm:!w-full"
         />
       </div>
     </div>

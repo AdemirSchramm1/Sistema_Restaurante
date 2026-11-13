@@ -172,12 +172,12 @@ Bloqueia todas as histórias.
 
 - [x] T102 [P] [US5] [teste] `tests/integration/menu/preview.test.ts`: `getMenuPreview` devolve o mesmo `CustomerMenu` que o `getMenu` da mesma hora, sem abrir acesso, sem contar pedido e sem gravar nada (nenhuma linha nova em `menu_accesses` nem em `audit_log`); exige `menu.write`
 - [x] T103 [US5] `src/application/menu/preview.ts`
-- [ ] T104 [P] [US5] [teste] `src/components/ordering/menu-app.test.tsx`: com `preview`, mostra a faixa "Pré-visualização: pedidos não são enviados", não tem botão de enviar, contador de tempo nem atualização automática
-- [ ] T105 [US5] Modo `preview` em `src/components/ordering/menu-app.tsx`
-- [ ] T106 [P] [US5] [teste] `src/components/menu/preview-frame.test.tsx`: botões "Celular", "Tablet em pé" e "Tablet deitado" com `aria-pressed`; a moldura (`iframe` com título "Cardápio como o cliente vê") muda para 390, 768 e 1024 px; começa em "Celular"
-- [ ] T107 [P] [US5] `src/components/menu/preview-frame.tsx`
-- [ ] T108 [US5] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Ver como o cliente" mostra 1, 2 e 3 colunas ao alternar os tamanhos, a faixa de pré-visualização e só produtos que o cliente pode pedir; num celular abre em tela cheia
-- [ ] T109 [US5] Telas `app/(app)/pedidos/cardapio/ver/page.tsx` e `ver/cliente/page.tsx`
+- [x] T104 [P] [US5] [teste] `src/components/ordering/menu-app.test.tsx`: com `preview`, mostra a faixa "Pré-visualização: pedidos não são enviados", não tem botão de enviar, contador de tempo nem atualização automática
+- [x] T105 [US5] Modo `preview` em `src/components/ordering/menu-app.tsx`
+- [x] T106 [P] [US5] [teste] `src/components/menu/preview-frame.test.tsx`: botões "Celular", "Tablet em pé" e "Tablet deitado" com `aria-pressed`; a moldura (`iframe` com título "Cardápio como o cliente vê") muda para 390, 768 e 1024 px; começa em "Celular"
+- [x] T107 [P] [US5] `src/components/menu/preview-frame.tsx`
+- [x] T108 [US5] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Ver como o cliente" mostra 1, 2 e 3 colunas ao alternar os tamanhos, a faixa de pré-visualização e só produtos que o cliente pode pedir; num celular abre em tela cheia
+- [x] T109 [US5] Telas `app/(app)/pedidos/cardapio/ver/page.tsx` e `ver/cliente/page.tsx`
 - [ ] T110 [US5] [teste] `tests/screens/menu-board.spec.ts`: a pré-visualização nas 6 telas da equipe × 2 modos com as asserções do T047; depois as classes que ele exigir
 - [ ] T111 [US5] Imagens de referência da tela Cardápio (6 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma
 
