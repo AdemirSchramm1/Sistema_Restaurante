@@ -18,6 +18,8 @@ import type { Deps } from "@/application/ports";
 import type { RequestContext } from "@/application/context";
 import type { Result } from "@/domain/shared/result";
 import { withContext, type ActionState } from "./_session";
+import { setProductSoldOutAction } from "./orders";
+import { setSalePriceAction } from "./recipes";
 
 /** Tela Cardápio da equipe (spec 013): uma Server Action por caso de uso. */
 
@@ -63,4 +65,18 @@ export async function setMenuDetailsAction(_prev: ActionState, form: FormData): 
 
 export async function removeProductPhotoAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   return run(form, parseTarget, removeProductPhoto);
+}
+
+/** As ações que já existiam (preço da 008, esgotado da 009), atualizando também a tela Cardápio. */
+async function alsoRefreshingBoard(state: ActionState): Promise<ActionState> {
+  if (state?.ok) revalidatePath(BOARD, "layout");
+  return state;
+}
+
+export async function setMenuPriceAction(prev: ActionState, form: FormData): Promise<ActionState> {
+  return alsoRefreshingBoard(await setSalePriceAction(prev, form));
+}
+
+export async function setMenuSoldOutAction(prev: ActionState, form: FormData): Promise<ActionState> {
+  return alsoRefreshingBoard(await setProductSoldOutAction(prev, form));
 }
