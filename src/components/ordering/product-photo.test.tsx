@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import { ProductPhoto } from "./product-photo";
+import { CARD_SIZES, ProductPhoto } from "./product-photo";
 
 afterEach(cleanup);
 
@@ -15,7 +15,7 @@ describe("foto do produto", () => {
     expect(img.getAttribute("srcset")).toBe(
       "/fotos/menu/abc/300.webp 300w, /fotos/menu/abc/600.webp 600w, /fotos/menu/abc/900.webp 900w",
     );
-    expect(img.getAttribute("sizes")).toBe("(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw");
+    expect(img.getAttribute("sizes")).toBe(CARD_SIZES);
     // Sem srcset (navegador antigo), vai a menor.
     expect(img.getAttribute("src")).toBe("/fotos/menu/abc/300.webp");
     expect([img.getAttribute("width"), img.getAttribute("height")]).toEqual(["400", "300"]);

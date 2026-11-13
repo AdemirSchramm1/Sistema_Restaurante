@@ -20,7 +20,10 @@ export function ProductCard({
   onOpen: () => void;
 }) {
   return (
-    <li className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-xs">
+    <li
+      data-place
+      className="flex min-w-0 scroll-mt-20 flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-xs"
+    >
       <button
         type="button"
         aria-label={`Ver ${product.name}`}

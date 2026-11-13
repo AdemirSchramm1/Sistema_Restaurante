@@ -21,7 +21,7 @@ Gerente cria as mesas ──► imprime os QR codes ──► cliente escaneia
 | Documento | Assunto |
 |---|---|
 | [01 — Mesas e QR codes](01-mesas-e-qr-code.md) | Cadastro, impressão, troca do QR code, chave "Recebendo pedidos" |
-| [02 — Cardápio do cliente](02-cardapio-do-cliente.md) | O que aparece, acesso de 20 minutos, envio, preço que mudou |
+| [02 — Cardápio do cliente](02-cardapio-do-cliente.md) | O que aparece (seções, fotos, descrições), acesso de 20 minutos, envio, preço que mudou |
 | [03 — Cozinha e garçom](03-cozinha-e-garcom.md) | Situações do pedido, cancelamento, esgotado hoje, consulta |
 | [04 — Adicionar e tirar](04-adicionar-e-tirar.md) | Adicionais com preço, retiradas por produto, consumo |
 | [05 — Conta da mesa e caixa](05-conta-da-mesa.md) | Conta da mesa, taxa de serviço, pagamento, divisão, fechar, imprimir, contas fechadas, reabrir |

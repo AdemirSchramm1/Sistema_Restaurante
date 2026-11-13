@@ -44,6 +44,41 @@ function useCurrentSection(anchors: readonly string[]): string | null {
   return current;
 }
 
+/** Abaixo desta linha (a barra de seções) começa o que o cliente está vendo. */
+const TOP_LINE = 64;
+
+/**
+ * Girar o aparelho muda a largura e a altura de tudo que está acima; sem isto, o cliente cairia em
+ * outro ponto do cardápio (spec 013, US6.8). Guarda o primeiro título ou cartão à vista a cada
+ * rolagem e volta a ele quando a largura muda. Só a altura mudar (a barra do navegador some ao
+ * rolar) não mexe em nada.
+ */
+function useKeepPlaceOnRotate(): void {
+  useEffect(() => {
+    let place: Element | null = null;
+    let width = window.innerWidth;
+    const onScroll = () => {
+      place =
+        window.scrollY > 0
+          ? ([...document.querySelectorAll("[data-place]")].find(
+              (el) => el.getBoundingClientRect().bottom > TOP_LINE,
+            ) ?? null)
+          : null;
+    };
+    const onResize = () => {
+      if (window.innerWidth === width) return;
+      width = window.innerWidth;
+      place?.scrollIntoView({ block: "start" });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+}
+
 /**
  * Cardápio do cliente, sem login (spec 009 US2/US3, spec 010 US3, spec 013 US6): seções com barra
  * no topo, cartões com foto e descrição, busca, tela do prato com botões, carrinho, tempo do acesso
@@ -67,6 +102,7 @@ export function MenuApp(
   const all = menu.sections.flatMap((s) => s.products);
   const shown = query ? all.filter((p) => normalizeDescription(p.name).includes(query)) : all;
   const titled = menu.showSectionTitles && !query && !open && !expired;
+  useKeepPlaceOnRotate();
   const current = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
   /** As primeiras fotos na ordem da tela. */
   const eager = new Set(
@@ -157,6 +193,7 @@ export function MenuApp(
                   <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
                     <h2
                       id={sectionAnchor(section.id)}
+                      data-place
                       className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
                     >
                       {section.name}
