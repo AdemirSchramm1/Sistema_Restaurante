@@ -6,6 +6,9 @@ import { MemoryMailer } from "./mailer/memory";
 import { ResendMailer } from "./mailer/resend";
 import { FileMailer } from "./mailer/file";
 import type { Mailer } from "@/application/ports";
+import { del, put } from "@vercel/blob";
+import { photoStorageFromEnv, type ChosenPhotoStorage } from "./photos/from-env";
+import { sharpProcessor } from "./photos/sharp-processor";
 
 function env(name: string): string {
   const v = process.env[name];
@@ -20,7 +23,12 @@ function mailer(): Mailer {
 }
 
 type ServerDeps = ReturnType<typeof makeDeps>;
-const g = globalThis as unknown as { __deps?: ServerDeps };
+const g = globalThis as unknown as { __deps?: ServerDeps; __photos?: ChosenPhotoStorage };
+
+/** Loja de fotos do cardápio escolhida por `MENU_PHOTOS` (spec 013). */
+export function serverPhotos(): ChosenPhotoStorage {
+  return (g.__photos ??= photoStorageFromEnv(process.env, { put, del }));
+}
 
 /** Dependências do servidor (uma instância por processo). */
 export function serverDeps(): ServerDeps {
@@ -30,5 +38,6 @@ export function serverDeps(): ServerDeps {
     appUrl: env("BETTER_AUTH_URL"),
     authSecret: env("BETTER_AUTH_SECRET"),
     authPlugins: [nextCookies()],
+    photos: { processor: sharpProcessor, storage: serverPhotos().storage },
   }));
 }

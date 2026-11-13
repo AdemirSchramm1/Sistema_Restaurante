@@ -2,6 +2,8 @@ import { inject } from "vitest";
 import { createDb, type Db } from "../../src/infra/db/db";
 import { makeDeps } from "../../src/infra/deps";
 import { MemoryMailer } from "../../src/infra/mailer/memory";
+import { memoryPhotoStorage, type MemoryPhotoStorage } from "../../src/infra/photos/memory-storage";
+import { sharpProcessor } from "../../src/infra/photos/sharp-processor";
 import type { Clock, Deps } from "../../src/application/ports";
 import type { RequestContext } from "../../src/application/context";
 import type { Role } from "../../src/domain/access/permissions";
@@ -74,19 +76,21 @@ export class FixedClock implements Clock {
   }
 }
 
-export type TestEnv = { deps: Deps; mailer: MemoryMailer; clock: FixedClock };
+export type TestEnv = { deps: Deps; mailer: MemoryMailer; clock: FixedClock; photos: MemoryPhotoStorage };
 
 export function testEnv(): TestEnv {
   const mailer = new MemoryMailer();
   const clock = new FixedClock();
+  const photos = memoryPhotoStorage();
   const deps = makeDeps({
     db: testDb(),
     mailer,
     clock,
     appUrl: "http://localhost:3000",
     authSecret: "segredo-de-teste-com-mais-de-32-caracteres",
+    photos: { processor: sharpProcessor, storage: photos },
   });
-  return { deps, mailer, clock };
+  return { deps, mailer, clock, photos };
 }
 
 let seq = 0;

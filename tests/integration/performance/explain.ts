@@ -40,6 +40,7 @@ export function explainingEnv(env: TestEnv) {
     clock: env.clock,
     appUrl: "http://localhost:3000",
     authSecret: "segredo-de-teste-com-mais-de-32-caracteres",
+    photos: env.deps.photos,
   });
 
   /** Leituras da tabela inteira desde a última chamada: "tabela ← consulta". */
