@@ -24,7 +24,8 @@ export function PageHeader({
       {back && (
         <Link
           href={back.href}
-          className="-ml-1 inline-flex w-fit items-center gap-1 rounded-md px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+          // Área de toque de 44 px sem empurrar o título: o espaço a mais sai pelas margens negativas.
+          className="-my-3 -ml-1 inline-flex min-h-11 w-fit items-center gap-1 rounded-md px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
         >
           <ChevronLeft aria-hidden="true" className="size-4" />
           {back.label}
@@ -33,7 +34,8 @@ export function PageHeader({
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="grid min-w-0 gap-1.5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-3xl">
+            {/* Nome comprido com a letra em 200% quebra dentro da palavra em vez de alargar a tela. */}
+            <h1 className="hyphens-auto font-display text-[1.75rem] font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">
               {title}
             </h1>
             {badges}

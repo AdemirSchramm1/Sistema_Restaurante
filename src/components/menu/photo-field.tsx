@@ -173,7 +173,7 @@ export function PhotoField({
       <div className="aspect-[4/3] w-full max-w-sm overflow-hidden rounded-lg border border-border bg-muted">
         {draft ? (
           // eslint-disable-next-line @next/next/no-img-element -- prévia local, ainda não está no servidor
-          <img src={draft.preview} alt="Prévia da foto nova" className="size-full object-cover" />
+          <img data-photo src={draft.preview} alt="Prévia da foto nova" className="size-full object-cover" />
         ) : current ? (
           // eslint-disable-next-line @next/next/no-img-element -- as variantes já vêm prontas da loja de fotos
           <img

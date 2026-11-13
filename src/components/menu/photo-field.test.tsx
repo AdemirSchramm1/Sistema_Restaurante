@@ -121,6 +121,8 @@ describe("campo da foto", () => {
     expect(preview.getAttribute("src")).toBe("blob:previa");
     expect(preview.parentElement!.className).toContain("aspect-[4/3]");
     expect(preview.className).toContain("object-cover");
+    // Os testes de tela conferem a proporção de toda foto marcada com data-photo.
+    expect(preview.hasAttribute("data-photo")).toBe(true);
     expect(screen.getByRole("button", { name: "Salvar foto" })).toBeTruthy();
     expect(screen.queryByRole("progressbar")).toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
