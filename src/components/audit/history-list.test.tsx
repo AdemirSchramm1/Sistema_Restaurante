@@ -106,3 +106,81 @@ describe("histórico (FR-004)", () => {
     expect(screen.getByText("O que vai nele: Pão: 1 un → Pão: 2 un")).toBeTruthy();
   });
 });
+
+describe("histórico das mudanças de cardápio (spec 013, FR-009)", () => {
+  const menuEntry = (action: "CREATE" | "UPDATE" | "DEACTIVATE", changes: Record<string, unknown>) => ({
+    entity: "recipe",
+    entityId: "r1",
+    action,
+    changes,
+    userId: "u1",
+    userName: "Bia",
+    occurredAt: new Date("2026-11-01T17:30:00Z"),
+  });
+  const show = (action: "CREATE" | "UPDATE" | "DEACTIVATE", changes: Record<string, unknown>) => {
+    render(<HistoryList timezone="America/Sao_Paulo" entries={[menuEntry(action, changes)]} />);
+    return screen.getByRole("list", { name: "Histórico de alterações" }).textContent;
+  };
+
+  it("descrição e seção: diz que foi no cardápio e mostra antes e depois", () => {
+    const text = show("UPDATE", {
+      event: "menu.details",
+      menuDescription: [null, "Feito na hora."],
+      menuSection: ["Outros", "Bebidas"],
+    });
+    expect(text).toContain("Alterou no cardápio · Bia");
+    expect(screen.getByText("Descrição no cardápio: — → Feito na hora.")).toBeTruthy();
+    expect(screen.getByText("Seção do cardápio: Outros → Bebidas")).toBeTruthy();
+  });
+
+  it("foto: diz o que aconteceu sem mostrar o endereço do arquivo", () => {
+    expect(show("UPDATE", { event: "menu.photo.set", photo: [null, "/fotos/menu/abc"] })).toContain(
+      "Pôs foto no cardápio · Bia",
+    );
+    expect(screen.queryByText(/fotos\/menu/)).toBeNull();
+    cleanup();
+    expect(
+      show("UPDATE", { event: "menu.photo.set", photo: ["/fotos/menu/abc", "/fotos/menu/def"] }),
+    ).toContain("Trocou a foto do cardápio · Bia");
+    cleanup();
+    expect(show("UPDATE", { event: "menu.photo.remove", photo: ["/fotos/menu/abc", null] })).toContain(
+      "Tirou a foto do cardápio · Bia",
+    );
+    expect(screen.queryByText(/fotos\/menu/)).toBeNull();
+  });
+
+  it("ordem do produto: mostra a posição antes e depois", () => {
+    const text = show("UPDATE", {
+      event: "menu.product.move",
+      name: "X-Salada",
+      section: "Lanches",
+      menuPosition: [2, 1],
+    });
+    expect(text).toContain("Mudou a ordem no cardápio · Bia");
+    expect(screen.getByText("Posição na seção: 2 → 1")).toBeTruthy();
+  });
+
+  it("seções: criar, renomear, mover e apagar", () => {
+    expect(show("CREATE", { event: "menu.section.create", name: [null, "Doces"] })).toContain(
+      "Criou a seção · Bia",
+    );
+    cleanup();
+    expect(show("UPDATE", { event: "menu.section.rename", name: ["Doces", "Sobremesas"] })).toContain(
+      "Renomeou a seção · Bia",
+    );
+    expect(screen.getByText("Nome: Doces → Sobremesas")).toBeTruthy();
+    cleanup();
+    expect(show("UPDATE", { event: "menu.section.move", position: [3, 2] })).toContain(
+      "Mudou a ordem da seção · Bia",
+    );
+    expect(screen.getByText("Posição: 3 → 2")).toBeTruthy();
+    cleanup();
+    expect(show("DEACTIVATE", { event: "menu.section.delete", name: "Doces", movedProducts: 4 })).toContain(
+      "Apagou a seção · Bia",
+    );
+  });
+
+  it("evento que a tela não conhece cai no rótulo da ação", () => {
+    expect(show("UPDATE", { event: "menu.futuro", salePrice: ["9.00", "10.00"] })).toContain("Alterou · Bia");
+  });
+});
