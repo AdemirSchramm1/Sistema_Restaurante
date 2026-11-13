@@ -94,6 +94,43 @@ for (const screen of STAFF_SCREENS) {
         await expectTapTargets(main);
         expect(await seriousViolations(page)).toEqual([]);
       });
+
+      test("Ver como o cliente: botões de tamanho e moldura sem estourar a tela", async ({
+        asStaff: page,
+      }) => {
+        await page.goto("/pedidos/cardapio/ver");
+        const main = page.locator("main");
+        const frame = page.frameLocator('iframe[title="Cardápio como o cliente vê"]');
+        await expect(frame.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+        await expect(frame.getByRole("heading", { level: 2, name: "Lanches" })).toBeVisible();
+        if (screen.width >= 640) {
+          await main.getByRole("button", { name: "Tablet deitado" }).click();
+          await expect(main.getByRole("button", { name: "Tablet deitado" })).toHaveAttribute(
+            "aria-pressed",
+            "true",
+          );
+        } else await expect(main.getByRole("button", { name: "Tablet deitado" })).toBeHidden();
+        await expectNoSideScroll(page);
+        await expectNoClippedText(main);
+        await expectTapTargets(main);
+        expect(await seriousViolations(page)).toEqual([]);
+        await expectReadableAt200(page, main);
+      });
+
+      test("cardápio em pré-visualização, em tela cheia: mesmas regras do cardápio do cliente", async ({
+        asStaff: page,
+      }) => {
+        await page.goto("/pedidos/cardapio/ver/cliente");
+        const main = page.locator("main");
+        await expect(main.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+        await expectNoSideScroll(page);
+        await expectNoClippedText(main);
+        await expectTapTargets(main);
+        await expectPhotoRatio(main);
+        await expectNoBrokenImage(main);
+        expect(await seriousViolations(page)).toEqual([]);
+        await expectReadableAt200(page, main);
+      });
     });
   }
 }

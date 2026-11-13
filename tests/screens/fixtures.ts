@@ -14,7 +14,7 @@ type WorkerFixtures = {
   staffSession: string;
 };
 
-export const test = base.extend<{ asStaff: Page }, WorkerFixtures>({
+export const test = base.extend<{ asStaff: Page; asCustomer: Page }, WorkerFixtures>({
   scenario: ["board", { scope: "worker", option: true }],
   seeded: [
     async ({ scenario }, provide) => {
@@ -44,6 +44,19 @@ export const test = base.extend<{ asStaff: Page }, WorkerFixtures>({
       locale: "pt-BR",
     });
     const page = await context.newPage();
+    await provide(page);
+    await context.close();
+  },
+  /** Página de um cliente que acabou de ler o QR code da mesa 12 (acesso novo a cada teste). */
+  asCustomer: async ({ browser, seeded, viewport, colorScheme }, provide, info) => {
+    const context = await browser.newContext({
+      baseURL: info.project.use.baseURL,
+      viewport,
+      colorScheme,
+      locale: "pt-BR",
+    });
+    const page = await context.newPage();
+    await page.goto(seeded.qrPath);
     await provide(page);
     await context.close();
   },
