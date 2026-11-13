@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { createSection, deleteSection, moveSection, renameSection } from "@/application/menu/sections";
 import { moveProduct } from "@/application/menu/order";
+import { setMenuDetails } from "@/application/menu/details";
+import { parseMenuDetails } from "@/application/menu/details-input";
+import { removeProductPhoto } from "@/application/menu/photo";
 import {
   parseMove,
   parseSectionCreate,
@@ -52,4 +55,12 @@ export async function deleteSectionAction(_prev: ActionState, form: FormData): P
 
 export async function moveProductAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   return run(form, parseMove, moveProduct);
+}
+
+export async function setMenuDetailsAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  return run(form, parseMenuDetails, setMenuDetails);
+}
+
+export async function removeProductPhotoAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  return run(form, parseTarget, removeProductPhoto);
 }
