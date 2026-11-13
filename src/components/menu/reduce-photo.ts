@@ -1,5 +1,5 @@
-import type { Result } from "@/domain/shared/result";
-import { err } from "@/domain/shared/result";
+import { checkPhotoFile, MAX_UPLOAD_BYTES, MIN_PHOTO_SIDE } from "@/domain/menu/photo";
+import { err, ok, type Result } from "@/domain/shared/result";
 
 /** O navegador reduz a foto antes de enviar (spec 013, research R2). */
 
@@ -18,15 +18,41 @@ export type PhotoTools = {
 };
 
 export const browserPhotoTools: PhotoTools = {
-  decode: () => Promise.reject(new Error("a fazer")),
-  canvas: () => {
-    throw new Error("a fazer");
-  },
+  decode: (file, options) => createImageBitmap(file, options),
+  canvas: () => document.createElement("canvas") as unknown as PhotoCanvas,
 };
 
-export async function reducePhoto(
-  _file: File,
-  _tools: PhotoTools = browserPhotoTools,
-): Promise<Result<Blob>> {
-  return err("VALIDATION");
+/** Lado maior da foto que vai para o servidor: sobra para a maior variante (1200 px de largura). */
+const MAX_SIDE = 1600;
+const JPEG_QUALITY = 0.85;
+
+/** Desenha a foto no tamanho de envio. Devolve null se o aparelho não conseguir. */
+async function draw(bitmap: Bitmap, tools: PhotoTools): Promise<Blob | null> {
+  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  const canvas = tools.canvas();
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+  context.drawImage(bitmap as never, 0, 0, width, height);
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY));
+}
+
+/**
+ * Confere o arquivo que a pessoa escolheu (tipo, 10 MB, lado menor de 600 px) e devolve a foto
+ * reduzida para o envio. Se o aparelho não conseguir reduzir, vai o original, desde que caiba no
+ * limite do servidor (4 MB); o servidor confere tudo de novo.
+ */
+export async function reducePhoto(file: File, tools: PhotoTools = browserPhotoTools): Promise<Result<Blob>> {
+  const bitmap = await tools.decode(file, { imageOrientation: "from-image" }).catch(() => null);
+  // Sem conseguir ler a foto, o tamanho em pixels fica para o servidor conferir.
+  const { width, height } = bitmap ?? { width: MIN_PHOTO_SIDE, height: MIN_PHOTO_SIDE };
+  const checked = checkPhotoFile({ type: file.type, bytes: file.size, width, height });
+  const reduced = bitmap && checked.ok ? await draw(bitmap, tools) : null;
+  bitmap?.close();
+  if (!checked.ok) return checked;
+  const best = reduced ?? file;
+  return best.size <= MAX_UPLOAD_BYTES ? ok(best) : err("PHOTO_PREPARE_FAILED");
 }

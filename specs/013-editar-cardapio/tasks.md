@@ -114,10 +114,10 @@ Bloqueia todas as histórias.
 - [x] T063 [US1] `src/application/menu/details.ts` e `details-input.ts` (com `details-input.test.ts` antes)
 - [x] T064 [US1] [teste] `tests/integration/menu/photo-route.test.ts`: `POST /api/cardapio/foto` devolve `200 { photo }`; sem login `401`; sem `menu.write` `403`; corpo acima de 4 MB `413`; erros de `setProductPhoto` como `400 { code }`
 - [x] T065 [US1] `app/api/cardapio/foto/route.ts` e `app/fotos/[...path]/route.ts` (este devolve o arquivo só com `MENU_PHOTOS=file`; com outro valor, `404`, também testado no T064)
-- [ ] T066 [P] [US1] [teste] `src/components/menu/reduce-photo.test.ts` (com `createImageBitmap` e canvas de mentira recebidos por parâmetro): foto de 4000 × 3000 vira 1600 × 1200 em JPEG 0,85; foto menor que 1600 não é ampliada; pede a orientação da câmera; falha ao reduzir devolve o original se tiver até 4 MB e, acima disso, o erro "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB."
-- [ ] T067 [P] [US1] `src/components/menu/reduce-photo.ts`
-- [ ] T068 [P] [US1] [teste] `src/components/menu/upload-photo.test.ts` (com `XMLHttpRequest` de mentira): informa o progresso, resolve com a foto no `200`, devolve o código no `400` e "Não foi possível enviar a foto. Tente de novo." na queda de rede
-- [ ] T069 [P] [US1] `src/components/menu/upload-photo.ts`
+- [x] T066 [P] [US1] [teste] `src/components/menu/reduce-photo.test.ts` (com `createImageBitmap` e canvas de mentira recebidos por parâmetro): foto de 4000 × 3000 vira 1600 × 1200 em JPEG 0,85; foto menor que 1600 não é ampliada; pede a orientação da câmera; falha ao reduzir devolve o original se tiver até 4 MB e, acima disso, o erro "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB."
+- [x] T067 [P] [US1] `src/components/menu/reduce-photo.ts`
+- [x] T068 [P] [US1] [teste] `src/components/menu/upload-photo.test.ts` (com `XMLHttpRequest` de mentira): informa o progresso, resolve com a foto no `200`, devolve o código no `400` e "Não foi possível enviar a foto. Tente de novo." na queda de rede
+- [x] T069 [P] [US1] `src/components/menu/upload-photo.ts`
 - [ ] T070 [US1] [teste] `src/components/menu/photo-field.test.tsx`: "Escolher foto" e "Tirar foto" (campo com `capture`); a prévia aparece em 4:3 antes de salvar; as três mensagens de `checkPhotoFile` sobre o arquivo original; barra de progresso com `role="progressbar"`; "Salvo" só depois do `200`; erro de envio mantém a foto antiga; com foto, "Trocar foto" e "Tirar foto do cardápio" com confirmação; sem foto, "Sem foto"
 - [ ] T071 [US1] `src/components/menu/photo-field.tsx`
 - [ ] T072 [P] [US1] [teste] `src/components/menu/description-field.test.tsx`: contador "Faltam N caracteres" ligado ao campo por `aria-describedby`, aviso ao passar de 300, quebras de linha mantidas
