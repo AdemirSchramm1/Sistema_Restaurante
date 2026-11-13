@@ -3,3 +3,6 @@ pnpm-lock.yaml
 specs/
 docs/
 src/infra/db/migrations/
+.stryker-tmp/
+reports/
+tests/screens/__screenshots__/

@@ -16,7 +16,7 @@
     "test:e2e": "playwright test --project=chromium",
     "test:screens": "scripts/screens.sh",
     "test:screens:update": "scripts/screens.sh --update-snapshots=all",
-    "test:menu": "vitest run --config vitest.menu.config.mts --coverage",
+    "test:menu": "vitest run --mode menu --coverage",
     "test:mutation": "stryker run",
     "db:up": "docker compose up -d --wait db",
     "db:generate": "drizzle-kit generate",
