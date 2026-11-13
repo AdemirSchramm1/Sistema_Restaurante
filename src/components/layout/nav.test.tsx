@@ -133,3 +133,28 @@ describe("menu lateral por área (spec 012, US2)", () => {
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("entrada Cardápio no menu (spec 013, US2)", () => {
+  it("aparece em Operação para gerente e chef, e para mais ninguém", () => {
+    for (const role of ["MANAGER", "CHEF"] as const) {
+      const operation = navSections([role]).find((s) => s.id === "operation")!;
+      expect(operation.entries.map((e) => e.label)).toContain("Cardápio");
+    }
+    for (const role of ["STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"] as const)
+      expect(labels([role])).not.toContain("Cardápio");
+    expect(NAV.find((n) => n.label === "Cardápio")).toMatchObject({
+      href: "/pedidos/cardapio",
+      action: "menu.write",
+      section: "operation",
+    });
+  });
+
+  it("em /pedidos/cardapio (e nas telas de dentro) só Cardápio fica marcado, não Pedidos", () => {
+    for (const pathname of ["/pedidos/cardapio", "/pedidos/cardapio/novo", "/pedidos/cardapio/ver"]) {
+      render(<MainNav roles={["MANAGER"]} reorderCount={0} pathname={pathname} />);
+      const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page");
+      expect(current.map((a) => a.textContent)).toEqual(["Cardápio"]);
+      cleanup();
+    }
+  });
+});
