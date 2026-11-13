@@ -38,7 +38,8 @@ export function Cart({
 }: {
   lines: CartLine[];
   onChange: (lines: CartLine[]) => void;
-  submit: SubmitFn;
+  /** `null` na pré-visualização da equipe (spec 013, US5): o carrinho aparece, mas não envia. */
+  submit: SubmitFn | null;
   onSent?: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
@@ -60,7 +61,7 @@ export function Cart({
     setSending(true);
     setMessages([]);
     try {
-      const r = await submit({ clientRequestId: requestId.current, lines: toOrderLines(lines) });
+      const r = await submit!({ clientRequestId: requestId.current, lines: toOrderLines(lines) });
       if (r?.ok) {
         setSent(r.data);
         setConfirming(false);
@@ -161,9 +162,11 @@ export function Cart({
           ))}
         </Alert>
       )}
-      <Button type="button" size="xl" disabled={lines.length === 0} onClick={open}>
-        Enviar pedido
-      </Button>
+      {submit && (
+        <Button type="button" size="xl" disabled={lines.length === 0} onClick={open}>
+          Enviar pedido
+        </Button>
+      )}
 
       {confirming && (
         <div

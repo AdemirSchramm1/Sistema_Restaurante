@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { AccessOrderView, MenuProduct, MenuView } from "@/application/ordering/menu";
+import type { CustomerMenu } from "@/domain/menu/customer-menu";
 import { normalizeDescription } from "@/domain/inventory/description";
 import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
@@ -49,15 +50,14 @@ function useCurrentSection(anchors: readonly string[]): string | null {
  * e "Meus pedidos". O carrinho fica no estado desta tela: a atualização automática troca o cardápio
  * sem mexer nele.
  */
-export function MenuApp({
-  menu,
-  orders,
-  submit,
-}: {
-  menu: MenuView;
-  orders: AccessOrderView[];
-  submit: SubmitFn;
-}) {
+export function MenuApp(
+  props:
+    | { menu: MenuView; orders: AccessOrderView[]; submit: SubmitFn; preview?: false }
+    /** Pré-visualização da equipe (spec 013, US5): o mesmo cardápio, sem mesa, sem tempo e sem envio. */
+    | { menu: CustomerMenu<MenuProduct>; preview: true },
+) {
+  const { menu } = props;
+  const live = props.preview ? null : props;
   const [lines, setLines] = useState<CartLine[]>([]);
   const [open, setOpen] = useState<MenuProduct | null>(null);
   const [q, setQ] = useState("");
@@ -102,21 +102,33 @@ export function MenuApp({
 
   return (
     <div className="grid gap-5">
-      <header className="grid gap-1">
-        <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
-          {menu.restaurantName}
-        </span>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {menu.tableName}</h1>
-        <AccessTimer
-          key={menu.serverNow}
-          serverNow={menu.serverNow}
-          expiresAt={menu.expiresAt}
-          unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
-          onExpire={() => setExpired(true)}
-        />
-      </header>
+      {live ? (
+        <header className="grid gap-1">
+          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
+            {live.menu.restaurantName}
+          </span>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {live.menu.tableName}</h1>
+          <AccessTimer
+            key={live.menu.serverNow}
+            serverNow={live.menu.serverNow}
+            expiresAt={live.menu.expiresAt}
+            unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
+            onExpire={() => setExpired(true)}
+          />
+        </header>
+      ) : (
+        <header className="grid gap-2">
+          <p
+            role="status"
+            className="rounded-lg bg-warning-soft px-3 py-2 text-center text-sm font-medium text-warning-soft-foreground"
+          >
+            Pré-visualização: pedidos não são enviados
+          </p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Cardápio</h1>
+        </header>
+      )}
 
-      {!expired && <AutoRefresh seconds={10} />}
+      {live && !expired && <AutoRefresh seconds={10} />}
 
       {!expired &&
         (open ? (
@@ -161,8 +173,8 @@ export function MenuApp({
                 {shown.length === 0 && <li className="text-sm text-muted-foreground">Nada com esse nome.</li>}
               </ul>
             )}
-            {menu.ordersLeft > 0 ? (
-              <Cart lines={lines} onChange={setLines} submit={submit} />
+            {!live || live.menu.ordersLeft > 0 ? (
+              <Cart lines={lines} onChange={setLines} submit={live?.submit ?? null} />
             ) : (
               <p role="status" className="rounded-xl bg-muted p-4 text-center">
                 Chame um garçom para continuar pedindo.
@@ -171,7 +183,7 @@ export function MenuApp({
           </>
         ))}
 
-      <MyOrders orders={orders} />
+      {live && <MyOrders orders={live.orders} />}
     </div>
   );
 }
