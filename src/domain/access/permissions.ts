@@ -50,6 +50,7 @@ export const ACTIONS = [
   "tab.history",
   "tab.reopen",
   "tab.settings",
+  "menu.write",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 

@@ -225,8 +225,8 @@ export async function expectStickyAfterScroll(page: Page, bar: Locator): Promise
       );
     await bar.evaluate((el) => (el.scrollLeft = el.scrollWidth));
     await settle(page);
-    const scrollX = await page.evaluate(() => scrollX);
-    if (scrollX !== 0) throw new Error("rolagem para o lado: rolar a barra rolou a página");
+    const moved = await page.evaluate(() => window.scrollX);
+    if (moved !== 0) throw new Error("rolagem para o lado: rolar a barra rolou a página");
     await expectNoSideScroll(page);
   } finally {
     await bar.evaluate((el) => (el.scrollLeft = 0));
