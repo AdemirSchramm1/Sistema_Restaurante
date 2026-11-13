@@ -54,3 +54,30 @@ test("chef organiza o cardápio em seções; estoquista não entra (spec 013, US
   await expect(stock.getByRole("heading", { name: "Sem acesso" })).toBeVisible();
   await other.close();
 });
+
+test("chef escolhe a ordem dos produtos da seção (spec 013, US3)", async ({ page }) => {
+  const s = seedMenu("board");
+  await login(page, s.chef, s.password);
+  await page.goto("/pedidos/cardapio");
+  const lanches = page.getByRole("region", { name: "Lanches" });
+  const names = () => lanches.getByRole("listitem").getByRole("link").allTextContents();
+  expect((await names()).slice(0, 3)).toEqual([
+    "X-Burger",
+    "X-Burger duplo com bacon crocante, cheddar, cebola caramelizada e molho",
+    "X-Salada",
+  ]);
+  await expect(lanches.getByRole("button", { name: "Subir X-Burger", exact: true })).toBeDisabled();
+  await expect(lanches.getByRole("button", { name: "Descer X-Bacon" })).toBeDisabled();
+
+  await lanches.getByRole("button", { name: "Subir X-Salada" }).click();
+  await expect.poll(async () => (await names())[1]).toBe("X-Salada");
+
+  // Só com o teclado: foco no botão e Enter.
+  await lanches.getByRole("button", { name: "Subir X-Salada" }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(async () => (await names())[0]).toBe("X-Salada");
+  await expect(lanches.getByRole("button", { name: "Subir X-Salada" })).toBeDisabled();
+
+  await page.reload();
+  expect((await names())[0]).toBe("X-Salada");
+});

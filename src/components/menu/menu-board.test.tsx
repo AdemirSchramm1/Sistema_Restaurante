@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { BoardProduct, MenuBoard as Board } from "@/application/menu/board";
 import { MenuBoard, type MenuBoardActions } from "./menu-board";
 
@@ -145,5 +145,39 @@ describe("tela Cardápio (spec 013, US2)", () => {
     expect(screen.getByText(/Crie a primeira seção/)).toBeTruthy();
     expect(screen.getByRole("form", { name: "Nova seção" })).toBeTruthy();
     expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
+  });
+
+  it("cada produto tem subir e descer, desligados na ponta do grupo (US3.1)", () => {
+    show();
+    const lanches = within(sectionOf("Lanches"));
+    expect(lanches.getByRole<HTMLButtonElement>("button", { name: "Subir X-Burger" }).disabled).toBe(true);
+    expect(lanches.getByRole<HTMLButtonElement>("button", { name: "Descer X-Burger" }).disabled).toBe(false);
+    expect(lanches.getByRole<HTMLButtonElement>("button", { name: "Subir X-Salada" }).disabled).toBe(false);
+    expect(lanches.getByRole<HTMLButtonElement>("button", { name: "Descer X-Salada" }).disabled).toBe(true);
+    const suco = within(sectionOf("Outros"));
+    expect(suco.getByRole<HTMLButtonElement>("button", { name: "Subir Suco" }).disabled).toBe(true);
+    expect(suco.getByRole<HTMLButtonElement>("button", { name: "Descer Suco" }).disabled).toBe(true);
+  });
+
+  it("subir um produto chama a ação dos produtos, não a das seções", async () => {
+    const sent: string[] = [];
+    const record = (who: string) => async (_p: unknown, f: FormData) => {
+      sent.push(`${who}:${String(f.get("id"))}:${String(f.get("direction"))}`);
+      return null;
+    };
+    render(
+      <MenuBoard
+        board={board}
+        canCreateProduct
+        actions={{ ...actions, moveSection: record("seção"), moveProduct: record("produto") }}
+      />,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Subir X-Salada" }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Subir Lanches" }));
+    });
+    expect(sent).toEqual(["produto:p2:up", "seção:s2:up"]);
   });
 });
