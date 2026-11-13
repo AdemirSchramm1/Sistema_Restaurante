@@ -79,6 +79,10 @@ export const FIELD_LABELS: Record<string, string> = {
   soldOutOn: "Esgotado no dia",
   qrRotatedAt: "QR code trocado em",
   acceptingQrOrders: "Recebendo pedidos pelo QR code",
+  menuDescription: "Descrição no cardápio",
+  menuSection: "Seção do cardápio",
+  menuPosition: "Posição na seção",
+  position: "Posição",
 };
 
 /** Campos cujo valor é um id interno ou uma lista técnica: o histórico só diz que mudou. */

@@ -137,8 +137,8 @@ Bloqueia todas as histórias.
 - [x] T080 [US4] Preço e "Esgotado hoje" em `product-menu-form.tsx`, reaproveitando `setSalePriceAction` e a ação de esgotado existentes
 - [x] T081 [US4] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Novo produto" com nome, item, preço, seção, descrição e foto volta para a tela Cardápio com o produto no fim de "Bebidas"; se a foto falhar, "Produto salvo, mas a foto não foi enviada. Tente de novo."; mudar o preço pela tela Cardápio faz o carrinho de um cliente pedir nova confirmação
 - [x] T082 [US4] `createMenuProductAction` em `src/actions/menu-board.ts` e tela `app/(app)/pedidos/cardapio/novo/page.tsx`, reaproveitando o formulário de linhas da 003
-- [ ] T083 [US4] [teste] `tests/integration/audit/menu.test.ts`: cada escrita da tela Cardápio aparece na consulta de auditoria com quem, quando e o que mudou, e cada tentativa sem permissão como negada (FR-009)
-- [ ] T084 [US4] Rótulos das ações `menu.*` na tela de auditoria (`src/components/audit/`), com o teste do componente antes
+- [x] T083 [US4] [teste] `tests/integration/audit/menu.test.ts`: cada escrita da tela Cardápio aparece na consulta de auditoria com quem, quando e o que mudou, e cada tentativa sem permissão como negada (FR-009)
+- [x] T084 [US4] Rótulos das ações `menu.*` na tela de auditoria (`src/components/audit/`), com o teste do componente antes
 
 ## Fase 7: US6 — Cardápio do cliente em qualquer tela (P1)
 
