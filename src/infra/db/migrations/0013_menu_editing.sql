@@ -21,6 +21,7 @@ ALTER TABLE "recipes" ADD COLUMN "photo_base" text;--> statement-breakpoint
 ALTER TABLE "recipes" ADD COLUMN "photo_widths" smallint[];--> statement-breakpoint
 CREATE UNIQUE INDEX "menu_sections_name" ON "menu_sections" USING btree ("restaurant_id","name_normalized");--> statement-breakpoint
 CREATE UNIQUE INDEX "menu_sections_id_restaurant" ON "menu_sections" USING btree ("id","restaurant_id");--> statement-breakpoint
+CREATE INDEX "recipes_menu_order" ON "recipes" USING btree ("restaurant_id","kind","menu_section_id","menu_position");--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_menu_section_fk" FOREIGN KEY ("menu_section_id","restaurant_id") REFERENCES "public"."menu_sections"("id","restaurant_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_description_length" CHECK (char_length(description) between 1 and 300);--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_photo_pair" CHECK ((photo_base is null) = (photo_widths is null) and (photo_widths is null or cardinality(photo_widths) >= 1));--> statement-breakpoint

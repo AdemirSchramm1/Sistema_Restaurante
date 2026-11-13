@@ -188,6 +188,8 @@ export const recipes = pgTable(
       .where(sql`active`),
     // Cardápio e listas por tipo, ativos ou não (spec 012, R2).
     index("recipes_kind_name").on(t.restaurantId, t.kind, t.nameNormalized),
+    // Tela Cardápio e cardápio do cliente: produtos por seção e posição (spec 013).
+    index("recipes_menu_order").on(t.restaurantId, t.kind, t.menuSectionId, t.menuPosition),
     check("recipes_sale_price_positive", sql`sale_price > 0`),
     check("recipes_sale_price_dish", sql`sale_price is null or kind = 'DISH'`),
     check("recipes_sold_out_dish", sql`sold_out_on is null or kind = 'DISH'`),
