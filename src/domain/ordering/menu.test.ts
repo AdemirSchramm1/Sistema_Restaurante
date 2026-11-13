@@ -29,7 +29,7 @@ describe("o que aparece no cardápio (spec 009, US2-2, FR-004)", () => {
     expect(isOnMenu(row({ soldOutOn: "2026-11-07" }), today)).toBe(true);
   });
 
-  it("ordem alfabética sem diferenciar acentos e maiúsculas", () => {
+  it("mantém a ordem recebida, que é a escolhida no cardápio (spec 013, US3.5), e não a alfabética", () => {
     const menu = buildMenu(
       [
         row({ id: "3", name: "Suco" }),
@@ -39,6 +39,6 @@ describe("o que aparece no cardápio (spec 009, US2-2, FR-004)", () => {
       ],
       today,
     );
-    expect(menu.map((p) => p.name)).toEqual(["água", "Ômelete", "Suco"]);
+    expect(menu.map((p) => p.name)).toEqual(["Suco", "água", "Ômelete"]);
   });
 });

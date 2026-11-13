@@ -34,8 +34,8 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
 
     const menu = unwrap(await getMenu(env.deps, cookie));
     expect(menu).toMatchObject({ restaurantName: "Cantina da Nona", tableName: "5", ordersLeft: 10 });
+    // Spec 013, US3.5: a ordem é a do cardápio (aqui, a de criação: X-Burger, depois Suco), não a alfabética.
     expect(menu.products).toEqual([
-      { id: k.suco, name: "Suco", price: "9.00", addons: [], removables: [] },
       {
         id: k.burger,
         name: "X-Burger",
@@ -43,6 +43,7 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
         addons: [{ id: cheese, name: "Fatia de queijo", price: "3.00", maxTimes: 2 }],
         removables: [{ kind: "ITEM", id: k.cebola, label: "Sem cebola" }],
       },
+      { id: k.suco, name: "Suco", price: "9.00", addons: [], removables: [] },
     ]);
 
     await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-31' where id = $1", [
@@ -52,7 +53,7 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
     await ownerTestDb().$client.query("update recipes set sold_out_on = '2026-10-30' where id = $1", [
       k.suco,
     ]);
-    expect(unwrap(await getMenu(env.deps, cookie)).products.map((p) => p.name)).toEqual(["Suco", "X-Burger"]);
+    expect(unwrap(await getMenu(env.deps, cookie)).products.map((p) => p.name)).toEqual(["X-Burger", "Suco"]);
   });
 
   it("'Meus pedidos' mostra só os pedidos deste celular, mais novo primeiro", async () => {
