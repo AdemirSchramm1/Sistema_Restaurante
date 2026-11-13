@@ -5,6 +5,9 @@ import { listDishesForKitchen, setProductSoldOut } from "../../../src/applicatio
 import { getMenu } from "../../../src/application/ordering/menu";
 import { getRecipe } from "../../../src/application/inventory/recipes";
 
+const productNames = (menu: { sections: { products: { name: string }[] }[] }) =>
+  menu.sections.flatMap((x) => x.products.map((p) => p.name));
+
 describe("esgotado hoje (spec 009, US5)", () => {
   it("tira do cardápio hoje e volta sozinho amanhã; o produto continua ativo", async () => {
     const env = testEnv();
@@ -16,7 +19,7 @@ describe("esgotado hoje (spec 009, US5)", () => {
       s.suco,
     ]);
     expect(row.rows[0].sold_out_on).toBe("2026-10-31");
-    expect(unwrap(await getMenu(env.deps, s.cookie)).products.map((p) => p.name)).toEqual(["X-Burger"]);
+    expect(productNames(unwrap(await getMenu(env.deps, s.cookie)))).toEqual(["X-Burger"]);
     expect(unwrap(await getRecipe(env.deps, m, s.suco)).recipe.active).toBe(true);
     expect(unwrap(await listDishesForKitchen(env.deps, chef))).toEqual([
       { id: s.suco, name: "Suco", soldOut: true },
@@ -24,7 +27,7 @@ describe("esgotado hoje (spec 009, US5)", () => {
     ]);
 
     unwrap(await setProductSoldOut(env.deps, chef, { recipeId: s.suco, soldOut: false }));
-    expect(unwrap(await getMenu(env.deps, s.cookie)).products).toHaveLength(2);
+    expect(productNames(unwrap(await getMenu(env.deps, s.cookie)))).toHaveLength(2);
 
     unwrap(await setProductSoldOut(env.deps, chef, { recipeId: s.suco, soldOut: true }));
     env.clock.advance(24 * 3600_000);
