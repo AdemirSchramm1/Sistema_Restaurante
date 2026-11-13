@@ -11,3 +11,7 @@ next-env.d.ts
 /playwright-report/
 .DS_Store
 .mail/
+.menu-photos/
+/reports/
+.stryker-tmp/
+/tests/screens/.state/
