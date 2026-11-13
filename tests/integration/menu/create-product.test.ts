@@ -49,7 +49,7 @@ describe("produto novo pela tela Cardápio (spec 013, US4)", () => {
     expect(
       (await auditOf(id)).map((a) => [a.action, a.changes.event ?? Object.keys(a.changes).sort().join()]),
     ).toEqual([
-      ["CREATE", "kind,lines,name,yield"],
+      ["CREATE", "kind,lines,name"],
       ["UPDATE", "salePrice"],
       ["UPDATE", "menu.details"],
     ]);

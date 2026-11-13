@@ -131,8 +131,8 @@ Bloqueia todas as histórias.
 **Objetivo**: preço e "Esgotado hoje" na mesma tela; produto novo pela tela Cardápio.
 **Teste independente**: criar "Suco de laranja" com item, preço, seção, foto e descrição e vê-lo no fim de "Bebidas".
 
-- [ ] T077 [P] [US4] [teste] `tests/integration/menu/create-product.test.ts`: `createMenuProduct` cria o produto vendido com as validações da 003 (sem item → `RECIPE_EMPTY`; nome repetido → `RECIPE_DUPLICATE_NAME`), grava preço, descrição e seção e põe no fim da seção, tudo numa transação (erro em qualquer parte não deixa nada gravado); preço zero → `INVALID_PRICE`; exige `menu.write` e `recipe.write`
-- [ ] T078 [US4] `src/application/menu/create-product.ts` e `create-product-input.ts` (com `create-product-input.test.ts` antes)
+- [x] T077 [P] [US4] [teste] `tests/integration/menu/create-product.test.ts`: `createMenuProduct` cria o produto vendido com as validações da 003 (sem item → `RECIPE_EMPTY`; nome repetido → `RECIPE_DUPLICATE_NAME`), grava preço, descrição e seção e põe no fim da seção, tudo numa transação (erro em qualquer parte não deixa nada gravado); preço zero → `INVALID_PRICE`; exige `menu.write` e `recipe.write`
+- [x] T078 [US4] `src/application/menu/create-product.ts` e `create-product-input.ts` (com `create-product-input.test.ts` antes)
 - [ ] T079 [US4] [teste] `src/components/menu/product-menu-form.test.tsx`: o formulário do produto mostra preço (regras da 008) e "Esgotado hoje" (009) junto de foto, descrição e seção, cada um salvando sozinho com seu "Salvo"; link "Editar nome e ingredientes" para `/estoque/produtos/{id}`; `STALE_RECORD` mostra "Outra pessoa mudou este produto. Recarregue a tela."
 - [ ] T080 [US4] Preço e "Esgotado hoje" em `product-menu-form.tsx`, reaproveitando `setSalePriceAction` e a ação de esgotado existentes
 - [ ] T081 [US4] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Novo produto" com nome, item, preço, seção, descrição e foto volta para a tela Cardápio com o produto no fim de "Bebidas"; se a foto falhar, "Produto salvo, mas a foto não foi enviada. Tente de novo."; mudar o preço pela tela Cardápio faz o carrinho de um cliente pedir nova confirmação

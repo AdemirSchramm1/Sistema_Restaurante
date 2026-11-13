@@ -1,4 +1,4 @@
-import type { Deps } from "../ports";
+import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { auditStamp } from "../shared";
 import { boardProduct, type BoardProduct } from "./board";
@@ -50,40 +50,50 @@ export function setMenuDetails(
   ctx: RequestContext,
   input: MenuDetailsInput,
 ): Promise<Result<void>> {
+  return withMenuAccess(deps, ctx, { entity: PRODUCT_ENTITY, id: input.id }, (repos) =>
+    applyMenuDetails(deps, ctx, repos, input),
+  );
+}
+
+/** A gravação dentro de uma transação já aberta (o produto novo já nasce com descrição e seção). */
+export async function applyMenuDetails(
+  deps: Deps,
+  ctx: RequestContext,
+  repos: Repos,
+  input: MenuDetailsInput,
+): Promise<Result<void>> {
   const target = { entity: PRODUCT_ENTITY, id: input.id };
-  return withMenuAccess(deps, ctx, target, async (repos) => {
-    await repos.menuBoard.lock();
-    const found = await loadDish(repos, input.id);
-    if (!found.ok) return found;
-    const product = found.value;
-    const description = cleanDescription(input.description);
-    if (!description.ok) return description;
-    const sections = await repos.menuBoard.sections();
-    const nameOf = (id: string | null) => sections.find((s) => s.id === id)?.name;
-    if (input.sectionId && !nameOf(input.sectionId)) return err("NOT_FOUND", "sectionId");
+  await repos.menuBoard.lock();
+  const found = await loadDish(repos, input.id);
+  if (!found.ok) return found;
+  const product = found.value;
+  const description = cleanDescription(input.description);
+  if (!description.ok) return description;
+  const sections = await repos.menuBoard.sections();
+  const nameOf = (id: string | null) => sections.find((s) => s.id === id)?.name;
+  if (input.sectionId && !nameOf(input.sectionId)) return err("NOT_FOUND", "sectionId");
 
-    const saved = await repos.menuBoard.setDescription(
-      input.id,
-      description.value,
-      input.version,
-      auditStamp(deps, ctx),
-    );
-    if (!saved) return err("STALE_RECORD");
+  const saved = await repos.menuBoard.setDescription(
+    input.id,
+    description.value,
+    input.version,
+    auditStamp(deps, ctx),
+  );
+  if (!saved) return err("STALE_RECORD");
 
-    if (input.sectionId !== product.sectionId) {
-      const products = await repos.menuBoard.products();
-      const others = (sectionId: string | null) =>
-        products.filter((p) => p.sectionId === sectionId && p.id !== input.id).map((p) => p.id);
-      await repos.menuBoard.placeProducts(input.sectionId, [...others(input.sectionId), input.id]);
-      await repos.menuBoard.placeProducts(product.sectionId, others(product.sectionId));
-    }
+  if (input.sectionId !== product.sectionId) {
+    const products = await repos.menuBoard.products();
+    const others = (sectionId: string | null) =>
+      products.filter((p) => p.sectionId === sectionId && p.id !== input.id).map((p) => p.id);
+    await repos.menuBoard.placeProducts(input.sectionId, [...others(input.sectionId), input.id]);
+    await repos.menuBoard.placeProducts(product.sectionId, others(product.sectionId));
+  }
 
-    const changes = diffFields(
-      { menuDescription: product.description, menuSection: nameOf(product.sectionId) ?? OTHER_SECTION },
-      { menuDescription: description.value, menuSection: nameOf(input.sectionId) ?? OTHER_SECTION },
-    );
-    if (Object.keys(changes).length)
-      await recordMenuEvent(repos, ctx, target, "UPDATE", "menu.details", changes);
-    return ok(undefined);
-  });
+  const changes = diffFields(
+    { menuDescription: product.description, menuSection: nameOf(product.sectionId) ?? OTHER_SECTION },
+    { menuDescription: description.value, menuSection: nameOf(input.sectionId) ?? OTHER_SECTION },
+  );
+  if (Object.keys(changes).length)
+    await recordMenuEvent(repos, ctx, target, "UPDATE", "menu.details", changes);
+  return ok(undefined);
 }
