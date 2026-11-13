@@ -20,12 +20,10 @@ const ACCEPT = "image/jpeg,image/png,image/webp";
 function FileButton({
   label,
   camera = false,
-  disabled,
   onPick,
 }: {
   label: string;
   camera?: boolean;
-  disabled: boolean;
   onPick: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();
@@ -36,7 +34,6 @@ function FileButton({
         buttonVariants({ variant: "outline", size: "lg" }),
         WRAPPING_BUTTON,
         "cursor-pointer focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background",
-        disabled && "pointer-events-none opacity-50",
       )}
     >
       {label}
@@ -46,7 +43,6 @@ function FileButton({
         className="sr-only"
         accept={ACCEPT}
         capture={camera ? "environment" : undefined}
-        disabled={disabled}
         onChange={onPick}
       />
     </label>
@@ -97,8 +93,8 @@ function RemovePhoto({ recipeId, name, action }: { recipeId: string; name: strin
 
 /**
  * Foto do produto na tela do Cardápio (spec 013, US1.1 a US1.5). A foto aparece no recorte 4:3 do
- * cartão do cliente. "Foto salva" só aparece com a resposta do servidor; se o envio falha, a foto
- * antiga continua.
+ * cartão do cliente antes de salvar. "Foto salva" só aparece com a resposta do servidor; se o envio
+ * falha, a foto antiga continua valendo.
  */
 export function PhotoField({
   recipeId,
@@ -120,13 +116,21 @@ export function PhotoField({
 }) {
   /** O que o servidor confirmou depois que a tela abriu; até lá vale a foto que veio com ela. */
   const [changed, setChanged] = useState<{ photo: Photo | null } | null>(null);
-  const [sending, setSending] = useState<{ preview: string; percent: number } | null>(null);
+  /** A foto escolhida, em prévia. `percent` só existe enquanto ela está sendo enviada. */
+  const [draft, setDraft] = useState<{ file: Blob; preview: string; percent: number | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const current = changed ? changed.photo : photo;
+  const sending = draft !== null && draft.percent !== null;
 
   const confirm = (next: Photo | null) => {
     setChanged({ photo: next });
     onSaved?.();
+  };
+
+  const discard = (chosen: { preview: string }) => {
+    URL.revokeObjectURL(chosen.preview);
+    setDraft(null);
+    setError(null);
   };
 
   const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -138,16 +142,23 @@ export function PhotoField({
     // Deixa escolher o mesmo arquivo de novo depois de um erro.
     input.value = "";
     if (!ready.ok) return setError(messageFor(ready.error));
-    const preview = URL.createObjectURL(ready.value);
-    setSending({ preview, percent: 0 });
+    setDraft({ file: ready.value, preview: URL.createObjectURL(ready.value), percent: null });
+  };
+
+  const save = async (chosen: { file: Blob; preview: string }) => {
+    setError(null);
+    setDraft({ ...chosen, percent: 0 });
     const sent = await upload({
       recipeId,
-      file: ready.value,
-      onProgress: (percent) => setSending({ preview, percent }),
+      file: chosen.file,
+      onProgress: (percent) => setDraft({ ...chosen, percent }),
     });
-    URL.revokeObjectURL(preview);
-    setSending(null);
-    if (!sent.ok) return setError(messageFor(sent.error));
+    if (!sent.ok) {
+      // A prévia fica para a pessoa tentar de novo sem escolher outra vez.
+      setDraft({ ...chosen, percent: null });
+      return setError(messageFor(sent.error));
+    }
+    discard(chosen);
     confirm(sent.value);
   };
 
@@ -160,9 +171,9 @@ export function PhotoField({
   return (
     <section aria-label="Foto" className="grid gap-3">
       <div className="aspect-[4/3] w-full max-w-sm overflow-hidden rounded-lg border border-border bg-muted">
-        {sending ? (
+        {draft ? (
           // eslint-disable-next-line @next/next/no-img-element -- prévia local, ainda não está no servidor
-          <img src={sending.preview} alt="Prévia da foto nova" className="size-full object-cover" />
+          <img src={draft.preview} alt="Prévia da foto nova" className="size-full object-cover" />
         ) : current ? (
           // eslint-disable-next-line @next/next/no-img-element -- as variantes já vêm prontas da loja de fotos
           <img
@@ -179,28 +190,48 @@ export function PhotoField({
           <p className="grid size-full place-items-center text-sm text-muted-foreground">Sem foto</p>
         )}
       </div>
-      {sending && (
+      {draft && draft.percent !== null && (
         <div
           role="progressbar"
           aria-label="Enviando a foto"
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuenow={sending.percent}
+          aria-valuenow={draft.percent}
           className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-muted"
         >
-          <div className="h-full bg-primary transition-[width]" style={{ width: `${sending.percent}%` }} />
+          <div className="h-full bg-primary transition-[width]" style={{ width: `${draft.percent}%` }} />
         </div>
       )}
-      <div className="flex flex-wrap gap-2">
-        <FileButton
-          label={current ? "Trocar foto" : "Escolher foto"}
-          disabled={Boolean(sending)}
-          onPick={onPick}
-        />
-        <FileButton label="Tirar foto com a câmera" camera disabled={Boolean(sending)} onPick={onPick} />
-        {current && !sending && <RemovePhoto recipeId={recipeId} name={name} action={remove} />}
-      </div>
-      {changed && !sending && !error && (
+      {draft ? (
+        <div role="group" aria-label="Foto nova" className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="lg"
+            className={WRAPPING_BUTTON}
+            disabled={sending}
+            onClick={() => save(draft)}
+          >
+            Salvar foto
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className={WRAPPING_BUTTON}
+            disabled={sending}
+            onClick={() => discard(draft)}
+          >
+            Cancelar
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <FileButton label={current ? "Trocar foto" : "Escolher foto"} onPick={onPick} />
+          <FileButton label="Tirar foto com a câmera" camera onPick={onPick} />
+          {current && <RemovePhoto recipeId={recipeId} name={name} action={remove} />}
+        </div>
+      )}
+      {changed && !draft && !error && (
         <Saved>{changed.photo ? "Foto salva" : "Foto tirada do cardápio"}</Saved>
       )}
       {error && <Problem>{error}</Problem>}
