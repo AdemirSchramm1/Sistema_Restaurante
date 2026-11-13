@@ -13,14 +13,23 @@ const menu: MenuView = {
   serverNow: new Date().toISOString(),
   expiresAt: new Date(Date.now() + 20 * 60_000).toISOString(),
   ordersLeft: 10,
-  products: [
-    { id: "s", name: "Suco", price: "9.00", addons: [], removables: [] },
+  showSectionTitles: false,
+  sections: [
     {
-      id: "b",
-      name: "X-Burger",
-      price: "28.00",
-      addons: [{ id: "q", name: "Fatia de queijo", price: "3.00", maxTimes: 2 }],
-      removables: [{ kind: "ITEM", id: "c", label: "Sem cebola" }],
+      id: null,
+      name: "Outros",
+      products: [
+        { id: "s", name: "Suco", price: "9.00", description: null, photo: null, addons: [], removables: [] },
+        {
+          id: "b",
+          name: "X-Burger",
+          price: "28.00",
+          description: null,
+          photo: null,
+          addons: [{ id: "q", name: "Fatia de queijo", price: "3.00", maxTimes: 2 }],
+          removables: [{ kind: "ITEM", id: "c", label: "Sem cebola" }],
+        },
+      ],
     },
   ],
 };

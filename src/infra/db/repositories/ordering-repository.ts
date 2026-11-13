@@ -487,8 +487,9 @@ export function menuRepository(tx: Tx): MenuRepo {
         })
         .from(recipes)
         .where(eq(recipes.kind, "DISH"))
-        // Ordem do cardápio (spec 013, US3.5): seção e posição; o nome só desempata.
-        .orderBy(asc(recipes.menuSectionId), asc(recipes.menuPosition), asc(recipes.nameNormalized));
+        // Lista da cozinha ("Esgotado hoje"): alfabética. A ordem do cardápio do cliente vem do
+        // `menuBoard` (spec 013).
+        .orderBy(asc(recipes.nameNormalized));
       return rows.map((r) => ({ ...r, salePrice: dec(r.salePrice) }));
     },
 

@@ -10,6 +10,8 @@ const burger: MenuProduct = {
   id: "b",
   name: "X-Burger",
   price: "28.00",
+  description: null,
+  photo: null,
   addons: [
     { id: "q", name: "Fatia de queijo", price: "3.00", maxTimes: 2 },
     { id: "g", name: "Molho extra", price: "0.00", maxTimes: 1 },

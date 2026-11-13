@@ -32,9 +32,8 @@ export function MenuApp({
   const [expired, setExpired] = useState(false);
 
   const query = normalizeDescription(q);
-  const shown = query
-    ? menu.products.filter((p) => normalizeDescription(p.name).includes(query))
-    : menu.products;
+  const all = menu.sections.flatMap((s) => s.products);
+  const shown = query ? all.filter((p) => normalizeDescription(p.name).includes(query)) : all;
   const add = (p: MenuProduct) => {
     if (p.addons.length === 0 && p.removables.length === 0)
       setLines((c) =>
