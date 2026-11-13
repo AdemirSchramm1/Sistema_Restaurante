@@ -71,6 +71,11 @@ const choose = (label: string, file = picked) =>
   act(async () => {
     fireEvent.change(screen.getByLabelText(label), { target: { files: [file] } });
   });
+/** Escolhe e confirma em "Salvar foto". */
+const chooseAndSave = async (label: string) => {
+  await choose(label);
+  await click("Salvar foto");
+};
 const click = (name: string) =>
   act(async () => {
     fireEvent.click(screen.getByRole("button", { name }));
@@ -107,22 +112,50 @@ describe("campo da foto", () => {
     expect(screen.queryByText("Sem foto")).toBeNull();
   });
 
-  it("escolher a foto: prévia em 4:3, barra de progresso e Foto salva só depois do 200", async () => {
-    const { calls, answer } = setup();
-    await choose("Escolher foto");
+  it("escolher a foto: mostra a prévia em 4:3 e só envia quando a pessoa toca em Salvar foto", async () => {
+    const { calls } = setup({ photo: old });
+    await choose("Trocar foto");
     expect(calls.reduce).toEqual([picked]);
-    expect(calls.upload).toEqual([{ recipeId: "r1", file: reduced }]);
+    expect(calls.upload).toEqual([]);
     const preview = screen.getByRole("img", { name: "Prévia da foto nova" });
     expect(preview.getAttribute("src")).toBe("blob:previa");
     expect(preview.parentElement!.className).toContain("aspect-[4/3]");
+    expect(preview.className).toContain("object-cover");
+    expect(screen.getByRole("button", { name: "Salvar foto" })).toBeTruthy();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+    // Com uma foto esperando, as outras opções saem da frente.
+    expect(screen.queryByLabelText("Trocar foto")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tirar foto do cardápio" })).toBeNull();
+  });
+
+  it("Cancelar descarta a foto escolhida e volta para a que estava", async () => {
+    const { calls } = setup({ photo: old });
+    await choose("Trocar foto");
+    await click("Cancelar");
+    expect(calls.upload).toEqual([]);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:previa");
+    expect(screen.getByRole("img", { name: "Foto de X-Burger" }).getAttribute("src")).toBe(
+      "/fotos/menu/antiga/600.webp",
+    );
+    expect(screen.getByLabelText("Trocar foto")).toBeTruthy();
+    expect(calls.saved).toBe(0);
+  });
+
+  it("Salvar foto: barra de progresso e Foto salva só depois do 200", async () => {
+    const { calls, answer } = setup();
+    await chooseAndSave("Escolher foto");
+    expect(calls.upload).toEqual([{ recipeId: "r1", file: reduced }]);
+    expect(screen.getByRole("img", { name: "Prévia da foto nova" })).toBeTruthy();
     const bar = screen.getByRole("progressbar", { name: "Enviando a foto" });
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
     act(() => calls.progress(40));
     expect(bar.getAttribute("aria-valuenow")).toBe("40");
     expect((bar.firstElementChild as HTMLElement).style.width).toBe("40%");
     expect(screen.queryByRole("status")).toBeNull();
-    // Enquanto envia, não dá para escolher outra.
-    expect((screen.getByLabelText("Escolher foto") as HTMLInputElement).disabled).toBe(true);
+    // Enquanto envia, não dá para salvar de novo nem cancelar.
+    expect((screen.getByRole("button", { name: "Salvar foto" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Cancelar" }) as HTMLButtonElement).disabled).toBe(true);
 
     await answer(ok(fresh));
     expect(screen.getByRole("status").textContent).toBe("Foto salva");
@@ -132,12 +165,13 @@ describe("campo da foto", () => {
     );
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:previa");
     expect(calls.saved).toBe(1);
-    expect((screen.getByLabelText("Trocar foto") as HTMLInputElement).disabled).toBe(false);
+    expect(screen.getByLabelText("Trocar foto")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Salvar foto" })).toBeNull();
   });
 
   it("a câmera segue o mesmo caminho", async () => {
     const { calls, answer } = setup();
-    await choose("Tirar foto com a câmera");
+    await chooseAndSave("Tirar foto com a câmera");
     expect(calls.upload).toHaveLength(1);
     await answer(ok(fresh));
     expect(screen.getByRole("status").textContent).toBe("Foto salva");
@@ -173,18 +207,25 @@ describe("campo da foto", () => {
     },
   );
 
-  it("erro de envio: mantém a foto antiga, mostra o erro e some com ele na próxima tentativa", async () => {
+  it("erro de envio: mostra o erro, deixa tentar de novo e a foto antiga continua valendo", async () => {
     const { calls, answer } = setup({ photo: old });
-    await choose("Trocar foto");
+    await chooseAndSave("Trocar foto");
     await answer(err("PHOTO_STORAGE_FAILED"));
     expect(screen.getByRole("alert").textContent).toBe("Não foi possível enviar a foto. Tente de novo.");
     expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByRole("progressbar")).toBeNull();
     expect(calls.saved).toBe(0);
+    // A foto escolhida continua na tela para tentar de novo sem escolher outra vez.
+    expect(screen.getByRole("img", { name: "Prévia da foto nova" })).toBeTruthy();
+    await click("Salvar foto");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(calls.upload).toHaveLength(2);
+    await answer(err("PHOTO_STORAGE_FAILED"));
+    await click("Cancelar");
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.getByRole("img", { name: "Foto de X-Burger" }).getAttribute("src")).toBe(
       "/fotos/menu/antiga/600.webp",
     );
-    await choose("Trocar foto");
-    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("tirar a foto do cardápio pede confirmação e dá para desistir", async () => {
@@ -223,7 +264,7 @@ describe("campo da foto", () => {
 
   it("depois de enviar uma foto nova, dá para tirar essa foto", async () => {
     const { answer } = setup();
-    await choose("Escolher foto");
+    await chooseAndSave("Escolher foto");
     await answer(ok(fresh));
     await click("Tirar foto do cardápio");
     await click("Tirar a foto");
