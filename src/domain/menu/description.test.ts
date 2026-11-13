@@ -13,6 +13,10 @@ describe("descrição do produto (docs/produto/pedidos/06-editar-o-cardapio.md#d
     });
   });
 
+  it("quebra de linha sozinha no formato antigo (\\r) também vira quebra comum", () => {
+    expect(cleanDescription("Pão\rCarne")).toEqual({ ok: true, value: "Pão\nCarne" });
+  });
+
   it("vazia, só espaços, nula ou ausente vira sem descrição", () => {
     for (const text of ["", "   \n ", null, undefined])
       expect(cleanDescription(text)).toEqual({ ok: true, value: null });

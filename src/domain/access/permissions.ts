@@ -69,6 +69,7 @@ const MATRIX: Record<Role, readonly Action[]> = {
     "order.read",
     "product.sold_out",
     "addon.read",
+    "menu.write",
   ],
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],

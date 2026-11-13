@@ -79,7 +79,7 @@ describe("recorte 4:3 no centro (spec 013, FR-003)", () => {
   });
 
   it("medidas que não dividem certo arredondam para baixo", () => {
-    expect(croppedSize(1000, 700)).toEqual({ width: 933, height: 699 });
+    expect(croppedSize(1000, 700)).toEqual({ width: 932, height: 699 });
     expect(croppedSize(601, 2000)).toEqual({ width: 600, height: 450 });
   });
 });
