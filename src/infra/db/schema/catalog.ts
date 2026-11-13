@@ -4,12 +4,14 @@ import {
   char,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
   numeric,
   pgEnum,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -121,6 +123,26 @@ export const items = pgTable(
 
 export const recipeKindEnum = pgEnum("recipe_kind", ["DISH", "SUB_RECIPE"]);
 
+/** Seção do cardápio: Entradas, Lanches, Bebidas… (spec 013, US2). É apagada de verdade. */
+export const menuSections = pgTable(
+  "menu_sections",
+  {
+    ...base,
+    ...editable,
+    name: text("name").notNull(),
+    nameNormalized: text("name_normalized").notNull(),
+    /** Ordem no cardápio, densa (1..n). A unicidade é adiável (migração 0013) para trocar vizinhas. */
+    position: integer("position").notNull(),
+  },
+  (t) => [
+    uniqueIndex("menu_sections_name").on(t.restaurantId, t.nameNormalized),
+    // Alvo da chave composta de recipes: a seção é sempre do mesmo restaurante do produto.
+    uniqueIndex("menu_sections_id_restaurant").on(t.id, t.restaurantId),
+    check("menu_sections_name_length", sql`char_length(name) between 1 and 40`),
+    check("menu_sections_position_positive", sql`position > 0`),
+  ],
+);
+
 /** Produto (o que o cliente pede) ou preparo usado dentro de outros produtos (feature 003). */
 export const recipes = pgTable(
   "recipes",
@@ -135,8 +157,32 @@ export const recipes = pgTable(
     salePrice: numeric("sale_price", { precision: 12, scale: 2 }),
     /** "Esgotado hoje": data local em que foi marcado (spec 009, US5). */
     soldOutOn: date("sold_out_on", { mode: "string" }),
+    /** Cardápio (spec 013). Fora da versão do produto: mudar não cria versão. */
+    description: text("description"),
+    /** Nulo = sem seção ("Outros"). */
+    menuSectionId: uuid("menu_section_id"),
+    /** Posição na seção, densa (1..n) entre os vendidos; 0 no preparo. */
+    menuPosition: integer("menu_position").notNull().default(0),
+    /** Endereço da foto até o identificador, sem a largura: `…/menu/{photoId}`. */
+    photoBase: text("photo_base"),
+    /** Larguras gravadas da foto, em ordem crescente. */
+    photoWidths: smallint("photo_widths").array(),
   },
   (t) => [
+    foreignKey({
+      name: "recipes_menu_section_fk",
+      columns: [t.menuSectionId, t.restaurantId],
+      foreignColumns: [menuSections.id, menuSections.restaurantId],
+    }),
+    check("recipes_description_length", sql`char_length(description) between 1 and 300`),
+    check(
+      "recipes_photo_pair",
+      sql`(photo_base is null) = (photo_widths is null) and (photo_widths is null or cardinality(photo_widths) >= 1)`,
+    ),
+    check(
+      "recipes_menu_only_dish",
+      sql`kind = 'DISH' or (description is null and menu_section_id is null and menu_position = 0 and photo_base is null and photo_widths is null)`,
+    ),
     uniqueIndex("recipes_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),

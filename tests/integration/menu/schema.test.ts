@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
 import type { PoolClient } from "pg";
 import { newRestaurant, ownerTestDb, testDb, testEnv } from "../harness";
 import { sql } from "drizzle-orm";
@@ -160,13 +161,13 @@ describe("banco da edição do cardápio (spec 013, data-model.md)", () => {
     expect(await seen(a.restaurantId)).toBe(1);
     expect(await seen(b.restaurantId)).toBe(0);
 
-    const insertAsB = withTenantTx(testDb(), b.restaurantId, (tx) =>
+    const insertAsB = await withTenantTx(testDb(), b.restaurantId, (tx) =>
       tx.execute(
         sql`insert into menu_sections (id, restaurant_id, created_at, updated_at, name, name_normalized, position)
             values (${ID(2)}, ${a.restaurantId}, ${NOW}, ${NOW}, 'Invasão', 'invasao', 2)`,
       ),
-    );
-    await expect(insertAsB).rejects.toThrow(/row-level security/);
+    ).catch((e: Error) => e);
+    expect(String((insertAsB as Error).cause)).toMatch(/row-level security/);
 
     // A aplicação pode apagar seção (a regra de mandar os produtos para "Outros" é do caso de uso).
     await withTenantTx(testDb(), a.restaurantId, (tx) =>
@@ -188,6 +189,8 @@ describe("banco da edição do cardápio (spec 013, data-model.md)", () => {
       await c.query("update recipes set name_normalized = 'agua' where id = $1", [ID(21)]);
       // O mesmo comando da migração 0013, que precisa poder rodar de novo sem estragar nada.
       const { MENU_POSITION_BACKFILL } = await import("../../../src/infra/db/menu-backfill");
+      const migration = await readFile("src/infra/db/migrations/0013_menu_editing.sql", "utf8");
+      expect(migration).toContain(MENU_POSITION_BACKFILL);
       await c.query(MENU_POSITION_BACKFILL);
       const rows = await c.query(
         "select name, menu_position, menu_section_id from recipes where restaurant_id = $1 order by name_normalized",
