@@ -4,8 +4,12 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { MenuApp } from "./menu-app";
 import type { MenuView } from "@/application/ordering/menu";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
-afterEach(cleanup);
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+afterEach(() => {
+  cleanup();
+  refresh.mockClear();
+});
 
 const menu: MenuView = {
   restaurantName: "Cantina da Nona",
@@ -234,5 +238,42 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
     act(() => notify([{ target: observed[2]!, isIntersecting: true }]));
     expect(current()).toEqual(["Outros"]);
     vi.unstubAllGlobals();
+  });
+});
+
+describe("pré-visualização para a equipe (spec 013, US5)", () => {
+  const preview = { showSectionTitles: sectioned.showSectionTitles, sections: sectioned.sections };
+
+  it("mostra a faixa de pré-visualização e o mesmo cardápio do cliente", () => {
+    render(<MenuApp preview menu={preview} />);
+    expect(screen.getByRole("status").textContent).toBe("Pré-visualização: pedidos não são enviados");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Cardápio");
+    expect(buttons()).toHaveLength(6);
+    expect(screen.getByRole("navigation", { name: "Seções do cardápio" })).toBeTruthy();
+  });
+
+  it("não tem botão de enviar, contador de tempo, Meus pedidos nem atualização automática", () => {
+    vi.useFakeTimers();
+    render(<MenuApp preview menu={preview} />);
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Suco" }));
+    // O carrinho aparece, para ver como fica, mas não envia.
+    expect(screen.getByTestId("cart-total").textContent).toBe("R$ 10,00");
+    expect(screen.queryByRole("button", { name: "Enviar pedido" })).toBeNull();
+    expect(screen.queryByText(/Faltam \d+ min/)).toBeNull();
+    expect(screen.queryByRole("region", { name: "Meus pedidos" })).toBeNull();
+    vi.advanceTimersByTime(60_000);
+    expect(refresh).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("o cardápio de verdade continua atualizando sozinho e mostrando o tempo", () => {
+    vi.useFakeTimers();
+    render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
+    expect(screen.queryByText("Pré-visualização: pedidos não são enviados")).toBeNull();
+    expect(screen.getByText(/Faltam \d+ min/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Enviar pedido" })).toBeTruthy();
+    vi.advanceTimersByTime(10_000);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 });
