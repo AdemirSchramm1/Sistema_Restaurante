@@ -77,3 +77,40 @@ describe("tela do prato com botões (spec 010, US3)", () => {
     });
   });
 });
+
+describe("tela do prato com foto e descrição (spec 013, US6)", () => {
+  const withPhoto: MenuProduct = {
+    ...burger,
+    description: "Pão brioche e dois hambúrgueres.\nFeito na hora.",
+    photo: { base: "/fotos/menu/abc", widths: [300, 600, 900, 1200] },
+  };
+
+  it("mostra a foto maior, sem espera, e a descrição inteira com as quebras de linha", () => {
+    render(<DishOptions product={withPhoto} onAdd={vi.fn()} onClose={vi.fn()} />);
+    const img = screen.getByRole("img", { name: "X-Burger" });
+    expect(img.getAttribute("loading")).toBe("eager");
+    expect(img.getAttribute("sizes")).toBe("(min-width: 672px) 640px, 100vw");
+    expect(img.hasAttribute("data-photo")).toBe(true);
+    const description = screen.getByText(/Pão brioche/);
+    expect(description.textContent).toBe("Pão brioche e dois hambúrgueres.\nFeito na hora.");
+    expect(description.className).toContain("whitespace-pre-line");
+    expect(description.className).not.toContain("line-clamp");
+  });
+
+  it("sem foto e sem descrição não deixa espaço nem parágrafo vazio", () => {
+    render(<DishOptions product={burger} onAdd={vi.fn()} onClose={vi.fn()} />);
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.queryByTestId("dish-description")).toBeNull();
+  });
+
+  it("produto sem opções: só a quantidade e Adicionar ao pedido", () => {
+    const onAdd = vi.fn();
+    render(
+      <DishOptions product={{ ...withPhoto, addons: [], removables: [] }} onAdd={onAdd} onClose={vi.fn()} />,
+    );
+    expect(screen.queryByRole("heading", { name: "Adicionar" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Tirar" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar ao pedido" }));
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ productId: "b", quantity: 1 }));
+  });
+});
