@@ -104,6 +104,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PHOTO_TOO_BIG: "A foto pode ter até 10 MB.",
   PHOTO_TOO_SMALL: "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
   PHOTO_STORAGE_FAILED: "Não foi possível enviar a foto. Tente de novo.",
+  PHOTO_PREPARE_FAILED: "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB.",
 };
 
 /** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */

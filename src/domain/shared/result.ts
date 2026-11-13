@@ -97,7 +97,8 @@ export type ErrorCode =
   | "PHOTO_TYPE"
   | "PHOTO_TOO_BIG"
   | "PHOTO_TOO_SMALL"
-  | "PHOTO_STORAGE_FAILED";
+  | "PHOTO_STORAGE_FAILED"
+  | "PHOTO_PREPARE_FAILED";
 
 export type DomainError = {
   code: ErrorCode;
