@@ -21,6 +21,7 @@ import {
   users,
 } from "../schema";
 import { dec, isUniqueViolation, str, withSavepoint } from "./util";
+import { groupBy } from "@/domain/shared/collections";
 
 const closer = alias(users, "closer");
 const payer = alias(users, "payer");
@@ -125,7 +126,11 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
     },
 
     async lock(id) {
-      const [locked] = await tx.select({ id: tableTabs.id }).from(tableTabs).where(eq(tableTabs.id, id)).for("update");
+      const [locked] = await tx
+        .select({ id: tableTabs.id })
+        .from(tableTabs)
+        .where(eq(tableTabs.id, id))
+        .for("update");
       if (!locked) return null;
       const [r] = await tabSelect().where(eq(tableTabs.id, id));
       return r ? toTab(r) : null;
@@ -164,11 +169,13 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
         })
         .from(tabPayments)
         .where(inArray(tabPayments.tabId, tabIds));
+      const ordersByTab = groupBy(tabOrders, (o) => o.tabId);
+      const paidByTab = groupBy(paid, (p) => p.tabId);
       return tabs.map((t) => ({
         ...t,
         serviceRate: dec(t.serviceRate),
-        orders: tabOrders.filter((o) => o.tabId === t.id).map((o) => ({ status: o.status, total: d(o.total) })),
-        payments: paid.filter((p) => p.tabId === t.id).map((p) => ({ amount: d(p.amount), removed: p.removed })),
+        orders: (ordersByTab.get(t.id) ?? []).map((o) => ({ status: o.status, total: d(o.total) })),
+        payments: (paidByTab.get(t.id) ?? []).map((p) => ({ amount: d(p.amount), removed: p.removed })),
       }));
     },
 
@@ -203,7 +210,9 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
     },
 
     async getPayment(tabId, paymentId) {
-      const [r] = await paymentSelect().where(and(eq(tabPayments.tabId, tabId), eq(tabPayments.id, paymentId)));
+      const [r] = await paymentSelect().where(
+        and(eq(tabPayments.tabId, tabId), eq(tabPayments.id, paymentId)),
+      );
       return r ? toPayment(r) : null;
     },
 
@@ -292,9 +301,7 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
     },
 
     async listClosed(f) {
-      const rows = await tabSelect()
-        .where(closedIn(f))
-        .orderBy(desc(tableTabs.closedAt), desc(tableTabs.id));
+      const rows = await tabSelect().where(closedIn(f)).orderBy(desc(tableTabs.closedAt), desc(tableTabs.id));
       return rows.map((r): ClosedTabRow => {
         const t = toTab(r);
         return {

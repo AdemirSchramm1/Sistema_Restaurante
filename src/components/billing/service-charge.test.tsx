@@ -45,7 +45,9 @@ describe("tirar a taxa de serviço (spec 011, US1-8)", () => {
 
   it("taxa tirada: 'Pôr taxa de volta' desfaz", async () => {
     const s = spy();
-    render(<ServiceChargeToggle tab={{ ...tab, serviceWaived: true, serviceCharge: "0.00" }} action={s.action} />);
+    render(
+      <ServiceChargeToggle tab={{ ...tab, serviceWaived: true, serviceCharge: "0.00" }} action={s.action} />,
+    );
     await click("Pôr taxa de volta");
     expect(s.calls).toEqual([{ tabId: "t12", version: "4", waived: "false" }]);
   });
@@ -64,7 +66,10 @@ describe("tirar a taxa de serviço (spec 011, US1-8)", () => {
 
   it("restaurante sem taxa: nada para tirar", () => {
     const { container } = render(
-      <ServiceChargeToggle tab={{ ...tab, serviceRate: null, serviceCharge: "0.00" }} action={spy().action} />,
+      <ServiceChargeToggle
+        tab={{ ...tab, serviceRate: null, serviceCharge: "0.00" }}
+        action={spy().action}
+      />,
     );
     expect(container.textContent).toBe("");
   });
@@ -76,7 +81,9 @@ describe("porcentagem da taxa do restaurante (spec 011, FR-004)", () => {
     render(<ServiceRateForm rate="10" version={3} action={s.action} />);
     const input = screen.getByLabelText("Taxa de serviço (%)") as HTMLInputElement;
     expect(input.value).toBe("10");
-    expect(screen.getByText("Vale para as contas que abrirem depois. Deixe vazio para não cobrar taxa.")).toBeTruthy();
+    expect(
+      screen.getByText("Vale para as contas que abrirem depois. Deixe vazio para não cobrar taxa."),
+    ).toBeTruthy();
     fireEvent.change(input, { target: { value: "12,5" } });
     await click("Salvar taxa");
     expect(s.calls).toEqual([{ version: "3", rate: "12,5" }]);

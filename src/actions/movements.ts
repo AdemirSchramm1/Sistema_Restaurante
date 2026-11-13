@@ -11,7 +11,7 @@ import {
   reverseMovement,
 } from "@/application/inventory/movements";
 import { parseMovementForm, parseReversalForm } from "@/application/inventory/movement-input";
-import { formDataToObject } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
 import { ok, type Result } from "@/domain/shared/result";
 import { withContext, type ActionState } from "./_session";
 

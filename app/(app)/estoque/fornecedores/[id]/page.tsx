@@ -4,6 +4,7 @@ import { requireContext } from "@/actions/_session";
 import {
   addSupplierItemAction,
   removeSupplierItemAction,
+  setSupplierActiveAction,
   updateSupplierAction,
   updateSupplierItemAction,
 } from "@/actions/suppliers";
@@ -15,10 +16,13 @@ import { can } from "@/domain/access/permissions";
 import { formatCnpj } from "@/domain/suppliers/cnpj";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { supplierToValues } from "@/components/suppliers/supplier-form-values";
-import { SupplierActiveToggle } from "@/components/suppliers/supplier-active-toggle";
+import { ActionForm } from "@/components/forms/action-form";
 import { SupplierItems, type SupplierItemRow } from "@/components/suppliers/supplier-items";
 import { HistoryList } from "@/components/audit/history-list";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Fornecedor" };
 
@@ -65,16 +69,21 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Fornecedor cadastrado. Agora diga o que ele vende.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{supplier.name}</h1>
-        {!supplier.active && <Badge tone="warn">bloqueado</Badge>}
-        {supplier.cnpj && (
-          <span className="font-mono text-sm text-muted-foreground">{formatCnpj(supplier.cnpj)}</span>
-        )}
-        {canWrite && (
-          <SupplierActiveToggle id={supplier.id} version={supplier.version} active={supplier.active} />
-        )}
-      </div>
+      <PageHeader
+        title={supplier.name}
+        back={{ href: "/estoque/fornecedores", label: "Voltar para os fornecedores" }}
+        badges={!supplier.active && <Badge tone="danger">bloqueado</Badge>}
+        description={supplier.cnpj && <span className="font-mono">{formatCnpj(supplier.cnpj)}</span>}
+        actions={
+          canWrite && (
+            <ActionForm
+              action={setSupplierActiveAction}
+              hidden={{ id: supplier.id, version: supplier.version, active: String(!supplier.active) }}
+              submitLabel={supplier.active ? "Bloquear" : "Desbloquear"}
+            />
+          )
+        }
+      />
       {!supplier.active && (
         <p className="text-sm text-muted-foreground">
           Bloqueado: não aparece para escolher na compra. O histórico continua.
@@ -98,7 +107,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
         <SupplierForm
           key={supplier.version}
           action={updateSupplierAction}

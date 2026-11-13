@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import type { ActionState } from "@/actions/_session";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormError } from "@/components/forms/form-error";
 
@@ -29,7 +30,7 @@ export type ReorderLevelsProps = {
 
 /** Quadro "Aviso de reposição" da página do item (spec 006, US1). */
 export function ReorderLevels(p: ReorderLevelsProps) {
-  const { state, pending, formProps } = useFormAction(p.action);
+  const { state, pending, saved, formProps } = useFormAction(p.action);
   const [point, setPoint] = useState(p.reorderPoint ?? "");
   const [par, setPar] = useState(p.parLevel ?? "");
   const s = p.suggestion;
@@ -39,7 +40,7 @@ export function ReorderLevels(p: ReorderLevelsProps) {
     <Card className="grid gap-2 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <CardTitle>Aviso de reposição</CardTitle>
-        {p.atReorderPoint && <Badge tone="warn">Chegou no ponto: comprar</Badge>}
+        {p.atReorderPoint && <Badge tone="warning">Chegou no ponto: comprar</Badge>}
       </div>
       <p className="text-muted-foreground">
         Quando o estoque chegar no número abaixo, o item aparece em &quot;Repor&quot;.
@@ -89,7 +90,7 @@ export function ReorderLevels(p: ReorderLevelsProps) {
             Salvar aviso
           </Button>
           <FormError error={state && !state.ok ? state.error : null} />
-          {state?.ok && <p role="status">Aviso salvo.</p>}
+          {saved && <p role="status">Aviso salvo.</p>}
         </form>
       )}
       {s ? (

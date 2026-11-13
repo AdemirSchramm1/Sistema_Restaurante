@@ -14,7 +14,7 @@ import {
 } from "@/domain/suppliers/supplier";
 import { formatCnpj } from "@/domain/suppliers/cnpj";
 import { normalizeDescription } from "@/domain/inventory/description";
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { diffFields } from "@/domain/shared/audit";
 import { err, ok, type Result } from "@/domain/shared/result";
 
@@ -45,10 +45,10 @@ function offerText(
   unit: string,
   o: Pick<SupplierItemData, "packageLabel" | "packageQuantity" | "price" | "preferred">,
 ) {
-  const money = formatBrDecimal(o.price, { minPlaces: 2, maxPlaces: 4 });
+  const money = formatBrl(o.price, { maxPlaces: 4 });
   const per = o.packageLabel
-    ? `${o.packageLabel} ${formatBrDecimal(o.packageQuantity!)} ${unit} a R$ ${money}`
-    : `R$ ${money}/${unit}`;
+    ? `${o.packageLabel} ${formatBrDecimal(o.packageQuantity!)} ${unit} a ${money}`
+    : `${money}/${unit}`;
   return `${itemName}: ${per}${o.preferred ? " (preferido)" : ""}`;
 }
 

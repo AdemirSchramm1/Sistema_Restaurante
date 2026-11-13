@@ -44,6 +44,8 @@ export const suppliers = pgTable(
     uniqueIndex("suppliers_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),
+    // Lista de fornecedores com os bloqueados (spec 012, R2).
+    index("suppliers_restaurant_name").on(t.restaurantId, t.nameNormalized),
     check("suppliers_lead_time", sql`lead_time_days between 0 and 90`),
     check("suppliers_min_order", sql`min_order_value >= 0`),
     check("suppliers_delivery_days", sql`delivery_days <@ '{0,1,2,3,4,5,6}'::smallint[]`),

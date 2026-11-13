@@ -6,7 +6,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { UNIT_OPTION_LABELS } from "@/components/items/item-form";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Select } from "@/components/ui/input";
 import { compatibleUnits } from "@/domain/inventory/recipe";
 import { UNITS, type UnitCode } from "@/domain/inventory/units";
@@ -33,7 +33,7 @@ const isZero = (v: string) => /^\s*0*(?:[.,]0*)?\s*$/.test(v) && /0/.test(v);
 
 /** Adicional: o botão "+" do cardápio, com o que vai no prato e o preço (spec 010, US1). */
 export function AddonForm({ action, options, initial, meta, readOnly, submitLabel }: AddonFormProps) {
-  const { state, pending, formProps } = useFormAction(action);
+  const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
   const [component, setComponent] = useState(initial.component);
@@ -62,7 +62,7 @@ export function AddonForm({ action, options, initial, meta, readOnly, submitLabe
         </>
       )}
       {error && !error.field && <FormError error={error} />}
-      {state?.ok && <Alert tone="success">Alterações salvas.</Alert>}
+      {saved && <Alert tone="success">Alterações salvas.</Alert>}
       <fieldset disabled={readOnly} className="grid gap-4">
         <Field
           label="Nome do botão"

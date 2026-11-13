@@ -3,6 +3,7 @@ import type { InvitationRepo, MemberRepo, RestaurantRepo, MemberRecord } from "@
 import type { Role } from "@/domain/access/permissions";
 import type { Tx } from "../db";
 import { invitations, membershipRoles, memberships, restaurants, users } from "../schema";
+import { groupBy } from "@/domain/shared/collections";
 
 export function restaurantRepository(tx: Tx, restaurantId: string): RestaurantRepo {
   return {
@@ -53,9 +54,10 @@ export function memberRepository(tx: Tx, restaurantId: string, ids: () => string
           rows.map((r) => r.membershipId),
         ),
       );
+    const rolesByMember = groupBy(roleRows, (x) => x.membershipId);
     return rows.map((r) => ({
       ...r,
-      roles: roleRows.filter((x) => x.membershipId === r.membershipId).map((x) => x.role as Role),
+      roles: (rolesByMember.get(r.membershipId) ?? []).map((x) => x.role as Role),
     }));
   }
 

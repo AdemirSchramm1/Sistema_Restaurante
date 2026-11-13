@@ -53,6 +53,8 @@ export const diningTables = pgTable(
     uniqueIndex("dining_tables_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),
+    // Lista de mesas com as inativas (spec 012, R2).
+    index("dining_tables_restaurant").on(t.restaurantId, t.nameNormalized),
     check("dining_tables_name_length", sql`char_length(name) between 1 and 30`),
   ],
 );
@@ -195,6 +197,8 @@ export const addons = pgTable(
     uniqueIndex("addons_active_name")
       .on(t.restaurantId, t.nameNormalized)
       .where(sql`active`),
+    // Lista de adicionais com os inativos (spec 012, R2).
+    index("addons_restaurant_name").on(t.restaurantId, t.nameNormalized),
     check("addons_one_component", sql`(item_id is null) <> (sub_recipe_id is null)`),
     check("addons_quantity_positive", sql`quantity > 0`),
     check("addons_price", sql`price >= 0`),
@@ -242,6 +246,8 @@ export const recipeRemovables = pgTable(
     uniqueIndex("recipe_removables_sub_recipe")
       .on(t.recipeId, t.subRecipeId)
       .where(sql`sub_recipe_id is not null`),
+    // Os dois únicos acima são parciais e não servem para "retiradas do produto" (spec 012, R2).
+    index("recipe_removables_recipe").on(t.recipeId, t.position),
     check("recipe_removables_one_component", sql`(item_id is null) <> (sub_recipe_id is null)`),
     check("recipe_removables_label", sql`char_length(label) between 1 and 40`),
   ],
@@ -295,6 +301,8 @@ export const orderLineRemovals = pgTable(
     uniqueIndex("order_line_removals_sub_recipe")
       .on(t.orderLineId, t.subRecipeId)
       .where(sql`sub_recipe_id is not null`),
+    // Os dois únicos acima são parciais e não servem para "retiradas da linha" (spec 012, R2).
+    index("order_line_removals_line").on(t.orderLineId),
     check("order_line_removals_one_component", sql`(item_id is null) <> (sub_recipe_id is null)`),
   ],
 );

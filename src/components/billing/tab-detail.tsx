@@ -3,7 +3,9 @@ import { CANCEL_REASON_LABELS, ORDER_STATUS_LABELS } from "@/domain/ordering/ord
 import type { CloseBlocker } from "@/domain/billing/tab";
 import { PAYMENT_METHOD_LABELS, isPaymentMethod, type PaymentMethod } from "@/domain/billing/payment";
 import { d } from "@/domain/shared/decimal";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { brl } from "@/components/ordering/format";
 import { LineChanges } from "@/components/ordering/line-changes";
 import { pendingText, percent, timeIn } from "./format";
@@ -100,7 +102,9 @@ function OrderBlock({ order }: { order: Order }) {
             {`Cancelado: ${order.cancelReason ? CANCEL_REASON_LABELS[order.cancelReason] : ""}${order.cancelNote ? ` (${order.cancelNote})` : ""}`}
           </span>
         ) : (
-          <Badge tone={order.status === "DELIVERED" ? "muted" : "warn"}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+          <Badge tone={order.status === "DELIVERED" ? "success" : "warning"}>
+            {ORDER_STATUS_LABELS[order.status]}
+          </Badge>
         )}
       </header>
       <ul className="grid gap-1">
@@ -165,10 +169,14 @@ export function TabDetail({
       </p>
       {closedText && <p className="font-medium">{closedText}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card className="grid content-start gap-3">
           <CardTitle>Pedidos</CardTitle>
-          {tab.pendingOrders > 0 && <p className="text-sm font-medium text-amber-900">{pendingText(tab.pendingOrders)}</p>}
+          {tab.pendingOrders > 0 && (
+            <p className="text-sm font-medium text-warning-soft-foreground">
+              {pendingText(tab.pendingOrders)}
+            </p>
+          )}
           {tab.orders.map((o) => (
             <OrderBlock key={o.id} order={o} />
           ))}

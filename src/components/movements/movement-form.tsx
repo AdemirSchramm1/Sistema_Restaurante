@@ -4,18 +4,14 @@ import { useMemo, useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import type { ActionState } from "@/actions/_session";
 import { MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
-import {
-  manualReasons,
-  REASON_FAMILY_LABELS,
-  type ReasonFamily,
-} from "@/domain/inventory/movement-reasons";
+import { manualReasons, REASON_FAMILY_LABELS, type ReasonFamily } from "@/domain/inventory/movement-reasons";
 import { compatibleUnits } from "@/domain/inventory/recipe";
 import { convert, unitByCode, type UnitCode } from "@/domain/inventory/units";
-import { d, formatBrDecimal, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { d, formatBrDecimal, formatBrl, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 
 export type MovementItemOption = {
   id: string;
@@ -51,11 +47,11 @@ type Props = {
 const newKey = () =>
   typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
 const br = (v: Decimal) => formatBrDecimal(v, { maxPlaces: 4 });
-const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
+const money = (v: Decimal) => formatBrl(v);
 
 /** Lançamento de compra, perda ou pedido de acerto (spec 004). */
 export function MovementForm({ action, items, types, today, suppliers = [] }: Props) {
-  const { state, pending, formProps } = useFormAction(action);
+  const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
 
@@ -131,7 +127,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
     <form {...formProps} className="grid gap-4" aria-label="Lançamento">
       <input type="hidden" name="idempotencyKey" value={key} />
       <FormError error={error} />
-      {state?.ok && (
+      {saved && (
         <Alert tone="success">
           {type === "ADJUSTMENT" ? "Pedido de acerto enviado para aprovação." : "Lançamento registrado."}
         </Alert>

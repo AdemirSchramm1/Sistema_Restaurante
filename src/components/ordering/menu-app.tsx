@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
 import { AutoRefresh } from "./auto-refresh";
 import { Cart, type SubmitFn } from "./cart";
-import { addToCart, brl, type CartLine } from "./cart-state";
+import { brl } from "./format";
+import { addToCart, type CartLine } from "./cart-state";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
 
@@ -52,8 +53,10 @@ export function MenuApp({
   return (
     <div className="grid gap-5">
       <header className="grid gap-1">
-        <span className="text-sm text-muted-foreground">{menu.restaurantName}</span>
-        <h1 className="text-2xl font-semibold">Mesa {menu.tableName}</h1>
+        <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
+          {menu.restaurantName}
+        </span>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {menu.tableName}</h1>
         <AccessTimer
           key={menu.serverNow}
           serverNow={menu.serverNow}
@@ -85,15 +88,15 @@ export function MenuApp({
               onChange={(e) => setQ(e.target.value)}
               className="h-11 text-base"
             />
-            <ul className="grid gap-2" aria-label="Cardápio">
+            <ul className="grid gap-3" aria-label="Cardápio">
               {shown.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between gap-3 border-b border-border py-2"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-xs"
                 >
-                  <div className="grid">
-                    <span className="text-base font-medium">{p.name}</span>
-                    <span className="text-sm text-muted-foreground">{brl(p.price)}</span>
+                  <div className="grid gap-0.5">
+                    <span className="text-base font-medium leading-snug">{p.name}</span>
+                    <span className="text-base font-semibold tabular-nums text-primary">{brl(p.price)}</span>
                   </div>
                   <Button
                     type="button"
@@ -110,7 +113,7 @@ export function MenuApp({
             {menu.ordersLeft > 0 ? (
               <Cart lines={lines} onChange={setLines} submit={submit} />
             ) : (
-              <p role="status" className="rounded bg-muted p-3 text-center">
+              <p role="status" className="rounded-xl bg-muted p-4 text-center">
                 Chame um garçom para continuar pedindo.
               </p>
             )}

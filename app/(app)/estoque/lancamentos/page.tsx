@@ -8,6 +8,7 @@ import {
   movementItemOptions,
 } from "@/application/inventory/movements";
 import { purchaseSupplierOptions } from "@/application/suppliers/suppliers";
+import { movementToday } from "@/application/inventory/movement-input";
 import { can } from "@/domain/access/permissions";
 import { MOVEMENT_TYPES, MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
 import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
@@ -22,6 +23,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Lançamentos" };
 
@@ -64,15 +66,15 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
     packageFactor: i.purchaseFactor?.toString() ?? null,
     balance: i.balance.toString(),
   }));
-  const today = new Date(deps.clock.now().getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+  const today = movementToday(deps.clock.now());
   const requests = pending.ok ? pending.value : [];
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Lançamentos</h1>
-      <p className="text-sm text-muted-foreground">
-        Compras, perdas e acertos. O saldo de cada item é a soma destes lançamentos; para corrigir, estorne.
-      </p>
+      <PageHeader
+        title="Lançamentos"
+        description="Compras, perdas e acertos. O saldo de cada item é a soma destes lançamentos; para corrigir, estorne."
+      />
 
       {types.length > 0 && (
         <Card className="grid gap-4">

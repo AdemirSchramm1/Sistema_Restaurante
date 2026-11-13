@@ -26,7 +26,13 @@ describe("conta da mesa abre com o pedido (spec 011, US1)", () => {
     const first = await s.place([s.burger(2)]);
     const tabs = await tabsOf(s.table.tableId);
     expect(tabs).toEqual([
-      { id: expect.any(String), status: "OPEN", service_rate: "10.00", version: 1, opened_at: env.clock.now() },
+      {
+        id: expect.any(String),
+        status: "OPEN",
+        service_rate: "10.00",
+        version: 1,
+        opened_at: env.clock.now(),
+      },
     ]);
     expect(await tabOfOrder(first.orderId)).toBe(tabs[0].id);
     const events = await db().query("select kind, user_id from tab_events where tab_id = $1", [tabs[0].id]);
@@ -62,7 +68,9 @@ describe("conta da mesa abre com o pedido (spec 011, US1)", () => {
     expect(sent.every((r) => r.ok)).toBe(true);
     const tabs = await tabsOf(s.table.tableId);
     expect(tabs).toHaveLength(1);
-    const orders = await db().query("select distinct tab_id from orders where table_id = $1", [s.table.tableId]);
+    const orders = await db().query("select distinct tab_id from orders where table_id = $1", [
+      s.table.tableId,
+    ]);
     expect(orders.rows).toEqual([{ tab_id: tabs[0].id }]);
   });
 

@@ -7,7 +7,8 @@ import { createItem } from "@/application/inventory/create-item";
 import { updateItem } from "@/application/inventory/update-item";
 import { setItemActive } from "@/application/inventory/set-item-active";
 import { setItemCogsOverride } from "@/application/inventory/set-item-cogs-override";
-import { formDataToObject, parseItemForm } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
+import { parseItemForm } from "@/application/inventory/item-input";
 import { withContext, type ActionState } from "./_session";
 
 function splitMeta(form: FormData) {

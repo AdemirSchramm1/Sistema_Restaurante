@@ -9,23 +9,27 @@ import { can } from "@/domain/access/permissions";
 import { formatBrDecimal } from "@/domain/shared/decimal";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Plus } from "lucide-react";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Itens" };
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default async function Page({ searchParams }: PageProps<"/estoque/itens">) {
   const ctx = await requireContext();
   const sp = await searchParams;
   const deps = serverDeps();
   const filter = {
-    q: one(sp.q),
-    groupId: one(sp.grupo),
-    type: ITEM_TYPES.includes(one(sp.tipo) as ItemType) ? (one(sp.tipo) as ItemType) : undefined,
-    status: (one(sp.situacao) as "active" | "inactive" | "all") ?? "active",
-    page: Number.parseInt(one(sp.pagina) ?? "1", 10),
+    q: firstParam(sp.q),
+    groupId: firstParam(sp.grupo),
+    type: ITEM_TYPES.includes(firstParam(sp.tipo) as ItemType)
+      ? (firstParam(sp.tipo) as ItemType)
+      : undefined,
+    status: (["active", "inactive", "all"] as const).find((s) => s === firstParam(sp.situacao)) ?? "active",
+    page: Number.parseInt(firstParam(sp.pagina) ?? "1", 10),
   };
   const [list, tree] = await Promise.all([listItems(deps, ctx, filter), listGroupTree(deps, ctx)]);
   const rows = list.ok ? list.value.rows : [];
@@ -41,14 +45,18 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Itens</h1>
-        {can(ctx.roles, "item.write") && (
-          <Link href="/estoque/itens/novo" className={buttonVariants()}>
-            Novo item
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Itens"
+        description="Tudo o que o restaurante compra e guarda, com o saldo de hoje."
+        actions={
+          can(ctx.roles, "item.write") && (
+            <Link href="/estoque/itens/novo" className={buttonVariants()}>
+              <Plus aria-hidden="true" />
+              Novo item
+            </Link>
+          )
+        }
+      />
       <form className="grid gap-2 sm:grid-cols-5" role="search">
         <Input
           name="q"
@@ -100,11 +108,9 @@ export default async function Page({ searchParams }: PageProps<"/estoque/itens">
             <tr key={r.id}>
               <Td className="font-mono">{r.code}</Td>
               <Td>
-                <Link className="text-primary underline underline-offset-4" href={`/estoque/itens/${r.id}`}>
-                  {r.description}
-                </Link>{" "}
-                {!r.active && <Badge tone="muted">inativo</Badge>}
-                {r.atReorderPoint && <Badge tone="warn">Repor</Badge>}
+                <TextLink href={`/estoque/itens/${r.id}`}>{r.description}</TextLink>{" "}
+                {!r.active && <Badge tone="neutral">inativo</Badge>}
+                {r.atReorderPoint && <Badge tone="warning">Repor</Badge>}
               </Td>
               <Td>
                 {r.groupName} › {r.subgroupName}

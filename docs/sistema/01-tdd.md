@@ -75,10 +75,25 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
 
 ## Cobertura e CI
 
-- Cobertura mínima de **90% de linhas em `src/domain/`**; o resto sem meta numérica, mas todo caso
-  de uso tem ao menos um teste de integração.
-- A CI roda em todo PR: `lint` → `typecheck` → `test:unit` → `test:integration` (→ `test:e2e` nos
-  fluxos marcados).
+- Régua de cobertura por pasta (`vitest.config.mts`, conferida pelo `pnpm test:unit`):
+
+  | Pasta | Linhas | Desvios | Funções |
+  |---|---|---|---|
+  | `src/domain/` | 95% | 90% | 95% |
+  | `src/components/` | 90% | 80% | — |
+  | Leitores de formulário (`src/application/**/*-input.ts`) | 90% | 80% | — |
+
+  Os casos de uso ficam fora da régua de unidade porque são testados com banco: todo caso de uso tem
+  ao menos um teste de integração.
+- **Desempenho também tem teste**: as consultas das telas usam índice
+  (`tests/integration/performance/indexes.test.ts`), o envio do pedido faz o mesmo número de
+  consultas com 1 ou 3 linhas (`submit-order.test.ts`) e o contexto do login sai de uma consulta
+  (`tests/integration/access/context.test.ts`). Ver [04-desempenho.md](04-desempenho.md).
+- **O visual também tem teste**: contraste de todas as cores do tema nos dois modos
+  (`src/components/ui/tokens.test.ts`) e nenhuma cor crua do Tailwind fora do tema
+  (`no-raw-colors.test.ts`). Ver [03-padroes-do-front.md](03-padroes-do-front.md).
+- A CI roda em todo PR: `format:check` → `lint` → `typecheck` → `test:unit` → `test:integration`, e
+  `test:e2e` (com o axe) no job de ponta a ponta.
 - PR com CI vermelha não é mergeado.
 
 ## TDD no fluxo Spec Kit

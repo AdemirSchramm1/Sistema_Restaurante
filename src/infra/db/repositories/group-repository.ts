@@ -4,6 +4,7 @@ import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { itemGroups, itemSubgroups, restaurants } from "../schema";
 import { isUniqueViolation, withSavepoint } from "./util";
+import { groupBy } from "@/domain/shared/collections";
 
 const groupCols = {
   id: itemGroups.id,
@@ -97,7 +98,8 @@ export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
         .from(itemSubgroups)
         .where(includeInactive ? undefined : eq(itemSubgroups.active, true))
         .orderBy(asc(itemSubgroups.code));
-      return groups.map((g) => ({ ...g, subgroups: subs.filter((s) => s.groupId === g.id) }));
+      const subsByGroup = groupBy(subs, (s) => s.groupId);
+      return groups.map((g) => ({ ...g, subgroups: subsByGroup.get(g.id) ?? [] }));
     },
 
     async getGroup(id) {

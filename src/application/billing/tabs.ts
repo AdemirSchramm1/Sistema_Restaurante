@@ -1,6 +1,7 @@
 import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
+import { isId } from "../form-input";
 import type { ClosedTabRow, TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
 import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
@@ -22,10 +23,6 @@ import { err, ok, type Result } from "@/domain/shared/result";
 /** Caixa: contas da mesa (spec 011, US1, US2 e US6; contracts/use-cases.md). */
 
 export const TAB_ENTITY = "table_tab";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-/** Id malformado vira `NOT_FOUND` antes de chegar ao banco. */
-export const isId = (v: string) => UUID.test(v);
 
 export type OpenTabView = {
   id: string;

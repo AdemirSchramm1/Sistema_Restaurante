@@ -5,12 +5,14 @@ import type { ActionState } from "@/actions/_session";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { FormError } from "@/components/forms/form-error";
 import { Button } from "@/components/ui/button";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/input";
 import { defaultRemovalLabel, MAX_ADDON_TIMES, MAX_OPTIONS } from "@/domain/ordering/customization";
 import type { RecipeKind } from "@/domain/inventory/recipe";
+import { priceOrFree } from "./format";
 
-/** Valores já formatados no servidor (preço com vírgula, componente como "ITEM:id"). */
+/** Valores prontos do servidor (preço como "3.00", componente como "ITEM:id"). */
 export type ProductCustomizationProps = {
   recipeId: string;
   kind: RecipeKind;
@@ -23,7 +25,6 @@ export type ProductCustomizationProps = {
   action: (prev: ActionState, form: FormData) => Promise<ActionState>;
 };
 
-const priceLabel = (p: string) => (/^0+(,0+)?$/.test(p) ? "Grátis" : `R$ ${p}`);
 const TIMES = Array.from({ length: MAX_ADDON_TIMES }, (_, i) => i + 1);
 
 /**
@@ -31,7 +32,7 @@ const TIMES = Array.from({ length: MAX_ADDON_TIMES }, (_, i) => i + 1);
  * versão nova do produto.
  */
 export function ProductCustomization(props: ProductCustomizationProps) {
-  const { state, pending, formProps } = useFormAction(props.action);
+  const { state, pending, saved, formProps } = useFormAction(props.action);
   const [addons, setAddons] = useState(props.addons);
   const [removables, setRemovables] = useState(props.removables);
   const [pickAddon, setPickAddon] = useState("");
@@ -65,7 +66,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
         <input type="hidden" name="recipeId" value={props.recipeId} />
         <input type="hidden" name="version" value={props.version} />
         <FormError error={state && !state.ok ? state.error : null} />
-        {state?.ok && <Alert tone="success">Quadro salvo.</Alert>}
+        {saved && <Alert tone="success">Quadro salvo.</Alert>}
 
         <fieldset className="grid gap-2" aria-label="Adicionar">
           <legend className="font-medium">Adicionar</legend>
@@ -75,7 +76,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
               <li key={a.addonId} className="flex flex-wrap items-center gap-2 text-sm">
                 <input type="hidden" name={`addons.${i}.addonId`} value={a.addonId} />
                 <span className="font-medium">{a.name}</span>
-                <span className="text-muted-foreground">{priceLabel(a.price)}</span>
+                <span className="text-muted-foreground">{priceOrFree(a.price)}</span>
                 <label className="flex items-center gap-1">
                   <span>até</span>
                   <Select
@@ -122,7 +123,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                 <option value="">Escolha um adicional</option>
                 {freeAddons.map((a) => (
                   <option key={a.addonId} value={a.addonId}>
-                    {a.name} · {priceLabel(a.price)}
+                    {a.name} · {priceOrFree(a.price)}
                   </option>
                 ))}
               </Select>
@@ -171,7 +172,7 @@ export function ProductCustomization(props: ProductCustomizationProps) {
                   )}
                 </div>
                 {r.orphan && (
-                  <p className="text-xs text-amber-900">
+                  <p className="text-xs font-medium text-warning-soft-foreground">
                     {r.name} saiu do produto: este botão não aparece mais no cardápio. Remova da lista.
                   </p>
                 )}

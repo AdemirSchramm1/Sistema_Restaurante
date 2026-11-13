@@ -1,5 +1,6 @@
-import { d, formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { d, type Decimal } from "@/domain/shared/decimal";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
+import { brl } from "./format";
 
 /** Carrinho do celular (spec 009 US2, spec 010 US3). Preços chegam do servidor como "28.00". */
 
@@ -31,11 +32,6 @@ export const lineTotal = (l: CartLineData): Decimal => unitPrice(l).times(l.quan
 
 export const cartTotal = (lines: readonly CartLineData[]): Decimal =>
   lines.reduce((s, l) => s.plus(lineTotal(l)), d(0));
-
-export const brl = (v: Decimal | string) =>
-  `R$ ${formatBrDecimal(typeof v === "string" ? d(v) : v, { minPlaces: 2, maxPlaces: 2 })}`;
-
-export const priceOrFree = (v: string) => (d(v).isZero() ? "Grátis" : brl(v));
 
 /** Texto das escolhas como a cozinha vê: "+ 2 Fatia de queijo", "SEM cebola". */
 export const lineChanges = (l: CartLineData) => [

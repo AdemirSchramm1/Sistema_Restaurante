@@ -93,7 +93,9 @@ export const stockMovements = pgTable(
     uniqueIndex("stock_movements_sale_once")
       .on(t.orderId, t.itemId)
       .where(sql`order_id is not null and reason_id is null`),
-    index("stock_movements_order").on(t.orderId).where(sql`order_id is not null`),
+    index("stock_movements_order")
+      .on(t.orderId)
+      .where(sql`order_id is not null`),
   ],
 );
 

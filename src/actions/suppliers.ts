@@ -12,7 +12,7 @@ import {
   updateSupplierItem,
 } from "@/application/suppliers/suppliers";
 import { parseSupplierForm, parseSupplierItemForm } from "@/application/suppliers/supplier-input";
-import { formDataToObject } from "@/application/inventory/item-input";
+import { formDataToObject } from "@/application/form-input";
 import { ok } from "@/domain/shared/result";
 import { withContext, type ActionState } from "./_session";
 

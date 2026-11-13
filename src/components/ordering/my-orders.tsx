@@ -1,6 +1,6 @@
 import type { AccessOrderView } from "@/application/ordering/menu";
 import { ORDER_STATUS_LABELS } from "@/domain/ordering/order";
-import { brl } from "./cart-state";
+import { brl } from "./format";
 import { LineChanges } from "./line-changes";
 
 /** "Meus pedidos": só os pedidos deste celular, com a situação de cada um (spec 009, US2). */

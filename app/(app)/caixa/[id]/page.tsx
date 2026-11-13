@@ -21,6 +21,9 @@ import { tabDetailView } from "@/components/billing/view";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
+import { Printer } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Conta da mesa" };
 export const dynamic = "force-dynamic";
@@ -45,23 +48,20 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
   return (
     <div className="grid gap-4">
       {t.status === "OPEN" && <AutoRefresh seconds={10} />}
-      <Link
-        href={t.status === "OPEN" ? "/caixa" : "/caixa/contas"}
-        className="text-sm text-primary underline underline-offset-4"
-      >
-        {t.status === "OPEN" ? "Voltar para o caixa" : "Voltar para as contas fechadas"}
-      </Link>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">
-          Mesa {t.tableName} · {t.status === "OPEN" ? "conta aberta" : "conta fechada"}
-        </h1>
-        <Link
-          href={`/caixa/${t.id}/imprimir`}
-          className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium hover:bg-muted"
-        >
-          Imprimir conta
-        </Link>
-      </div>
+      <PageHeader
+        title={`Mesa ${t.tableName} · ${t.status === "OPEN" ? "conta aberta" : "conta fechada"}`}
+        back={
+          t.status === "OPEN"
+            ? { href: "/caixa", label: "Voltar para o caixa" }
+            : { href: "/caixa/contas", label: "Voltar para as contas fechadas" }
+        }
+        actions={
+          <Link href={`/caixa/${t.id}/imprimir`} className={buttonVariants({ variant: "outline" })}>
+            <Printer aria-hidden="true" />
+            Imprimir conta
+          </Link>
+        }
+      />
       <TabDetail tab={view} timezone={t.timezone}>
         {canPay && owing && (
           <Card className="grid gap-3">
@@ -87,7 +87,13 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
           <Card className="grid gap-3">
             <ServiceChargeToggle tab={{ ...view, version: t.version }} action={setServiceWaivedAction} />
             <CloseTabForm
-              tab={{ id: t.id, version: t.version, remaining: view.remaining, blockers: t.blockers, tableName: t.tableName }}
+              tab={{
+                id: t.id,
+                version: t.version,
+                remaining: view.remaining,
+                blockers: t.blockers,
+                tableName: t.tableName,
+              }}
               action={closeTabAction}
             />
           </Card>

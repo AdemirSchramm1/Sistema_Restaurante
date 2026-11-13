@@ -136,12 +136,16 @@ describe("tirar pagamento lançado errado (spec 011, US2-4)", () => {
 
     const tab = unwrap(await getTab(env.deps, t.cashier, t.id));
     expect([money(tab.paid), money(tab.remaining)]).toEqual(["0.00", "84.70"]);
-    expect(tab.payments.map((p) => [p.removedAt, p.removedByName])).toEqual([[env.clock.now(), "Caixa Carla"]]);
+    expect(tab.payments.map((p) => [p.removedAt, p.removedByName])).toEqual([
+      [env.clock.now(), "Caixa Carla"],
+    ]);
     const removed = tab.events.filter((e) => e.kind === "PAYMENT_REMOVED");
     expect(removed.map((e) => [e.details?.paymentId, e.details?.amount, e.userName])).toEqual([
       [paymentId, "84.70", "Caixa Carla"],
     ]);
-    expect(code(await removePayment(env.deps, t.cashier, { tabId: t.id, paymentId }))).toBe("ALREADY_REMOVED");
+    expect(code(await removePayment(env.deps, t.cashier, { tabId: t.id, paymentId }))).toBe(
+      "ALREADY_REMOVED",
+    );
     const rows = await db().query("select count(*)::int as n from tab_payments where id = $1", [paymentId]);
     expect(rows.rows[0].n).toBe(1);
   });
@@ -151,7 +155,9 @@ describe("tirar pagamento lançado errado (spec 011, US2-4)", () => {
     const t = await setup(env);
     const { paymentId } = unwrap(await pay(env, t.cashier, t.id, "PIX", "10.00"));
     const other = await t.placeAt("13", [t.s.juice()]);
-    expect(code(await removePayment(env.deps, t.cashier, { tabId: other.tabId, paymentId }))).toBe("NOT_FOUND");
+    expect(code(await removePayment(env.deps, t.cashier, { tabId: other.tabId, paymentId }))).toBe(
+      "NOT_FOUND",
+    );
   });
 });
 

@@ -33,6 +33,16 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
     expect(screen.getByText("R$ 28,00")).toBeTruthy();
   });
 
+  it("cada prato é um cartão, com o preço em destaque (spec 012)", () => {
+    render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
+    const items = within(screen.getByRole("list", { name: "Cardápio" })).getAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    for (const item of items) expect(item.className).toContain("bg-card");
+    const price = within(items[1]!).getByText("R$ 28,00");
+    expect(price.className).toContain("text-primary");
+    expect(price.className).toContain("font-semibold");
+  });
+
   it("produto sem opções vai direto para o pedido", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Adicionar Suco" }));

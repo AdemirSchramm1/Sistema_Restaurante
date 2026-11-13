@@ -43,7 +43,9 @@ const report = {
 describe("contas fechadas (spec 011, US6)", () => {
   it("cada conta com o dia, a mesa, quando abriu e fechou, quem fechou, taxa e total, com link", () => {
     render(<TabsReport {...report} timezone="America/Sao_Paulo" />);
-    const rows = within(screen.getByRole("table", { name: "Contas fechadas" })).getAllByRole("row").slice(1);
+    const rows = within(screen.getByRole("table", { name: "Contas fechadas" }))
+      .getAllByRole("row")
+      .slice(1);
     expect(rows.map((r) => [...r.querySelectorAll("td")].map((c) => c.textContent))).toEqual([
       ["11/11/2026", "Mesa 13", "18:40", "19:05", "Caixa Carla", "R$ 0,90", "R$ 9,90"],
       ["11/11/2026", "Mesa 12", "17:25", "18:10", "Caixa Carla", "R$ 7,70", "R$ 84,70"],
@@ -54,7 +56,11 @@ describe("contas fechadas (spec 011, US6)", () => {
   it("resumo por forma de pagamento, a taxa e o total do período", () => {
     render(<TabsReport {...report} timezone="America/Sao_Paulo" />);
     const summary = screen.getByRole("region", { name: "Resumo do período" });
-    expect(within(summary).getAllByRole("row").map((r) => r.textContent)).toEqual([
+    expect(
+      within(summary)
+        .getAllByRole("row")
+        .map((r) => r.textContent),
+    ).toEqual([
       "DinheiroR$ 34,70",
       "PixR$ 50,00",
       "Cartão de créditoR$ 9,90",

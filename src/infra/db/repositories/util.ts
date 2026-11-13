@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import { d, type Decimal } from "@/domain/shared/decimal";
 import type { UnitCode } from "@/domain/inventory/units";
+import type { Tx } from "../db";
 
 export const dec = (v: string | null | undefined): Decimal | null => (v == null ? null : d(v));
 export const str = (v: Decimal | null | undefined): string | null => (v == null ? null : v.toString());
@@ -33,14 +35,6 @@ export function isUniqueViolation(e: unknown, constraint?: string): boolean {
   const p = pgError(e);
   return p?.code === "23505" && (!constraint || p.constraint === constraint);
 }
-
-export function isRaised(e: unknown, marker: string): boolean {
-  const p = pgError(e);
-  return p?.code === "P0001" && (p.message ?? "").includes(marker);
-}
-
-import { sql } from "drizzle-orm";
-import type { Tx } from "../db";
 
 let savepointSeq = 0;
 /** Roda `fn` dentro de um SAVEPOINT: se falhar (ex.: violação de unicidade), a transação continua utilizável. */

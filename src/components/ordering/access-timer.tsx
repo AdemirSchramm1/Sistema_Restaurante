@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WARN_SECONDS } from "@/domain/ordering/menu-access";
+import { Alert } from "@/components/ui/alert";
 
 /**
  * Tempo que falta do acesso de 20 minutos (spec 009, US3). Conta a partir do relógio do servidor:
@@ -65,9 +66,9 @@ export function AccessTimer({
         Faltam {minutes} min
       </p>
       {unsent.length > 0 && left <= WARN_SECONDS && (
-        <p role="status" className="rounded bg-amber-100 px-2 py-1 font-medium text-amber-900">
+        <Alert tone="warning" className="font-medium">
           Faltam 2 minutos. Envie o pedido para não perder o que escolheu.
-        </p>
+        </Alert>
       )}
     </div>
   );

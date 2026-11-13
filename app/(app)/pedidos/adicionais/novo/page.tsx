@@ -7,6 +7,7 @@ import { can } from "@/domain/access/permissions";
 import { AddonForm } from "@/components/ordering/addon-form";
 import { NoAccess } from "@/components/layout/no-access";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Novo adicional" };
 
@@ -16,7 +17,10 @@ export default async function Page() {
   const options = await recipeFormOptions(serverDeps(), ctx);
   return (
     <div className="grid max-w-xl gap-4">
-      <h1 className="text-2xl font-semibold">Novo adicional</h1>
+      <PageHeader
+        title="Novo adicional"
+        back={{ href: "/pedidos/adicionais", label: "Voltar para os adicionais" }}
+      />
       <Card>
         <AddonForm
           action={createAddonAction}

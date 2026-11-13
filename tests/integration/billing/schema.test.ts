@@ -86,7 +86,9 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
           closed_at, closed_by, closed_day, subtotal, service_charge, total)
         values ($1, $2, $3, $3, $4, $5, $3, $6, $7, $8, $9, $10, $11)`;
       const open = [null, null, null, null, null, null];
-      expect(await fails(c, q, [ID(20), r.restaurantId, NOW, TABLE, "OPEN", ...open])).toBe("table_tabs_one_open");
+      expect(await fails(c, q, [ID(20), r.restaurantId, NOW, TABLE, "OPEN", ...open])).toBe(
+        "table_tabs_one_open",
+      );
       const closed = [NOW, r.userId, "2026-11-10", 50, 0, 50];
       expect(await fails(c, q, [ID(21), r.restaurantId, NOW, TABLE, "CLOSED", ...closed])).toBe("OK");
     });
@@ -100,9 +102,13 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
       expect(await fails(c, "update table_tabs set status = 'CLOSED'")).toBe("table_tabs_closed");
       expect(await fails(c, "update table_tabs set closed_at = now()")).toBe("table_tabs_closed");
       expect(
-        await fails(c, `update table_tabs set status = 'CLOSED', ${closeFields.replace("84.70", "80")}`, [r.userId]),
+        await fails(c, `update table_tabs set status = 'CLOSED', ${closeFields.replace("84.70", "80")}`, [
+          r.userId,
+        ]),
       ).toBe("table_tabs_total");
-      expect(await fails(c, `update table_tabs set status = 'CLOSED', ${closeFields}`, [r.userId])).toBe("OK");
+      expect(await fails(c, `update table_tabs set status = 'CLOSED', ${closeFields}`, [r.userId])).toBe(
+        "OK",
+      );
     });
   });
 
@@ -114,20 +120,25 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
       const q = `insert into table_tabs (id, restaurant_id, created_at, updated_at, table_id, status, opened_at, service_rate,
           closed_at, closed_by, closed_day, subtotal, service_charge, total)
         values ($1, $2, $3, $3, $4, 'CLOSED', $3, $5, $3, $6, '2026-11-10', 10, 0, 10)`;
-      expect(await fails(c, q, [ID(25), r.restaurantId, NOW, TABLE, 20.01, r.userId])).toBe("table_tabs_service_rate");
+      expect(await fails(c, q, [ID(25), r.restaurantId, NOW, TABLE, 20.01, r.userId])).toBe(
+        "table_tabs_service_rate",
+      );
       expect(await fails(c, q, [ID(26), r.restaurantId, NOW, TABLE, 20, r.userId])).toBe("OK");
-      expect(await fails(c, "update restaurants set service_charge_rate = 21 where id = $1", [r.restaurantId])).toBe(
-        "restaurants_service_charge_rate",
-      );
-      expect(await fails(c, "update restaurants set service_charge_rate = null where id = $1", [r.restaurantId])).toBe(
-        "OK",
-      );
-      const off = await c.query("select service_charge_rate from restaurants where id = $1", [r.restaurantId]);
+      expect(
+        await fails(c, "update restaurants set service_charge_rate = 21 where id = $1", [r.restaurantId]),
+      ).toBe("restaurants_service_charge_rate");
+      expect(
+        await fails(c, "update restaurants set service_charge_rate = null where id = $1", [r.restaurantId]),
+      ).toBe("OK");
+      const off = await c.query("select service_charge_rate from restaurants where id = $1", [
+        r.restaurantId,
+      ]);
       expect(off.rows[0].service_charge_rate).toBe(null);
     });
-    const fresh = await ownerTestDb().$client.query("select service_charge_rate from restaurants where id = $1", [
-      r.restaurantId,
-    ]);
+    const fresh = await ownerTestDb().$client.query(
+      "select service_charge_rate from restaurants where id = $1",
+      [r.restaurantId],
+    );
     expect(fresh.rows[0].service_charge_rate).toBe("10.00");
   });
 
@@ -165,7 +176,9 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
       expect(await fails(c, q, [ID(30), ...base, "PIX", 0, null, null, ID(30)])).toBe("tab_payments_amount");
       expect(await fails(c, q, [ID(31), ...base, "PIX", 10, 20, 10, ID(31)])).toBe("tab_payments_cash");
       expect(await fails(c, q, [ID(32), ...base, "CASH", 24.93, 50, 25, ID(32)])).toBe("tab_payments_cash");
-      expect(await fails(c, q, [ID(33), ...base, "CASH", 24.93, 20, -4.93, ID(33)])).toBe("tab_payments_cash");
+      expect(await fails(c, q, [ID(33), ...base, "CASH", 24.93, 20, -4.93, ID(33)])).toBe(
+        "tab_payments_cash",
+      );
       expect(await fails(c, q, [ID(34), ...base, "CASH", 24.93, 50, 25.07, ID(34)])).toBe("OK");
       expect(await fails(c, q, [ID(35), ...base, "PIX", 10, null, null, PAYMENT])).toBe(
         "tab_payments_client_request",
@@ -206,7 +219,9 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
         values ($1, $2, $3, $4, $5, $6, $7, $3)`;
       const base = [r.restaurantId, NOW, TAB];
       expect(await fails(c, q, [ID(50), ...base, "REOPENED", null, r.userId])).toBe("tab_events_reason");
-      expect(await fails(c, q, [ID(51), ...base, "CLOSED", "porque sim", r.userId])).toBe("tab_events_reason");
+      expect(await fails(c, q, [ID(51), ...base, "CLOSED", "porque sim", r.userId])).toBe(
+        "tab_events_reason",
+      );
       expect(await fails(c, q, [ID(52), ...base, "REOPENED", "x".repeat(141), r.userId])).toBe(
         "tab_events_reason_length",
       );
@@ -222,8 +237,12 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
     await inTx(async (c) => {
       await scenario(c, r.restaurantId, r.userId);
       expect(await fails(c, "update menu_accesses set ended_at = now()")).toBe("menu_accesses_end_reason");
-      expect(await fails(c, "update menu_accesses set end_reason = 'TAB_CLOSED'")).toBe("menu_accesses_end_reason");
-      expect(await fails(c, "update menu_accesses set ended_at = now(), end_reason = 'TAB_CLOSED'")).toBe("OK");
+      expect(await fails(c, "update menu_accesses set end_reason = 'TAB_CLOSED'")).toBe(
+        "menu_accesses_end_reason",
+      );
+      expect(await fails(c, "update menu_accesses set ended_at = now(), end_reason = 'TAB_CLOSED'")).toBe(
+        "OK",
+      );
     });
   });
 
@@ -246,12 +265,16 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
       expect(await fails(c, q, [ID(62), ...base, "SALE_RECIPE", ITEM, -0.14, -7, reason, ORDER, null])).toBe(
         "stock_movements_reason",
       );
-      expect(await fails(c, q, [ID(63), ...base, "SALE_RECIPE", ITEM, -0.14, -7, null, ORDER, null])).toBe("OK");
+      expect(await fails(c, q, [ID(63), ...base, "SALE_RECIPE", ITEM, -0.14, -7, null, ORDER, null])).toBe(
+        "OK",
+      );
       expect(await fails(c, q, [ID(64), ...base, "SALE_RECIPE", ITEM, -0.1, -5, null, ORDER, null])).toBe(
         "stock_movements_sale_once",
       );
       const reversal = "0193a100-0000-7000-8000-000000000034";
-      expect(await fails(c, q, [ID(65), ...base, "REVERSAL", ITEM, 0.14, 7, reversal, ORDER, ID(63)])).toBe("OK");
+      expect(await fails(c, q, [ID(65), ...base, "REVERSAL", ITEM, 0.14, 7, reversal, ORDER, ID(63)])).toBe(
+        "OK",
+      );
       expect(await fails(c, q, [ID(66), ...base, "LOSS", ITEM, -0.14, -7, reason, ORDER, null])).toBe("OK");
       expect(await fails(c, q, [ID(67), ...base, "PURCHASE", ITEM, 1, 50, null, ORDER, null])).toBe(
         "stock_movements_order_type",
@@ -262,7 +285,9 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
   it("papel Caixa, venda no livro e motivos 'Pedido cancelado' existem no banco", async () => {
     const db = ownerTestDb().$client;
     expect((await db.query("select enum_range(null::role)::text as v")).rows[0].v).toContain("CASHIER");
-    expect((await db.query("select enum_range(null::movement_type)::text as v")).rows[0].v).toContain("SALE_RECIPE");
+    expect((await db.query("select enum_range(null::movement_type)::text as v")).rows[0].v).toContain(
+      "SALE_RECIPE",
+    );
     const reasons = await db.query(
       "select movement_type::text as type, label, family, position from movement_reasons where code = 'ORDER_CANCELLED' order by position",
     );

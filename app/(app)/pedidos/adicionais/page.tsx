@@ -10,8 +10,11 @@ import { money, percent } from "@/components/costs/format";
 import { priceOrFree } from "@/components/ordering/format";
 import { NoAccess } from "@/components/layout/no-access";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Plus } from "lucide-react";
 
 export const metadata: Metadata = { title: "Adicionais" };
 
@@ -23,24 +26,26 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/adicion
   if (!r.ok) return <NoAccess />;
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Adicionais</h1>
-        {can(ctx.roles, "addon.write") && (
-          <Link href="/pedidos/adicionais/novo" className={buttonVariants()}>
-            Novo adicional
-          </Link>
-        )}
-      </div>
-      <p className="text-sm text-muted-foreground">
-        O que o cliente pode pôr a mais no prato, com preço. Ligue cada adicional aos produtos no quadro
-        &quot;Adicionar e tirar&quot; da página do produto.
-      </p>
-      <Link
-        href={all ? "/pedidos/adicionais" : "/pedidos/adicionais?situacao=todos"}
-        className="text-sm text-primary underline underline-offset-4"
-      >
+      <PageHeader
+        title="Adicionais"
+        description={
+          <>
+            O que o cliente pode pôr a mais no prato, com preço. Ligue cada adicional aos produtos no quadro
+            &quot;Adicionar e tirar&quot; da página do produto.
+          </>
+        }
+        actions={
+          can(ctx.roles, "addon.write") && (
+            <Link href="/pedidos/adicionais/novo" className={buttonVariants()}>
+              <Plus aria-hidden="true" />
+              Novo adicional
+            </Link>
+          )
+        }
+      />
+      <TextLink href={all ? "/pedidos/adicionais" : "/pedidos/adicionais?situacao=todos"} className="text-sm">
         {all ? "Mostrar só os ativos" : "Mostrar também os inativos"}
-      </Link>
+      </TextLink>
       {r.value.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum adicional ainda.</p>
       ) : (
@@ -58,13 +63,8 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/adicion
             {r.value.map((a) => (
               <tr key={a.id}>
                 <Td>
-                  <Link
-                    href={`/pedidos/adicionais/${a.id}`}
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    {a.name}
-                  </Link>{" "}
-                  {!a.active && <Badge tone="muted">inativo</Badge>}
+                  <TextLink href={`/pedidos/adicionais/${a.id}`}>{a.name}</TextLink>{" "}
+                  {!a.active && <Badge tone="neutral">inativo</Badge>}
                 </Td>
                 <Td>
                   {a.componentName} · {formatBrDecimal(a.quantity)} {a.unit}

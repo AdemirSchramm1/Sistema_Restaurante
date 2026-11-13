@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { updateItemAction } from "@/actions/items";
+import { setItemActiveAction, setItemCogsOverrideAction, updateItemAction } from "@/actions/items";
 import { serverDeps } from "@/infra/server";
 import { getItem } from "@/application/inventory/get-item";
 import { listGroupTree } from "@/application/inventory/list-group-tree";
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
-import { Decimal, formatBrDecimal } from "@/domain/shared/decimal";
+import { Decimal, formatBrDecimal, formatBrl } from "@/domain/shared/decimal";
 import { ITEM_TYPE_LABELS } from "@/domain/inventory/item";
 import { ItemForm } from "@/components/items/item-form";
 import { itemToValues } from "@/components/items/item-form-values";
 import { subgroupOptions } from "@/components/items/subgroup-options";
-import { ItemActiveToggle } from "@/components/items/item-active-toggle";
+import { ActionForm } from "@/components/forms/action-form";
 import { CogsOverride } from "@/components/items/cogs-override";
 import { HistoryList } from "@/components/audit/history-list";
 import { MovementTable } from "@/components/movements/movement-table";
@@ -24,8 +24,11 @@ import { getReorderView } from "@/application/inventory/reorder";
 import { setReorderLevelsAction } from "@/actions/reorder";
 import { itemUsage } from "@/application/inventory/product-costs";
 import { ItemUsage } from "@/components/costs/item-usage";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { StockBalance } from "@/components/items/stock-balance";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Item" };
 
@@ -52,23 +55,33 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   // Sugestão arredondada para cima em 2 casas só na tela (spec 006, FR-005).
   const up = (v: Decimal) => formatBrDecimal(v.toDecimalPlaces(2, Decimal.ROUND_CEIL), { maxPlaces: 2 });
   const suggestion = reorder.ok ? reorder.value.suggestion : null;
-  const money = (v: typeof item.averageCost) =>
-    v ? `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 4 })}` : "—";
+  const money = (v: typeof item.averageCost) => (v ? formatBrl(v, { maxPlaces: 4 }) : "—");
 
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Item cadastrado com o código {item.code}.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{item.description}</h1>
-        <Badge className="font-mono" aria-label="Código do item">
-          {item.code}
-        </Badge>
-        {!item.active && <Badge tone="muted">inativo</Badge>}
-        <span className="text-sm text-muted-foreground">
-          {ITEM_TYPE_LABELS[item.type]} · {item.groupName} › {item.subgroupName}
-        </span>
-        {canWrite && <ItemActiveToggle id={item.id} version={item.version} active={item.active} />}
-      </div>
+      <PageHeader
+        title={item.description}
+        back={{ href: "/estoque/itens", label: "Voltar para os itens" }}
+        badges={
+          <>
+            <Badge className="font-mono" aria-label="Código do item">
+              {item.code}
+            </Badge>
+            {!item.active && <Badge tone="neutral">inativo</Badge>}
+          </>
+        }
+        description={`${ITEM_TYPE_LABELS[item.type]} · ${item.groupName} › ${item.subgroupName}`}
+        actions={
+          canWrite && (
+            <ActionForm
+              action={setItemActiveAction}
+              hidden={{ id: item.id, version: item.version, active: String(!item.active) }}
+              submitLabel={item.active ? "Inativar" : "Reativar"}
+            />
+          )
+        }
+      />
       <p className="text-sm">
         Controlado em <strong>{item.stockUnit}</strong>
         {purchaseSummary ? ` · compra: ${purchaseSummary}` : " · comprado solto"}
@@ -89,7 +102,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
         <ItemForm
           action={updateItemAction}
           subgroups={tree.ok ? subgroupOptions(tree.value, item.subgroupId) : []}
@@ -146,6 +159,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
             groupInCogs={item.groupInCogs}
             effective={effectiveInCogs}
             canEdit={can(ctx.roles, "item.cogs_override")}
+            action={setItemCogsOverrideAction}
           />
           <Card className="grid gap-2">
             <CardTitle>Histórico</CardTitle>

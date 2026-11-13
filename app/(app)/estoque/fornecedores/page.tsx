@@ -8,34 +8,38 @@ import { formatCnpj } from "@/domain/suppliers/cnpj";
 import { WEEKDAY_LABELS } from "@/domain/suppliers/supplier";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Plus } from "lucide-react";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Fornecedores" };
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default async function Page({ searchParams }: PageProps<"/estoque/fornecedores">) {
   const ctx = await requireContext();
   const sp = await searchParams;
-  const status = (["active", "blocked", "all"] as const).find((s) => s === one(sp.situacao)) ?? "active";
-  const filter = { q: one(sp.q), status };
+  const status =
+    (["active", "blocked", "all"] as const).find((s) => s === firstParam(sp.situacao)) ?? "active";
+  const filter = { q: firstParam(sp.q), status };
   const list = await listSuppliers(serverDeps(), ctx, filter);
   const rows = list.ok ? list.value : [];
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Fornecedores</h1>
-        {can(ctx.roles, "supplier.write") && (
-          <Link href="/estoque/fornecedores/novo" className={buttonVariants()}>
-            Novo fornecedor
-          </Link>
-        )}
-      </div>
-      <p className="text-sm text-muted-foreground">
-        De quem você compra, o contato, quando entrega e quanto cobra por cada item.
-      </p>
+      <PageHeader
+        title="Fornecedores"
+        description="De quem você compra, o contato, quando entrega e quanto cobra por cada item."
+        actions={
+          can(ctx.roles, "supplier.write") && (
+            <Link href="/estoque/fornecedores/novo" className={buttonVariants()}>
+              <Plus aria-hidden="true" />
+              Novo fornecedor
+            </Link>
+          )
+        }
+      />
       <form className="grid gap-2 sm:grid-cols-4" role="search">
         <Input
           name="q"
@@ -69,13 +73,8 @@ export default async function Page({ searchParams }: PageProps<"/estoque/fornece
           {rows.map((r) => (
             <tr key={r.id}>
               <Td>
-                <Link
-                  className="text-primary underline underline-offset-4"
-                  href={`/estoque/fornecedores/${r.id}`}
-                >
-                  {r.name}
-                </Link>{" "}
-                {!r.active && <Badge tone="warn">bloqueado</Badge>}
+                <TextLink href={`/estoque/fornecedores/${r.id}`}>{r.name}</TextLink>{" "}
+                {!r.active && <Badge tone="danger">bloqueado</Badge>}
               </Td>
               <Td className="font-mono text-xs">{r.cnpj ? formatCnpj(r.cnpj) : "—"}</Td>
               <Td>{[r.contactName, r.phone].filter(Boolean).join(" · ") || "—"}</Td>

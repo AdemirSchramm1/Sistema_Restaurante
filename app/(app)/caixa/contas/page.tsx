@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -9,13 +8,13 @@ import { messageFor } from "@/components/forms/error-messages";
 import { TabsReport } from "@/components/billing/tabs-report";
 import { NoAccess } from "@/components/layout/no-access";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
+import { PageHeader } from "@/components/layout/page-header";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Contas fechadas" };
 export const dynamic = "force-dynamic";
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 /** Contas fechadas por dia (até 31 dias) e mesa, com o resumo por forma de pagamento (spec 011, US6). */
 export default async function Page({ searchParams }: PageProps<"/caixa/contas">) {
@@ -29,9 +28,9 @@ export default async function Page({ searchParams }: PageProps<"/caixa/contas">)
   }));
   const tz = settings.ok ? settings.value.timezone : "America/Sao_Paulo";
   const today = businessDay(deps.clock.now(), tz);
-  const from = one(sp.de) ?? today;
-  const to = one(sp.ate) ?? today;
-  const tableId = one(sp.mesa);
+  const from = firstParam(sp.de) ?? today;
+  const to = firstParam(sp.ate) ?? today;
+  const tableId = firstParam(sp.mesa);
 
   // As mesas do filtro são as que fecharam conta no período.
   const all = await listTabs(deps, ctx, { from, to });
@@ -44,12 +43,7 @@ export default async function Page({ searchParams }: PageProps<"/caixa/contas">)
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Contas fechadas</h1>
-        <Link href="/caixa" className="text-sm text-primary underline underline-offset-4">
-          Voltar para o caixa
-        </Link>
-      </div>
+      <PageHeader title="Contas fechadas" back={{ href: "/caixa", label: "Voltar para o caixa" }} />
       <form className="flex flex-wrap items-end gap-3" role="search">
         <div className="grid gap-1">
           <Label htmlFor="de">De</Label>
@@ -89,7 +83,10 @@ export default async function Page({ searchParams }: PageProps<"/caixa/contas">)
             total: t.total.toFixed(2),
           }))}
           summary={{
-            byMethod: r.value.summary.byMethod.map((m) => ({ method: m.method, amount: m.amount.toFixed(2) })),
+            byMethod: r.value.summary.byMethod.map((m) => ({
+              method: m.method,
+              amount: m.amount.toFixed(2),
+            })),
             serviceCharge: r.value.summary.serviceCharge.toFixed(2),
             total: r.value.summary.total.toFixed(2),
           }}

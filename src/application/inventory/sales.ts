@@ -72,7 +72,9 @@ export async function reverseOrderSale(
     reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
     loss: reasonByCode("LOSS", "ORDER_CANCELLED"),
   };
-  const sales = (await repos.movements.salesForOrder(orderId)).sort((a, b) => a.itemId.localeCompare(b.itemId));
+  const sales = (await repos.movements.salesForOrder(orderId)).sort((a, b) =>
+    a.itemId.localeCompare(b.itemId),
+  );
   const movementIds: string[] = [];
   for (const sale of sales) {
     const item = await repos.movements.lockItem(sale.itemId);

@@ -13,6 +13,7 @@ export function ActionForm({
   hidden = {},
   submitLabel,
   variant = "outline",
+  size = "sm",
   successMessage,
   className,
   children,
@@ -22,12 +23,13 @@ export function ActionForm({
   hidden?: Record<string, string | number>;
   submitLabel: string;
   variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
   successMessage?: string;
   className?: string;
   children?: React.ReactNode;
   "aria-label"?: string;
 }) {
-  const { state, pending, formProps } = useFormAction(action, { resetOnSuccess: true });
+  const { state, pending, saved, formProps } = useFormAction(action, { resetOnSuccess: true });
   return (
     <form
       {...formProps}
@@ -38,10 +40,10 @@ export function ActionForm({
         <input key={k} type="hidden" name={k} value={v} />
       ))}
       {children}
-      <Button type="submit" size="sm" variant={variant} disabled={pending}>
+      <Button type="submit" size={size} variant={variant} disabled={pending}>
         {submitLabel}
       </Button>
-      {state?.ok && successMessage && (
+      {saved && successMessage && (
         <p role="status" className="text-sm">
           {successMessage}
         </p>

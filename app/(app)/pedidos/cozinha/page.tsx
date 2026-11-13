@@ -8,6 +8,7 @@ import { SoldOutList } from "@/components/ordering/sold-out-list";
 import { KitchenBoard } from "@/components/ordering/kitchen-board";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Cozinha" };
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export default async function Page() {
   return (
     <div className="grid gap-4">
       <AutoRefresh seconds={5} />
-      <h1 className="text-2xl font-semibold">Cozinha</h1>
+      <PageHeader title="Cozinha" description="Pedidos das mesas por etapa. A tela se atualiza sozinha." />
       <KitchenBoard
         serverNow={r.value.serverNow}
         orders={r.value.orders.map((o) => ({ ...o, submittedAt: o.submittedAt.toISOString() }))}

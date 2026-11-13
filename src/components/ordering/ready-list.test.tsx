@@ -32,4 +32,25 @@ describe("tela do garçom (spec 009 US4)", () => {
     render(<ReadyList deliver={async () => null} orders={[]} />);
     expect(screen.getByText("Nenhum pedido pronto para levar.")).toBeTruthy();
   });
+
+  it("'Entregue' é o botão verde, grande para o toque (spec 012)", () => {
+    render(
+      <ReadyList
+        deliver={async () => null}
+        orders={[
+          {
+            id: "o1",
+            number: 4,
+            tableName: "12",
+            readyAt: "2026-11-08T20:00:00.000Z",
+            version: 3,
+            lines: [{ quantity: 1, productName: "X-Burger", changes: [] }],
+          },
+        ]}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Entregue" });
+    expect(button.className).toContain("bg-success");
+    expect(button.className).toContain("h-12");
+  });
 });

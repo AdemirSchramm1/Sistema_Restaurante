@@ -4,7 +4,8 @@ import { useState } from "react";
 import type { MenuProduct } from "@/application/ordering/menu";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
 import { Button } from "@/components/ui/button";
-import { brl, lineTotal, priceOrFree, type CartLineData } from "./cart-state";
+import { brl, priceOrFree } from "./format";
+import { lineTotal, type CartLineData } from "./cart-state";
 
 const big = "h-11 min-w-11 text-lg";
 
@@ -153,7 +154,7 @@ export function DishOptions({
         </span>
       </div>
       <div className="grid gap-2">
-        <Button type="button" className="h-12 text-base" onClick={() => onAdd(line)}>
+        <Button type="button" size="xl" onClick={() => onAdd(line)}>
           Adicionar ao pedido
         </Button>
         <Button type="button" variant="ghost" className="h-11" onClick={onClose}>

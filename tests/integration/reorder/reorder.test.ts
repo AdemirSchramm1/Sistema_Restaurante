@@ -14,8 +14,8 @@ import {
   reverseMovement,
 } from "../../../src/application/inventory/movements";
 import { addSupplierItem, createSupplier } from "../../../src/application/suppliers/suppliers";
+import { getShellInfo } from "../../../src/application/shell";
 import {
-  countReorderAlerts,
   getReorderView,
   listReorderAlerts,
   setReorderLevels,
@@ -163,7 +163,7 @@ describe("lista Repor (spec 006, US2)", () => {
     const ctx = await newRestaurant(env);
     const { tomato } = await scenario(env, ctx);
     expect(unwrap(await listReorderAlerts(env.deps, ctx))).toEqual([]);
-    expect(unwrap(await countReorderAlerts(env.deps, ctx))).toBe(0);
+    expect(unwrap(await getShellInfo(env.deps, ctx)).reorderCount).toBe(0);
 
     unwrap(await lose(env, ctx, tomato, "45"));
     const rows = unwrap(await listReorderAlerts(env.deps, ctx));
@@ -177,7 +177,7 @@ describe("lista Repor (spec 006, US2)", () => {
     expect(s(r.order.quantity)).toBe("36.5");
     expect(r.order.packages).toEqual({ count: d(3), label: "Caixa", total: d(54) });
     expect(r.supplier).toEqual({ name: "Hortifruti do João", phone: "(11) 99999-0000", leadTimeDays: 1 });
-    expect(unwrap(await countReorderAlerts(env.deps, ctx))).toBe(1);
+    expect(unwrap(await getShellInfo(env.deps, ctx)).reorderCount).toBe(1);
   });
 
   it("sem fornecedor usa a embalagem do item; sem comprar até não calcula; acabou vem primeiro", async () => {
@@ -208,7 +208,7 @@ describe("lista Repor (spec 006, US2)", () => {
 
     unwrap(await setItemActive(env.deps, ctx, onion, 2, false));
     expect(unwrap(await listReorderAlerts(env.deps, ctx))).toEqual([]);
-    expect(unwrap(await countReorderAlerts(env.deps, ctx))).toBe(0);
+    expect(unwrap(await getShellInfo(env.deps, ctx)).reorderCount).toBe(0);
   });
 
   it("outro restaurante não vê o aviso", async () => {
@@ -218,7 +218,7 @@ describe("lista Repor (spec 006, US2)", () => {
     unwrap(await setReorderLevels(env.deps, ctx, onion, 1, levels("5", null)));
     const other = await newRestaurant(env, "Outro");
     expect(unwrap(await listReorderAlerts(env.deps, other))).toEqual([]);
-    expect(unwrap(await countReorderAlerts(env.deps, other))).toBe(0);
+    expect(unwrap(await getShellInfo(env.deps, other)).reorderCount).toBe(0);
   });
 });
 

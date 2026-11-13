@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { d, parseBrDecimal, formatBrDecimal } from "./decimal";
+import { d, parseBrDecimal, formatBrDecimal, formatBrl } from "./decimal";
 
 describe("decimal exato (constituição, princípio IV)", () => {
   it("cria decimais a partir de texto sem perda", () => {
@@ -41,5 +41,26 @@ describe("decimal exato (constituição, princípio IV)", () => {
     expect(formatBrDecimal(d("40"), { maxPlaces: 4 })).toBe("40");
     expect(formatBrDecimal(d("10"), { minPlaces: 2, maxPlaces: 2 })).toBe("10,00");
     expect(formatBrDecimal(d("-0.5"), { maxPlaces: 2 })).toBe("-0,5");
+  });
+});
+
+describe("formatBrl: um jeito só de mostrar reais (spec 012, FR-011)", () => {
+  it("mostra R$ com 2 casas, vírgula decimal e ponto de milhar", () => {
+    expect(formatBrl(d("1234.5"))).toBe("R$ 1.234,50");
+    expect(formatBrl(d("0"))).toBe("R$ 0,00");
+    expect(formatBrl(d("34"))).toBe("R$ 34,00");
+  });
+
+  it("arredonda meio centavo para cima", () => {
+    expect(formatBrl(d("6.805"))).toBe("R$ 6,81");
+  });
+
+  it("mostra até 4 casas quando pedido (custo unitário), sem zeros à toa", () => {
+    expect(formatBrl(d("8.1234"), { maxPlaces: 4 })).toBe("R$ 8,1234");
+    expect(formatBrl(d("8.1"), { maxPlaces: 4 })).toBe("R$ 8,10");
+  });
+
+  it("mantém o sinal depois do R$, como as telas já mostravam", () => {
+    expect(formatBrl(d("-8.5"))).toBe("R$ -8,50");
   });
 });

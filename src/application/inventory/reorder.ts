@@ -136,13 +136,6 @@ export async function listReorderAlerts(deps: Deps, ctx: RequestContext): Promis
   });
 }
 
-/** Número de itens no ponto, para o menu. */
-export async function countReorderAlerts(deps: Deps, ctx: RequestContext): Promise<Result<number>> {
-  const allowed = await authorize(deps, ctx, "catalog.read", "item");
-  if (!allowed.ok) return allowed;
-  return deps.tenant(ctx.restaurantId, async (repos) => ok(await repos.reports.countAtReorderPoint()));
-}
-
 export type ReorderView = {
   reorderPoint: Decimal | null;
   parLevel: Decimal | null;

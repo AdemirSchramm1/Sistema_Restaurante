@@ -43,7 +43,11 @@ export type MenuAccessRecord = {
 
 export interface MenuAccessRepo {
   insert(
-    a: Omit<MenuAccessRecord, "endReason"> & { tokenHash: string; ip: string | null; userAgent: string | null },
+    a: Omit<MenuAccessRecord, "endReason"> & {
+      tokenHash: string;
+      ip: string | null;
+      userAgent: string | null;
+    },
   ): Promise<void>;
   get(id: string): Promise<MenuAccessRecord | null>;
   end(id: string, at: Date, reason: MenuAccessEndReason): Promise<void>;

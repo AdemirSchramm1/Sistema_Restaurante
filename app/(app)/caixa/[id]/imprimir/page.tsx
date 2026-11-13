@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
@@ -8,6 +7,7 @@ import { TabPrint } from "@/components/billing/tab-print";
 import { tabDetailView } from "@/components/billing/view";
 import { PrintButton } from "@/components/ordering/print-button";
 import { NoAccess } from "@/components/layout/no-access";
+import { TextLink } from "@/components/ui/text-link";
 
 export const metadata: Metadata = { title: "Imprimir conta" };
 export const dynamic = "force-dynamic";
@@ -25,9 +25,7 @@ export default async function Page({ params }: PageProps<"/caixa/[id]/imprimir">
   return (
     <div className="grid gap-4">
       <div className="no-print flex flex-wrap items-center gap-3">
-        <Link href={`/caixa/${t.id}`} className="text-primary underline underline-offset-4">
-          Voltar para a conta
-        </Link>
+        <TextLink href={`/caixa/${t.id}`}>Voltar para a conta</TextLink>
         <PrintButton />
       </div>
       <TabPrint

@@ -47,13 +47,3 @@ export function parseItemForm(raw: Record<string, unknown>): Result<ItemData> {
   }
   return ok(parsed.data);
 }
-
-/** FormData → objeto, ignorando campos internos do Next. */
-export function formDataToObject(form: FormData): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of form.entries()) {
-    if (k.startsWith("$ACTION") || typeof v !== "string") continue;
-    out[k] = v;
-  }
-  return out;
-}

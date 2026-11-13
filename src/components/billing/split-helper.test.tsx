@@ -5,7 +5,8 @@ import { SplitHelper } from "./split-helper";
 
 afterEach(cleanup);
 
-const people = (n: string) => fireEvent.change(screen.getByLabelText("Dividir por quantas pessoas?"), { target: { value: n } });
+const people = (n: string) =>
+  fireEvent.change(screen.getByLabelText("Dividir por quantas pessoas?"), { target: { value: n } });
 const parts = () => screen.queryAllByRole("listitem").map((li) => li.querySelector("span")?.textContent);
 
 function setup(remaining = "100.00") {

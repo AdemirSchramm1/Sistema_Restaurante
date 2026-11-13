@@ -24,7 +24,7 @@ export type SalePriceProps = {
 
 /** Quadro "Preço de venda" da página do produto vendido (spec 008, US1). */
 export function SalePrice(p: SalePriceProps) {
-  const { state, pending, formProps } = useFormAction(p.action);
+  const { state, pending, saved, formProps } = useFormAction(p.action);
   return (
     <Card className="grid gap-2 text-sm">
       <CardTitle>Preço de venda</CardTitle>
@@ -47,7 +47,7 @@ export function SalePrice(p: SalePriceProps) {
             Salvar preço
           </Button>
           <FormError error={state && !state.ok ? state.error : null} />
-          {state?.ok && <p role="status">Preço salvo.</p>}
+          {saved && <p role="status">Preço salvo.</p>}
         </form>
       ) : (
         <p>{p.salePrice ? `Vendo por R$ ${p.salePrice}` : "Sem preço de venda."}</p>
@@ -67,7 +67,7 @@ export function SalePrice(p: SalePriceProps) {
             </strong>
             .
           </p>
-          <p className={p.marginNegative ? "font-medium text-red-800" : undefined}>
+          <p className={p.marginNegative ? "font-medium text-destructive" : undefined}>
             {p.marginNegative ? `Prejuízo de ${p.marginText} por venda.` : `Sobra ${p.marginText} por venda.`}
           </p>
           <p className="text-muted-foreground">

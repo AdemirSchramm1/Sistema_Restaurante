@@ -1,4 +1,4 @@
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import type { ActionError } from "@/actions/_session";
 
 export function FormError({ error }: { error?: ActionError | null }) {

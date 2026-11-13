@@ -5,13 +5,15 @@ describe("mensagens com valores da conta da mesa (spec 011)", () => {
   it("tirar a taxa com o pago acima do novo total diz os valores e o que fazer", () => {
     expect(
       messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", details: { total: "77.00", paid: "80.00" } }),
-    ).toBe("Já foram pagos R$ 80,00 e, sem a taxa, a conta fica em R$ 77,00. Tire um pagamento antes de tirar a taxa.");
+    ).toBe(
+      "Já foram pagos R$ 80,00 e, sem a taxa, a conta fica em R$ 77,00. Tire um pagamento antes de tirar a taxa.",
+    );
   });
 
   it("pagamento acima do que falta diz quanto falta (US2-3)", () => {
-    expect(messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", field: "amount", details: { remaining: "40.00" } })).toBe(
-      "O valor passa do que falta pagar (R$ 40,00).",
-    );
+    expect(
+      messageFor({ code: "PAYMENT_EXCEEDS_REMAINING", field: "amount", details: { remaining: "40.00" } }),
+    ).toBe("O valor passa do que falta pagar (R$ 40,00).");
   });
 
   it("fechar com falta diz quanto; com pago a mais, quanto e o que fazer (US2-6)", () => {
@@ -34,5 +36,35 @@ describe("mensagens com valores da conta da mesa (spec 011)", () => {
 
   it("sem detalhes, a mensagem geral", () => {
     expect(messageFor({ code: "REMAINING_NOT_ZERO" })).toBe("Ainda falta pagar.");
+  });
+});
+
+describe("mensagens com detalhes do estoque e do cadastro", () => {
+  it("nome repetido diz o código do item que já existe", () => {
+    expect(messageFor({ code: "ITEM_DUPLICATE_DESCRIPTION", details: { existingCode: "01.02.0003" } })).toBe(
+      "Já existe um item ativo com este nome neste grupo (01.02.0003).",
+    );
+  });
+
+  it("estoque insuficiente diz quanto há, com vírgula", () => {
+    expect(messageFor({ code: "INSUFFICIENT_STOCK", details: { available: "2.5", unit: "kg" } })).toBe(
+      "Não há estoque suficiente: só há 2,5 kg.",
+    );
+  });
+
+  it("preparo em uso lista onde", () => {
+    expect(messageFor({ code: "RECIPE_IN_USE", details: { usedBy: ["Lasanha", "Pizza"] } })).toBe(
+      "Este preparo está em uso em: Lasanha, Pizza. Tire dele primeiro.",
+    );
+  });
+
+  it("CNPJ repetido diz de qual fornecedor", () => {
+    expect(messageFor({ code: "CNPJ_IN_USE", details: { existingName: "Ceasa" } })).toBe(
+      "Já existe um fornecedor com este CNPJ: Ceasa.",
+    );
+  });
+
+  it("código sem mensagem própria cai na mensagem geral", () => {
+    expect(messageFor({ code: "NOPE" as never })).toBe("Algo deu errado.");
   });
 });

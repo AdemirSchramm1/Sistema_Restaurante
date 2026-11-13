@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
-import { setProductCustomizationAction, setSalePriceAction, updateRecipeAction } from "@/actions/recipes";
+import {
+  setProductCustomizationAction,
+  setRecipeActiveAction,
+  setSalePriceAction,
+  updateRecipeAction,
+} from "@/actions/recipes";
 import { serverDeps } from "@/infra/server";
 import { getRecipe, recipeFormOptions } from "@/application/inventory/recipes";
 import { getProductCustomization } from "@/application/ordering/customization";
@@ -12,20 +17,21 @@ import { ProductCustomization } from "@/components/ordering/product-customizatio
 import { getAuditHistory } from "@/application/audit/get-audit-history";
 import { can } from "@/domain/access/permissions";
 import { RECIPE_KIND_LABELS } from "@/domain/inventory/recipe";
-import { formatBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { formatBrDecimal, formatBrl, type Decimal } from "@/domain/shared/decimal";
 import { RecipeForm, type ComponentOption } from "@/components/recipes/recipe-form";
 import { recipeToValues } from "@/components/recipes/recipe-form-values";
-import { RecipeActiveToggle } from "@/components/recipes/recipe-active-toggle";
 import { HistoryList } from "@/components/audit/history-list";
 import { SalePrice } from "@/components/recipes/sale-price";
 import { money as moneyText, percent } from "@/components/costs/format";
 import { COST_BAND_LABELS, evaluateProductCost } from "@/domain/inventory/product-cost";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Produto" };
 
-const money = (v: Decimal) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 })}`;
-const brPrice = (v: Decimal) => formatBrDecimal(v, { minPlaces: 2, maxPlaces: 2 });
+const money = (v: Decimal) => formatBrl(v);
 
 export default async function Page({ params, searchParams }: PageProps<"/estoque/produtos/[id]">) {
   const ctx = await requireContext();
@@ -71,35 +77,43 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
   return (
     <div className="grid gap-6">
       {sp.criado && <Alert tone="success">Produto cadastrado.</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{v.recipe.name}</h1>
-        {!v.recipe.active && <Badge tone="muted">inativo</Badge>}
-        <span className="text-sm text-muted-foreground">
-          {RECIPE_KIND_LABELS[v.recipe.kind]} · versão {v.versionNumber} desde{" "}
-          {v.validFrom.toLocaleDateString("pt-BR", { timeZone: timezone })}
-        </span>
-        {canWrite && (
-          <RecipeActiveToggle id={v.recipe.id} version={v.recipe.version} active={v.recipe.active} />
-        )}
-        {onMenu && (
+      <PageHeader
+        title={v.recipe.name}
+        back={{ href: "/estoque/produtos", label: "Voltar para os produtos" }}
+        badges={
           <>
-            {onMenu.soldOut && <Badge tone="warn">esgotado hoje</Badge>}
-            <ActionForm
-              action={setProductSoldOutAction}
-              hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
-              submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
-              variant="ghost"
-            />
+            {!v.recipe.active && <Badge tone="neutral">inativo</Badge>}
+            {onMenu?.soldOut && <Badge tone="warning">esgotado hoje</Badge>}
           </>
-        )}
-      </div>
+        }
+        description={`${RECIPE_KIND_LABELS[v.recipe.kind]} · versão ${v.versionNumber} desde ${v.validFrom.toLocaleDateString("pt-BR", { timeZone: timezone })}`}
+        actions={
+          <>
+            {onMenu && (
+              <ActionForm
+                action={setProductSoldOutAction}
+                hidden={{ recipeId: id, soldOut: String(!onMenu.soldOut) }}
+                submitLabel={onMenu.soldOut ? "Disponível de novo" : "Esgotado hoje"}
+                variant="outline"
+              />
+            )}
+            {canWrite && (
+              <ActionForm
+                action={setRecipeActiveAction}
+                hidden={{ id: v.recipe.id, version: v.recipe.version, active: String(!v.recipe.active) }}
+                submitLabel={v.recipe.active ? "Inativar" : "Reativar"}
+              />
+            )}
+          </>
+        }
+      />
       {isPrep && v.usedBy.length > 0 && (
         <p className="text-sm">
           Usado em: <strong>{v.usedBy.join(", ")}</strong>
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
         <RecipeForm
           key={`${v.recipe.version}`}
           action={updateRecipeAction}
@@ -130,7 +144,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
               recipeId={v.recipe.id}
               kind={v.recipe.kind}
               version={custom.value.version}
-              addons={custom.value.addons.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              addons={custom.value.addons.map((a) => ({ ...a, price: a.price.toFixed(2) }))}
               removables={custom.value.removables.map((r) => ({
                 component: `${r.component.kind}:${r.component.id}`,
                 name: nameOf(r.component.kind, r.component.id) ?? r.label.replace(/^sem\s+/i, ""),
@@ -141,7 +155,7 @@ export default async function Page({ params, searchParams }: PageProps<"/estoque
                 component: `${c.component.kind}:${c.component.id}`,
                 name: c.name,
               }))}
-              available={custom.value.available.map((a) => ({ ...a, price: brPrice(a.price) }))}
+              available={custom.value.available.map((a) => ({ ...a, price: a.price.toFixed(2) }))}
               canEdit={can(ctx.roles, "addon.write") && v.recipe.active}
               action={setProductCustomizationAction}
             />

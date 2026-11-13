@@ -1,8 +1,8 @@
 import type { SupplierData, SupplierItemData } from "@/domain/suppliers/supplier";
-import { parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
-import { err, ok, type ErrorCode, type Result } from "@/domain/shared/result";
+import { parseBrDecimal } from "@/domain/shared/decimal";
+import { err, ok, type Result } from "@/domain/shared/result";
+import { formText, isId, optionalDecimal, optionalText } from "../form-input";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SUPPLIER_FIELDS = [
   "name",
   "legalName",
@@ -17,16 +17,6 @@ const SUPPLIER_FIELDS = [
   "notes",
 ] as const;
 
-const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-const optText = (v: unknown) => text(v) || null;
-
-function optDecimal(v: unknown, field: string, code: ErrorCode): Result<Decimal | null> {
-  const t = text(v);
-  if (!t) return ok(null);
-  const r = parseBrDecimal(t);
-  return r.ok ? r : err(code, field);
-}
-
 /** Formulário do fornecedor (texto, vírgula decimal) → SupplierData. A validação de regra fica no domínio. */
 export function parseSupplierForm(raw: Record<string, unknown>): Result<SupplierData> {
   const unknown = Object.keys(raw).filter((k) => !(SUPPLIER_FIELDS as readonly string[]).includes(k));
@@ -35,26 +25,26 @@ export function parseSupplierForm(raw: Record<string, unknown>): Result<Supplier
   const daysRaw = raw.deliveryDays;
   const days = (
     Array.isArray(daysRaw) ? daysRaw : daysRaw === undefined || daysRaw === "" ? [] : [daysRaw]
-  ).map(text);
+  ).map(formText);
   if (days.some((day) => !/^[0-6]$/.test(day))) return err("VALIDATION", "deliveryDays");
 
-  const lead = text(raw.leadTimeDays);
+  const lead = formText(raw.leadTimeDays);
   if (lead && !/^\d{1,3}$/.test(lead)) return err("VALIDATION", "leadTimeDays");
-  const minOrder = optDecimal(raw.minOrderValue, "minOrderValue", "INVALID_AMOUNT");
+  const minOrder = optionalDecimal(raw.minOrderValue, "minOrderValue", "INVALID_AMOUNT");
   if (!minOrder.ok) return minOrder;
 
   return ok({
-    name: text(raw.name),
-    legalName: optText(raw.legalName),
-    cnpj: optText(raw.cnpj),
-    contactName: optText(raw.contactName),
-    phone: optText(raw.phone),
-    email: optText(raw.email),
+    name: formText(raw.name),
+    legalName: optionalText(raw.legalName),
+    cnpj: optionalText(raw.cnpj),
+    contactName: optionalText(raw.contactName),
+    phone: optionalText(raw.phone),
+    email: optionalText(raw.email),
     deliveryDays: days.map(Number),
     leadTimeDays: lead ? Number.parseInt(lead, 10) : null,
     minOrderValue: minOrder.value,
-    paymentTerms: optText(raw.paymentTerms),
-    notes: optText(raw.notes),
+    paymentTerms: optionalText(raw.paymentTerms),
+    notes: optionalText(raw.notes),
   });
 }
 
@@ -63,17 +53,17 @@ export function parseSupplierItemForm(
   raw: Record<string, unknown>,
   { requireItem = true } = {},
 ): Result<SupplierItemData> {
-  const itemId = text(raw.itemId);
-  if (requireItem && !UUID.test(itemId)) return err("VALIDATION", "itemId");
-  const priceText = text(raw.price);
+  const itemId = formText(raw.itemId);
+  if (requireItem && !isId(itemId)) return err("VALIDATION", "itemId");
+  const priceText = formText(raw.price);
   if (!priceText) return err("INVALID_PRICE", "price");
   const price = parseBrDecimal(priceText);
   if (!price.ok) return err("INVALID_PRICE", "price");
-  const qty = optDecimal(raw.packageQuantity, "packageQuantity", "INVALID_FACTOR");
+  const qty = optionalDecimal(raw.packageQuantity, "packageQuantity", "INVALID_FACTOR");
   if (!qty.ok) return qty;
   return ok({
     itemId,
-    packageLabel: optText(raw.packageLabel),
+    packageLabel: optionalText(raw.packageLabel),
     packageQuantity: qty.value,
     price: price.value,
     preferred: raw.preferred === "on" || raw.preferred === "true",

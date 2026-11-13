@@ -1,13 +1,13 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
 import { getOrder } from "@/application/ordering/orders";
 import { CANCEL_REASON_LABELS, ORDER_STATUS_LABELS } from "@/domain/ordering/order";
-import { brl } from "@/components/ordering/cart-state";
+import { brl } from "@/components/ordering/format";
 import { LineChanges } from "@/components/ordering/line-changes";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Pedido" };
 
@@ -26,19 +26,19 @@ export default async function Page({ params }: PageProps<"/pedidos/[id]">) {
   const when = (d: Date) => d.toLocaleString("pt-BR", { timeZone, dateStyle: "short", timeStyle: "short" });
   return (
     <div className="grid gap-4">
-      <Link href="/pedidos" className="text-sm text-primary underline underline-offset-4">
-        Voltar para os pedidos
-      </Link>
-      <h1 className="text-2xl font-semibold">
-        Pedido {o.number} · Mesa {o.tableName}
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        {ORDER_STATUS_LABELS[o.status]}
-        {o.cancelReason &&
-          ` · ${CANCEL_REASON_LABELS[o.cancelReason]}${o.cancelNote ? `: ${o.cancelNote}` : ""}`}{" "}
-        · enviado em {when(o.submittedAt)}
-      </p>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <PageHeader
+        title={`Pedido ${o.number} · Mesa ${o.tableName}`}
+        back={{ href: "/pedidos", label: "Voltar para os pedidos" }}
+        description={
+          <>
+            {ORDER_STATUS_LABELS[o.status]}
+            {o.cancelReason &&
+              ` · ${CANCEL_REASON_LABELS[o.cancelReason]}${o.cancelNote ? `: ${o.cancelNote}` : ""}`}{" "}
+            · enviado em {when(o.submittedAt)}
+          </>
+        }
+      />
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card className="grid gap-2">
           <CardTitle>O que foi pedido</CardTitle>
           <ul className="grid gap-2">

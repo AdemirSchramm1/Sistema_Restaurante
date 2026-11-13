@@ -59,7 +59,9 @@ describe("formulário de lançamento (spec 004)", () => {
   it("perda não oferece 'Pedido cancelado': só o cancelamento do pedido usa (spec 011)", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText("Tipo de lançamento"), { target: { value: "LOSS" } });
-    const labels = [...(screen.getByLabelText("Motivo") as HTMLSelectElement).options].map((o) => o.textContent);
+    const labels = [...(screen.getByLabelText("Motivo") as HTMLSelectElement).options].map(
+      (o) => o.textContent,
+    );
     expect(labels).toContain("Queimou");
     expect(labels).not.toContain("Pedido cancelado");
   });
@@ -94,6 +96,29 @@ describe("formulário de lançamento (spec 004)", () => {
     expect((await screen.findAllByText("Só há 10 kg.")).length).toBeGreaterThan(0);
     expect((screen.getByLabelText("Quantidade") as HTMLInputElement).value).toBe("50");
     expect(screen.getByLabelText("Quantidade").getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("enquanto o próximo lançamento salva, o aviso do anterior some e volta só quando ele termina", async () => {
+    let finish: () => void = () => {};
+    let calls = 0;
+    const action = () => {
+      calls += 1;
+      if (calls === 1) return Promise.resolve({ ok: true as const, data: null, at: 1 });
+      return new Promise<{ ok: true; data: null; at: number }>((resolve) => {
+        finish = () => resolve({ ok: true, data: null, at: 2 });
+      });
+    };
+    renderForm({ action });
+    const submit = () => fireEvent.submit(screen.getByRole("form", { name: "Lançamento" }));
+    await act(async () => submit());
+    expect(screen.getByText("Lançamento registrado.")).toBeTruthy();
+
+    await act(async () => submit());
+    expect(screen.queryByText("Lançamento registrado.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Salvando…" })).toBeTruthy();
+
+    await act(async () => finish());
+    expect(screen.getByText("Lançamento registrado.")).toBeTruthy();
   });
 });
 

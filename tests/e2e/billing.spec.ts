@@ -65,7 +65,13 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
     "28,00",
   );
   await newDish(page, "Suco", [{ component: "Laranja (kg)", quantity: "300", unit: "g" }], "9,00");
-  await newAddon(page, { name: "Fatia de queijo", component: "Queijo", quantity: "20", unit: "g", price: "3,00" });
+  await newAddon(page, {
+    name: "Fatia de queijo",
+    component: "Queijo",
+    quantity: "20",
+    unit: "g",
+    price: "3,00",
+  });
   await customize(page, burger, {
     addons: [{ label: "Fatia de queijo · R$ 3,00", name: "Fatia de queijo", maxTimes: 3 }],
     removals: ["Cebola"],
@@ -138,7 +144,10 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
     kitchen.getByRole("region", { name: "Prontos" }).getByRole("article", { name: "Pedido 1, Mesa 12" }),
   ).toBeVisible({ timeout: 10_000 });
   await page.goto("/pedidos/garcom");
-  await page.getByRole("article", { name: "Mesa 12, pedido 1" }).getByRole("button", { name: "Entregue" }).click();
+  await page
+    .getByRole("article", { name: "Mesa 12, pedido 1" })
+    .getByRole("button", { name: "Entregue" })
+    .click();
   await expect(page.getByText("Nenhum pedido pronto para levar.")).toBeVisible();
 
   // Caixa abre a conta: suco riscado fora do total; não fecha enquanto falta pagar.
@@ -194,11 +203,15 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   // Fechar: a mesa sai do Caixa e o cardápio aberto no celular avisa.
   await cashier.getByRole("button", { name: "Fechar conta" }).click();
   await expect(cashier).toHaveURL(/\/caixa\?fechada=12$/);
-  await expect(cashier.getByText("Conta da Mesa 12 fechada. A mesa está livre para o próximo cliente.")).toBeVisible();
+  await expect(
+    cashier.getByText("Conta da Mesa 12 fechada. A mesa está livre para o próximo cliente."),
+  ).toBeVisible();
   await expect(cashier.getByRole("link", { name: /Mesa 12/ })).toHaveCount(0);
   await cell.reload();
   await expect(
-    cell.getByRole("alert").filter({ hasText: "Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo." }),
+    cell
+      .getByRole("alert")
+      .filter({ hasText: "Esta conta foi fechada. Escaneie o QR code da mesa para pedir de novo." }),
   ).toBeVisible();
 
   // O próximo cliente escaneia e abre uma conta nova, só com o pedido dele.
@@ -212,7 +225,10 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   await expect(cashier.getByRole("link", { name: /Mesa 12/ })).toContainText("R$ 9,90", { timeout: 15_000 });
 
   // Contas fechadas de hoje: a conta e o resumo por forma de pagamento.
-  await cashier.getByRole("navigation", { name: "Menu principal" }).getByRole("link", { name: "Contas" }).click();
+  await cashier
+    .getByRole("navigation", { name: "Menu principal" })
+    .getByRole("link", { name: "Contas" })
+    .click();
   await expect(cashier.getByRole("table", { name: "Contas fechadas" }).getByRole("row").nth(1)).toContainText(
     "R$ 74,80",
   );
@@ -239,7 +255,9 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   await third.getByRole("button", { name: "Confirmar cancelamento" }).click();
   await expect(third).toHaveCount(0, { timeout: 10_000 });
   await page.goto("/estoque/lancamentos");
-  await expect(page.getByRole("row").filter({ hasText: "Pedido cancelado · pedido 3, Mesa 12" })).toHaveCount(1);
+  await expect(page.getByRole("row").filter({ hasText: "Pedido cancelado · pedido 3, Mesa 12" })).toHaveCount(
+    1,
+  );
 
   // O caixa vê a conta fechada, sem "Reabrir conta"; o gerente pede a reabertura, mas a mesa já
   // abriu outra conta (a do pedido 3).

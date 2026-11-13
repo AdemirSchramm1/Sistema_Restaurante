@@ -10,8 +10,11 @@ import { serverDeps } from "@/infra/server";
 import { listMembers, listPendingInvitations } from "@/application/access/members";
 import { can, ROLES, ROLE_LABELS, type Role } from "@/domain/access/permissions";
 import { ActionForm } from "@/components/forms/action-form";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Equipe" };
 
@@ -41,7 +44,10 @@ export default async function Page() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Equipe</h1>
+      <PageHeader
+        title="Equipe"
+        description="Quem trabalha no restaurante e o que cada pessoa pode fazer no sistema."
+      />
       <Card className="grid gap-3">
         <CardTitle>Convidar pessoa</CardTitle>
         <ActionForm
@@ -88,8 +94,8 @@ export default async function Page() {
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-semibold">{m.name}</h2>
               <span className="text-sm text-muted-foreground">{m.email}</span>
-              {m.userId === ctx.userId && <Badge tone="muted">você</Badge>}
-              {!m.active && <Badge tone="warn">desativado</Badge>}
+              {m.userId === ctx.userId && <Badge tone="info">você</Badge>}
+              {!m.active && <Badge tone="neutral">desativado</Badge>}
             </div>
             <div className="flex flex-wrap items-end gap-4">
               <ActionForm

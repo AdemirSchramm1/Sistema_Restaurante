@@ -81,7 +81,10 @@ describe("fechar a conta (spec 011, US2-5)", () => {
     const t = await setup(env);
     await t.pay("50.00");
     const r = await closeTab(env.deps, t.cashier, { tabId: t.id, version: await t.version() });
-    expect(r.ok ? null : [r.error.code, r.error.details]).toEqual(["REMAINING_NOT_ZERO", { remaining: "34.70" }]);
+    expect(r.ok ? null : [r.error.code, r.error.details]).toEqual([
+      "REMAINING_NOT_ZERO",
+      { remaining: "34.70" },
+    ]);
     expect(unwrap(await getTab(env.deps, t.cashier, t.id)).status).toBe("OPEN");
   });
 
@@ -107,7 +110,14 @@ describe("fechar a conta (spec 011, US2-5)", () => {
     const env = testEnv();
     const b = await billingScenario(env);
     const only = await b.s.place([b.s.juice()]);
-    unwrap(await cancelOrder(env.deps, b.chef, { id: only.orderId, reason: "CUSTOMER_GAVE_UP", note: null, version: 1 }));
+    unwrap(
+      await cancelOrder(env.deps, b.chef, {
+        id: only.orderId,
+        reason: "CUSTOMER_GAVE_UP",
+        note: null,
+        version: 1,
+      }),
+    );
     const id = await b.tabId();
     const version = unwrap(await getTab(env.deps, b.cashier, id)).version;
     unwrap(await closeTab(env.deps, b.cashier, { tabId: id, version }));
@@ -121,7 +131,9 @@ describe("fechar a conta (spec 011, US2-5)", () => {
     const version = await t.version();
     expect(code(await closeTab(env.deps, t.waiter, { tabId: t.id, version }))).toBe("FORBIDDEN");
     unwrap(await closeTab(env.deps, t.m, { tabId: t.id, version }));
-    expect(code(await closeTab(env.deps, t.cashier, { tabId: t.id, version: version + 1 }))).toBe("TAB_CLOSED");
+    expect(code(await closeTab(env.deps, t.cashier, { tabId: t.id, version: version + 1 }))).toBe(
+      "TAB_CLOSED",
+    );
   });
 
   it("mesa inativada com a conta aberta ainda fecha", async () => {
@@ -142,11 +154,17 @@ describe("mesa liberada (spec 011, US2-6 a US2-8)", () => {
 
     env.clock.advance(5 * 60_000);
     const phone = await scan(env, t.s.table.token);
-    const next = unwrap(await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }));
+    const next = unwrap(
+      await submitOrder(env.deps, phone, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+    );
     const newTab = await t.tabId();
     expect(newTab).not.toBe(t.id);
     const tab = unwrap(await getTab(env.deps, t.cashier, newTab));
-    expect([tab.orders.map((o) => o.id), money(tab.paid), tab.status]).toEqual([[next.orderId], "0.00", "OPEN"]);
+    expect([tab.orders.map((o) => o.id), money(tab.paid), tab.status]).toEqual([
+      [next.orderId],
+      "0.00",
+      "OPEN",
+    ]);
     const old = unwrap(await getTab(env.deps, t.cashier, t.id));
     expect([old.status, money(old.total), old.orders]).toEqual(["CLOSED", "84.70", expect.any(Array)]);
     expect(old.orders).toHaveLength(2);
@@ -163,7 +181,9 @@ describe("mesa liberada (spec 011, US2-6 a US2-8)", () => {
     for (const cookie of [t.s.cookie, secondPhone]) {
       expect(code(await getMenu(env.deps, cookie))).toBe("TABLE_TAB_CLOSED");
       expect(
-        code(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] })),
+        code(
+          await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+        ),
       ).toBe("TABLE_TAB_CLOSED");
     }
     const ended = await db().query(
@@ -180,7 +200,9 @@ describe("mesa liberada (spec 011, US2-6 a US2-8)", () => {
     await t.pay();
     env.clock.advance((MENU_ACCESS_MINUTES + 1) * 60_000);
     unwrap(await closeTab(env.deps, t.cashier, { tabId: t.id, version: await t.version() }));
-    const r = await db().query("select end_reason from menu_accesses where table_id = $1", [t.s.table.tableId]);
+    const r = await db().query("select end_reason from menu_accesses where table_id = $1", [
+      t.s.table.tableId,
+    ]);
     expect(r.rows).toEqual([{ end_reason: null }]);
     expect(code(await getMenu(env.deps, t.s.cookie))).toBe("ACCESS_EXPIRED");
   });

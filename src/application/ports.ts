@@ -1,5 +1,6 @@
 import type { Result } from "@/domain/shared/result";
 import type { FieldChanges } from "@/domain/shared/audit";
+import type { Role } from "@/domain/access/permissions";
 import type { Origin } from "./context";
 import type { AccessRepos } from "./access/ports";
 import type { CatalogRepos } from "./inventory/ports";
@@ -63,9 +64,10 @@ export type Repos = AccessRepos &
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {
+  /** Membro do usuário com os papéis, numa consulta só (spec 012, R4). */
   membershipForUser(
     userId: string,
-  ): Promise<{ restaurantId: string; membershipId: string; active: boolean } | null>;
+  ): Promise<{ restaurantId: string; membershipId: string; active: boolean; roles: Role[] } | null>;
   invitationByTokenHash(hash: string): Promise<{ restaurantId: string; invitationId: string } | null>;
   userIdByEmail(email: string): Promise<string | null>;
   /** Mesa pelo token do QR code (spec 009). Devolve só o mínimo. */

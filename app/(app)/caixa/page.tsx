@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -10,7 +9,12 @@ import { OpenTabs } from "@/components/billing/open-tabs";
 import { ServiceRateForm } from "@/components/billing/service-charge";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/page-header";
+import { Receipt } from "lucide-react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Caixa" };
 export const dynamic = "force-dynamic";
@@ -18,23 +22,30 @@ export const dynamic = "force-dynamic";
 /** Caixa (spec 011, US1): mesas com conta aberta; atualiza sozinho a cada 10 segundos. */
 export default async function Page({ searchParams }: PageProps<"/caixa">) {
   const ctx = await requireContext();
-  const closed = (await searchParams).fechada;
+  const closed = firstParam((await searchParams).fechada);
   const deps = serverDeps();
-  const r = await listOpenTabs(deps, ctx);
+  // As duas leituras são independentes: em paralelo, a tela espera uma ida ao banco a menos.
+  const [r, settings] = await Promise.all([
+    listOpenTabs(deps, ctx),
+    can(ctx.roles, "tab.settings") ? getServiceChargeSettings(deps, ctx) : null,
+  ]);
   if (!r.ok) return <NoAccess />;
-  const settings = can(ctx.roles, "tab.settings") ? await getServiceChargeSettings(deps, ctx) : null;
   return (
     <div className="grid gap-4">
       <AutoRefresh seconds={10} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Caixa</h1>
-        {can(ctx.roles, "tab.history") && (
-          <Link href="/caixa/contas" className="text-sm text-primary underline underline-offset-4">
-            Contas fechadas
-          </Link>
-        )}
-      </div>
-      {typeof closed === "string" && closed && (
+      <PageHeader
+        title="Caixa"
+        description="Mesas com conta aberta. A tela se atualiza sozinha."
+        actions={
+          can(ctx.roles, "tab.history") && (
+            <Link href="/caixa/contas" className={buttonVariants({ variant: "outline" })}>
+              <Receipt aria-hidden="true" />
+              Contas fechadas
+            </Link>
+          )
+        }
+      />
+      {closed && (
         <Alert tone="success">{`Conta da Mesa ${closed} fechada. A mesa está livre para o próximo cliente.`}</Alert>
       )}
       <OpenTabs

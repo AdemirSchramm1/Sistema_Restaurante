@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
@@ -7,17 +6,18 @@ import { businessDay } from "@/domain/ordering/business-day";
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus } from "@/domain/ordering/order";
 import { can } from "@/domain/access/permissions";
 import { messageFor } from "@/components/forms/error-messages";
-import { brl } from "@/components/ordering/cart-state";
+import { brl } from "@/components/ordering/format";
 import { NoAccess } from "@/components/layout/no-access";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Pedidos" };
 export const dynamic = "force-dynamic";
-
-const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 /** Consulta de pedidos por período (até 31 dias), mesa e situação (spec 009, US6). */
 export default async function Page({ searchParams }: PageProps<"/pedidos">) {
@@ -31,12 +31,12 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
   }));
   const tz = restaurant.ok ? restaurant.value.timezone : "America/Sao_Paulo";
   const today = businessDay(deps.clock.now(), tz);
-  const from = one(sp.de) ?? today;
-  const to = one(sp.ate) ?? today;
-  const status = ORDER_STATUSES.includes(one(sp.situacao) as OrderStatus)
-    ? (one(sp.situacao) as OrderStatus)
+  const from = firstParam(sp.de) ?? today;
+  const to = firstParam(sp.ate) ?? today;
+  const status = ORDER_STATUSES.includes(firstParam(sp.situacao) as OrderStatus)
+    ? (firstParam(sp.situacao) as OrderStatus)
     : undefined;
-  const mesa = one(sp.mesa)?.trim();
+  const mesa = firstParam(sp.mesa)?.trim();
   const r = await listOrders(deps, ctx, { from, to, status });
   const rows = r.ok ? r.value.filter((o) => !mesa || o.tableName.toLowerCase() === mesa.toLowerCase()) : [];
   const time = (d: Date) =>
@@ -45,7 +45,10 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
 
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Pedidos</h1>
+      <PageHeader
+        title="Pedidos"
+        description="Todos os pedidos das mesas, do período e da situação escolhidos."
+      />
       <form className="flex flex-wrap items-end gap-3" role="search">
         <div className="grid gap-1">
           <Label htmlFor="de">De</Label>
@@ -93,9 +96,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
             {rows.map((o) => (
               <tr key={o.id}>
                 <Td>
-                  <Link href={`/pedidos/${o.id}`} className="text-primary underline-offset-4 hover:underline">
-                    {o.number}
-                  </Link>
+                  <TextLink href={`/pedidos/${o.id}`}>{o.number}</TextLink>
                 </Td>
                 <Td>{date(o.businessDay)}</Td>
                 <Td>{time(o.submittedAt)}</Td>

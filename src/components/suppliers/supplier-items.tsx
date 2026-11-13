@@ -5,12 +5,12 @@ import { ActionForm } from "@/components/forms/action-form";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Table, Td, Th } from "@/components/ui/table";
 import type { ActionState } from "@/actions/_session";
 import type { UnitCode } from "@/domain/inventory/units";
-import { d, formatBrDecimal, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
+import { d, formatBrDecimal, formatBrl, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 import { pricePerUnit } from "@/domain/suppliers/supplier";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -32,7 +32,7 @@ export type SupplierItemRow = {
   lastPurchase: { date: string; unitCost: string } | null;
 };
 
-const money = (v: Decimal, max = 2) => `R$ ${formatBrDecimal(v, { minPlaces: 2, maxPlaces: max })}`;
+const money = (v: Decimal, max = 2) => formatBrl(v, { maxPlaces: max });
 const br = (v: string) => formatBrDecimal(d(v), { maxPlaces: 4 });
 
 export const packageText = (r: Pick<SupplierItemRow, "packageLabel" | "packageQuantity" | "unit">) =>
@@ -175,7 +175,7 @@ function AddForm({
 }
 
 function EditForm({ row, action }: { row: SupplierItemRow; action: Action }) {
-  const { pending, error, state, formProps } = useFormAction(action);
+  const { pending, error, saved, formProps } = useFormAction(action);
   return (
     <form {...formProps} className="flex flex-wrap items-end gap-3" aria-label={`Editar ${row.itemName}`}>
       <input type="hidden" name="id" value={row.id} />
@@ -184,7 +184,7 @@ function EditForm({ row, action }: { row: SupplierItemRow; action: Action }) {
       <Button type="submit" size="sm" variant="outline" disabled={pending}>
         Salvar
       </Button>
-      {state?.ok && (
+      {saved && (
         <p role="status" className="text-sm">
           Salvo.
         </p>
@@ -235,7 +235,7 @@ export function SupplierItems({
           {rows.map((r) => (
             <tr key={r.id} className="align-top">
               <Td>
-                {r.itemName} {r.preferred && <Badge>Preferido</Badge>}
+                {r.itemName} {r.preferred && <Badge tone="primary">Preferido</Badge>}
               </Td>
               <Td>{packageText(r)}</Td>
               <Td>{money(d(r.price), 4)}</Td>

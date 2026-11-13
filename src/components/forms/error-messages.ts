@@ -1,4 +1,4 @@
-import { d, formatBrDecimal } from "@/domain/shared/decimal";
+import { d, formatBrl } from "@/domain/shared/decimal";
 import type { DomainError, ErrorCode } from "@/domain/shared/result";
 
 /** Texto em pt-BR de cada código de erro (contracts/use-cases.md). */
@@ -103,8 +103,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 };
 
 /** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
-const money = (v: unknown) =>
-  `R$ ${formatBrDecimal(d(String(v)), { minPlaces: 2, maxPlaces: 2 })}`;
+const money = (v: unknown) => formatBrl(d(String(v)));
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";

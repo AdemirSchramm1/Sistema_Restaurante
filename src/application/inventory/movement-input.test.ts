@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMovementDate, parseMovementForm } from "./movement-input";
+import { movementToday, parseMovementDate, parseMovementForm, parseReversalForm } from "./movement-input";
 
 const ITEM = "0193a000-0000-7000-8000-000000000123";
 const REASON = "0193a100-0000-7000-8000-000000000003";
@@ -14,6 +14,13 @@ describe("data do lançamento (fuso de São Paulo)", () => {
     expect(parseMovementDate("2026-10-30", NOW)?.toISOString()).toBe("2026-10-30T15:00:00.000Z");
     expect(parseMovementDate("", NOW)).toEqual(NOW);
     expect(parseMovementDate("30/10/2026", NOW)).toBeNull();
+  });
+
+  it("o dia de hoje do formulário segue Brasília, não UTC", () => {
+    expect(movementToday(NOW)).toBe("2026-11-02");
+    // 01:48 em UTC ainda é 22:48 do dia anterior em Brasília
+    expect(movementToday(new Date("2026-11-12T01:48:00Z"))).toBe("2026-11-11");
+    expect(movementToday(new Date("2026-11-12T03:00:00Z"))).toBe("2026-11-12");
   });
 });
 
@@ -134,5 +141,32 @@ describe("compra com fornecedor (spec 007, US4)", () => {
       NOW,
     );
     expect(code(r)).toBe("UNKNOWN_UNIT");
+  });
+});
+
+describe("formulário de estorno (spec 004)", () => {
+  const MOVEMENT = "0193a200-0000-7000-8000-000000000009";
+
+  it("lê o lançamento, o motivo e os textos opcionais", () => {
+    expect(
+      parseReversalForm({
+        movementId: MOVEMENT,
+        reasonId: REASON,
+        notes: "  digitado errado ",
+        idempotencyKey: "",
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        movementId: MOVEMENT,
+        cmd: { reasonId: REASON, notes: "digitado errado", idempotencyKey: null },
+      },
+    });
+  });
+
+  it("lançamento malformado não existe; motivo malformado aponta o campo", () => {
+    expect(code(parseReversalForm({ movementId: "x", reasonId: REASON }))).toBe("NOT_FOUND");
+    const r = parseReversalForm({ movementId: MOVEMENT, reasonId: "" });
+    expect([code(r), field(r)]).toEqual(["INVALID_REASON", "reasonId"]);
   });
 });

@@ -16,8 +16,8 @@ export async function billingScenario(env: TestEnv) {
   const stockkeeper = await addMember(env, m, ["STOCKKEEPER"], "Estoquista Dani");
 
   async function advance(orderId: string, to: "PREPARING" | "READY" | "DELIVERED") {
-    const v = (await ownerTestDb().$client.query("select version from orders where id = $1", [orderId])).rows[0]
-      .version as number;
+    const v = (await ownerTestDb().$client.query("select version from orders where id = $1", [orderId]))
+      .rows[0].version as number;
     if (to === "DELIVERED") unwrap(await markDelivered(env.deps, waiter, { id: orderId, version: v }));
     else unwrap(await advanceOrderStatus(env.deps, chef, { id: orderId, to, version: v }));
   }
@@ -38,7 +38,9 @@ export async function billingScenario(env: TestEnv) {
   async function placeAt(tableName: string, lines: unknown[]) {
     const table = await tableWithQr(env, m, tableName);
     const cookie = await scan(env, table.token);
-    const order = unwrap(await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }));
+    const order = unwrap(
+      await submitOrder(env.deps, cookie, { clientRequestId: crypto.randomUUID(), lines }),
+    );
     return { ...order, tableId: table.tableId, cookie, tabId: await tabId(table.tableId) };
   }
   return { m, s, chef, waiter, cashier, stockkeeper, advance, deliver, tabId, placeAt };

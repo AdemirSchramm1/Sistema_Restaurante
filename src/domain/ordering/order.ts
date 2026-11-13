@@ -53,7 +53,8 @@ export function checkCancel(
   const text = note?.trim() || null;
   if (text && text.length > CANCEL_NOTE_MAX) return err("NOTE_TOO_LONG", "note");
   if (reason === "OTHER" && !text) return err("CANCEL_NOTE_REQUIRED", "note");
-  if (leftTheShelf(from) && ingredientsUsed === null) return err("INGREDIENTS_USED_REQUIRED", "ingredientsUsed");
+  if (leftTheShelf(from) && ingredientsUsed === null)
+    return err("INGREDIENTS_USED_REQUIRED", "ingredientsUsed");
   return ok({ reason, note: text });
 }
 

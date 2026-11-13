@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { Alert, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { UNIT_OPTION_LABELS } from "@/components/items/item-form";
 import type { ActionState } from "@/actions/_session";
@@ -36,7 +37,7 @@ const keyed = (l: RecipeLineValues) => ({ ...l, key: lineKey++ });
 
 /** Formulário do produto: nome, tipo e o que vai nele (docs/produto/estoque/04-fichas-tecnicas.md). */
 export function RecipeForm({ action, options, initial, meta, readOnly, submitLabel }: Props) {
-  const { state, pending, formProps } = useFormAction(action);
+  const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
 
@@ -72,7 +73,7 @@ export function RecipeForm({ action, options, initial, meta, readOnly, submitLab
         </>
       )}
       <FormError error={error} />
-      {state?.ok && <Alert tone="success">Alterações salvas.</Alert>}
+      {saved && <Alert tone="success">Alterações salvas.</Alert>}
 
       <fieldset disabled={readOnly} className="grid gap-6">
         <Card className="grid gap-4">

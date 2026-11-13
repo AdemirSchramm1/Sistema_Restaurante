@@ -40,6 +40,7 @@ import {
   users,
 } from "../schema";
 import { dec, isUniqueViolation, UNIT_CODE_BY_ID, withSavepoint } from "./util";
+import { groupBy } from "@/domain/shared/collections";
 
 const ref = (itemId: string | null, subRecipeId: string | null): ComponentRef =>
   itemId ? { kind: "ITEM", id: itemId } : { kind: "RECIPE", id: subRecipeId! };
@@ -260,20 +261,21 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
           .where(inArray(orderLineRemovals.orderLineId, lineIds))
           .orderBy(asc(orderLineRemovals.createdAt), asc(orderLineRemovals.id))
       : [];
+    const linesByOrder = groupBy(lines, (l) => l.orderId);
+    const addonsByLine = groupBy(chosenAddons, (a) => a.lineId);
+    const removalsByLine = groupBy(removals, (x) => x.lineId);
     return rows.map((r) => ({
       ...r,
       total: dec(r.total)!,
-      lines: lines
-        .filter((l) => l.orderId === r.id)
-        .map((l) => ({
-          quantity: l.quantity,
-          productName: l.productName,
-          unitPrice: dec(l.unitPrice)!,
-          changes: describeChanges(
-            chosenAddons.filter((a) => a.lineId === l.id),
-            removals.filter((x) => x.lineId === l.id).map((x) => x.label),
-          ),
-        })),
+      lines: (linesByOrder.get(r.id) ?? []).map((l) => ({
+        quantity: l.quantity,
+        productName: l.productName,
+        unitPrice: dec(l.unitPrice)!,
+        changes: describeChanges(
+          addonsByLine.get(l.id) ?? [],
+          (removalsByLine.get(l.id) ?? []).map((x) => x.label),
+        ),
+      })),
     }));
   }
 
@@ -305,10 +307,11 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       submittedAt: o.submittedAt,
       statusChangedAt: o.submittedAt,
     });
-    for (const [position, l] of o.lines.entries()) {
-      const lineId = ids();
-      await tx.insert(orderLines).values({
-        id: lineId,
+    // Em lote (spec 012, R6): o número de idas ao banco não cresce com o número de linhas.
+    const lines = o.lines.map((l, position) => ({ id: ids(), position, l }));
+    await tx.insert(orderLines).values(
+      lines.map(({ id, position, l }) => ({
+        id,
         restaurantId,
         createdAt: o.submittedAt,
         orderId: o.id,
@@ -318,25 +321,24 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         quantity: l.quantity,
         basePrice: l.basePrice.toFixed(2),
         unitPrice: l.unitPrice.toFixed(2),
-      });
-      if (l.addons.length) {
-        const current = await tx
-          .select({
-            id: addons.id,
-            itemId: addons.itemId,
-            subRecipeId: addons.subRecipeId,
-            quantity: addons.quantity,
-            unitId: addons.unitId,
-          })
-          .from(addons)
-          .where(
-            inArray(
-              addons.id,
-              l.addons.map((a) => a.addonId),
-            ),
-          );
-        const byId = new Map(current.map((a) => [a.id, a]));
-        await tx.insert(orderLineAddons).values(
+      })),
+    );
+    const addonIds = [...new Set(o.lines.flatMap((l) => l.addons.map((a) => a.addonId)))];
+    if (addonIds.length) {
+      // Cópia do que o adicional baixa hoje: o pedido guarda o consumo do envio (spec 010).
+      const current = await tx
+        .select({
+          id: addons.id,
+          itemId: addons.itemId,
+          subRecipeId: addons.subRecipeId,
+          quantity: addons.quantity,
+          unitId: addons.unitId,
+        })
+        .from(addons)
+        .where(inArray(addons.id, addonIds));
+      const byId = new Map(current.map((a) => [a.id, a]));
+      await tx.insert(orderLineAddons).values(
+        lines.flatMap(({ id: lineId, l }) =>
           l.addons.map((a) => {
             const c = byId.get(a.addonId)!;
             return {
@@ -354,20 +356,20 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
               unitId: c.unitId,
             };
           }),
-        );
-      }
-      if (l.removals.length)
-        await tx.insert(orderLineRemovals).values(
-          l.removals.map((r) => ({
-            id: ids(),
-            restaurantId,
-            createdAt: o.submittedAt,
-            orderLineId: lineId,
-            ...componentCols(r.component),
-            label: r.label,
-          })),
-        );
+        ),
+      );
     }
+    const removals = lines.flatMap(({ id: lineId, l }) =>
+      l.removals.map((r) => ({
+        id: ids(),
+        restaurantId,
+        createdAt: o.submittedAt,
+        orderLineId: lineId,
+        ...componentCols(r.component),
+        label: r.label,
+      })),
+    );
+    if (removals.length) await tx.insert(orderLineRemovals).values(removals);
     await tx.insert(orderStatusEvents).values({
       id: ids(),
       restaurantId,
@@ -549,11 +551,14 @@ export function menuRepository(tx: Tx): MenuRepo {
         .where(inArray(recipeRemovables.recipeId, found))
         .orderBy(asc(recipeRemovables.position));
 
+      const linesByVersion = groupBy(lines, (l) => l.versionId);
+      const offeredByRecipe = groupBy(offered, (a) => a.recipeId);
+      const removablesByRecipe = groupBy(removables, (x) => x.recipeId);
       for (const r of rows) {
         const versionId = versionOf.get(r.id);
         if (!versionId) continue;
         const inVersion = new Set(
-          lines.filter((l) => l.versionId === versionId).map((l) => refKey(ref(l.itemId, l.subRecipeId))),
+          (linesByVersion.get(versionId) ?? []).map((l) => refKey(ref(l.itemId, l.subRecipeId))),
         );
         out.set(r.id, {
           id: r.id,
@@ -572,21 +577,17 @@ export function menuRepository(tx: Tx): MenuRepo {
             today,
           ),
           options: {
-            addons: offered
-              .filter((a) => a.recipeId === r.id)
-              .map((a) => ({
-                addonId: a.addonId,
-                name: a.name,
-                price: dec(a.price)!,
-                maxTimes: a.maxTimes,
-                available: a.active && (a.itemActive ?? a.subRecipeActive ?? false) === true,
-              })),
-            removables: removables
-              .filter((x) => x.recipeId === r.id)
-              .map((x) => {
-                const component = ref(x.itemId, x.subRecipeId);
-                return { component, label: x.label, available: inVersion.has(refKey(component)) };
-              }),
+            addons: (offeredByRecipe.get(r.id) ?? []).map((a) => ({
+              addonId: a.addonId,
+              name: a.name,
+              price: dec(a.price)!,
+              maxTimes: a.maxTimes,
+              available: a.active && (a.itemActive ?? a.subRecipeActive ?? false) === true,
+            })),
+            removables: (removablesByRecipe.get(r.id) ?? []).map((x) => {
+              const component = ref(x.itemId, x.subRecipeId);
+              return { component, label: x.label, available: inVersion.has(refKey(component)) };
+            }),
           },
         });
       }
@@ -637,26 +638,25 @@ export function orderChoicesRepository(tx: Tx): OrderChoicesRepo {
           ),
         )
         .orderBy(asc(recipeLines.position));
+      const versionLinesByVersion = groupBy(versionLines, (v) => v.recipeVersionId);
+      const chosenByLine = groupBy(chosen, (a) => a.orderLineId);
+      const removedByLine = groupBy(removed, (x) => x.orderLineId);
       return lines.map((l) => ({
         recipeId: l.recipeId,
         recipeVersionId: l.recipeVersionId,
-        versionLines: versionLines
-          .filter((v) => v.recipeVersionId === l.recipeVersionId)
-          .map((v) => ({
-            component: ref(v.itemId, v.subRecipeId),
-            quantity: dec(v.quantity)!,
-            unit: UNIT_CODE_BY_ID[v.unitId]!,
-          })),
+        versionLines: (versionLinesByVersion.get(l.recipeVersionId) ?? []).map((v) => ({
+          component: ref(v.itemId, v.subRecipeId),
+          quantity: dec(v.quantity)!,
+          unit: UNIT_CODE_BY_ID[v.unitId]!,
+        })),
         quantity: l.quantity,
-        addons: chosen
-          .filter((a) => a.orderLineId === l.id)
-          .map((a) => ({
-            component: ref(a.itemId, a.subRecipeId),
-            quantity: dec(a.quantity)!,
-            unit: UNIT_CODE_BY_ID[a.unitId]!,
-            times: a.times,
-          })),
-        removals: removed.filter((x) => x.orderLineId === l.id).map((x) => ref(x.itemId, x.subRecipeId)),
+        addons: (chosenByLine.get(l.id) ?? []).map((a) => ({
+          component: ref(a.itemId, a.subRecipeId),
+          quantity: dec(a.quantity)!,
+          unit: UNIT_CODE_BY_ID[a.unitId]!,
+          times: a.times,
+        })),
+        removals: (removedByLine.get(l.id) ?? []).map((x) => ref(x.itemId, x.subRecipeId)),
       }));
     },
   };

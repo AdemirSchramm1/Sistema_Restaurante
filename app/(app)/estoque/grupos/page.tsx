@@ -14,8 +14,11 @@ import { can } from "@/domain/access/permissions";
 import { STORAGE_CLASS_LABELS, type StorageClass } from "@/domain/inventory/default-tree";
 import { GROUP_FIELD_LABELS, groupSummary } from "@/components/groups/group-labels";
 import { ActionForm } from "@/components/forms/action-form";
-import { Alert, Badge, Card, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input, Select } from "@/components/ui/input";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Grupos" };
 
@@ -27,7 +30,10 @@ export default async function Page() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Grupos e subgrupos</h1>
+      <PageHeader
+        title="Grupos e subgrupos"
+        description="Como os itens se organizam. O código de cada item começa pelo do grupo e pelo do subgrupo (GG.SS.NNNN)."
+      />
       {manage && (
         <Card className="grid gap-3">
           <CardTitle>Novo grupo</CardTitle>
@@ -69,8 +75,8 @@ export default async function Page() {
               <Badge className="font-mono">{g.code}</Badge>
               <h2 className="text-lg font-semibold">{g.name}</h2>
               <span className="text-sm text-muted-foreground">{groupSummary(g)}</span>
-              {g.isSystem && <Badge tone="muted">padrão</Badge>}
-              {!g.active && <Badge tone="warn">inativo</Badge>}
+              {g.isSystem && <Badge tone="neutral">padrão</Badge>}
+              {!g.active && <Badge tone="neutral">inativo</Badge>}
             </div>
             {manage && (
               <div className="flex flex-wrap gap-4">
@@ -106,7 +112,7 @@ export default async function Page() {
                   </span>
                   <span className="min-w-40">{s.name}</span>
                   <span className="text-muted-foreground">{s.activeItems} itens ativos</span>
-                  {!s.active && <Badge tone="warn">inativo</Badge>}
+                  {!s.active && <Badge tone="neutral">inativo</Badge>}
                   {manage && (
                     <>
                       <ActionForm

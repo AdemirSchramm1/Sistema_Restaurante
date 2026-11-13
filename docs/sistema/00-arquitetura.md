@@ -7,7 +7,7 @@
 | Camada | Tecnologia |
 |---|---|
 | Framework | Next.js (App Router) + React + TypeScript `strict` |
-| Interface | Tailwind CSS + shadcn/ui |
+| Interface | Tailwind CSS com o tema próprio (paleta de comida em OKLCH, Inter e Fraunces) e componentes em `src/components/ui/` ([padrões do front](03-padroes-do-front.md)) |
 | Banco | PostgreSQL 17 no Neon, via Vercel ([ADR 0002](adr/0002-postgres-neon.md)) |
 | Acesso a dados | Drizzle ORM + drizzle-kit ([ADR 0001](adr/0001-orm-drizzle.md)) |
 | Validação | Zod (entrada de formulários, Server Actions e rotas) |
@@ -15,7 +15,7 @@
 | Autenticação | Better Auth, e-mail e senha; papéis em tabelas do domínio ([ADR 0003](adr/0003-auth-better-auth.md)) |
 | Testes | Vitest, Testing Library, PostgreSQL em container (Testcontainers), Playwright |
 | Deploy | Vercel (preview por PR, produção na `main`) |
-| CI | GitHub Actions: lint, typecheck, testes |
+| CI | GitHub Actions: formatação, lint, typecheck, testes com régua de cobertura, ponta a ponta com axe |
 
 ## Camadas
 
@@ -35,8 +35,13 @@
   (`eslint-plugin-boundaries` ou `dependency-cruiser`).
 - **Casos de uso** recebem dependências (repositórios, relógio, gerador de ID) por parâmetro, o que
   permite testar com implementações em memória.
-- **Server Actions / rotas** fazem só: autenticar, validar com Zod, chamar o caso de uso, devolver
-  resultado.
+- **Server Actions / rotas** fazem só: autenticar, ler a entrada com os leitores de formulário
+  (`src/application/*-input.ts`, que usam `formText`, `optionalText`, `optionalDecimal`, `isId`,
+  `componentRef` e `formDataToObject` de `src/application/form-input.ts`), chamar o caso de uso,
+  devolver resultado.
+- **Páginas** resolvem a sessão e o contexto uma vez por carregamento (`cache()` do React) e chamam
+  em paralelo os casos de uso que não dependem um do outro. Regras de desempenho em
+  [04-desempenho.md](04-desempenho.md).
 
 ## Estrutura de pastas proposta
 
@@ -74,10 +79,15 @@ src/
       migrations/
       repositories/
   actions/             # Server Actions finas (chamam application/)
-  components/          # componentes React (shadcn/ui em components/ui)
+  components/
+    ui/                # componentes do padrão (botão, selo, aviso, cartão, tabela…)
+    layout/            # casco da tela: menu lateral, cabeçalho da tela, marca
+    ...                # componentes de cada módulo, com teste ao lado
+  lib/                 # utilidades sem regra de negócio (contraste, filtros da URL)
 tests/
   integration/         # casos de uso + banco real
   e2e/                 # Playwright
+scripts/perf/          # medição de consultas e de tempo até o primeiro byte (04-desempenho.md)
 docs/
 specs/
 .specify/

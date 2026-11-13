@@ -5,6 +5,7 @@ import { createSupplierAction } from "@/actions/suppliers";
 import { can } from "@/domain/access/permissions";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { emptySupplierValues } from "@/components/suppliers/supplier-form-values";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Novo fornecedor" };
 
@@ -13,10 +14,11 @@ export default async function Page() {
   if (!can(ctx.roles, "supplier.write")) redirect("/estoque/fornecedores");
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Novo fornecedor</h1>
-      <p className="text-sm text-muted-foreground">
-        Só o nome é obrigatório. O resto dá para completar depois.
-      </p>
+      <PageHeader
+        title="Novo fornecedor"
+        description="Só o nome é obrigatório. O resto dá para completar depois."
+        back={{ href: "/estoque/fornecedores", label: "Voltar para os fornecedores" }}
+      />
       <SupplierForm
         action={createSupplierAction}
         initial={emptySupplierValues}

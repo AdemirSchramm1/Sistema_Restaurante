@@ -70,10 +70,11 @@ export function PaymentForm({
           {PAYMENT_METHODS.map((m) => (
             <label
               key={m}
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm font-medium transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground"
             >
               <input
                 type="radio"
+                className="accent-primary"
                 name="method"
                 value={m}
                 checked={method === m}
@@ -209,7 +210,10 @@ export function PaymentList({
         const value = brl(d(p.amount));
         const label = PAYMENT_METHOD_LABELS[p.method];
         return (
-          <li key={p.id} className={`grid gap-1 rounded-md border border-border p-2 text-sm ${removed ? "text-muted-foreground" : ""}`}>
+          <li
+            key={p.id}
+            className={`grid gap-1 rounded-md border border-border p-2 text-sm ${removed ? "text-muted-foreground" : ""}`}
+          >
             <div className="flex justify-between gap-2">
               <span className="font-medium">{label}</span>
               {removed ? <del>{value}</del> : <strong>{value}</strong>}
