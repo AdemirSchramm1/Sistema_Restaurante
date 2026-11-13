@@ -3,6 +3,7 @@ import { requireContext } from "@/actions/_session";
 import {
   createSectionAction,
   deleteSectionAction,
+  moveProductAction,
   moveSectionAction,
   renameSectionAction,
 } from "@/actions/menu-board";
@@ -34,7 +35,7 @@ export default async function Page() {
           renameSection: renameSectionAction,
           moveSection: moveSectionAction,
           deleteSection: deleteSectionAction,
-          moveProduct: moveSectionAction,
+          moveProduct: moveProductAction,
         }}
       />
     </div>

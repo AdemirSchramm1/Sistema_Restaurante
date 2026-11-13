@@ -92,12 +92,12 @@ Bloqueia todas as histórias.
 **Objetivo**: subir e descer produtos dentro da seção.
 **Teste independente**: subir o X-Salada em "Lanches" e ver o cardápio com ele antes do X-Burger.
 
-- [ ] T050 [P] [US3] [teste] `tests/integration/menu/order.test.ts`: `moveProduct` troca com o vizinho da mesma seção (e dentro de "Outros"), mantém 1..n, não muda `version`, preço, versões nem pedidos enviados, audita (`menu.product.move`) e devolve `NO_CHANGE` na ponta; dois movimentos ao mesmo tempo no mesmo grupo terminam com todos os produtos, sem repetir posição; preparo → `NOT_A_DISH`; sem permissão → `FORBIDDEN`
-- [ ] T051 [US3] `src/application/menu/order.ts`
-- [ ] T052 [US3] [teste] `tests/integration/ordering/menu.test.ts`: `getMenu` devolve os produtos na ordem de seção e posição; ajustar a expectativa alfabética `["Suco", "X-Burger"]` para a ordem de posição (única expectativa antiga que muda: regra da US3.5)
-- [ ] T053 [US3] `buildMenu` em `src/domain/ordering/menu.ts` e `menuRepository.products()` em `src/infra/db/repositories/ordering-repository.ts` ordenam por seção e posição (o teste de unidade de `buildMenu` muda antes, vermelho)
-- [ ] T054 [US3] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): em "Lanches", "Subir X-Salada" põe o X-Salada antes do X-Burger; o primeiro produto tem "Subir" desligado; com o teclado também funciona
-- [ ] T055 [US3] Ação `moveProductAction` em `src/actions/menu-board.ts` e os botões no `menu-board.tsx` (o teste do componente ganha o caso antes)
+- [x] T050 [P] [US3] [teste] `tests/integration/menu/order.test.ts`: `moveProduct` troca com o vizinho da mesma seção (e dentro de "Outros"), mantém 1..n, não muda `version`, preço, versões nem pedidos enviados, audita (`menu.product.move`) e devolve `NO_CHANGE` na ponta; dois movimentos ao mesmo tempo no mesmo grupo terminam com todos os produtos, sem repetir posição; preparo → `NOT_A_DISH`; sem permissão → `FORBIDDEN`
+- [x] T051 [US3] `src/application/menu/order.ts`
+- [x] T052 [US3] [teste] `tests/integration/ordering/menu.test.ts`: `getMenu` devolve os produtos na ordem de seção e posição; ajustar a expectativa alfabética `["Suco", "X-Burger"]` para a ordem de posição (única expectativa antiga que muda: regra da US3.5)
+- [x] T053 [US3] `buildMenu` em `src/domain/ordering/menu.ts` e `menuRepository.products()` em `src/infra/db/repositories/ordering-repository.ts` ordenam por seção e posição (o teste de unidade de `buildMenu` muda antes, vermelho)
+- [x] T054 [US3] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): em "Lanches", "Subir X-Salada" põe o X-Salada antes do X-Burger; o primeiro produto tem "Subir" desligado; com o teclado também funciona
+- [x] T055 [US3] Ação `moveProductAction` em `src/actions/menu-board.ts` e os botões no `menu-board.tsx` (o teste do componente ganha o caso antes)
 
 ## Fase 5: US1 — Foto e descrição (P1)
 

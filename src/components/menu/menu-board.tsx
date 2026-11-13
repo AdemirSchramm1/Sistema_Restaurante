@@ -19,7 +19,7 @@ export type MenuBoardActions = {
   moveProduct: FormAction;
 };
 
-function ProductRow({ product }: { product: BoardProduct }) {
+function ProductRow({ product, move }: { product: BoardProduct; move: FormAction }) {
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
       {product.photo && (
@@ -52,6 +52,15 @@ function ProductRow({ product }: { product: BoardProduct }) {
           {product.soldOutToday && <Badge tone="danger">Esgotado hoje</Badge>}
           {!product.photo && <Badge tone="info">Sem foto</Badge>}
         </div>
+      </div>
+      <div className="ml-auto">
+        <MoveButtons
+          id={product.id}
+          name={product.name}
+          canMoveUp={product.canMoveUp}
+          canMoveDown={product.canMoveDown}
+          action={move}
+        />
       </div>
     </li>
   );
@@ -104,7 +113,7 @@ function Section({ section, actions }: { section: BoardSection; actions: MenuBoa
       ) : (
         <ul className="grid divide-y divide-border">
           {section.products.map((p) => (
-            <ProductRow key={p.id} product={p} />
+            <ProductRow key={p.id} product={p} move={actions.moveProduct} />
           ))}
         </ul>
       )}

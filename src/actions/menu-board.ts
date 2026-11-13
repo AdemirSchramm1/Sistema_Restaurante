@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { createSection, deleteSection, moveSection, renameSection } from "@/application/menu/sections";
+import { moveProduct } from "@/application/menu/order";
 import {
   parseMove,
   parseSectionCreate,
@@ -47,4 +48,8 @@ export async function moveSectionAction(_prev: ActionState, form: FormData): Pro
 
 export async function deleteSectionAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   return run(form, parseTarget, deleteSection);
+}
+
+export async function moveProductAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  return run(form, parseMove, moveProduct);
 }
