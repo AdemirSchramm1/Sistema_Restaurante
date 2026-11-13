@@ -151,3 +151,91 @@ test("chef põe foto, descrição e seção no produto (spec 013, US1)", async (
   await expect(again.getByText("Sem foto")).toBeVisible();
   await expect(again.getByRole("status")).toHaveText("Foto tirada do cardápio");
 });
+
+test("chef cria produto pela tela Cardápio e muda o preço com um carrinho aberto (spec 013, US4)", async ({
+  page,
+  browser,
+}) => {
+  const s = seedMenu("board");
+  await login(page, s.chef, s.password);
+  await page.goto("/pedidos/cardapio");
+  await page.getByRole("link", { name: "Novo produto" }).click();
+  const form = page.getByRole("form", { name: "Produto novo" });
+  await form.getByLabel("Nome do produto").fill("Suco de laranja");
+  await form.getByLabel("Item ou preparo da linha 1").selectOption({ index: 1 });
+  await form.getByLabel("Quanto vai (linha 1)").fill("1");
+  await form.getByLabel("Preço (R$)").fill("9,00");
+  await form.getByLabel("Seção").selectOption({ label: "Bebidas" });
+  await form.getByRole("textbox", { name: "Descrição" }).fill("Feito na hora.");
+  await form.getByLabel("Escolher foto").setInputFiles("tests/screens/photos/deitada.jpg");
+  await expect(form.getByRole("img", { name: "Prévia da foto" })).toBeVisible();
+  await form.getByRole("button", { name: "Criar produto" }).click();
+
+  // Volta para a tela Cardápio com o produto no fim de Bebidas, com foto e preço.
+  await expect(page).toHaveURL(/\/pedidos\/cardapio$/);
+  const last = page.getByRole("region", { name: "Bebidas" }).getByRole("listitem").last();
+  await expect(last.getByRole("link")).toHaveText("Suco de laranja");
+  await expect(last).toContainText("R$ 9,00");
+  await expect(last.locator("img[data-photo]")).toBeVisible();
+  await expect(last.getByText("Sem foto")).toHaveCount(0);
+
+  // Nome repetido: o erro aparece no campo e nada é criado.
+  await page.getByRole("link", { name: "Novo produto" }).click();
+  await form.getByLabel("Nome do produto").fill("suco de laranja");
+  await form.getByLabel("Item ou preparo da linha 1").selectOption({ index: 1 });
+  await form.getByLabel("Quanto vai (linha 1)").fill("1");
+  await form.getByRole("button", { name: "Criar produto" }).click();
+  await expect(form.getByRole("alert")).toBeVisible();
+  await expect(page).toHaveURL(/\/pedidos\/cardapio\/novo$/);
+
+  // Cliente monta o pedido; o chef muda o preço pela tela Cardápio; o envio pede nova confirmação.
+  const phone = await browser.newContext();
+  const cell = await phone.newPage();
+  await cell.goto(s.qrPath);
+  await cell.getByRole("button", { name: "Adicionar Suco de laranja" }).click();
+  await expect(cell.getByTestId("cart-total")).toHaveText("R$ 9,00");
+
+  await page.goto("/pedidos/cardapio");
+  await page.getByRole("link", { name: "Suco de laranja", exact: true }).click();
+  const price = page.getByRole("form", { name: "Preço" });
+  await price.getByLabel("Preço (R$)").fill("10,00");
+  await price.getByRole("button", { name: "Salvar preço" }).click();
+  await expect(price.getByRole("status")).toHaveText("Salvo");
+  // Logo depois do preço, a descrição salva sem acusar edição de outra pessoa.
+  const details = page.getByRole("form", { name: "Descrição e seção" });
+  await details.getByRole("button", { name: "Salvar descrição e seção" }).click();
+  await expect(details.getByRole("status")).toHaveText("Salvo");
+
+  await cell.getByRole("button", { name: "Enviar pedido" }).click();
+  const confirm = cell.getByRole("dialog", { name: "Confira o pedido" });
+  await confirm.getByRole("button", { name: "Confirmar" }).click();
+  await expect(confirm.getByRole("alert")).toContainText("O preço de Suco de laranja mudou para R$ 10,00.");
+  await confirm.getByRole("button", { name: "Confirmar" }).click();
+  await expect(cell.getByRole("status").filter({ hasText: "Pedido enviado para a cozinha" })).toContainText(
+    "R$ 10,00",
+  );
+  await phone.close();
+});
+
+test("produto criado sem a foto chegar avisa e deixa tentar de novo (spec 013, US4)", async ({ page }) => {
+  const s = seedMenu("plain");
+  await login(page, s.chef, s.password);
+  await page.goto("/pedidos/cardapio/novo");
+  const form = page.getByRole("form", { name: "Produto novo" });
+  await form.getByLabel("Nome do produto").fill("Pudim");
+  await form.getByLabel("Item ou preparo da linha 1").selectOption({ index: 1 });
+  await form.getByLabel("Quanto vai (linha 1)").fill("1");
+  await form.getByLabel("Escolher foto").setInputFiles("tests/screens/photos/deitada.jpg");
+  // A rede cai só no envio da foto.
+  await page.route("**/api/cardapio/foto", (route) => route.abort());
+  await form.getByRole("button", { name: "Criar produto" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Pudim" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Produto salvo, mas a foto não foi enviada. Tente de novo.",
+  );
+  await page.unroute("**/api/cardapio/foto");
+  const photo = page.getByRole("region", { name: "Foto" });
+  await photo.getByLabel("Escolher foto").setInputFiles("tests/screens/photos/deitada.jpg");
+  await photo.getByRole("button", { name: "Salvar foto" }).click();
+  await expect(photo.getByRole("status")).toHaveText("Foto salva");
+});
