@@ -286,7 +286,6 @@ test.describe("expectSurvivesRotation", () => {
   test("passa quando o estado e a posição continuam depois de girar", async ({ page }) => {
     await show(page, body(""));
     const anchor = page.locator("#alvo");
-    await anchor.scrollIntoViewIfNeeded();
     await expectSurvivesRotation(page, () => page.locator("#cart").innerText(), anchor);
     expect(page.viewportSize()).toEqual({ width: 390, height: 844 });
   });
@@ -294,10 +293,11 @@ test.describe("expectSurvivesRotation", () => {
   test("falha quando girar perde o carrinho", async ({ page }) => {
     await show(
       page,
-      body(`addEventListener("resize", () => { document.getElementById("cart").textContent = "Carrinho: 0"; });`),
+      body(
+        `addEventListener("resize", () => { if (innerWidth > innerHeight) document.getElementById("cart").textContent = "Carrinho: 0"; });`,
+      ),
     );
     const anchor = page.locator("#alvo");
-    await anchor.scrollIntoViewIfNeeded();
     await fails(
       () => expectSurvivesRotation(page, () => page.locator("#cart").innerText(), anchor),
       /mudou ao girar/,
@@ -305,9 +305,11 @@ test.describe("expectSurvivesRotation", () => {
   });
 
   test("falha quando girar perde a posição", async ({ page }) => {
-    await show(page, body(`addEventListener("resize", () => scrollTo(0, 0));`));
+    await show(
+      page,
+      body(`addEventListener("resize", () => { if (innerWidth > innerHeight) scrollTo(0, 0); });`),
+    );
     const anchor = page.locator("#alvo");
-    await anchor.scrollIntoViewIfNeeded();
     await fails(
       () => expectSurvivesRotation(page, () => page.locator("#cart").innerText(), anchor),
       /saiu da tela ao girar/,
@@ -341,15 +343,15 @@ test.describe("expectLazyPhotos", () => {
   test("falha quando a foto longe é pedida logo de cara", async ({ page }) => {
     await serve(page);
     await show(page, body(photo("longe", "eager")));
-    await fails(() => expectLazyPhotos(page, page.locator("img[data-photo]")), /antes de chegar perto.*longe/s);
+    await fails(
+      () => expectLazyPhotos(page, page.locator("img[data-photo]")),
+      /antes de chegar perto.*longe/s,
+    );
   });
 
   test("falha quando o celular baixa a foto maior que precisa", async ({ page }) => {
     await serve(page);
-    await show(
-      page,
-      body(photo("longe", "lazy")).replaceAll('sizes="100vw"', 'sizes="1200px"'),
-    );
+    await show(page, body(photo("longe", "lazy")).replaceAll('sizes="100vw"', 'sizes="1200px"'));
     await fails(() => expectLazyPhotos(page, page.locator("img[data-photo]")), /maior que precisa/);
   });
 });
