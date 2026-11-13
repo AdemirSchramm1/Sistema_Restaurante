@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { testEnv } from "../harness";
-import { addSection, code, inTenant, menuKitchen, menuLayout, menuScenario, recipeRow } from "./fixtures";
+import { addSection, inTenant, menuKitchen, menuLayout, menuScenario, recipeRow } from "./fixtures";
 
 /** Repositório da tela Cardápio (spec 013, data-model.md). */
 describe("menu-repository (spec 013)", () => {
@@ -72,17 +72,14 @@ describe("menu-repository (spec 013)", () => {
   it("grava a descrição subindo a version; version antiga é recusada", async () => {
     const env = testEnv();
     const s = await menuKitchen(env);
-    const r = await inTenant(env, s.m, async (repos) => ({
-      first: code(
-        await repos.menuBoard.setDescription(s.burger, "Pão, carne e queijo", 2, stamp(env, s.m.userId)),
-      ),
-      stale: code(await repos.menuBoard.setDescription(s.burger, "Outra", 2, stamp(env, s.m.userId))),
-      missing: code(
-        await repos.menuBoard.setDescription(env.deps.ids.next(), "x", 1, stamp(env, s.m.userId)),
-      ),
-      cleared: code(await repos.menuBoard.setDescription(s.burger, null, 3, stamp(env, s.m.userId))),
-    }));
-    expect(r).toEqual({ first: "OK", stale: "STALE_RECORD", missing: "NOT_FOUND", cleared: "OK" });
+    const write = (description: string | null, version: number, id = s.burger) =>
+      inTenant(env, s.m, (repos) =>
+        repos.menuBoard.setDescription(id, description, version, stamp(env, s.m.userId)),
+      );
+    expect(await write("Pão, carne e queijo", 2)).toBe(true);
+    expect(await write("Outra", 2)).toBe(false);
+    expect(await write("x", 1, env.deps.ids.next())).toBe(false);
+    expect(await write(null, 3)).toBe(true);
     expect(await recipeRow(s.burger)).toMatchObject({ description: null, version: 4 });
   });
 
@@ -104,41 +101,21 @@ describe("menu-repository (spec 013)", () => {
     expect(await recipeRow(s.burger)).toMatchObject({ photo_base: null, photo_widths: null, version: 2 });
   });
 
-  it("seção: nome repetido é NAME_IN_USE e a transação continua valendo", async () => {
-    const env = testEnv();
-    const s = await menuScenario(env);
-    const r = await inTenant(env, s.m, async (repos) => {
-      const dup = await repos.menuBoard.insertSection(
-        { id: env.deps.ids.next(), name: "LANCHES", normalized: "lanches", position: 4 },
-        stamp(env, s.m.userId),
-      );
-      const fine = await repos.menuBoard.insertSection(
-        { id: env.deps.ids.next(), name: "Sobremesas", normalized: "sobremesas", position: 4 },
-        stamp(env, s.m.userId),
-      );
-      return [dup, code(fine)];
-    });
-    expect(r).toEqual([{ ok: false, error: { code: "NAME_IN_USE", field: "name" } }, "OK"]);
-  });
-
   it("seção: renomeia com trava otimista", async () => {
     const env = testEnv();
     const s = await menuScenario(env);
     const rename = (id: string, name: string, version: number) =>
-      inTenant(env, s.m, async (repos) =>
-        code(
-          await repos.menuBoard.renameSection(
-            id,
-            { name, normalized: name.toLowerCase() },
-            version,
-            stamp(env, s.m.userId),
-          ),
+      inTenant(env, s.m, (repos) =>
+        repos.menuBoard.renameSection(
+          id,
+          { name, normalized: name.toLowerCase() },
+          version,
+          stamp(env, s.m.userId),
         ),
       );
-    expect(await rename(s.entradas, "Petiscos", 1)).toBe("OK");
-    expect(await rename(s.entradas, "Porções", 1)).toBe("STALE_RECORD");
-    expect(await rename(env.deps.ids.next(), "Porções", 1)).toBe("NOT_FOUND");
-    expect(await rename(s.entradas, "Lanches", 2)).toBe("NAME_IN_USE");
+    expect(await rename(s.entradas, "Petiscos", 1)).toBe(true);
+    expect(await rename(s.entradas, "Porções", 1)).toBe(false);
+    expect(await rename(env.deps.ids.next(), "Porções", 1)).toBe(false);
     const sections = await inTenant(env, s.m, (repos) => repos.menuBoard.sections());
     expect(sections[0]).toMatchObject({ name: "Petiscos", normalized: "petiscos", version: 2 });
   });

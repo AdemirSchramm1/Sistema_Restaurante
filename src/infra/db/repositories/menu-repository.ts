@@ -1,12 +1,8 @@
 import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import type { MenuBoardRepo, MenuProductRecord } from "@/application/menu/ports";
-import { err, ok } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import { menuSections, recipes } from "../schema";
-import { dec, isUniqueViolation, withSavepoint } from "./util";
-
-const stale = async (found: () => Promise<unknown[]>) =>
-  (await found()).length ? err("STALE_RECORD") : err("NOT_FOUND");
+import { dec } from "./util";
 
 /** Seções, ordem, descrição e foto do cardápio (spec 013). */
 export function menuBoardRepository(tx: Tx, restaurantId: string): MenuBoardRepo {
@@ -36,13 +32,6 @@ export function menuBoardRepository(tx: Tx, restaurantId: string): MenuBoardRepo
     }));
   }
 
-  /** Nome repetido vira `NAME_IN_USE` sem estragar a transação. */
-  const uniqueName = (write: () => Promise<{ id: string }[]>) =>
-    withSavepoint(tx, write).catch((e: unknown) => {
-      if (isUniqueViolation(e, "menu_sections_name")) return null;
-      throw e;
-    });
-
   return {
     async lock() {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`menu:${restaurantId}`}, 0))`);
@@ -62,44 +51,32 @@ export function menuBoardRepository(tx: Tx, restaurantId: string): MenuBoardRepo
     },
 
     async insertSection(s, audit) {
-      const inserted = await uniqueName(() =>
-        tx
-          .insert(menuSections)
-          .values({
-            id: s.id,
-            restaurantId,
-            name: s.name,
-            nameNormalized: s.normalized,
-            position: s.position,
-            createdAt: audit.at,
-            createdBy: audit.by,
-            updatedAt: audit.at,
-            updatedBy: audit.by,
-          })
-          .returning({ id: menuSections.id }),
-      );
-      return inserted ? ok(undefined) : err("NAME_IN_USE", "name");
+      await tx.insert(menuSections).values({
+        id: s.id,
+        restaurantId,
+        name: s.name,
+        nameNormalized: s.normalized,
+        position: s.position,
+        createdAt: audit.at,
+        createdBy: audit.by,
+        updatedAt: audit.at,
+        updatedBy: audit.by,
+      });
     },
 
     async renameSection(id, s, version, audit) {
-      const updated = await uniqueName(() =>
-        tx
-          .update(menuSections)
-          .set({
-            name: s.name,
-            nameNormalized: s.normalized,
-            version: version + 1,
-            updatedAt: audit.at,
-            updatedBy: audit.by,
-          })
-          .where(and(eq(menuSections.id, id), eq(menuSections.version, version)))
-          .returning({ id: menuSections.id }),
-      );
-      if (!updated) return err("NAME_IN_USE", "name");
-      if (updated.length) return ok(undefined);
-      return stale(() =>
-        tx.select({ id: menuSections.id }).from(menuSections).where(eq(menuSections.id, id)),
-      );
+      const updated = await tx
+        .update(menuSections)
+        .set({
+          name: s.name,
+          nameNormalized: s.normalized,
+          version: version + 1,
+          updatedAt: audit.at,
+          updatedBy: audit.by,
+        })
+        .where(and(eq(menuSections.id, id), eq(menuSections.version, version)))
+        .returning({ id: menuSections.id });
+      return updated.length > 0;
     },
 
     async orderSections(ids) {
@@ -139,8 +116,7 @@ export function menuBoardRepository(tx: Tx, restaurantId: string): MenuBoardRepo
         .set({ description, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
         .where(and(eq(recipes.id, id), eq(recipes.version, version)))
         .returning({ id: recipes.id });
-      if (updated.length) return ok(undefined);
-      return stale(() => tx.select({ id: recipes.id }).from(recipes).where(eq(recipes.id, id)));
+      return updated.length > 0;
     },
 
     async setPhoto(id, photo, audit) {

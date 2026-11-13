@@ -65,12 +65,12 @@ Bloqueia todas as histórias.
 **Objetivo**: criar, renomear, ordenar e apagar seções na tela Cardápio.
 **Teste independente**: criar "Entradas", "Lanches" e "Bebidas", subir "Bebidas" e ver a tela na ordem nova.
 
-- [ ] T031 [P] [US2] [teste] `tests/integration/menu/sections.test.ts`: `createSection` põe a seção no fim e audita (`menu.section.create`); nome repetido → `NAME_IN_USE`; vazio ou 41 caracteres → `INVALID_NAME`; `renameSection` com `version` antiga → `STALE_RECORD`; `moveSection` troca vizinhos, mantém 1..n e devolve `NO_CHANGE` na ponta; `deleteSection` manda os produtos para "Outros" no fim, devolve `movedProducts` e audita; estoquista → `FORBIDDEN` com a tentativa negada na auditoria; outro restaurante → `NOT_FOUND`
-- [ ] T032 [US2] `src/application/menu/sections.ts`
-- [ ] T033 [P] [US2] [teste] `src/application/menu/section-input.test.ts`: o leitor do formulário lê `name`, `id`, `version` e `direction`; direção fora de `up` e `down` → `VALIDATION`
-- [ ] T034 [P] [US2] `src/application/menu/section-input.ts`
-- [ ] T035 [US2] [teste] `tests/integration/menu/board.test.ts`: `getMenuBoard` devolve as seções na ordem com `canMoveUp` e `canMoveDown`, seção vazia aparece, "Outros" só com produtos, cada produto com preço (`null` = sem preço), `active`, `soldOutToday` e foto; preparo não aparece; faz o mesmo número de consultas com 2 ou com 20 produtos
-- [ ] T036 [US2] `src/application/menu/board.ts`
+- [x] T031 [P] [US2] [teste] `tests/integration/menu/sections.test.ts`: `createSection` põe a seção no fim e audita (`menu.section.create`); nome repetido → `NAME_IN_USE`; vazio ou 41 caracteres → `INVALID_NAME`; `renameSection` com `version` antiga → `STALE_RECORD`; `moveSection` troca vizinhos, mantém 1..n e devolve `NO_CHANGE` na ponta; `deleteSection` manda os produtos para "Outros" no fim, devolve `movedProducts` e audita; estoquista → `FORBIDDEN` com a tentativa negada na auditoria; outro restaurante → `NOT_FOUND`
+- [x] T032 [US2] `src/application/menu/sections.ts`
+- [x] T033 [P] [US2] [teste] `src/application/menu/section-input.test.ts`: o leitor do formulário lê `name`, `id`, `version` e `direction`; direção fora de `up` e `down` → `VALIDATION`
+- [x] T034 [P] [US2] `src/application/menu/section-input.ts`
+- [x] T035 [US2] [teste] `tests/integration/menu/board.test.ts`: `getMenuBoard` devolve as seções na ordem com `canMoveUp` e `canMoveDown`, seção vazia aparece, "Outros" só com produtos, cada produto com preço (`null` = sem preço), `active`, `soldOutToday` e foto; preparo não aparece; faz o mesmo número de consultas com 2 ou com 20 produtos
+- [x] T036 [US2] `src/application/menu/board.ts`
 - [ ] T037 [P] [US2] [teste] `src/components/menu/move-buttons.test.tsx`: botões "Subir {nome}" e "Descer {nome}" com nome acessível, desligados quando `canMoveUp` ou `canMoveDown` é falso, enviam `id` e `direction`, funcionam com Enter e espaço
 - [ ] T038 [P] [US2] `src/components/menu/move-buttons.tsx`
 - [ ] T039 [P] [US2] [teste] `src/components/menu/section-form.test.tsx`: criar e renomear com `useFormAction`; erro do servidor no campo ("Já existe a seção Lanches"); "Salvo" só com a confirmação do servidor; apagar pede confirmação com "Os 4 produtos de Lanches vão para Outros"

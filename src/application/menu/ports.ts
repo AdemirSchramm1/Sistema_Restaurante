@@ -26,16 +26,18 @@ export interface MenuBoardRepo {
   lock(): Promise<void>;
   /** Seções na ordem de `position`. */
   sections(): Promise<SectionRecord[]>;
+  /** O nome único é conferido pelo caso de uso, com o cardápio travado. */
   insertSection(
     s: { id: string; name: string; normalized: string; position: number },
     audit: Audit,
-  ): Promise<Result<void>>;
+  ): Promise<void>;
+  /** Trava otimista: devolve `false` se a `version` já não é essa. */
   renameSection(
     id: string,
     s: { name: string; normalized: string },
     version: number,
     audit: Audit,
-  ): Promise<Result<void>>;
+  ): Promise<boolean>;
   /** Regrava as posições das seções: a primeira da lista fica em 1. */
   orderSections(ids: readonly string[]): Promise<void>;
   deleteSection(id: string): Promise<void>;
@@ -45,13 +47,8 @@ export interface MenuBoardRepo {
   product(id: string): Promise<MenuProductRecord | null>;
   /** Põe os produtos na seção (ou em "Outros", com `null`) nesta ordem, a partir da posição 1. */
   placeProducts(sectionId: string | null, ids: readonly string[]): Promise<void>;
-  /** Grava a descrição com trava otimista (sobe a `version`). */
-  setDescription(
-    id: string,
-    description: string | null,
-    version: number,
-    audit: Audit,
-  ): Promise<Result<void>>;
+  /** Grava a descrição e sobe a `version`. Trava otimista: `false` se a `version` já não é essa. */
+  setDescription(id: string, description: string | null, version: number, audit: Audit): Promise<boolean>;
   /** Grava ou limpa a foto, sem subir a `version`. */
   setPhoto(id: string, photo: Photo | null, audit: Audit): Promise<void>;
 }

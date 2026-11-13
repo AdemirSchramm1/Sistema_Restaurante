@@ -51,11 +51,9 @@ export async function addSection(env: TestEnv, ctx: RequestContext, name: string
   const id = env.deps.ids.next();
   await inTenant(env, ctx, async (repos) => {
     const position = (await repos.menuBoard.sections()).length + 1;
-    unwrap(
-      await repos.menuBoard.insertSection(
-        { id, name, normalized: normalizeDescription(name), position },
-        { at: env.clock.now(), by: ctx.userId },
-      ),
+    await repos.menuBoard.insertSection(
+      { id, name, normalized: normalizeDescription(name), position },
+      { at: env.clock.now(), by: ctx.userId },
     );
   });
   return id;
