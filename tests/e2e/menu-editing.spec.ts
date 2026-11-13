@@ -25,7 +25,7 @@ test("chef organiza o cardápio em seções; estoquista não entra (spec 013, US
 
   await create.getByLabel("Nome da seção nova").fill("lanches");
   await create.getByRole("button", { name: "Criar seção" }).click();
-  await expect(create.getByRole("alert")).toHaveText("Já existe a seção Lanches");
+  await expect(create.getByRole("alert")).toHaveText("Já existe a seção Lanches.");
   await expect(create.getByLabel("Nome da seção nova")).toHaveValue("lanches");
 
   const entradas = page.getByRole("region", { name: "Entradas" });
@@ -39,8 +39,8 @@ test("chef organiza o cardápio em seções; estoquista não entra (spec 013, US
   await expect(page.getByRole("button", { name: "Subir Petiscos" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Descer Lanches" })).toBeDisabled();
 
+  // O quadro "Renomear ou apagar" continua aberto depois de salvar o nome.
   const petiscos = page.getByRole("region", { name: "Petiscos" });
-  await petiscos.getByText("Renomear ou apagar").click();
   await petiscos.getByRole("button", { name: "Apagar Petiscos" }).click();
   await expect(petiscos.getByText("Petiscos não tem produtos")).toBeVisible();
   await petiscos.getByRole("button", { name: "Apagar seção" }).click();

@@ -57,15 +57,18 @@ function Section({ section, actions }: { section: BoardSection; actions: MenuBoa
             canMoveDown={section.canMoveDown}
             action={actions.moveSection}
           />
-          <RenameSectionForm
-            key={`${section.id}-${section.version}`}
-            section={{ id: section.id, name: section.name, version: section.version }}
-            action={actions.renameSection}
-          />
-          <DeleteSection
-            section={{ id: section.id, name: section.name, productCount: section.products.length }}
-            action={actions.deleteSection}
-          />
+          <details>
+            <summary>Renomear ou apagar</summary>
+            <RenameSectionForm
+              key={`${section.id}-${section.version}`}
+              section={{ id: section.id, name: section.name, version: section.version }}
+              action={actions.renameSection}
+            />
+            <DeleteSection
+              section={{ id: section.id, name: section.name, productCount: section.products.length }}
+              action={actions.deleteSection}
+            />
+          </details>
         </>
       )}
       {section.products.length === 0 ? (
