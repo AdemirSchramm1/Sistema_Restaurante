@@ -1,3 +1,5 @@
+import type { Deps } from "@/application/ports";
+import type { RequestContext } from "@/application/context";
 import type { ChosenPhotoStorage } from "@/infra/photos/from-env";
 
 /** Rotas das fotos do cardápio (spec 013). A lógica fica aqui para ser testada sem o Next. */
@@ -18,4 +20,13 @@ export async function photoFileResponse(
     status: 200,
     headers: { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable" },
   });
+}
+
+/** `POST /api/cardapio/foto`: recebe a foto já reduzida pelo navegador e liga ao produto. */
+export async function uploadPhotoResponse(
+  _deps: Deps,
+  _ctx: RequestContext | null,
+  _request: Request,
+): Promise<Response> {
+  return new Response(null, { status: 501 });
 }
