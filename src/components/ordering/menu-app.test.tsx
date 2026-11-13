@@ -241,6 +241,62 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
   });
 });
 
+describe("girar o aparelho (spec 013, US6.8)", () => {
+  const box = (top: number, bottom: number) => () => ({ top, bottom }) as DOMRect;
+  const setup = () => {
+    render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
+    const scrolled = vi.fn();
+    const places = [...document.querySelectorAll<HTMLElement>("[data-place]")];
+    for (const el of places) {
+      el.getBoundingClientRect = box(-300, -200);
+      el.scrollIntoView = () => scrolled(el.id || el.textContent);
+    }
+    return { scrolled, places };
+  };
+  const set = (name: "scrollY" | "innerWidth" | "innerHeight", value: number) =>
+    Object.defineProperty(window, name, { value, configurable: true });
+  afterEach(() => {
+    set("scrollY", 0);
+    set("innerWidth", 1024);
+    set("innerHeight", 768);
+  });
+
+  it("o título de seção e os cartões são os pontos que a tela mantém", () => {
+    const { places } = setup();
+    expect(places.map((el) => el.tagName)).toEqual(["H2", "LI", "LI", "LI", "H2", "LI", "LI", "H2", "LI"]);
+  });
+
+  it("volta ao que estava no topo quando a largura muda", () => {
+    const { scrolled, places } = setup();
+    places[4]!.getBoundingClientRect = box(70, 100);
+    places[5]!.getBoundingClientRect = box(120, 400);
+    set("scrollY", 500);
+    fireEvent.scroll(window);
+    set("innerWidth", 568);
+    fireEvent(window, new Event("resize"));
+    expect(scrolled.mock.calls).toEqual([["secao-s2"]]);
+  });
+
+  it("não mexe quando só a altura muda (a barra do navegador some ao rolar)", () => {
+    const { scrolled, places } = setup();
+    places[4]!.getBoundingClientRect = box(70, 100);
+    set("scrollY", 500);
+    fireEvent.scroll(window);
+    set("innerHeight", 500);
+    fireEvent(window, new Event("resize"));
+    expect(scrolled).not.toHaveBeenCalled();
+  });
+
+  it("não mexe quando a página está no topo", () => {
+    const { scrolled, places } = setup();
+    places[0]!.getBoundingClientRect = box(200, 230);
+    fireEvent.scroll(window);
+    set("innerWidth", 568);
+    fireEvent(window, new Event("resize"));
+    expect(scrolled).not.toHaveBeenCalled();
+  });
+});
+
 describe("pré-visualização para a equipe (spec 013, US5)", () => {
   const preview = { showSectionTitles: sectioned.showSectionTitles, sections: sectioned.sections };
 
