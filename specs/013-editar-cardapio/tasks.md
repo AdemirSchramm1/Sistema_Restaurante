@@ -112,8 +112,8 @@ Bloqueia todas as histórias.
 - [x] T061 [US1] `src/application/menu/photo.ts`
 - [x] T062 [P] [US1] [teste] `tests/integration/menu/details.test.ts`: `setMenuDetails` grava descrição limpa e seção, põe o produto no fim da seção nova, sobe a `version`, audita antes e depois (`menu.details`); 301 caracteres → `INVALID_DESCRIPTION`; seção inexistente → `NOT_FOUND`; `version` antiga → `STALE_RECORD`; não cria versão do produto; `getMenuProduct` devolve o produto com as seções para escolher
 - [x] T063 [US1] `src/application/menu/details.ts` e `details-input.ts` (com `details-input.test.ts` antes)
-- [ ] T064 [US1] [teste] `tests/integration/menu/photo-route.test.ts`: `POST /api/cardapio/foto` devolve `200 { photo }`; sem login `401`; sem `menu.write` `403`; corpo acima de 4 MB `413`; erros de `setProductPhoto` como `400 { code }`
-- [ ] T065 [US1] `app/api/cardapio/foto/route.ts` e `app/fotos/[...path]/route.ts` (este devolve o arquivo só com `MENU_PHOTOS=file`; com outro valor, `404`, também testado no T064)
+- [x] T064 [US1] [teste] `tests/integration/menu/photo-route.test.ts`: `POST /api/cardapio/foto` devolve `200 { photo }`; sem login `401`; sem `menu.write` `403`; corpo acima de 4 MB `413`; erros de `setProductPhoto` como `400 { code }`
+- [x] T065 [US1] `app/api/cardapio/foto/route.ts` e `app/fotos/[...path]/route.ts` (este devolve o arquivo só com `MENU_PHOTOS=file`; com outro valor, `404`, também testado no T064)
 - [ ] T066 [P] [US1] [teste] `src/components/menu/reduce-photo.test.ts` (com `createImageBitmap` e canvas de mentira recebidos por parâmetro): foto de 4000 × 3000 vira 1600 × 1200 em JPEG 0,85; foto menor que 1600 não é ampliada; pede a orientação da câmera; falha ao reduzir devolve o original se tiver até 4 MB e, acima disso, o erro "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB."
 - [ ] T067 [P] [US1] `src/components/menu/reduce-photo.ts`
 - [ ] T068 [P] [US1] [teste] `src/components/menu/upload-photo.test.ts` (com `XMLHttpRequest` de mentira): informa o progresso, resolve com a foto no `200`, devolve o código no `400` e "Não foi possível enviar a foto. Tente de novo." na queda de rede

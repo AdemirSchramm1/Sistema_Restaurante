@@ -1,5 +1,8 @@
 import type { Deps } from "@/application/ports";
 import type { RequestContext } from "@/application/context";
+import { setProductPhoto } from "@/application/menu/photo";
+import { parseTarget } from "@/application/menu/section-input";
+import { MAX_UPLOAD_BYTES } from "@/domain/menu/photo";
 import type { ChosenPhotoStorage } from "@/infra/photos/from-env";
 
 /** Rotas das fotos do cardápio (spec 013). A lógica fica aqui para ser testada sem o Next. */
@@ -22,11 +25,33 @@ export async function photoFileResponse(
   });
 }
 
-/** `POST /api/cardapio/foto`: recebe a foto já reduzida pelo navegador e liga ao produto. */
+const json = (status: number, body: unknown) =>
+  Response.json(body, { status, headers: { "cache-control": "no-store" } });
+
+/** O formulário leva, além da foto, o id do produto e as divisas do multipart. */
+const FORM_OVERHEAD_BYTES = 4096;
+
+/**
+ * `POST /api/cardapio/foto`: recebe a foto já reduzida pelo navegador (até 4 MB) e liga ao produto.
+ * Rota em vez de Server Action para a tela poder mostrar o progresso do envio (research R2).
+ */
 export async function uploadPhotoResponse(
-  _deps: Deps,
-  _ctx: RequestContext | null,
-  _request: Request,
+  deps: Deps,
+  ctx: RequestContext | null,
+  request: Request,
 ): Promise<Response> {
-  return new Response(null, { status: 501 });
+  if (!ctx) return json(401, { code: "UNAUTHENTICATED" });
+  const declared = Number.parseInt(request.headers.get("content-length") ?? "0", 10);
+  if (declared > MAX_UPLOAD_BYTES + FORM_OVERHEAD_BYTES) return json(413, { code: "PHOTO_TOO_BIG" });
+
+  const form = await request.formData().catch(() => null);
+  const target = parseTarget({ id: form?.get("recipeId") });
+  const file = form?.get("photo");
+  if (!target.ok || !(file instanceof Blob)) return json(400, { code: "VALIDATION" });
+  if (file.size > MAX_UPLOAD_BYTES) return json(413, { code: "PHOTO_TOO_BIG" });
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const saved = await setProductPhoto(deps, ctx, { id: target.value.id, bytes });
+  if (saved.ok) return json(200, saved.value);
+  return json(saved.error.code === "FORBIDDEN" ? 403 : 400, { code: saved.error.code });
 }
