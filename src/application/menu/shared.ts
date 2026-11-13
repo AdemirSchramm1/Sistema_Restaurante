@@ -2,7 +2,8 @@ import type { AuditAction, Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize } from "../shared";
 import type { Action } from "@/domain/access/permissions";
-import type { Result } from "@/domain/shared/result";
+import { err, ok, type Result } from "@/domain/shared/result";
+import type { MenuProductRecord } from "./ports";
 
 export const SECTION_ENTITY = "menu_section";
 /** As mudanças de cardápio do produto ficam no histórico do próprio produto. */
@@ -56,3 +57,10 @@ export const recordMenuEvent = (
     userId: ctx.userId,
     origin: ctx.origin,
   });
+
+/** O produto vendido pelo id: preparo não entra no cardápio (`NOT_A_DISH`). */
+export async function loadDish(repos: Repos, id: string): Promise<Result<MenuProductRecord>> {
+  const product = await repos.menuBoard.product(id);
+  if (!product) return err("NOT_FOUND");
+  return product.kind === "DISH" ? ok(product) : err("NOT_A_DISH");
+}
