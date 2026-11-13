@@ -50,7 +50,7 @@ export function DishOptions({
     });
 
   return (
-    <section className="mx-auto grid w-full max-w-2xl gap-4" aria-label={product.name}>
+    <section className="mx-auto grid w-full max-w-2xl grid-cols-1 gap-4" aria-label={product.name}>
       <ProductPhoto photo={product.photo} name={product.name} eager sizes={DISH_SIZES} />
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h2 className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">{product.name}</h2>
@@ -63,13 +63,13 @@ export function DishOptions({
       )}
 
       {product.addons.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <h3 className="font-medium">Adicionar</h3>
-          <ul className="grid gap-2">
+          <ul className="grid grid-cols-1 gap-2">
             {product.addons.map((a) => {
               const n = times[a.id] ?? 0;
               return (
-                <li key={a.id} className="flex items-center justify-between gap-2">
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
                   <span>
                     {a.name} <span className="text-sm text-muted-foreground">{priceOrFree(a.price)}</span>
                   </span>
@@ -106,7 +106,7 @@ export function DishOptions({
       )}
 
       {product.removables.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <h3 className="font-medium">Tirar</h3>
           <div className="flex flex-wrap gap-2">
             {product.removables.map((r) => {
@@ -132,7 +132,7 @@ export function DishOptions({
 
       <p className="text-sm text-muted-foreground">Precisa de outra mudança? Chame um garçom.</p>
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <Button
             type="button"
@@ -162,11 +162,16 @@ export function DishOptions({
           {brl(lineTotal(line))}
         </span>
       </div>
-      <div className="grid gap-2">
-        <Button type="button" size="xl" onClick={() => onAdd(line)}>
+      <div className="grid grid-cols-1 gap-2">
+        <Button
+          type="button"
+          size="xl"
+          className="h-auto min-h-12 whitespace-normal py-2"
+          onClick={() => onAdd(line)}
+        >
           Adicionar ao pedido
         </Button>
-        <Button type="button" variant="ghost" className="h-11" onClick={onClose}>
+        <Button type="button" variant="ghost" className="h-auto min-h-11 whitespace-normal" onClick={onClose}>
           Voltar ao cardápio
         </Button>
       </div>

@@ -139,7 +139,8 @@ for (const screen of CUSTOMER_SCREENS) {
         expect(await seriousViolations(page)).toEqual([]);
         await confirm.getByRole("button", { name: "Confirmar" }).click();
         const mine = main.getByRole("region", { name: "Meus pedidos" });
-        await expect(mine).toContainText("R$ 5,00");
+        // "Meus pedidos" chega na atualização automática da tela.
+        await expect(mine).toContainText("R$ 5,00", { timeout: 15_000 });
         await expectNoSideScroll(page);
         await expectNoClippedText(main);
         expect(await seriousViolations(page)).toEqual([]);

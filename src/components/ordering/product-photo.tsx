@@ -1,7 +1,8 @@
 import { photoSrcSet, photoUrl, type Photo } from "@/domain/menu/photo";
 
 /** Largura do cartão em cada tela: 3 colunas no tablet deitado, 2 no tablet em pé, 1 no celular. */
-export const CARD_SIZES = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
+export const CARD_SIZES =
+  "(min-width: 1152px) 332px, (min-width: 1024px) calc(33.4vw - 52px), (min-width: 640px) calc(50vw - 56px), calc(100vw - 66px)";
 
 /**
  * Foto do produto no cardápio do cliente (spec 013, US6.3 e US6.10; research R5): sempre 4:3, com

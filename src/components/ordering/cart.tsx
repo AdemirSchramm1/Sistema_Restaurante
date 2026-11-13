@@ -91,7 +91,7 @@ export function Cart({
 
   return (
     <section
-      className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+      className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
       aria-label="Seu pedido"
     >
       <h2 className="font-display text-xl font-semibold">Seu pedido</h2>
@@ -106,10 +106,10 @@ export function Cart({
       {lines.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nada no pedido ainda.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {lines.map((l) => (
-            <li key={l.key} className="grid gap-1 border-b border-border pb-2">
-              <div className="flex items-center justify-between gap-2">
+            <li key={l.key} className="grid grid-cols-1 gap-1 border-b border-border pb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{l.name}</span>
                 <span>{brl(lineTotal(l))}</span>
               </div>
@@ -151,7 +151,7 @@ export function Cart({
           ))}
         </ul>
       )}
-      <p className="flex justify-between text-lg font-semibold">
+      <p className="flex flex-wrap justify-between gap-x-3 text-lg font-semibold">
         <span>Total</span>
         <span data-testid="cart-total">{brl(total)}</span>
       </p>
@@ -163,7 +163,13 @@ export function Cart({
         </Alert>
       )}
       {submit && (
-        <Button type="button" size="xl" disabled={lines.length === 0} onClick={open}>
+        <Button
+          type="button"
+          size="xl"
+          className="h-auto min-h-12 whitespace-normal py-2"
+          disabled={lines.length === 0}
+          onClick={open}
+        >
           Enviar pedido
         </Button>
       )}
@@ -175,12 +181,12 @@ export function Cart({
           aria-label="Confira o pedido"
           className="fixed inset-0 z-50 grid place-items-end bg-overlay sm:place-items-center"
         >
-          <div className="grid max-h-[90vh] w-full max-w-md gap-3 overflow-y-auto rounded-t-xl bg-background p-4 sm:rounded-xl">
+          <div className="grid max-h-[90vh] w-full grid-cols-1 max-w-md gap-3 overflow-y-auto rounded-t-xl bg-background p-4 sm:rounded-xl">
             <h2 className="text-lg font-semibold">Confira o pedido</h2>
-            <ul className="grid gap-2 text-sm">
+            <ul className="grid grid-cols-1 gap-2 text-sm">
               {lines.map((l) => (
                 <li key={l.key}>
-                  <div className="flex justify-between gap-2">
+                  <div className="flex flex-wrap justify-between gap-x-2">
                     <span>
                       {l.quantity} × {l.name}
                     </span>
@@ -190,7 +196,7 @@ export function Cart({
                 </li>
               ))}
             </ul>
-            <p className="flex justify-between font-semibold">
+            <p className="flex flex-wrap justify-between gap-x-3 font-semibold">
               <span>Total</span>
               <span>{brl(total)}</span>
             </p>
@@ -201,7 +207,13 @@ export function Cart({
                 ))}
               </Alert>
             )}
-            <Button type="button" size="xl" disabled={sending} onClick={confirm}>
+            <Button
+              type="button"
+              size="xl"
+              className="h-auto min-h-12 whitespace-normal py-2"
+              disabled={sending}
+              onClick={confirm}
+            >
               Confirmar
             </Button>
             <Button

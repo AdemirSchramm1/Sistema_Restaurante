@@ -25,7 +25,7 @@ export function ProductCard({
         type="button"
         aria-label={`Ver ${product.name}`}
         onClick={onOpen}
-        className="grid min-h-11 gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="grid min-h-11 grid-cols-1 gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ProductPhoto photo={product.photo} name={product.name} eager={eager} />
         <h3 className="text-base font-medium leading-snug [overflow-wrap:anywhere]">{product.name}</h3>

@@ -15,7 +15,7 @@ import { ProductCard } from "./product-card";
 import { SectionBar, sectionAnchor } from "./section-bar";
 
 /** Cartões por linha: 1 no celular, 2 a partir de 640 px, 3 a partir de 1024 px (contracts/screens.md). */
-const CARDS = "grid gap-3 sm:grid-cols-2 lg:grid-cols-3";
+const CARDS = "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3";
 /** Quantas fotos carregam junto com a página; as outras, só quando chegam perto da tela (US6.10). */
 const EAGER_PHOTOS = 2;
 
@@ -101,9 +101,9 @@ export function MenuApp(
   };
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       {live ? (
-        <header className="grid gap-1">
+        <header className="grid grid-cols-1 gap-1">
           <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
             {live.menu.restaurantName}
           </span>
@@ -117,7 +117,7 @@ export function MenuApp(
           />
         </header>
       ) : (
-        <header className="grid gap-2">
+        <header className="grid grid-cols-1 gap-2">
           <p
             role="status"
             className="rounded-lg bg-warning-soft px-3 py-2 text-center text-sm font-medium text-warning-soft-foreground"
@@ -154,7 +154,7 @@ export function MenuApp(
               <>
                 <SectionBar sections={menu.sections} current={current} />
                 {menu.sections.map((section) => (
-                  <section key={section.id ?? "outros"} className="grid gap-3">
+                  <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
                     <h2
                       id={sectionAnchor(section.id)}
                       className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
