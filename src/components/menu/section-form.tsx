@@ -5,6 +5,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { MAX_SECTION_NAME } from "@/domain/menu/section";
+import { Problem, Saved } from "./feedback";
 import type { FormAction } from "./move-buttons";
 
 /** Campo do nome com o erro do servidor ligado a ele (spec 013, US2.1). */
@@ -19,7 +20,7 @@ function NameField({
 }) {
   const id = useId();
   return (
-    <>
+    <div className="grid min-w-0 flex-1 gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
@@ -31,24 +32,20 @@ function NameField({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-erro` : undefined}
       />
-      {error && (
-        <p id={`${id}-erro`} role="alert">
-          {error}
-        </p>
-      )}
-    </>
+      {error && <Problem id={`${id}-erro`}>{error}</Problem>}
+    </div>
   );
 }
 
 export function NewSectionForm({ action }: { action: FormAction }) {
   const { pending, saved, error, formProps } = useFormAction(action, { resetOnSuccess: true });
   return (
-    <form {...formProps} aria-label="Nova seção">
+    <form {...formProps} aria-label="Nova seção" className="flex flex-wrap items-end gap-2">
       <NameField label="Nome da seção nova" error={error?.message ?? null} />
       <Button type="submit" size="lg" disabled={pending}>
         Criar seção
       </Button>
-      {saved && <p role="status">Seção criada</p>}
+      {saved && <Saved>Seção criada</Saved>}
     </form>
   );
 }
@@ -62,7 +59,7 @@ export function RenameSectionForm({
 }) {
   const { pending, saved, error, formProps } = useFormAction(action);
   return (
-    <form {...formProps} aria-label={`Renomear ${section.name}`}>
+    <form {...formProps} aria-label={`Renomear ${section.name}`} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="id" value={section.id} />
       <input type="hidden" name="version" value={section.version} />
       <NameField
@@ -73,7 +70,7 @@ export function RenameSectionForm({
       <Button type="submit" variant="outline" size="lg" disabled={pending}>
         Salvar nome
       </Button>
-      {saved && <p role="status">Salvo</p>}
+      {saved && <Saved />}
     </form>
   );
 }
@@ -102,16 +99,21 @@ export function DeleteSection({
       </Button>
     );
   return (
-    <form {...formProps} role="group" aria-label={`Apagar a seção ${section.name}?`}>
+    <form
+      {...formProps}
+      role="group"
+      aria-label={`Apagar a seção ${section.name}?`}
+      className="flex flex-wrap items-center gap-2 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground"
+    >
       <input type="hidden" name="id" value={section.id} />
-      <p>{destination(section.name, section.productCount)}</p>
+      <p className="basis-full text-sm font-medium">{destination(section.name, section.productCount)}</p>
       <Button type="submit" variant="destructive" size="lg" disabled={pending}>
         Apagar seção
       </Button>
       <Button type="button" variant="outline" size="lg" onClick={() => setAsking(false)}>
         Cancelar
       </Button>
-      {error && <p role="alert">{error.message}</p>}
+      {error && <Problem>{error.message}</Problem>}
     </form>
   );
 }

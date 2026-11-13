@@ -1,5 +1,6 @@
 import { expect, seriousViolations, test } from "./fixtures";
 import {
+  expectNoBrokenImage,
   expectNoClippedText,
   expectNoSideScroll,
   expectPhotoRatio,
@@ -25,6 +26,7 @@ for (const screen of STAFF_SCREENS) {
         await expectNoClippedText(main);
         await expectTapTargets(main);
         await expectPhotoRatio(main);
+        await expectNoBrokenImage(main);
         expect(await seriousViolations(page)).toEqual([]);
         await expectReadableAt200(page, main);
       });

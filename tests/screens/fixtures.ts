@@ -17,25 +17,25 @@ type WorkerFixtures = {
 export const test = base.extend<{ asStaff: Page }, WorkerFixtures>({
   scenario: ["board", { scope: "worker", option: true }],
   seeded: [
-    async ({ scenario }, use) => {
-      await use(seedMenu(scenario));
+    async ({ scenario }, provide) => {
+      await provide(seedMenu(scenario));
     },
     { scope: "worker" },
   ],
   staffSession: [
-    async ({ browser, seeded }, use, info) => {
+    async ({ browser, seeded }, provide, info) => {
       const context = await browser.newContext({ baseURL: info.project.use.baseURL });
       const page = await context.newPage();
       await login(page, seeded.manager, seeded.password);
       const file = info.project.outputDir + `/sessao-${info.workerIndex}-${info.project.name}.json`;
       await context.storageState({ path: file });
       await context.close();
-      await use(file);
+      await provide(file);
     },
     { scope: "worker" },
   ],
   /** Página já logada como gerente, no tamanho e no modo de cor do teste. */
-  asStaff: async ({ browser, staffSession, viewport, colorScheme }, use, info) => {
+  asStaff: async ({ browser, staffSession, viewport, colorScheme }, provide, info) => {
     const context = await browser.newContext({
       baseURL: info.project.use.baseURL,
       storageState: staffSession,
@@ -44,7 +44,7 @@ export const test = base.extend<{ asStaff: Page }, WorkerFixtures>({
       locale: "pt-BR",
     });
     const page = await context.newPage();
-    await use(page);
+    await provide(page);
     await context.close();
   },
 });
