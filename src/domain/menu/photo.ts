@@ -39,6 +39,8 @@ export function variantWidths(croppedWidth: number): number[] {
 export const photoUrl = (photo: Photo, width: number): string => `${photo.base}/${width}.webp`;
 
 /** `srcset` com todas as larguras; produto sem foto não tem (US6.3). */
+export function photoSrcSet(photo: Photo): string;
+export function photoSrcSet(photo: Photo | null): string | null;
 export function photoSrcSet(photo: Photo | null): string | null {
   if (!photo) return null;
   return photo.widths.map((w) => `${photoUrl(photo, w)} ${w}w`).join(", ");

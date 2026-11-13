@@ -28,7 +28,7 @@ function deferred<T>() {
 }
 
 function setup({ photo = null as Photo | null, check = ok(reduced) as Result<Blob> } = {}) {
-  const sending = deferred<Result<Photo>>();
+  const sendings: ReturnType<typeof deferred<Result<Photo>>>[] = [];
   const calls = {
     reduce: [] as File[],
     upload: [] as { recipeId: string; file: Blob }[],
@@ -54,13 +54,14 @@ function setup({ photo = null as Photo | null, check = ok(reduced) as Result<Blo
       upload={(input) => {
         calls.upload.push({ recipeId: input.recipeId, file: input.file });
         calls.progress = input.onProgress;
-        return sending.promise;
+        sendings.push(deferred<Result<Photo>>());
+        return sendings.at(-1)!.promise;
       }}
     />,
   );
   return {
     calls,
-    answer: (r: Result<Photo>) => act(async () => sending.resolve(r)),
+    answer: (r: Result<Photo>) => act(async () => sendings.at(-1)!.resolve(r)),
     failRemoval: (message: string) => {
       removal = { ok: false, error: { code: "NOT_FOUND", message }, at: 1 };
     },

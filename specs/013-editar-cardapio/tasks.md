@@ -118,10 +118,10 @@ Bloqueia todas as histórias.
 - [x] T067 [P] [US1] `src/components/menu/reduce-photo.ts`
 - [x] T068 [P] [US1] [teste] `src/components/menu/upload-photo.test.ts` (com `XMLHttpRequest` de mentira): informa o progresso, resolve com a foto no `200`, devolve o código no `400` e "Não foi possível enviar a foto. Tente de novo." na queda de rede
 - [x] T069 [P] [US1] `src/components/menu/upload-photo.ts`
-- [ ] T070 [US1] [teste] `src/components/menu/photo-field.test.tsx`: "Escolher foto" e "Tirar foto" (campo com `capture`); a prévia aparece em 4:3 antes de salvar; as três mensagens de `checkPhotoFile` sobre o arquivo original; barra de progresso com `role="progressbar"`; "Salvo" só depois do `200`; erro de envio mantém a foto antiga; com foto, "Trocar foto" e "Tirar foto do cardápio" com confirmação; sem foto, "Sem foto"
-- [ ] T071 [US1] `src/components/menu/photo-field.tsx`
-- [ ] T072 [P] [US1] [teste] `src/components/menu/description-field.test.tsx`: contador "Faltam N caracteres" ligado ao campo por `aria-describedby`, aviso ao passar de 300, quebras de linha mantidas
-- [ ] T073 [P] [US1] `src/components/menu/description-field.tsx`
+- [x] T070 [US1] [teste] `src/components/menu/photo-field.test.tsx`: "Escolher foto" e "Tirar foto" (campo com `capture`); a prévia aparece em 4:3 antes de salvar; as três mensagens de `checkPhotoFile` sobre o arquivo original; barra de progresso com `role="progressbar"`; "Salvo" só depois do `200`; erro de envio mantém a foto antiga; com foto, "Trocar foto" e "Tirar foto do cardápio" com confirmação; sem foto, "Sem foto"
+- [x] T071 [US1] `src/components/menu/photo-field.tsx`
+- [x] T072 [P] [US1] [teste] `src/components/menu/description-field.test.tsx`: contador "Faltam N caracteres" ligado ao campo por `aria-describedby`, aviso ao passar de 300, quebras de linha mantidas
+- [x] T073 [P] [US1] `src/components/menu/description-field.tsx`
 - [ ] T074 [US1] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): chef abre o X-Burger, escolhe a seção, escreve a descrição, envia uma foto de verdade e vê "Salvo" e a foto; PDF, foto de 400 px e foto acima de 10 MB mostram as mensagens da spec; tirar a foto pede confirmação
 - [ ] T075 [US1] `src/components/menu/product-menu-form.tsx` (com teste do componente antes), ações `setMenuDetailsAction` e `removeProductPhotoAction` em `src/actions/menu-board.ts` e tela `app/(app)/pedidos/cardapio/[id]/page.tsx`
 - [ ] T076 [US1] [teste] `tests/screens/menu-board.spec.ts` (vermelho): tela do produto nas 6 telas da equipe × 2 modos com as asserções do T047 e `expectPhotoRatio` na prévia; depois, as classes de layout que ele exigir
