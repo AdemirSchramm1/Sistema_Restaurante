@@ -239,3 +239,63 @@ test("produto criado sem a foto chegar avisa e deixa tentar de novo (spec 013, U
   await photo.getByRole("button", { name: "Salvar foto" }).click();
   await expect(photo.getByRole("status")).toHaveText("Foto salva");
 });
+
+test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)", async ({
+  page,
+  browser,
+}) => {
+  const s = seedMenu("board");
+  await login(page, s.chef, s.password);
+  await page.goto("/pedidos/cardapio");
+  await page.getByRole("link", { name: "Ver como o cliente" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Ver como o cliente" })).toBeVisible();
+
+  const frame = page.frameLocator('iframe[title="Cardápio como o cliente vê"]');
+  await expect(frame.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  const cards = frame.getByRole("list", { name: "Lanches" }).getByRole("listitem");
+  const columns = () =>
+    cards.evaluateAll((els) => {
+      const rects = els.map((e) => e.getBoundingClientRect());
+      const top = Math.min(...rects.map((r) => r.top));
+      return new Set(rects.filter((r) => r.top < top + r.height / 2).map((r) => Math.round(r.left))).size;
+    });
+  await expect(cards).toHaveCount(4);
+  expect(await columns()).toBe(1);
+  await page.getByRole("button", { name: "Tablet em pé" }).click();
+  await expect.poll(columns).toBe(2);
+  await page.getByRole("button", { name: "Tablet deitado" }).click();
+  await expect.poll(columns).toBe(3);
+  await expect(page.getByRole("button", { name: "Tablet deitado" })).toHaveAttribute("aria-pressed", "true");
+
+  // Só o que o cliente pode pedir: sem preço, inativo e esgotado hoje ficam de fora.
+  await expect(frame.getByRole("heading", { level: 3, name: "X-Burger", exact: true })).toBeVisible();
+  for (const hidden of ["Café", "Sorvete", "Brownie"])
+    await expect(frame.getByRole("heading", { level: 3, name: hidden })).toHaveCount(0);
+  // Dá para montar o pedido para ver como fica, mas não para enviar.
+  await frame.getByRole("button", { name: "Adicionar Água" }).click();
+  await expect(frame.getByTestId("cart-total")).toHaveText("R$ 5,00");
+  await expect(frame.getByRole("button", { name: "Enviar pedido" })).toHaveCount(0);
+  await expect(frame.getByText(/Faltam \d+ min/)).toHaveCount(0);
+
+  // Num celular não há botões de tamanho: a moldura ocupa a largura da tela.
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const cell = await phone.newPage();
+  await login(cell, s.chef, s.password);
+  await cell.goto("/pedidos/cardapio/ver");
+  await expect(cell.getByRole("button", { name: "Tablet deitado" })).toBeHidden();
+  const box = (await cell.locator('iframe[title="Cardápio como o cliente vê"]').boundingBox())!;
+  expect(box.width).toBeGreaterThan(300);
+  expect(box.width).toBeLessThanOrEqual(390);
+  await cell.getByRole("link", { name: "Abrir em tela cheia" }).click();
+  await expect(cell.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  await expect(cell.getByRole("navigation", { name: "Seções do cardápio" })).toBeVisible();
+  await phone.close();
+
+  // Quem não tem menu.write não vê a pré-visualização.
+  const other = await browser.newContext();
+  const stock = await other.newPage();
+  await login(stock, s.stockkeeper, s.password);
+  await stock.goto("/pedidos/cardapio/ver/cliente");
+  await expect(stock.getByRole("alert").first()).toContainText("permissão");
+  await other.close();
+});
