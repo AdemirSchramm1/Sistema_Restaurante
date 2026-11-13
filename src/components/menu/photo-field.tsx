@@ -11,13 +11,16 @@ import type { FormAction } from "./move-buttons";
 import { reducePhoto } from "./reduce-photo";
 import { uploadPhoto } from "./upload-photo";
 
+export const PHOTO_BOX =
+  "aspect-[4/3] w-full max-w-sm overflow-hidden rounded-lg border border-border bg-muted";
+
 const ACCEPT = "image/jpeg,image/png,image/webp";
 
 /**
  * Botão que abre a escolha de arquivo. O campo de verdade fica dentro do rótulo, invisível mas
  * alcançável pelo teclado; o anel de foco aparece no rótulo.
  */
-function FileButton({
+export function FileButton({
   label,
   camera = false,
   onPick,
@@ -170,7 +173,7 @@ export function PhotoField({
 
   return (
     <section aria-label="Foto" className="grid gap-3">
-      <div className="aspect-[4/3] w-full max-w-sm overflow-hidden rounded-lg border border-border bg-muted">
+      <div className={PHOTO_BOX}>
         {draft ? (
           // eslint-disable-next-line @next/next/no-img-element -- prévia local, ainda não está no servidor
           <img data-photo src={draft.preview} alt="Prévia da foto nova" className="size-full object-cover" />

@@ -135,8 +135,8 @@ Bloqueia todas as histórias.
 - [x] T078 [US4] `src/application/menu/create-product.ts` e `create-product-input.ts` (com `create-product-input.test.ts` antes)
 - [x] T079 [US4] [teste] `src/components/menu/product-menu-form.test.tsx`: o formulário do produto mostra preço (regras da 008) e "Esgotado hoje" (009) junto de foto, descrição e seção, cada um salvando sozinho com seu "Salvo"; link "Editar nome e ingredientes" para `/estoque/produtos/{id}`; `STALE_RECORD` mostra "Outra pessoa mudou este produto. Recarregue a tela."
 - [x] T080 [US4] Preço e "Esgotado hoje" em `product-menu-form.tsx`, reaproveitando `setSalePriceAction` e a ação de esgotado existentes
-- [ ] T081 [US4] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Novo produto" com nome, item, preço, seção, descrição e foto volta para a tela Cardápio com o produto no fim de "Bebidas"; se a foto falhar, "Produto salvo, mas a foto não foi enviada. Tente de novo."; mudar o preço pela tela Cardápio faz o carrinho de um cliente pedir nova confirmação
-- [ ] T082 [US4] `createMenuProductAction` em `src/actions/menu-board.ts` e tela `app/(app)/pedidos/cardapio/novo/page.tsx`, reaproveitando o formulário de linhas da 003
+- [x] T081 [US4] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Novo produto" com nome, item, preço, seção, descrição e foto volta para a tela Cardápio com o produto no fim de "Bebidas"; se a foto falhar, "Produto salvo, mas a foto não foi enviada. Tente de novo."; mudar o preço pela tela Cardápio faz o carrinho de um cliente pedir nova confirmação
+- [x] T082 [US4] `createMenuProductAction` em `src/actions/menu-board.ts` e tela `app/(app)/pedidos/cardapio/novo/page.tsx`, reaproveitando o formulário de linhas da 003
 - [ ] T083 [US4] [teste] `tests/integration/audit/menu.test.ts`: cada escrita da tela Cardápio aparece na consulta de auditoria com quem, quando e o que mudou, e cada tentativa sem permissão como negada (FR-009)
 - [ ] T084 [US4] Rótulos das ações `menu.*` na tela de auditoria (`src/components/audit/`), com o teste do componente antes
 

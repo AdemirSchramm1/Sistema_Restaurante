@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { createSection, deleteSection, moveSection, renameSection } from "@/application/menu/sections";
 import { moveProduct } from "@/application/menu/order";
+import { createMenuProduct } from "@/application/menu/create-product";
+import { parseMenuProductCreate } from "@/application/menu/create-product-input";
 import { setMenuDetails } from "@/application/menu/details";
 import { parseMenuDetails } from "@/application/menu/details-input";
 import { removeProductPhoto } from "@/application/menu/photo";
@@ -65,6 +67,11 @@ export async function setMenuDetailsAction(_prev: ActionState, form: FormData): 
 
 export async function removeProductPhotoAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   return run(form, parseTarget, removeProductPhoto);
+}
+
+/** Devolve o id do produto criado: a tela envia a foto em seguida e só então volta para o Cardápio. */
+export async function createMenuProductAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  return run(form, parseMenuProductCreate, createMenuProduct);
 }
 
 /** As ações que já existiam (preço da 008, esgotado da 009), atualizando também a tela Cardápio. */
