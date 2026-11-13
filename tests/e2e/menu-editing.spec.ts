@@ -81,3 +81,73 @@ test("chef escolhe a ordem dos produtos da seção (spec 013, US3)", async ({ pa
   await page.reload();
   expect((await names())[0]).toBe("X-Salada");
 });
+
+test("chef põe foto, descrição e seção no produto (spec 013, US1)", async ({ page }) => {
+  const s = seedMenu("board");
+  await login(page, s.chef, s.password);
+  await page.goto("/pedidos/cardapio");
+  await page.getByRole("link", { name: "Água", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Água" })).toBeVisible();
+
+  const photo = page.getByRole("region", { name: "Foto" });
+  await expect(photo.getByText("Sem foto")).toBeVisible();
+
+  // Arquivos que não servem: a mensagem aparece e nada é enviado.
+  const pick = photo.getByLabel("Escolher foto");
+  await pick.setInputFiles("tests/screens/photos/documento.pdf");
+  await expect(photo.getByRole("alert")).toHaveText("Use uma foto JPG, PNG ou WebP.");
+  await pick.setInputFiles("tests/screens/photos/pequena.jpg");
+  await expect(photo.getByRole("alert")).toHaveText(
+    "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
+  );
+  await pick.setInputFiles({
+    name: "enorme.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
+  });
+  await expect(photo.getByRole("alert")).toHaveText("A foto pode ter até 10 MB.");
+  await expect(photo.getByText("Sem foto")).toBeVisible();
+
+  // Foto de verdade: prévia no recorte do cartão, depois Salvar foto.
+  await pick.setInputFiles("tests/screens/photos/camera.jpg");
+  const preview = photo.getByRole("img", { name: "Prévia da foto nova" });
+  await expect(preview).toBeVisible();
+  const box = (await preview.boundingBox())!;
+  expect(Math.abs(box.width / box.height - 4 / 3)).toBeLessThan(0.01);
+  await photo.getByRole("button", { name: "Salvar foto" }).click();
+  await expect(photo.getByRole("status")).toHaveText("Foto salva");
+  const saved = photo.getByRole("img", { name: "Foto de Água" });
+  await expect(saved).toBeVisible();
+  await expect.poll(() => saved.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+
+  // Descrição e seção.
+  const details = page.getByRole("form", { name: "Descrição e seção" });
+  await details.getByLabel("Seção").selectOption({ label: "Lanches" });
+  await details.getByLabel("Descrição").fill("  Sem gás, 500 ml.\nBem gelada.  ");
+  await details.getByRole("button", { name: "Salvar descrição e seção" }).click();
+  await expect(details.getByRole("status")).toHaveText("Salvo");
+
+  // Mudar de novo logo depois da foto e da primeira gravação não acusa edição de outra pessoa.
+  await details.getByLabel("Descrição").fill("Sem gás, 500 ml.");
+  await details.getByRole("button", { name: "Salvar descrição e seção" }).click();
+  await expect(details.getByRole("status")).toHaveText("Salvo");
+  await expect(details.getByRole("alert")).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole("form", { name: "Descrição e seção" }).getByLabel("Descrição")).toHaveValue(
+    "Sem gás, 500 ml.",
+  );
+  await page.getByRole("link", { name: "Voltar para o Cardápio" }).click();
+  const lanches = page.getByRole("region", { name: "Lanches" });
+  await expect(lanches.getByRole("listitem").last().getByRole("link")).toHaveText("Água");
+  await expect(lanches.getByRole("listitem").last().locator("img[data-photo]")).toBeVisible();
+
+  // Tirar a foto pede confirmação.
+  await lanches.getByRole("link", { name: "Água", exact: true }).click();
+  const again = page.getByRole("region", { name: "Foto" });
+  await again.getByRole("button", { name: "Tirar foto do cardápio" }).click();
+  await expect(again.getByRole("group", { name: "Tirar a foto de Água do cardápio?" })).toBeVisible();
+  await again.getByRole("button", { name: "Tirar a foto", exact: true }).click();
+  await expect(again.getByText("Sem foto")).toBeVisible();
+  await expect(again.getByRole("status")).toHaveText("Foto tirada do cardápio");
+});
