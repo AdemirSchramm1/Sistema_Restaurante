@@ -51,6 +51,12 @@ seções), `menu-board.spec.ts` (tela Cardápio, página do produto e "Ver como 
 pelos casos de uso, com a fixture `asStaff` (gerente logado) ou `asCustomer` (celular que acabou de
 ler o QR code da mesa 12).
 
+Os dados de tela não podem variar de um preparo para outro. O nome do restaurante é sempre
+`RESTAURANT_NAME` (`tests/builders/menu-data.ts`), com uma palavra de 16 letras sem espaço, o pior
+caso do nome em maiúsculas no topo do cardápio em 320 px com a letra em 200%. Antes ele levava um
+carimbo aleatório: em 320 px o nome ora cabia numa linha, ora não, e os testes do `celular-pequeno`
+falhavam só em algumas rodadas.
+
 ## Comparação de imagem
 
 `toHaveScreenshot` com as referências em `tests/screens/__screenshots__/{motor}/`. Tolerância de
