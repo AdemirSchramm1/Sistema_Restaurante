@@ -47,6 +47,16 @@ for (const screen of CUSTOMER_SCREENS) {
         await expectReadableAt200(page, main);
       });
 
+      test("cardápio: é o da imagem de referência", async ({ asCustomer: page, seeded }) => {
+        const main = page.locator("main");
+        await expect(main.getByRole("heading", { level: 2, name: "Entradas" })).toBeVisible();
+        await expectNoBrokenImage(main);
+        // O nome do restaurante muda a cada preparo dos dados e o tempo do acesso corre.
+        await expect(page).toHaveScreenshot(`cardapio-cliente-${screen.name}-${mode}.png`, {
+          mask: [main.getByText(seeded.restaurant), main.getByText(/Faltam \d+ min/)],
+        });
+      });
+
       test("cardápio: a barra de seções fica no topo e leva à seção", async ({ asCustomer: page }) => {
         const bar = page.getByRole("navigation", { name: "Seções do cardápio" });
         await expect(bar).toBeVisible();
