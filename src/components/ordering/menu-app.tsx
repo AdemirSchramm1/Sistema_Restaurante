@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AccessOrderView, MenuProduct, MenuView } from "@/application/ordering/menu";
 import type { CustomerMenu } from "@/domain/menu/customer-menu";
 import { normalizeDescription } from "@/domain/inventory/description";
@@ -96,6 +96,12 @@ export function MenuApp(
   const [lines, setLines] = useState<CartLine[]>([]);
   const [open, setOpen] = useState<MenuProduct | null>(null);
   const [q, setQ] = useState("");
+  const search = useRef<HTMLInputElement>(null);
+  // Num celular lento, a pessoa pode digitar antes de a página ficar pronta: o que já está no campo vale.
+  useEffect(() => {
+    const typed = search.current?.value;
+    if (typed) setQ(typed);
+  }, []);
   const [expired, setExpired] = useState(false);
 
   const query = normalizeDescription(q);
@@ -180,6 +186,7 @@ export function MenuApp(
           <>
             <Input
               type="search"
+              ref={search}
               aria-label="Buscar no cardápio"
               placeholder="Buscar no cardápio"
               value={q}

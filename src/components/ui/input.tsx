@@ -16,7 +16,7 @@ export function Input({
   className,
   size,
   ...props
-}: Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> & FieldSize) {
+}: Omit<React.ComponentProps<"input">, "size"> & FieldSize) {
   return <input className={cn(field, "flex py-1", height(size), className)} {...props} />;
 }
 
