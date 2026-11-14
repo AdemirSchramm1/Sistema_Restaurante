@@ -157,10 +157,10 @@ Bloqueia todas as histórias.
 - [x] T094 [US6] `src/components/ordering/menu-app.tsx`
 - [x] T095 [US6] [teste] `src/components/ordering/dish-options.test.tsx`: a tela do prato mostra a foto maior e a descrição inteira com as quebras de linha
 - [x] T096 [US6] `src/components/ordering/dish-options.tsx`
-- [ ] T097 [US6] [teste] `tests/screens/customer-menu.spec.ts` (vermelho): no cardápio e na tela do prato, nas 9 telas × 2 modos, todas as asserções de [contracts/screens.md](contracts/screens.md#asserções-de-layout-testsscreenslayoutts) com `expectColumns` no número da matriz, a barra com 8 seções rolando só dentro dela, texto sobre foto com contraste, axe sem falha grave e os fluxos de busca, adicionais, retiradas, carrinho, "Meus pedidos" e tempo do acesso
-- [ ] T098 [US6] Classes de layout em `menu-app.tsx`, `section-bar.tsx`, `product-card.tsx`, `product-photo.tsx`, `dish-options.tsx` e `app/(cardapio)/layout.tsx`, uma asserção vermelha por vez, até o T097 ficar verde nos dois motores
+- [x] T097 [US6] [teste] `tests/screens/customer-menu.spec.ts` (vermelho): no cardápio e na tela do prato, nas 9 telas × 2 modos, todas as asserções de [contracts/screens.md](contracts/screens.md#asserções-de-layout-testsscreenslayoutts) com `expectColumns` no número da matriz, a barra com 8 seções rolando só dentro dela, texto sobre foto com contraste, axe sem falha grave e os fluxos de busca, adicionais, retiradas, carrinho, "Meus pedidos" e tempo do acesso
+- [x] T098 [US6] Classes de layout em `menu-app.tsx`, `section-bar.tsx`, `product-card.tsx`, `product-photo.tsx`, `dish-options.tsx` e `app/(cardapio)/layout.tsx`, uma asserção vermelha por vez, até o T097 ficar verde nos dois motores
 - [x] T099 [US6] [teste] `tests/screens/weight.spec.ts` (vermelho): 40 produtos com foto, tela `celular-iphone`, 4G lento, só `telas-chromium`: primeira pintura com conteúdo em até 2 s e até 1 MB de fotos no primeiro carregamento; depois o ajuste que ele exigir
-- [ ] T100 [US6] Imagens de referência do cardápio do cliente (9 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma, em `tests/screens/__screenshots__/`
+- [x] T100 [US6] Imagens de referência do cardápio do cliente (9 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma, em `tests/screens/__screenshots__/`
 - [x] T101 [US6] [teste] `tests/e2e/accessibility.spec.ts`: o cardápio do cliente com seções e fotos e a tela do prato entram na lista do axe
 
 **Ponto de conferência**: SC-002, SC-003 e SC-004 verdes.
@@ -178,8 +178,8 @@ Bloqueia todas as histórias.
 - [x] T107 [P] [US5] `src/components/menu/preview-frame.tsx`
 - [x] T108 [US5] [teste] `tests/e2e/menu-editing.spec.ts` (vermelho): "Ver como o cliente" mostra 1, 2 e 3 colunas ao alternar os tamanhos, a faixa de pré-visualização e só produtos que o cliente pode pedir; num celular abre em tela cheia
 - [x] T109 [US5] Telas `app/(app)/pedidos/cardapio/ver/page.tsx` e `ver/cliente/page.tsx`
-- [ ] T110 [US5] [teste] `tests/screens/menu-board.spec.ts`: a pré-visualização nas 6 telas da equipe × 2 modos com as asserções do T047; depois as classes que ele exigir
-- [ ] T111 [US5] Imagens de referência da tela Cardápio (6 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma
+- [x] T110 [US5] [teste] `tests/screens/menu-board.spec.ts`: a pré-visualização nas 6 telas da equipe × 2 modos com as asserções do T047; depois as classes que ele exigir
+- [x] T111 [US5] Imagens de referência da tela Cardápio (6 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma
 
 ## Fase 9: Documentação e fechamento
 
