@@ -47,6 +47,13 @@ describe("moldura da pré-visualização", () => {
     expect(frame().className).toContain("max-w-none");
   });
 
+  it("a caixa que rola tem nome e recebe o foco, para rolar pelo teclado (axe)", () => {
+    render(<PreviewFrame src="/x" />);
+    const box = screen.getByRole("region", { name: "Moldura da pré-visualização" });
+    expect(box).toBe(frame().parentElement);
+    expect(box.tabIndex).toBe(0);
+  });
+
   it("os botões formam um grupo com nome e há um link para abrir em tela cheia", () => {
     render(<PreviewFrame src="/pedidos/cardapio/ver/cliente" />);
     expect(screen.getByRole("group", { name: "Tamanho da tela" })).toBeTruthy();
