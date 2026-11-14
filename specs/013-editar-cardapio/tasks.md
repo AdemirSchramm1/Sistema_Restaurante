@@ -161,7 +161,7 @@ Bloqueia todas as histórias.
 - [ ] T098 [US6] Classes de layout em `menu-app.tsx`, `section-bar.tsx`, `product-card.tsx`, `product-photo.tsx`, `dish-options.tsx` e `app/(cardapio)/layout.tsx`, uma asserção vermelha por vez, até o T097 ficar verde nos dois motores
 - [ ] T099 [US6] [teste] `tests/screens/weight.spec.ts` (vermelho): 40 produtos com foto, tela `celular-iphone`, 4G lento, só `telas-chromium`: primeira pintura com conteúdo em até 2 s e até 1 MB de fotos no primeiro carregamento; depois o ajuste que ele exigir
 - [ ] T100 [US6] Imagens de referência do cardápio do cliente (9 telas × 2 modos × 2 motores) com `pnpm test:screens:update`, conferidas uma a uma, em `tests/screens/__screenshots__/`
-- [ ] T101 [US6] [teste] `tests/e2e/accessibility.spec.ts`: o cardápio do cliente com seções e fotos e a tela do prato entram na lista do axe
+- [x] T101 [US6] [teste] `tests/e2e/accessibility.spec.ts`: o cardápio do cliente com seções e fotos e a tela do prato entram na lista do axe
 
 **Ponto de conferência**: SC-002, SC-003 e SC-004 verdes.
 
