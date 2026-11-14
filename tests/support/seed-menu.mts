@@ -31,7 +31,7 @@ import type { RequestContext } from "../../src/application/context";
 import type { Role } from "../../src/domain/access/permissions";
 import { d } from "../../src/domain/shared/decimal";
 import { ok, type Result } from "../../src/domain/shared/result";
-import { LONG_DESCRIPTION, LONG_NAME } from "../builders/menu-data";
+import { LONG_DESCRIPTION, LONG_NAME, RESTAURANT_NAME } from "../builders/menu-data";
 
 const scenario = process.argv[2] ?? "plain";
 const PASSWORD = "senha-forte-123";
@@ -63,7 +63,9 @@ const unwrap = <T,>(r: Result<T>): T => {
 const stamp = Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 const email = (who: string) => `${who}-${stamp}@teste.com.br`;
 
-const restaurant = `Cantina ${scenario} ${stamp}`;
+// Antes o nome levava o carimbo aleatório: o tamanho variava a cada preparo e, em 320 px, o nome
+// ora cabia numa linha, ora em duas, ora passava da tela com a letra em 200% (teste intermitente).
+const restaurant = RESTAURANT_NAME;
 const signed = unwrap(
   await signUpRestaurant(
     deps,
