@@ -110,7 +110,14 @@ const cebola = await item("Cebola", "kg");
 const PHOTOS = ["lanche.webp", "prato.png", "deitada.jpg", "em-pe.jpg"];
 let photoTurn = 0;
 
-type Dish = { price?: string | null; description?: string; photo?: boolean; cebola?: boolean };
+type Dish = {
+  price?: string | null;
+  description?: string;
+  photo?: boolean;
+  /** Foto no peso de uma foto de celular de verdade (teste de peso), em vez das pequenas. */
+  realPhoto?: boolean;
+  cebola?: boolean;
+};
 const products: Record<string, string> = {};
 async function dish(name: string, o: Dish = {}) {
   const id = unwrap(
@@ -130,7 +137,7 @@ async function dish(name: string, o: Dish = {}) {
   if (o.price !== null) unwrap(await setRecipeSalePrice(deps, m, id, 1, d(o.price ?? "19.90")));
   const version = o.price === null ? 1 : 2;
   if (o.description || o.photo) {
-    const file = PHOTOS[photoTurn++ % PHOTOS.length]!;
+    const file = o.realPhoto ? "realista.jpg" : PHOTOS[photoTurn++ % PHOTOS.length]!;
     const variants = o.photo
       ? unwrap(await sharpProcessor.process(new Uint8Array(await readFile(`tests/screens/photos/${file}`))))
           .variants
@@ -245,6 +252,7 @@ if (scenario === "plain") {
       await dish(`Prato ${String(n).padStart(2, "0")}`, {
         price: "20.00",
         photo: true,
+        realPhoto: true,
         description: "Com foto.",
       }),
     );

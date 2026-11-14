@@ -27,7 +27,13 @@ export default defineConfig({
       testDir: "tests/screens",
       use: { browserName: "chromium", launchOptions: executablePath ? { executablePath } : {} },
     },
-    { name: "telas-webkit", testDir: "tests/screens", use: { browserName: "webkit" } },
+    {
+      name: "telas-webkit",
+      testDir: "tests/screens",
+      // O teste de peso limita a rede pelo protocolo de depuração do Chromium (research R12).
+      testIgnore: "weight.spec.ts",
+      use: { browserName: "webkit" },
+    },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
