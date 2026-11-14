@@ -98,6 +98,9 @@ Use o componente do padrão antes de escrever classes. Todos estão em `src/comp
 - **Telas que mudam de tamanho**: o cardápio do cliente e a tela Cardápio são testados na matriz de
   [05-testes-de-tela.md](05-testes-de-tela.md). Classe de layout nova nasce de uma asserção
   vermelha ali.
+- **Janela modal**: com `aria-modal`, a janela vai para o `body` (`createPortal`) e o `main` fica
+  `inert` enquanto ela está aberta, para o foco e a leitura de tela não saírem dela (ver a
+  conferência do pedido em `cart.tsx`).
 - **Impressão**: `.no-print` some na impressão; a conta da mesa usa `.tab-print` (80 mm ou A4).
 
 ## Como mudar o padrão
