@@ -188,8 +188,8 @@ Bloqueia todas as histórias.
 - [x] T114 [P] `docs/sistema/05-testes-de-tela.md` (novo: matriz, asserções, imagem do Playwright, como atualizar referência, mutação), `docs/sistema/01-tdd.md` (travas novas e régua de 100% do código novo), `docs/sistema/03-padroes-do-front.md` (`size="lg"`, foto do produto, barra de seções) e `docs/sistema/pedidos/01-modelo-de-dados.md`
 - [x] T115 [P] `docs/sistema/glossario.md` com os termos de [data-model.md](data-model.md#glossário-entra-em-docssistemaglossariomd) e `docs/sistema/adr/0006-fotos-do-cardapio.md` (loja de arquivos atrás de porta)
 - [x] T116 [P] `README.md`: loja Blob e `MENU_PHOTOS=vercel-blob` no deploy; `pnpm test:menu`, `test:mutation` e `test:screens`
-- [ ] T117 Rodar o [quickstart.md](quickstart.md) inteiro: os 11 passos pela tela e todos os comandos de teste verdes, sem teste pulado
-- [ ] T118 Conferir o histórico: `git log --oneline main..HEAD` mostra um `test(013) … (vermelho)` antes de cada `feat(013)`; marcar o estado da spec e abrir o PR com as imagens de referência para revisão
+- [x] T117 Rodar o [quickstart.md](quickstart.md) inteiro: os 11 passos pela tela e todos os comandos de teste verdes, sem teste pulado
+- [x] T118 Conferir o histórico: `git log --oneline main..HEAD` mostra um `test(013) … (vermelho)` antes de cada `feat(013)`; marcar o estado da spec e abrir o PR com as imagens de referência para revisão
 
 ## Dependências
 
