@@ -42,7 +42,12 @@ export function PreviewFrame({ src }: { src: string }) {
           Abrir em tela cheia
         </a>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-border bg-muted p-3">
+      <div
+        role="region"
+        aria-label="Moldura da pré-visualização"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border border-border bg-muted p-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         <iframe
           title="Cardápio como o cliente vê"
           src={src}
