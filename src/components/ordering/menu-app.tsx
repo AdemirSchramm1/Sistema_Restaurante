@@ -146,7 +146,7 @@ export function MenuApp(
     <div className="grid grid-cols-1 gap-5">
       {live ? (
         <header className="grid grid-cols-1 gap-1">
-          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
+          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary [overflow-wrap:anywhere]">
             {live.menu.restaurantName}
           </span>
           <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {live.menu.tableName}</h1>
