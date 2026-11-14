@@ -26,7 +26,12 @@ export function SupplierForm({ action, initial, meta, readOnly, submitLabel }: P
   const v = (k: string) => String(initial[k] ?? "");
   const days = new Set((initial.deliveryDays as string[] | undefined) ?? []);
 
-  const text = (name: string, label: string, hint?: string, props: React.ComponentProps<"input"> = {}) => (
+  const text = (
+    name: string,
+    label: string,
+    hint?: string,
+    props: React.ComponentProps<typeof Input> = {},
+  ) => (
     <Field label={label} htmlFor={name} hint={hint} error={fe(name)}>
       <Input
         id={name}

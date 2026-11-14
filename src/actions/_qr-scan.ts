@@ -20,7 +20,14 @@ function messagePage(message: string, status: number): Response {
 /** `GET /m/{token}`: lê o QR code, abre o acesso de 20 minutos e manda para o cardápio. */
 export async function qrScanResponse(
   deps: Deps,
-  req: { token: string; cookie: string | null; ip: string | null; userAgent: string | null },
+  req: {
+    token: string;
+    cookie: string | null;
+    ip: string | null;
+    userAgent: string | null;
+    /** A página chegou por HTTPS. Sem HTTPS (localhost), um cookie `Secure` é descartado pelo Safari. */
+    secure: boolean;
+  },
 ): Promise<Response> {
   const r = await openMenuAccess(deps, {
     qrToken: req.token,
@@ -36,7 +43,7 @@ export async function qrScanResponse(
     "Path=/cardapio",
     `Max-Age=${MENU_ACCESS_MINUTES * 60}`,
     "HttpOnly",
-    "Secure",
+    ...(req.secure ? ["Secure"] : []),
     "SameSite=Lax",
   ].join("; ");
   return new Response(null, {

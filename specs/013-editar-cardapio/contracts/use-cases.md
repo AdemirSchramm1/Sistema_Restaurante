@@ -24,8 +24,9 @@ caso de uso recebe o contexto de quem está logado e devolve `Result`; sem a per
 Reaproveitados sem mudança de contrato: `setRecipeSalePrice` (008, `recipe.write`) e o "Esgotado
 hoje" (009, `product.sold_out`).
 
-Erros novos em `ErrorCode`: `PHOTO_TYPE`, `PHOTO_TOO_BIG`, `PHOTO_TOO_SMALL` e
-`PHOTO_STORAGE_FAILED`. Os outros já existem (`NOT_A_DISH`, `INVALID_DESCRIPTION`, `NAME_IN_USE`…).
+Erros novos em `ErrorCode`: `PHOTO_TYPE`, `PHOTO_TOO_BIG`, `PHOTO_TOO_SMALL`,
+`PHOTO_STORAGE_FAILED` e `PHOTO_PREPARE_FAILED` (só no navegador: não deu para reduzir a foto e o
+original passa de 4 MB; research R2). Os outros já existem (`NOT_A_DISH`, `INVALID_DESCRIPTION`, `NAME_IN_USE`…).
 
 ```ts
 type Photo = { base: string; widths: number[] } | null;
@@ -114,8 +115,21 @@ aparece com a confirmação do servidor, padrão da 012).
 | `PHOTO_TYPE` | Use uma foto JPG, PNG ou WebP |
 | `PHOTO_TOO_SMALL` | Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px |
 | `PHOTO_STORAGE_FAILED` e falha de rede | Não foi possível enviar a foto. Tente de novo. |
+| `PHOTO_PREPARE_FAILED` | Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB. |
 | `INVALID_DESCRIPTION` | A descrição pode ter até 300 caracteres |
 | `NAME_IN_USE` (seção) | Já existe a seção {nome} |
 | `STALE_RECORD` | Outra pessoa mudou este produto. Recarregue a tela. |
 | confirmação de apagar seção | Os {n} produtos de {nome} vão para Outros |
 | faixa da pré-visualização | Pré-visualização: pedidos não são enviados |
+
+## Ajustes feitos na implementação
+
+- **Nome dos botões da foto**: "Tirar foto" na spec quer dizer tirar a foto do cardápio; para não
+  confundir com fotografar, os botões são **Escolher foto**, **Tirar foto com a câmera** e **Tirar
+  foto do cardápio** (este pede confirmação).
+- **Salvar a foto é um passo**: depois de escolher, a prévia aparece no recorte do cartão com
+  **Salvar foto** e **Cancelar** (US1.2: ver antes de salvar).
+- **Cartão do cliente**: o botão continua **Adicionar {nome}** para todo produto (com opções, ele
+  abre a tela do prato, como nas specs 009 e 010); foto e nome formam o botão **Ver {nome}**, que
+  abre a tela do prato com a descrição inteira.
+- **Foto não muda a `version` do produto**: só descrição, seção e preço sobem a trava otimista.

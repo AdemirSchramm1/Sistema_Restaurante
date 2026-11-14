@@ -76,4 +76,17 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
     }
     expect(problems).toEqual([]);
   });
+
+  it("a tela Cardápio lê os produtos por seção e posição pelo índice recipes_menu_order (spec 013)", async () => {
+    const b = await billingScenario(env);
+    const { deps, fullScans, usedIndexes } = explaining;
+    fullScans();
+    const r = await deps.tenant(b.m.restaurantId, async (repos) => ({
+      ok: true as const,
+      value: await repos.menuBoard.products(),
+    }));
+    expect(r.ok && r.value.length).toBe(2);
+    expect(usedIndexes()).toContain("recipes_menu_order");
+    expect(fullScans()).toEqual([]);
+  });
 });

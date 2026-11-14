@@ -68,3 +68,39 @@ describe("mensagens com detalhes do estoque e do cadastro", () => {
     expect(messageFor({ code: "NOPE" as never })).toBe("Algo deu errado.");
   });
 });
+
+describe("mensagens da edição do cardápio (spec 013, US1 e US2)", () => {
+  it("foto: tipo, tamanho, medida e falha de envio", () => {
+    expect(messageFor({ code: "PHOTO_TYPE" })).toBe("Use uma foto JPG, PNG ou WebP.");
+    expect(messageFor({ code: "PHOTO_TOO_BIG" })).toBe("A foto pode ter até 10 MB.");
+    expect(messageFor({ code: "PHOTO_TOO_SMALL" })).toBe(
+      "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
+    );
+    expect(messageFor({ code: "PHOTO_STORAGE_FAILED" })).toBe(
+      "Não foi possível enviar a foto. Tente de novo.",
+    );
+  });
+
+  it("descrição acima do limite diz o limite", () => {
+    expect(messageFor({ code: "INVALID_DESCRIPTION", field: "description", details: { max: 300 } })).toBe(
+      "A descrição pode ter até 300 caracteres.",
+    );
+  });
+
+  it("descrição do item continua com a mensagem do item", () => {
+    expect(messageFor({ code: "INVALID_DESCRIPTION" })).toBe(
+      "O nome do item precisa ter entre 3 e 200 letras.",
+    );
+  });
+
+  it("seção: nome repetido diz qual seção já existe; nome inválido diz o limite", () => {
+    expect(messageFor({ code: "NAME_IN_USE", field: "name", details: { section: "Lanches" } })).toBe(
+      "Já existe a seção Lanches.",
+    );
+    expect(messageFor({ code: "INVALID_NAME", field: "name", details: { max: 40 } })).toBe(
+      "Dê um nome à seção, com até 40 letras.",
+    );
+    expect(messageFor({ code: "NAME_IN_USE" })).toBe("Já existe um registro ativo com este nome.");
+    expect(messageFor({ code: "INVALID_NAME" })).toBe("O nome precisa ter entre 3 e 120 letras.");
+  });
+});

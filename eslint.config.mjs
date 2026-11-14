@@ -24,6 +24,8 @@ export default defineConfig([
     "coverage/**",
     "next-env.d.ts",
     ".specify/**",
+    ".stryker-tmp/**",
+    "reports/**",
     "src/infra/db/migrations/**",
   ]),
   {

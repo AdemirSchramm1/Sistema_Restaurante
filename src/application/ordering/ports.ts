@@ -150,7 +150,7 @@ export interface OrderRepo {
 
 /** Produtos para o cardápio e para conferir o envio. */
 export interface MenuRepo {
-  /** Produtos vendidos (ativos ou não) com preço e esgotado, em ordem de nome. */
+  /** Produtos vendidos (ativos ou não) com preço e esgotado, na ordem do cardápio (seção e posição). */
   products(): Promise<MenuProductRow[]>;
   /** Como cada produto pedido está agora, com opções da 010. */
   catalog(recipeIds: readonly string[], today: string): Promise<Map<string, CatalogProduct>>;

@@ -27,6 +27,7 @@ export function countingEnv(env: TestEnv) {
     clock: env.clock,
     appUrl: "http://localhost:3000",
     authSecret: "segredo-de-teste-com-mais-de-32-caracteres",
+    photos: env.deps.photos,
   });
   return {
     deps,

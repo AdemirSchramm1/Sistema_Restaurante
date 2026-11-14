@@ -62,6 +62,11 @@ Use o componente do padrão antes de escrever classes. Todos estão em `src/comp
 | Tabela | `Table`, `Th`, `Td` | `Td numeric` para valores (direita e números tabulares). |
 | Barras de gráfico | `BarList` | `color` de 1 a 4 escolhe a cor do gráfico. |
 | Marca | `Brand`, `BrandMark` | Menu lateral, telas de entrada e "não encontrado". |
+| Campo de 44 px | `Input`, `Select`, `Textarea` com `size="lg"` | Cardápio do cliente e tela Cardápio, onde todo alvo de toque tem 44 px. |
+| Foto do produto | `ProductPhoto` (`src/components/ordering/product-photo.tsx`) | Sempre 4:3, `srcset` das larguras guardadas, `sizes` da largura real do cartão, `lazy` fora das duas primeiras. Sem foto, não desenha nada. |
+| Cartão do produto | `ProductCard` | Foto e nome abrem a tela do prato; descrição em 3 linhas (`data-clamp`); botão "Adicionar". |
+| Barra de seções | `SectionBar` | Presa no topo; com muitas seções rola para o lado só dentro dela. Marca a seção na tela com `aria-current`. |
+| Moldura de pré-visualização | `PreviewFrame` | "Ver como o cliente": Celular, Tablet em pé e Tablet deitado. |
 
 ### Casco da tela
 
@@ -87,6 +92,15 @@ Use o componente do padrão antes de escrever classes. Todos estão em `src/comp
   (WCAG 2.1 AA) nas telas principais.
 - **Texto**: português do Brasil, verbo no botão ("Salvar exceção", "Começar preparo"), e a tela
   vazia explica o próximo passo.
+- **Grade que encolhe**: em tela estreita, `grid` sem colunas definidas deixa o filho mais largo
+  (uma barra que rola, um botão com `whitespace-nowrap`) esticar a página. Use `grid-cols-1` e
+  linhas com `flex-wrap`. Os testes de tela pegam isso em 320 px e com a letra em 200%.
+- **Telas que mudam de tamanho**: o cardápio do cliente e a tela Cardápio são testados na matriz de
+  [05-testes-de-tela.md](05-testes-de-tela.md). Classe de layout nova nasce de uma asserção
+  vermelha ali.
+- **Janela modal**: com `aria-modal`, a janela vai para o `body` (`createPortal`) e o `main` fica
+  `inert` enquanto ela está aberta, para o foco e a leitura de tela não saírem dela (ver a
+  conferência do pedido em `cart.tsx`).
 - **Impressão**: `.no-print` some na impressão; a conta da mesa usa `.tab-print` (80 mm ou A4).
 
 ## Como mudar o padrão

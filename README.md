@@ -72,3 +72,17 @@ Testes: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration 
 O passo a passo completo, com o roteiro manual, está no
 [quickstart da feature 001](specs/001-cadastros-base/quickstart.md). Regras para contribuir:
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+O cardápio (feature 013) tem mais três: `pnpm test:menu` (100% de cobertura do código do
+cardápio), `pnpm test:mutation` (teste de mutação do domínio do cardápio) e `pnpm test:screens`
+(cardápio em 9 tamanhos de tela, claro e escuro, Chromium e WebKit; precisa de Docker e de
+`pnpm build`). Ver [testes de tela](docs/sistema/05-testes-de-tela.md).
+
+### Fotos do cardápio no deploy
+
+Em desenvolvimento as fotos ficam na pasta `.menu-photos` (`MENU_PHOTOS=file`). Na Vercel:
+
+1. No projeto da Vercel, em **Storage**, crie uma loja **Blob** e ligue ao projeto (a Vercel cria
+   `BLOB_READ_WRITE_TOKEN` sozinha).
+2. Em **Environment Variables**, defina `MENU_PHOTOS=vercel-blob`.
+3. Faça o deploy de novo. Ver [ADR 0006](docs/sistema/adr/0006-fotos-do-cardapio.md).

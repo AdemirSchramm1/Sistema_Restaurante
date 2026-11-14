@@ -7,6 +7,7 @@ import type { CatalogRepos } from "./inventory/ports";
 import type { SupplierRepos } from "./suppliers/ports";
 import type { OrderingRepos } from "./ordering/ports";
 import type { BillingRepos } from "./billing/ports";
+import type { MenuRepos, PhotoProcessor, PhotoStorage } from "./menu/ports";
 
 export interface Clock {
   now(): Date;
@@ -60,7 +61,8 @@ export type Repos = AccessRepos &
   CatalogRepos &
   SupplierRepos &
   OrderingRepos &
-  BillingRepos & { audit: AuditRepo };
+  BillingRepos &
+  MenuRepos & { audit: AuditRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {
@@ -83,6 +85,8 @@ export type Deps = {
   auth: AuthService;
   tokens: TokenService;
   qr: QrRenderer;
+  /** Fotos do cardápio (spec 013). */
+  photos: { processor: PhotoProcessor; storage: PhotoStorage };
   global: GlobalLookups;
   appUrl: string;
   /** Roda `fn` numa transação do restaurante. Se `fn` devolver erro, a transação é desfeita. */

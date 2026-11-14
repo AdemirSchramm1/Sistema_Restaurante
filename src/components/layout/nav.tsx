@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeftRight,
+  BookOpenText,
   Armchair,
   ChartColumn,
   CircleDollarSign,
@@ -91,6 +92,13 @@ export const NAV: readonly NavEntry[] = [
   { href: "/caixa", label: "Caixa", action: "tab.read", section: "operation", icon: Wallet },
   { href: "/caixa/contas", label: "Contas", action: "tab.history", section: "operation", icon: Receipt },
   { href: "/pedidos", label: "Pedidos", action: "order.read", section: "operation", icon: ClipboardList },
+  {
+    href: "/pedidos/cardapio",
+    label: "Cardápio",
+    action: "menu.write",
+    section: "operation",
+    icon: BookOpenText,
+  },
   { href: "/pedidos/mesas", label: "Mesas", action: "table.manage", section: "settings", icon: Armchair },
   {
     href: "/pedidos/adicionais",

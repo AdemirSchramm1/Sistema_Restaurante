@@ -56,40 +56,47 @@ export async function createRecipe(
 ): Promise<Result<{ id: string }>> {
   const allowed = await authorize(deps, ctx, "recipe.write", ENTITY);
   if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, (repos) => createRecipeIn(deps, ctx, repos, data));
+}
 
-  return deps.tenant(ctx.restaurantId, async (repos) => {
-    const lookup = await lookupFor(
-      repos,
-      data.lines.map((l) => l.component),
-    );
-    const valid = validateRecipe(data, lookup, { graph: await repos.recipes.subRecipeGraph() });
-    if (!valid.ok) return valid;
+/** A criação dentro de uma transação já aberta (a tela Cardápio cria produto e preço juntos, spec 013). */
+export async function createRecipeIn(
+  deps: Deps,
+  ctx: RequestContext,
+  repos: Repos,
+  data: RecipeData,
+): Promise<Result<{ id: string }>> {
+  const lookup = await lookupFor(
+    repos,
+    data.lines.map((l) => l.component),
+  );
+  const valid = validateRecipe(data, lookup, { graph: await repos.recipes.subRecipeGraph() });
+  if (!valid.ok) return valid;
 
-    const normalized = normalizeDescription(data.name);
-    if (await sameName(normalized, repos)) return err("RECIPE_DUPLICATE_NAME", "name");
+  const normalized = normalizeDescription(data.name);
+  if (await sameName(normalized, repos)) return err("RECIPE_DUPLICATE_NAME", "name");
 
-    const id = deps.ids.next();
-    const stamp = auditStamp(deps, ctx);
-    const inserted = await repos.recipes.insert(
-      { id, name: data.name, nameNormalized: normalized, kind: data.kind },
-      stamp,
-    );
-    if (!inserted.ok) return inserted;
-    await repos.recipes.insertVersion(
-      { id: deps.ids.next(), recipeId: id, number: 1, validFrom: stamp.at, ...versionContent(data) },
-      () => deps.ids.next(),
-      stamp,
-    );
-    await repos.audit.record({
-      entity: ENTITY,
-      entityId: id,
-      action: "CREATE",
-      changes: diffFields(null, auditView(data, lookup)),
-      userId: ctx.userId,
-      origin: ctx.origin,
-    });
-    return ok({ id });
+  const id = deps.ids.next();
+  const stamp = auditStamp(deps, ctx);
+  const inserted = await repos.recipes.insert(
+    { id, name: data.name, nameNormalized: normalized, kind: data.kind },
+    stamp,
+  );
+  if (!inserted.ok) return inserted;
+  await repos.recipes.insertVersion(
+    { id: deps.ids.next(), recipeId: id, number: 1, validFrom: stamp.at, ...versionContent(data) },
+    () => deps.ids.next(),
+    stamp,
+  );
+  await repos.audit.record({
+    entity: ENTITY,
+    entityId: id,
+    action: "CREATE",
+    changes: diffFields(null, auditView(data, lookup)),
+    userId: ctx.userId,
+    origin: ctx.origin,
   });
+  return ok({ id });
 }
 
 const versionContent = (data: RecipeData) => ({

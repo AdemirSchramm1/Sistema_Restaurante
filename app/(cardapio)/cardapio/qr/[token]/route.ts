@@ -12,5 +12,6 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/cardapio/qr/[tok
     cookie: req.cookies.get(MENU_ACCESS_COOKIE)?.value ?? null,
     ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     userAgent: req.headers.get("user-agent"),
+    secure: req.nextUrl.protocol === "https:",
   });
 }

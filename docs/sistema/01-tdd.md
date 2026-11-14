@@ -92,8 +92,15 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
 - **O visual também tem teste**: contraste de todas as cores do tema nos dois modos
   (`src/components/ui/tokens.test.ts`) e nenhuma cor crua do Tailwind fora do tema
   (`no-raw-colors.test.ts`). Ver [03-padroes-do-front.md](03-padroes-do-front.md).
+- **Cardápio (feature 013): 100% e mutação.** `pnpm test:menu` exige 100% de linhas, desvios e
+  funções no código novo do cardápio (domínio, casos de uso, componentes, loja de fotos e
+  repositório), e `pnpm test:mutation` (Stryker) exige que todo mutante de `src/domain/menu/**`
+  morra. Uma linha que nenhum teste exige não passa.
+- **As telas também têm teste**: a matriz de 9 tamanhos × 2 modos de cor × 2 motores, com
+  asserções de layout e comparação de imagem. Ver [05-testes-de-tela.md](05-testes-de-tela.md).
 - A CI roda em todo PR: `format:check` → `lint` → `typecheck` → `test:unit` → `test:integration`, e
-  `test:e2e` (com o axe) no job de ponta a ponta.
+  `test:e2e` (com o axe) no job de ponta a ponta; `test:menu`, `test:mutation` e `test:screens` nos
+  jobs do cardápio.
 - PR com CI vermelha não é mergeado.
 
 ## TDD no fluxo Spec Kit

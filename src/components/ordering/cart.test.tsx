@@ -118,3 +118,22 @@ describe("carrinho do celular (spec 009 US2, spec 010 US3)", () => {
     await waitFor(() => expect(screen.getByTestId("cart-total").textContent).toBe("R$ 68,00"));
   });
 });
+
+describe("a conferência do pedido é modal de verdade (spec 013, US6)", () => {
+  it("enquanto está aberta, a página atrás fica inerte e a conferência fica fora dela", () => {
+    render(
+      <main>
+        <Harness submit={vi.fn()} initial={start(juice)} />
+      </main>,
+    );
+    const main = document.querySelector("main")!;
+    expect(main.hasAttribute("inert")).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    const dialog = screen.getByRole("dialog", { name: "Confira o pedido" });
+    expect(main.contains(dialog)).toBe(false);
+    expect(main.hasAttribute("inert")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(main.hasAttribute("inert")).toBe(false);
+  });
+});

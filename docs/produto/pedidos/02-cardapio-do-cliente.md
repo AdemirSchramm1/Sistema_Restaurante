@@ -5,13 +5,36 @@ Aberto pelo QR code da mesa, sem login. Spec [009, US2 e US3](../../../specs/009
 ## O que aparece
 
 - Nome do restaurante e "Mesa N".
-- Produtos vendidos, ativos, com preço de venda e não **esgotados hoje**, em ordem alfabética,
-  com busca por nome. Preparos e produtos sem preço não aparecem.
+- Produtos vendidos, ativos, com preço de venda e não **esgotados hoje**, **por seção e na ordem que
+  o gerente ou o chef escolheu** ([06 — Editar o cardápio](06-editar-o-cardapio.md)), com busca por
+  nome. Preparos e produtos sem preço não aparecem. Seção sem produto não aparece; "Outros" (produto
+  sem seção) vem no fim; sem nenhuma seção, não há títulos.
+- Uma **barra de seções** presa no topo leva a cada seção. Com muitas seções, ela rola para o lado
+  só dentro dela.
+- Cada produto é um **cartão** com a foto (se houver, sempre em 4:3), o nome inteiro, a descrição em
+  até 3 linhas e o preço. Produto sem foto não deixa espaço vazio.
+- Tocar na foto ou no nome abre a **tela do prato**, com a foto maior e a descrição inteira, com as
+  quebras de linha.
 - Na tela do prato, só botões: adicionais com preço ("+ Fatia de queijo R$ 3,00", "Grátis") e
   retiradas ("Sem cebola"). Não há campo de texto: "Precisa de outra mudança? Chame um garçom."
   ([04 — Adicionar e tirar](04-adicionar-e-tirar.md)).
 - **Meus pedidos**: os pedidos enviados deste celular, com a situação de cada um (Recebido, Em
   preparo, Pronto, Entregue, Cancelado). Atualiza sozinho a cada 10 segundos.
+
+## Em qualquer tela
+
+O cardápio tem de ficar certo do celular pequeno ao tablet deitado (spec 013, US6):
+
+- 1 coluna de cartões no celular, 2 no celular deitado e no tablet em pé, 3 no tablet deitado e no
+  computador.
+- Nada rola para o lado, nenhum texto é cortado e todo botão tem pelo menos 44 px de toque.
+- Com a letra do aparelho em 200%, tudo continua legível e sem sobreposição.
+- Girar o aparelho não perde o carrinho nem o lugar da leitura.
+- As fotos carregam só quando chegam perto da tela, no menor tamanho que serve ao aparelho.
+- Modo claro e modo escuro.
+
+Cada item dessa lista é um teste automático que roda em 9 tamanhos de tela, nos dois modos de cor e
+em dois motores de navegador ([testes de tela](../../sistema/05-testes-de-tela.md)).
 
 ## Acesso de 20 minutos
 

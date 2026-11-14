@@ -50,6 +50,7 @@ export const ACTIONS = [
   "tab.history",
   "tab.reopen",
   "tab.settings",
+  "menu.write",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -68,6 +69,7 @@ const MATRIX: Record<Role, readonly Action[]> = {
     "order.read",
     "product.sold_out",
     "addon.read",
+    "menu.write",
   ],
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],

@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { devices, expect, test, type Page } from "@playwright/test";
 import { signUp } from "./helpers";
 import { createTables, customize, newAddon, newDish, newItem, qrPath } from "./ordering-helpers";
+import { login, seedMenu } from "../support/seed";
 
 /** Falhas graves de acessibilidade (WCAG 2.1 A e AA) numa página. */
 async function seriousViolations(page: Page) {
@@ -266,4 +267,40 @@ test("caixa, conta da mesa, conta impressa, contas fechadas e cancelar depois do
   await page.getByRole("button", { name: "Reabrir conta" }).click();
   await expect(page.getByLabel("Motivo da reabertura")).toBeVisible();
   expect(await seriousViolations(page), "conta fechada, reabrindo").toEqual([]);
+});
+
+test("cardápio com seções e fotos, tela do prato e tela Cardápio sem falhas graves (spec 013)", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  const s = seedMenu("board");
+  for (const device of ["iPhone 13", "iPad (gen 7)"] as const) {
+    const context = await browser.newContext({ ...devices[device], locale: "pt-BR" });
+    const cell = await context.newPage();
+    await cell.goto(s.qrPath);
+    await expect(cell.getByRole("navigation", { name: "Seções do cardápio" })).toBeVisible();
+    await expect(cell.locator("main img[data-photo]").first()).toBeVisible();
+    expect(await seriousViolations(cell), `cardápio com seções e fotos (${device})`).toEqual([]);
+    await cell.getByRole("button", { name: "Adicionar X-Burger", exact: true }).click();
+    await expect(cell.getByRole("region", { name: "X-Burger", exact: true })).toBeVisible();
+    expect(await seriousViolations(cell), `tela do prato com foto (${device})`).toEqual([]);
+    await cell.getByRole("button", { name: "Voltar ao cardápio" }).click();
+    await cell.getByRole("button", { name: "Ver X-Salada" }).click();
+    await expect(cell.getByTestId("dish-description")).toBeVisible();
+    expect(await seriousViolations(cell), `tela do prato sem foto (${device})`).toEqual([]);
+    await context.close();
+  }
+
+  await login(page, s.manager, s.password);
+  await page.goto("/pedidos/cardapio");
+  await expect(page.getByRole("heading", { level: 1, name: "Cardápio" })).toBeVisible();
+  expect(await seriousViolations(page), "/pedidos/cardapio").toEqual([]);
+  await page.getByRole("link", { name: "X-Burger", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "X-Burger" })).toBeVisible();
+  expect(await seriousViolations(page), "produto no cardápio").toEqual([]);
+  for (const path of ["/pedidos/cardapio/novo", "/pedidos/cardapio/ver"]) {
+    await page.goto(path);
+    expect(await seriousViolations(page), path).toEqual([]);
+  }
 });

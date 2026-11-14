@@ -9,16 +9,12 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Field, FormError, fieldError } from "@/components/forms/form-error";
 import { UNIT_OPTION_LABELS } from "@/components/items/item-form";
 import type { ActionState } from "@/actions/_session";
-import {
-  RECIPE_KINDS,
-  RECIPE_KIND_LABELS,
-  compatibleUnits,
-  type RecipeKind,
-} from "@/domain/inventory/recipe";
-import { UNITS, type UnitCode } from "@/domain/inventory/units";
-import { emptyLine, type RecipeFormValues, type RecipeLineValues } from "./recipe-form-values";
+import { RECIPE_KINDS, RECIPE_KIND_LABELS, type RecipeKind } from "@/domain/inventory/recipe";
+import { UNITS } from "@/domain/inventory/units";
+import type { RecipeFormValues } from "./recipe-form-values";
+import { RecipeLines, type ComponentOption } from "./recipe-lines";
 
-export type ComponentOption = { id: string; label: string; unit: UnitCode };
+export type { ComponentOption };
 
 type Props = {
   action: (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -29,12 +25,6 @@ type Props = {
   submitLabel: string;
 };
 
-const ALL_UNITS = UNITS.map((u) => u.code);
-
-/** Chave estável de cada linha, para o React não trocar uma linha pela outra ao tirar. */
-let lineKey = 0;
-const keyed = (l: RecipeLineValues) => ({ ...l, key: lineKey++ });
-
 /** Formulário do produto: nome, tipo e o que vai nele (docs/produto/estoque/04-fichas-tecnicas.md). */
 export function RecipeForm({ action, options, initial, meta, readOnly, submitLabel }: Props) {
   const { state, pending, saved, formProps } = useFormAction(action);
@@ -42,28 +32,6 @@ export function RecipeForm({ action, options, initial, meta, readOnly, submitLab
   const fe = (f: string) => fieldError(error, f);
 
   const [kind, setKind] = useState<RecipeKind>(initial.kind);
-  const [lines, setLines] = useState(() => initial.lines.map(keyed));
-
-  const preps = options.preps.filter((p) => p.id !== meta?.id);
-  const unitOf = new Map<string, UnitCode>([
-    ...options.items.map((i) => [`ITEM:${i.id}`, i.unit] as const),
-    ...preps.map((p) => [`RECIPE:${p.id}`, p.unit] as const),
-  ]);
-
-  const setLine = (i: number, patch: Partial<RecipeLineValues>) =>
-    setLines((ls) =>
-      ls.map((l, j) => {
-        if (j !== i) return l;
-        const next = { ...l, ...patch };
-        if (patch.component !== undefined) {
-          const base = unitOf.get(patch.component);
-          if (base && (!next.unit || !compatibleUnits(base).includes(next.unit as UnitCode)))
-            next.unit = base;
-        }
-        return next;
-      }),
-    );
-
   return (
     <form {...formProps} className="grid gap-6" aria-label="Cadastro do produto">
       {meta && (
@@ -136,109 +104,7 @@ export function RecipeForm({ action, options, initial, meta, readOnly, submitLab
 
         <Card className="grid gap-4">
           <CardTitle>O que vai nele</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {kind === "SUB_RECIPE"
-              ? "Os itens para fazer o rendimento acima."
-              : "Quanto de cada item ou preparo vai em 1 unidade vendida."}{" "}
-            A quantidade pode ser numa medida menor da mesma família (ex.: g para itens em kg).
-          </p>
-          {fe("lines") && (
-            <p className="text-sm text-destructive" role="alert">
-              {fe("lines")}
-            </p>
-          )}
-          <ol className="grid gap-3">
-            {lines.map((line, i) => {
-              const n = i + 1;
-              const base = unitOf.get(line.component);
-              const units = base ? compatibleUnits(base) : ALL_UNITS;
-              const err = {
-                component: fe(`lines.${i}.component`),
-                quantity: fe(`lines.${i}.quantity`),
-                unit: fe(`lines.${i}.unit`),
-              };
-              return (
-                <li key={line.key} className="grid gap-2 sm:grid-cols-[1fr_8rem_9rem_auto] sm:items-start">
-                  <div className="grid gap-1">
-                    <Select
-                      aria-label={`Item ou preparo da linha ${n}`}
-                      name={`lines.${i}.component`}
-                      value={line.component}
-                      onChange={(e) => setLine(i, { component: e.target.value })}
-                      aria-invalid={err.component ? true : undefined}
-                    >
-                      <option value="">Escolha…</option>
-                      <optgroup label="Itens">
-                        {options.items.map((o) => (
-                          <option key={o.id} value={`ITEM:${o.id}`}>
-                            {o.label} ({o.unit})
-                          </option>
-                        ))}
-                      </optgroup>
-                      {preps.length > 0 && (
-                        <optgroup label="Preparos">
-                          {preps.map((o) => (
-                            <option key={o.id} value={`RECIPE:${o.id}`}>
-                              {o.label} (rende em {o.unit})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </Select>
-                    {err.component && <LineError text={err.component} />}
-                  </div>
-                  <div className="grid gap-1">
-                    <Input
-                      aria-label={`Quanto vai (linha ${n})`}
-                      name={`lines.${i}.quantity`}
-                      inputMode="decimal"
-                      placeholder="Ex.: 150"
-                      value={line.quantity}
-                      onChange={(e) => setLine(i, { quantity: e.target.value })}
-                      aria-invalid={err.quantity ? true : undefined}
-                    />
-                    {err.quantity && <LineError text={err.quantity} />}
-                  </div>
-                  <div className="grid gap-1">
-                    <Select
-                      aria-label={`Medida (linha ${n})`}
-                      name={`lines.${i}.unit`}
-                      value={line.unit || base || ""}
-                      onChange={(e) => setLine(i, { unit: e.target.value as UnitCode })}
-                      aria-invalid={err.unit ? true : undefined}
-                    >
-                      {!base && <option value="">—</option>}
-                      {units.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </Select>
-                    {err.unit && <LineError text={err.unit} />}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-label={`Tirar a linha ${n}`}
-                    onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}
-                  >
-                    Tirar
-                  </Button>
-                </li>
-              );
-            })}
-          </ol>
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setLines((ls) => [...ls, keyed(emptyLine)])}
-            >
-              Adicionar item ou preparo
-            </Button>
-          </div>
+          <RecipeLines options={options} initial={initial.lines} kind={kind} fe={fe} excludeId={meta?.id} />
         </Card>
       </fieldset>
 
@@ -250,13 +116,5 @@ export function RecipeForm({ action, options, initial, meta, readOnly, submitLab
         </div>
       )}
     </form>
-  );
-}
-
-function LineError({ text }: { text: string }) {
-  return (
-    <p className="text-xs text-destructive" role="alert">
-      {text}
-    </p>
   );
 }
