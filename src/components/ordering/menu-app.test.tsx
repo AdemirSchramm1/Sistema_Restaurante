@@ -333,3 +333,25 @@ describe("pré-visualização para a equipe (spec 013, US5)", () => {
     vi.useRealTimers();
   });
 });
+
+describe("busca digitada antes da página ficar pronta (spec 013, US6)", () => {
+  it("o que já está no campo quando a página fica pronta vale como busca", async () => {
+    const { renderToString } = await import("react-dom/server");
+    const { hydrateRoot } = await import("react-dom/client");
+    const container = document.createElement("div");
+    document.body.append(container);
+    container.innerHTML = renderToString(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
+    // Num celular lento, a pessoa digita antes de o React assumir a página.
+    container.querySelector<HTMLInputElement>('input[type="search"]')!.value = "agua";
+    const root = await act(async () =>
+      hydrateRoot(container, <MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />),
+    );
+    expect(
+      within(container)
+        .getAllByRole("heading", { level: 3 })
+        .map((h) => h.textContent),
+    ).toEqual(["Água"]);
+    act(() => root.unmount());
+    container.remove();
+  });
+});
