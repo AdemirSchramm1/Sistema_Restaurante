@@ -111,8 +111,10 @@ caixa fica fechado e **Lançar pagamento** volta a pedir a abertura.
 1. **Fechar caixa** pede o **dinheiro contado na gaveta**. Para ajudar, a tela tem uma calculadora
    opcional por cédula e moeda (quantas notas de R$ 200, R$ 100… até moedas de R$ 0,05) que soma e
    preenche o valor; o caixa pode digitar o total direto.
-2. **Conferência cega**: o caixa informa o contado **antes** de ver o esperado. Só depois de
-   confirmar o contado a tela mostra o esperado e a diferença.
+2. **Contar sem ver o esperado**: o caixa informa o contado **antes** de ver o esperado. **Confirmar
+   contagem** grava o valor; só então a tela mostra o esperado e a diferença. O caixa pode tocar
+   **Contar de novo**: a nova contagem também fica gravada e o relatório mostra todas ("1ª contagem
+   R$ 120,00 · 2ª contagem R$ 125,00"). O fechamento usa a última.
 3. Diferença = contado − esperado. Zero: "Bateu". Positiva: "Sobra R$ 3,00". Negativa: "Falta
    R$ 2,00". Com diferença, a observação (1 a 140 letras) é obrigatória.
 4. O caixa também informa quanto **fica na gaveta** como troco para o próximo turno (padrão: tudo
@@ -123,6 +125,8 @@ caixa fica fechado e **Lançar pagamento** volta a pedir a abertura.
    turno."
 6. Ao fechar, o turno grava o esperado, o contado, a diferença, o que ficou na gaveta, quem fechou
    e quando. Turno fechado não muda mais.
+   Se entrou pagamento, sangria ou reforço depois da última contagem, o fechamento é recusado:
+   "Entrou dinheiro no turno depois da contagem. Conte de novo."
 7. Depois de fechar, a tela mostra o **relatório do turno** (US5) com **Imprimir**.
 8. O gerente pode fechar o caixa aberto por outra pessoa (o caixa foi embora sem fechar); o
    relatório mostra quem abriu e quem fechou.
@@ -157,7 +161,7 @@ R$ 127,00, contado R$ 125,00, "Falta R$ 2,00" com a observação.
    ```
 
 3. Com o caixa aberto, o gerente vê o mesmo relatório **parcial** (sem contado e diferença). O
-   caixa não vê o esperado do turno aberto (conferência cega); ele vê o recebido por forma.
+   caixa não vê o esperado do turno aberto (ele conta sem ver); ele vê o recebido por forma.
 4. **Imprimir** gera uma folha de 80 mm ou A4 com o relatório e "Não é documento fiscal".
 
 ### US6 — Relatório de vendas do dia por forma de pagamento e por produto (P2)
@@ -174,8 +178,9 @@ cada um.
 
 1. O menu ganha **Vendas** na área Operação. Escolho o período (até 31 dias; padrão hoje), em dias
    do restaurante.
-2. **Por forma de pagamento**: total recebido por forma (pagamentos lançados no período, menos os
-   tirados no período), total da taxa de serviço e total geral.
+2. **Por forma de pagamento**: total recebido por forma nos turnos do período (o mesmo número dos
+   relatórios de turno somados), total da taxa de serviço das contas fechadas no período e total
+   geral.
 3. **Por produto**: cada produto vendido com a quantidade e o valor (preço com os adicionais), do
    que mais vendeu para o que menos vendeu, e a parte de cada um no total. Pedido cancelado não
    conta. Uma tabela à parte mostra os **adicionais** vendidos (quantas vezes e o valor).
@@ -205,8 +210,8 @@ cada um.
   antes."). Pagamento em dinheiro tirado de outro turno pode deixar o esperado negativo; a tela
   mostra o valor negativo em destaque e a conferência segue normal.
 - Reabrir uma conta (011) e lançar pagamento de novo: o pagamento novo entra no turno de agora.
-- Pagamentos lançados antes desta feature (sem turno) aparecem no relatório de vendas por forma de
-  pagamento, mas em nenhum turno.
+- Pagamentos lançados antes desta feature não têm turno: continuam na consulta de Contas (011),
+  mas não entram em turno nem no recebido do relatório de Vendas.
 - Valores: troco inicial ≥ 0; sangria, reforço e contado com até 2 casas; contado ≥ 0.
 
 ## Requisitos
@@ -225,14 +230,14 @@ cada um.
 - **FR-004** Dinheiro esperado = troco inicial + Σ pagamentos em dinheiro do turno não tirados −
   Σ pagamentos em dinheiro de outros turnos tirados neste turno + Σ reforços não tirados −
   Σ sangrias não tiradas. Tudo em decimal exato, sem arredondamento.
-- **FR-005** Fechar caixa: contado (≥ 0, 2 casas), conferência cega (esperado só aparece depois do
-  contado confirmado), diferença = contado − esperado, observação obrigatória se diferença ≠ 0,
+- **FR-005** Fechar caixa: contado (≥ 0, 2 casas), contagem sem ver o esperado (esperado só aparece depois da
+  contagem gravada; recontagens também ficam gravadas e o fechamento usa a última), diferença = contado − esperado, observação obrigatória se diferença ≠ 0,
   valor que fica na gaveta (0 ≤ fica ≤ contado; padrão = contado). Grava esperado, contado,
   diferença, fica, quem e quando; turno fechado não muda mais. O fechamento é recusado se algo
-  entrou no turno depois que a tela carregou.
+  entrou no turno depois da última contagem.
 - **FR-006** Relatório do turno conforme US5; o caixa não vê o esperado do turno aberto.
 - **FR-007** Relatório de vendas por período (até 31 dias, dias do restaurante): recebido por forma
-  (pagamentos pela hora do lançamento e remoções pela hora da remoção), taxa de serviço das contas
+  (soma dos turnos abertos no período, pela conta do FR-004 aplicada a cada forma), taxa de serviço das contas
   fechadas no período, vendas por produto e por adicional (pedidos não cancelados pelo dia do
   pedido), turnos abertos no período com a diferença. Exporta CSV.
 - **FR-008** Permissões (ver
@@ -264,8 +269,8 @@ cada um.
   quem e quando; tirado (quem, quando).
 - **Pagamento** (011): passa a ter o turno em que entrou; a remoção do pagamento passa a ter o
   turno em que foi tirada.
-- **Contagem por cédula** (opcional): só ajuda na tela; o turno guarda o total contado e, se a
-  calculadora foi usada, quantas de cada cédula e moeda.
+- **Contagem**: turno, valor contado, quem e quando e, se a calculadora foi usada, quantas de cada
+  cédula e moeda. Só inserção; o fechamento usa a última.
 
 ## Critérios de sucesso
 
@@ -305,6 +310,6 @@ por outra pessoa, CMV teórico × real (vem na feature de indicadores), nota fis
 | 2026-11-12 | Escopo | Pedido do dono: abrir com valor inicial, sangria e reforço, conferir o dinheiro no fim do turno, relatório por forma de pagamento e por produto |
 | 2026-11-14 | Receber sem caixa aberto? | Não. Todo pagamento exige caixa aberto, para a conferência fechar (premissa, sem pergunta; pode ser revista) |
 | 2026-11-14 | Quantos caixas? | Um aberto por restaurante (premissa) |
-| 2026-11-14 | Conferência cega? | Sim: o caixa informa o contado antes de ver o esperado, como o manual pede para contagens (premissa) |
+| 2026-11-14 | O caixa vê o esperado antes de contar? | Não: informa o contado antes, e toda contagem fica gravada. É a gaveta do caixa, não a conferência cega de mercadoria que o dono tirou do estoque (premissa) |
 | 2026-11-14 | Conta aberta segura o fechamento do caixa? | Não: avisa e os pagamentos dela entram no próximo turno (premissa) |
 | 2026-11-14 | Quem vê vendas por produto? | Só o gerente; o caixa vê os relatórios de turno (premissa) |

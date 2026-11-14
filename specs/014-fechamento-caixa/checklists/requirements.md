@@ -33,5 +33,5 @@
 
 - O escopo veio do pedido do dono de 2026-11-12, adiado pela 012 e pela 013.
 - Cinco pontos foram decididos por premissa, sem pergunta, e estão na tabela de Decisões: pagamento
-  exige caixa aberto, um caixa por restaurante, conferência cega, conta aberta não segura o
+  exige caixa aberto, um caixa por restaurante, contagem sem ver o esperado, conta aberta não segura o
   fechamento, vendas por produto só para o gerente. O `speckit clarify` pode rever qualquer um.

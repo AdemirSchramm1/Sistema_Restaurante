@@ -57,6 +57,7 @@ Spec Kit (`specs/NNN-nome/`).
 | 009 | Pedidos pelo QR code da mesa | 003, 008 | Feito ([docs](../pedidos/00-visao-geral.md)): mesas e QR codes, cardápio sem login aberto por 20 minutos desde a leitura, telas da cozinha e do garçom, esgotado hoje, consulta de pedidos, papel Garçom |
 | 010 | Adicionar e tirar por botão | 009 | Feito ([docs](../pedidos/04-adicionar-e-tirar.md)): adicionais com preço do gerente, retiradas por produto, só botões (sem observação livre), consumo da linha |
 | 011 | Fechar a conta da mesa e baixar o estoque | 005, 009, 010 | Feito ([docs](../pedidos/05-conta-da-mesa.md)): conta da mesa com taxa de serviço, pagamentos, divisão, fechar e liberar a mesa, imprimir, contas fechadas com resumo por forma de pagamento, reabrir (gerente), papel Caixa; baixa do estoque pelos pedidos (entrega a 005) |
+| 014 | Abrir e fechar o caixa do dia | 011 | Em especificação ([specs/014](../../../specs/014-fechamento-caixa/spec.md)): turno do caixa com troco inicial, pagamento sempre num turno, sangria e reforço, contagem antes de ver o esperado, relatório do turno, tela Vendas por forma de pagamento e por produto |
 
 Fora do roadmap por decisão do dono: contagem de estoque (inventário), registros sanitários,
 conferência cega, fiscal e locais de armazenamento (o saldo é um só por item).

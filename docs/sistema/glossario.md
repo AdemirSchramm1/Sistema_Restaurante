@@ -97,6 +97,15 @@
 | Reabrir conta | – | `reopenTab` | Só gerente, com motivo |
 | Caixa (papel) | – | `Role.CASHIER` | Vê Caixa, Contas e Pedidos |
 | Permissões da conta | – | `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` | Ver spec 011, FR-010 |
+| Turno do caixa | – | `cash_session` (`CashSessionStatus`: `OPEN`, `CLOSED`) | Abre com o troco inicial, fecha com a contagem; um aberto por restaurante. Feature 014 |
+| Troco inicial | – | `openingFloat` | Dinheiro na gaveta ao abrir o caixa |
+| Sangria / reforço | – | `cash_entry` (`CashEntryKind`: `WITHDRAWAL`, `SUPPLY`) | Dinheiro tirado da gaveta / posto na gaveta; só inserção, "tirar" é `cash_entry_removal` |
+| Motivo da sangria | – | `CashWithdrawalReason`: `SAFE`, `SUPPLIER_PAYMENT`, `DAILY_EXPENSE`, `OTHER` | Cofre, pagamento a fornecedor, despesa do dia, outro |
+| Contagem da gaveta | – | `cash_count` | Só inserção; o fechamento usa a última. Não confundir com a contagem de estoque, retirada na 002 |
+| Esperado / contado / diferença | – | `expected`, `counted`, `difference` (`BALANCED`, `OVER`, `SHORT`) | Bateu, sobra, falta |
+| Fica na gaveta | – | `kept` | Troco para o próximo turno; o resto é a retirada do fechamento |
+| Vendas | – | `salesReport` | Recebido por forma (soma dos turnos), vendas por produto e adicional. Feature 014 |
+| Permissões do caixa | – | `cash.operate`, `cash.close_any`, `cash.expected`, `cash.history`, `sales.report` | Ver spec 014, FR-008 |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de
