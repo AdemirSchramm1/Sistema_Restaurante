@@ -14,6 +14,7 @@ describe("matriz de permissões (spec 001, FR-003)", () => {
       "catalog.read",
       "item.reorder",
       "item.write",
+      "menu.write",
       "movement.loss",
       "order.cancel",
       "order.deliver",
@@ -144,5 +145,13 @@ describe("conta da mesa e caixa (spec 011, FR-010)", () => {
     expect(who("tab.reopen")).toEqual(["MANAGER"]);
     expect(who("tab.settings")).toEqual(["MANAGER"]);
     expect(who("order.read")).toEqual(["MANAGER", "CHEF", "WAITER", "CASHIER"]);
+  });
+});
+
+describe("editar o cardápio (spec 013, FR-001)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
+
+  it("menu.write é do gerente e do chef, e de mais ninguém", () => {
+    expect(ALL.filter((r) => can([r], "menu.write"))).toEqual(["MANAGER", "CHEF"]);
   });
 });

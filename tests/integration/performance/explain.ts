@@ -40,6 +40,7 @@ export function explainingEnv(env: TestEnv) {
     clock: env.clock,
     appUrl: "http://localhost:3000",
     authSecret: "segredo-de-teste-com-mais-de-32-caracteres",
+    photos: env.deps.photos,
   });
 
   /** Leituras da tabela inteira desde a última chamada: "tabela ← consulta". */
@@ -56,6 +57,11 @@ export function explainingEnv(env: TestEnv) {
     return [...new Set(found)];
   }
 
+  /** Índices usados desde a última leitura de `fullScans` (não zera a lista). */
+  function usedIndexes(): string[] {
+    return [...new Set(plans.flatMap((plan) => [...plan.matchAll(/using (\w+) on/g)].map((m) => m[1]!)))];
+  }
+
   /** Papel efetivo da sessão (deve ser `app_user`, para o RLS valer como na aplicação). */
   async function currentRole(): Promise<string> {
     const r = await pool.query<{ u: string }>("select current_user as u");
@@ -63,5 +69,12 @@ export function explainingEnv(env: TestEnv) {
     return r.rows[0]!.u;
   }
 
-  return { deps, fullScans, currentRole, planCount: () => plans.length, close: () => pool.end() };
+  return {
+    deps,
+    fullScans,
+    usedIndexes,
+    currentRole,
+    planCount: () => plans.length,
+    close: () => pool.end(),
+  };
 }

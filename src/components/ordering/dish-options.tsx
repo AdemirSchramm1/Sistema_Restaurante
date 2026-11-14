@@ -6,12 +6,15 @@ import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
 import { Button } from "@/components/ui/button";
 import { brl, priceOrFree } from "./format";
 import { lineTotal, type CartLineData } from "./cart-state";
+import { ProductPhoto } from "./product-photo";
 
 const big = "h-11 min-w-11 text-lg";
+/** Na tela do prato a foto ocupa a largura do conteúdo (até 640 px). */
+const DISH_SIZES = "(min-width: 672px) 640px, 100vw";
 
 /**
- * Tela do prato: só botões, nenhum campo de texto (spec 010, US3; decisão "Só botões"). Mudança que
- * não está nos botões é com o garçom.
+ * Tela do prato: a foto maior e a descrição inteira (spec 013, US6) e só botões, nenhum campo de
+ * texto (spec 010, US3; decisão "Só botões"). Mudança que não está nos botões é com o garçom.
  */
 export function DishOptions({
   product,
@@ -47,20 +50,26 @@ export function DishOptions({
     });
 
   return (
-    <section className="grid gap-4" aria-label={product.name}>
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="text-xl font-semibold">{product.name}</h2>
+    <section className="mx-auto grid w-full max-w-2xl grid-cols-1 gap-4" aria-label={product.name}>
+      <ProductPhoto photo={product.photo} name={product.name} eager sizes={DISH_SIZES} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <h2 className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">{product.name}</h2>
         <span className="text-lg">{brl(product.price)}</span>
       </div>
+      {product.description && (
+        <p data-testid="dish-description" className="whitespace-pre-line text-base text-muted-foreground">
+          {product.description}
+        </p>
+      )}
 
       {product.addons.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <h3 className="font-medium">Adicionar</h3>
-          <ul className="grid gap-2">
+          <ul className="grid grid-cols-1 gap-2">
             {product.addons.map((a) => {
               const n = times[a.id] ?? 0;
               return (
-                <li key={a.id} className="flex items-center justify-between gap-2">
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
                   <span>
                     {a.name} <span className="text-sm text-muted-foreground">{priceOrFree(a.price)}</span>
                   </span>
@@ -97,7 +106,7 @@ export function DishOptions({
       )}
 
       {product.removables.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <h3 className="font-medium">Tirar</h3>
           <div className="flex flex-wrap gap-2">
             {product.removables.map((r) => {
@@ -123,7 +132,7 @@ export function DishOptions({
 
       <p className="text-sm text-muted-foreground">Precisa de outra mudança? Chame um garçom.</p>
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <Button
             type="button"
@@ -153,11 +162,16 @@ export function DishOptions({
           {brl(lineTotal(line))}
         </span>
       </div>
-      <div className="grid gap-2">
-        <Button type="button" size="xl" onClick={() => onAdd(line)}>
+      <div className="grid grid-cols-1 gap-2">
+        <Button
+          type="button"
+          size="xl"
+          className="h-auto min-h-12 whitespace-normal py-2"
+          onClick={() => onAdd(line)}
+        >
           Adicionar ao pedido
         </Button>
-        <Button type="button" variant="ghost" className="h-11" onClick={onClose}>
+        <Button type="button" variant="ghost" className="h-auto min-h-11 whitespace-normal" onClick={onClose}>
           Voltar ao cardápio
         </Button>
       </div>

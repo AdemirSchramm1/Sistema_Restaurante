@@ -3,7 +3,7 @@ import { newRestaurant, ownerTestDb, testEnv } from "../harness";
 import { tableWithQr } from "./fixtures";
 import { qrScanResponse } from "../../../src/actions/_qr-scan";
 
-const request = { cookie: null, ip: "203.0.113.7", userAgent: "Celular" };
+const request = { cookie: null, ip: "203.0.113.7", userAgent: "Celular", secure: true };
 
 describe("rota pública GET /m/{token} (spec 009, contracts/public-routes.md)", () => {
   it("abre o acesso, grava o cookie e manda para o cardápio", async () => {
@@ -24,6 +24,17 @@ describe("rota pública GET /m/{token} (spec 009, contracts/public-routes.md)", 
       [m.restaurantId],
     );
     expect(n.rows[0].n).toBe(1);
+  });
+
+  it("sem HTTPS (só no desenvolvimento e nos testes, em localhost) o cookie vai sem Secure, senão o Safari o descarta", async () => {
+    const env = testEnv();
+    const m = await newRestaurant(env);
+    const { token } = await tableWithQr(env, m, "6");
+    const res = await qrScanResponse(env.deps, { ...request, token, secure: false });
+    const cookie = res.headers.get("set-cookie")!;
+    expect(cookie).not.toContain("Secure");
+    for (const part of ["HttpOnly", "SameSite=Lax", "Path=/cardapio", "Max-Age=1200"])
+      expect(cookie).toContain(part);
   });
 
   it("token desconhecido: 404 com 'QR code inválido. Chame um garçom.'", async () => {

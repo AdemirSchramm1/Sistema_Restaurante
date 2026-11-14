@@ -97,6 +97,15 @@
 | Reabrir conta | – | `reopenTab` | Só gerente, com motivo |
 | Caixa (papel) | – | `Role.CASHIER` | Vê Caixa, Contas e Pedidos |
 | Permissões da conta | – | `tab.read`, `tab.pay`, `tab.history`, `tab.reopen`, `tab.settings` | Ver spec 011, FR-010 |
+| Seção do cardápio | – | `menu_section` | Grupo do cardápio do cliente ("Lanches", "Bebidas"), na ordem escolhida. Feature 013 |
+| Outros (sem seção) | – | `menu_section_id = null` | Produtos sem seção; aparecem no fim |
+| Posição no cardápio | – | `menu_position` | Ordem do produto dentro da seção |
+| Descrição do produto no cardápio | – | `description` | Até 300 caracteres, texto simples |
+| Foto do produto | – | `photo` (`photo_base`, `photo_widths`) | 4:3, WebP em até 4 larguras |
+| Tela Cardápio da equipe | – | `menu board` | Onde gerente e chef editam o cardápio |
+| Pré-visualização ("Ver como o cliente") | – | `preview` | O cardápio do cliente sem mesa, tempo ou envio |
+| Matriz de telas | – | `screen matrix` (`tests/screens/matrix.ts`) | Tamanhos em que as telas do cardápio são testadas |
+| Permissão do cardápio | – | `menu.write` | Gerente e chef |
 | Turno do caixa | – | `cash_session` (`CashSessionStatus`: `OPEN`, `CLOSED`) | Abre com o troco inicial, fecha com a contagem; um aberto por restaurante. Feature 014 |
 | Troco inicial | – | `openingFloat` | Dinheiro na gaveta ao abrir o caixa |
 | Sangria / reforço | – | `cash_entry` (`CashEntryKind`: `WITHDRAWAL`, `SUPPLY`) | Dinheiro tirado da gaveta / posto na gaveta; só inserção, "tirar" é `cash_entry_removal` |

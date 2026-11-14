@@ -93,7 +93,12 @@ export type ErrorCode =
   | "REASON_REQUIRED"
   | "TABLE_HAS_OPEN_TAB"
   | "INGREDIENTS_USED_REQUIRED"
-  | "REVERSE_VIA_ORDER";
+  | "REVERSE_VIA_ORDER"
+  | "PHOTO_TYPE"
+  | "PHOTO_TOO_BIG"
+  | "PHOTO_TOO_SMALL"
+  | "PHOTO_STORAGE_FAILED"
+  | "PHOTO_PREPARE_FAILED";
 
 export type DomainError = {
   code: ErrorCode;

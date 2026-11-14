@@ -13,13 +13,18 @@
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit --coverage",
     "test:integration": "vitest run --project integration",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
+    "test:screens": "scripts/screens.sh",
+    "test:screens:update": "scripts/screens.sh --update-snapshots=all",
+    "test:menu": "vitest run --mode menu --coverage",
+    "test:mutation": "stryker run",
     "db:up": "docker compose up -d --wait db",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.mts",
     "db:dev-login": "tsx scripts/db-dev-login.mts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.9.0",
     "better-auth": "^1.7.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,6 +38,7 @@
     "react-dom": "19.3.0",
     "resend": "^6.37.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^3.7.0",
     "uuid": "^14.0.3",
     "zod": "^4.6.7"
@@ -40,6 +46,8 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "1.63.0",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@tailwindcss/turbopack": "^4",
     "@testcontainers/postgresql": "^12.2.1",
     "@testing-library/dom": "^10.4.2",

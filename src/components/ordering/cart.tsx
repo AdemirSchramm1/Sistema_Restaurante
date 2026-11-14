@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ActionState } from "@/actions/_session";
 import type { SubmitOrderResult } from "@/application/ordering/submit-order";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
@@ -38,10 +39,18 @@ export function Cart({
 }: {
   lines: CartLine[];
   onChange: (lines: CartLine[]) => void;
-  submit: SubmitFn;
+  /** `null` na pré-visualização da equipe (spec 013, US5): o carrinho aparece, mas não envia. */
+  submit: SubmitFn | null;
   onSent?: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  // A conferência é modal: a página atrás fica inerte (sem foco, sem toque, fora da leitura de tela).
+  useEffect(() => {
+    const page = document.querySelector("main");
+    if (!confirming || !page) return;
+    page.setAttribute("inert", "");
+    return () => page.removeAttribute("inert");
+  }, [confirming]);
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [sent, setSent] = useState<SubmitOrderResult | null>(null);
@@ -60,7 +69,7 @@ export function Cart({
     setSending(true);
     setMessages([]);
     try {
-      const r = await submit({ clientRequestId: requestId.current, lines: toOrderLines(lines) });
+      const r = await submit!({ clientRequestId: requestId.current, lines: toOrderLines(lines) });
       if (r?.ok) {
         setSent(r.data);
         setConfirming(false);
@@ -90,7 +99,7 @@ export function Cart({
 
   return (
     <section
-      className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+      className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
       aria-label="Seu pedido"
     >
       <h2 className="font-display text-xl font-semibold">Seu pedido</h2>
@@ -105,10 +114,10 @@ export function Cart({
       {lines.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nada no pedido ainda.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {lines.map((l) => (
-            <li key={l.key} className="grid gap-1 border-b border-border pb-2">
-              <div className="flex items-center justify-between gap-2">
+            <li key={l.key} className="grid grid-cols-1 gap-1 border-b border-border pb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{l.name}</span>
                 <span>{brl(lineTotal(l))}</span>
               </div>
@@ -150,7 +159,7 @@ export function Cart({
           ))}
         </ul>
       )}
-      <p className="flex justify-between text-lg font-semibold">
+      <p className="flex flex-wrap justify-between gap-x-3 text-lg font-semibold">
         <span>Total</span>
         <span data-testid="cart-total">{brl(total)}</span>
       </p>
@@ -161,58 +170,74 @@ export function Cart({
           ))}
         </Alert>
       )}
-      <Button type="button" size="xl" disabled={lines.length === 0} onClick={open}>
-        Enviar pedido
-      </Button>
-
-      {confirming && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confira o pedido"
-          className="fixed inset-0 z-50 grid place-items-end bg-overlay sm:place-items-center"
+      {submit && (
+        <Button
+          type="button"
+          size="xl"
+          className="h-auto min-h-12 whitespace-normal py-2"
+          disabled={lines.length === 0}
+          onClick={open}
         >
-          <div className="grid max-h-[90vh] w-full max-w-md gap-3 overflow-y-auto rounded-t-xl bg-background p-4 sm:rounded-xl">
-            <h2 className="text-lg font-semibold">Confira o pedido</h2>
-            <ul className="grid gap-2 text-sm">
-              {lines.map((l) => (
-                <li key={l.key}>
-                  <div className="flex justify-between gap-2">
-                    <span>
-                      {l.quantity} × {l.name}
-                    </span>
-                    <span>{brl(lineTotal(l))}</span>
-                  </div>
-                  <LineChanges changes={lineChanges(l)} />
-                </li>
-              ))}
-            </ul>
-            <p className="flex justify-between font-semibold">
-              <span>Total</span>
-              <span>{brl(total)}</span>
-            </p>
-            {messages.length > 0 && (
-              <Alert tone="warning" role="alert">
-                {messages.map((m) => (
-                  <p key={m}>{m}</p>
-                ))}
-              </Alert>
-            )}
-            <Button type="button" size="xl" disabled={sending} onClick={confirm}>
-              Confirmar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-11"
-              disabled={sending}
-              onClick={() => setConfirming(false)}
-            >
-              Voltar
-            </Button>
-          </div>
-        </div>
+          Enviar pedido
+        </Button>
       )}
+
+      {confirming &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confira o pedido"
+            className="fixed inset-0 z-50 grid place-items-end bg-overlay sm:place-items-center"
+          >
+            <div className="grid max-h-[90vh] w-full grid-cols-1 max-w-md gap-3 overflow-y-auto rounded-t-xl bg-background p-4 sm:rounded-xl">
+              <h2 className="text-lg font-semibold">Confira o pedido</h2>
+              <ul className="grid grid-cols-1 gap-2 text-sm">
+                {lines.map((l) => (
+                  <li key={l.key}>
+                    <div className="flex flex-wrap justify-between gap-x-2">
+                      <span>
+                        {l.quantity} × {l.name}
+                      </span>
+                      <span>{brl(lineTotal(l))}</span>
+                    </div>
+                    <LineChanges changes={lineChanges(l)} />
+                  </li>
+                ))}
+              </ul>
+              <p className="flex flex-wrap justify-between gap-x-3 font-semibold">
+                <span>Total</span>
+                <span>{brl(total)}</span>
+              </p>
+              {messages.length > 0 && (
+                <Alert tone="warning" role="alert">
+                  {messages.map((m) => (
+                    <p key={m}>{m}</p>
+                  ))}
+                </Alert>
+              )}
+              <Button
+                type="button"
+                size="xl"
+                className="h-auto min-h-12 whitespace-normal py-2"
+                disabled={sending}
+                onClick={confirm}
+              >
+                Confirmar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11"
+                disabled={sending}
+                onClick={() => setConfirming(false)}
+              >
+                Voltar
+              </Button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </section>
   );
 }

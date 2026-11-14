@@ -42,27 +42,37 @@ export async function setRecipeSalePrice(
 ): Promise<Result<{ version: number }>> {
   const allowed = await authorize(deps, ctx, "recipe.write", ENTITY, id);
   if (!allowed.ok) return allowed;
+  return deps.tenant(ctx.restaurantId, (repos) => setSalePriceIn(deps, ctx, repos, id, version, salePrice));
+}
+
+/** O preço dentro de uma transação já aberta (a tela Cardápio cria produto e preço juntos, spec 013). */
+export async function setSalePriceIn(
+  deps: Deps,
+  ctx: RequestContext,
+  repos: Repos,
+  id: string,
+  version: number,
+  salePrice: Decimal | null,
+): Promise<Result<{ version: number }>> {
   const valid = validateSalePrice(salePrice);
   if (!valid.ok) return valid;
-  return deps.tenant(ctx.restaurantId, async (repos) => {
-    const current = await repos.recipes.get(id);
-    if (!current) return err("NOT_FOUND");
-    if (current.kind !== "DISH") return err("PRICE_ONLY_FOR_DISH", "salePrice");
-    const r = await repos.recipes.setSalePrice(id, salePrice, version, auditStamp(deps, ctx));
-    if (!r.ok) return r;
-    const before = priceText(current.salePrice);
-    const after = priceText(salePrice);
-    if (before !== after)
-      await repos.audit.record({
-        entity: ENTITY,
-        entityId: id,
-        action: "UPDATE",
-        changes: { salePrice: [before, after] },
-        userId: ctx.userId,
-        origin: ctx.origin,
-      });
-    return ok({ version: version + 1 });
-  });
+  const current = await repos.recipes.get(id);
+  if (!current) return err("NOT_FOUND");
+  if (current.kind !== "DISH") return err("PRICE_ONLY_FOR_DISH", "salePrice");
+  const r = await repos.recipes.setSalePrice(id, salePrice, version, auditStamp(deps, ctx));
+  if (!r.ok) return r;
+  const before = priceText(current.salePrice);
+  const after = priceText(salePrice);
+  if (before !== after)
+    await repos.audit.record({
+      entity: ENTITY,
+      entityId: id,
+      action: "UPDATE",
+      changes: { salePrice: [before, after] },
+      userId: ctx.userId,
+      origin: ctx.origin,
+    });
+  return ok({ version: version + 1 });
 }
 
 /** Grafo de preparos e o que se sabe de cada item e preparo usado pelos produtos, numa leitura só. */

@@ -1,6 +1,5 @@
 import type { Decimal } from "../shared/decimal";
 import type { RecipeKind } from "../inventory/recipe";
-import { normalizeDescription } from "../inventory/description";
 
 /** O que o cardápio precisa saber de cada produto (spec 009, FR-004). */
 export type MenuProductRow = {
@@ -19,8 +18,7 @@ export const isOnMenu = (p: MenuProductRow, today: string): boolean =>
 
 export const isSoldOut = (soldOutOn: string | null, today: string): boolean => soldOutOn === today;
 
+/** Só o que o cliente pode pedir, na ordem recebida (a escolhida no cardápio; spec 013, US3.5). */
 export function buildMenu<T extends MenuProductRow>(rows: readonly T[], today: string): T[] {
-  return rows
-    .filter((p) => isOnMenu(p, today))
-    .sort((a, b) => normalizeDescription(a.name).localeCompare(normalizeDescription(b.name), "pt-BR"));
+  return rows.filter((p) => isOnMenu(p, today));
 }

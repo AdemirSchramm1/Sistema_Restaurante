@@ -1,7 +1,8 @@
 # Pedidos — Modelo de dados
 
-Migrações `0009_ordering` (feature 009), `0010_addons` (feature 010) e `0011_tabs` (feature 011,
-[conta da mesa](#conta-da-mesa-feature-011)). Toda tabela nova tem
+Migrações `0009_ordering` (feature 009), `0010_addons` (feature 010), `0011_tabs` (feature 011,
+[conta da mesa](#conta-da-mesa-feature-011)) e `0013_menu_editing` (feature 013,
+[cardápio editável](#cardápio-editável-feature-013)). Toda tabela nova tem
 `id uuid` (UUID v7 gerado na aplicação), `restaurant_id`, `created_at`, `created_by`, RLS
 `tenant_isolation` (ver [ADR 0004](../adr/0004-rls-tenant.md)) e `GRANT` para `app_user`; essas
 colunas ficam omitidas abaixo. Dinheiro em `numeric(12,2)`, quantidade em `numeric(14,4)`.
@@ -151,6 +152,37 @@ restaurante, criação, mesa, abertura nem `service_rate`. `app_user` tem `SELEC
 | `orders` | `tab_id` (acima) |
 | `menu_accesses` | `end_reason` (acima); os encerramentos antigos viram `RESCAN` na migração |
 | enum `role` | `CASHIER` |
+
+## Cardápio editável (feature 013)
+
+### `menu_sections` (seção do cardápio) — editável, trava otimista para renomear
+
+| Coluna | Regra |
+|---|---|
+| `name` | 1 a 40 caracteres (`INVALID_NAME`) |
+| `name_normalized` | Único no restaurante (`NAME_IN_USE`), sem maiúsculas e acentos |
+| `position` | Densa (1..n); única adiável `(restaurant_id, position) deferrable initially deferred` |
+
+Apagada de verdade; os produtos dela vão para "Outros" (`menu_section_id = null`) na mesma
+transação, e a auditoria guarda o que foi apagado.
+
+### Colunas novas em `recipes`
+
+| Coluna | Regra |
+|---|---|
+| `description text` | Até 300 caracteres; vazio vira `null` |
+| `menu_section_id uuid` | Nulo = "Outros"; chave composta com `restaurant_id` |
+| `menu_position integer default 0` | Posição dentro da seção; densa entre os vendidos; `0` em preparo |
+| `photo_base text`, `photo_widths smallint[]` | Endereço da foto sem a largura e as larguras gravadas (de `{300, 600, 900, 1200}`) |
+
+Checks `recipes_menu_only_dish` (só produto vendido tem dados de cardápio) e `recipes_photo_pair`
+(base e larguras andam juntas). Índice `recipes_menu_order (restaurant_id, kind, menu_section_id,
+menu_position)`. Nada disso entra em `recipe_versions`: mudar foto, descrição, seção ou ordem não
+cria versão nem muda pedido enviado. Descrição, seção e preço sobem a `version` da linha (trava
+otimista); foto e posição não.
+
+Os arquivos da foto ficam fora do banco, em `menu/{photoId}/{largura}.webp` (ver
+[ADR 0006](../adr/0006-fotos-do-cardapio.md)).
 
 ## Funções `SECURITY DEFINER` (rota pública)
 

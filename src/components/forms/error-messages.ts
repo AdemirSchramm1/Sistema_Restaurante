@@ -100,6 +100,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   TABLE_HAS_OPEN_TAB: "A mesa já tem outra conta aberta. Feche-a antes.",
   INGREDIENTS_USED_REQUIRED: "Diga se os ingredientes já foram usados.",
   REVERSE_VIA_ORDER: "Esta saída veio de um pedido. Para desfazer, cancele o pedido na cozinha.",
+  PHOTO_TYPE: "Use uma foto JPG, PNG ou WebP.",
+  PHOTO_TOO_BIG: "A foto pode ter até 10 MB.",
+  PHOTO_TOO_SMALL: "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
+  PHOTO_STORAGE_FAILED: "Não foi possível enviar a foto. Tente de novo.",
+  PHOTO_PREPARE_FAILED: "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB.",
 };
 
 /** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
@@ -107,6 +112,13 @@ const money = (v: unknown) => formatBrl(d(String(v)));
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
+  // Cardápio (spec 013): o mesmo código já existia para outros cadastros; o detalhe diz qual é.
+  if (error.code === "INVALID_DESCRIPTION" && error.details?.max !== undefined)
+    return `A descrição pode ter até ${String(error.details.max)} caracteres.`;
+  if (error.code === "NAME_IN_USE" && error.details?.section !== undefined)
+    return `Já existe a seção ${String(error.details.section)}.`;
+  if (error.code === "INVALID_NAME" && error.details?.max !== undefined)
+    return `Dê um nome à seção, com até ${String(error.details.max)} letras.`;
   if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.paid !== undefined)
     return `Já foram pagos ${money(error.details.paid)} e, sem a taxa, a conta fica em ${money(error.details.total)}. Tire um pagamento antes de tirar a taxa.`;
   if (error.code === "PAYMENT_EXCEEDS_REMAINING" && error.details?.remaining !== undefined)
