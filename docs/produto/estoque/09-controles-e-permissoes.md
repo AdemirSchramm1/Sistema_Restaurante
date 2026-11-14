@@ -62,10 +62,17 @@ tela do seu menu.
 | Marcar "Esgotado hoje" | `product.sold_out` | Gerente, chef |
 | Ver adicionais | `addon.read` | Gerente, chef |
 | Cadastrar e mudar adicionais e preços; quadro "Adicionar e tirar" do produto | `addon.write` | Gerente |
+| Tela Cardápio: seções, ordem, foto, descrição, preço de venda, produto novo, "Ver como o cliente" (013) | `menu.write` | Gerente, chef |
 
 O cliente não tem usuário: o pedido registra a mesa e o acesso de origem. Toda escrita da equipe
 (mesa, QR code, situação, cancelamento, esgotado, chave, adicional, quadro) vai para a trilha de
 auditoria, e tentativa sem permissão fica registrada como negada.
+
+Na tela **Cardápio** (feature 013) vão para a auditoria: criar, renomear, ordenar e apagar seção;
+mudar a ordem dos produtos; pôr, trocar e tirar foto; mudar descrição, seção e preço; criar produto
+pelo cardápio (criação da ficha, preço e dados do cardápio). Cada registro guarda quem, quando e o
+antes e depois; foto aparece no histórico como "Foto" trocada, sem o endereço do arquivo. Ver
+[06 — Editar o cardápio](../pedidos/06-editar-o-cardapio.md).
 
 ### Conta da mesa (feature 011)
 
