@@ -36,7 +36,7 @@ O dono pediu para verificar como o cardápio atende o garçom. O cardápio do cl
 | Seções, ordem, fotos, descrição, busca | Montados na tela Cardápio (013) | Sim, é o mesmo cardápio | Reaproveita. A busca fica no topo, porque o garçom procura pelo nome que o cliente falou |
 | Cartão grande com foto, 1 coluna no celular | Bom para escolher com calma | Lento para quem já sabe o que quer | Modo **Lista** (só nome, preço e "+") além do modo com fotos; o garçom escolhe e o aparelho lembra |
 | Tela do prato com adicionais e retiradas | Só botões | Sim | Reaproveita, com os mesmos limites |
-| "Precisa de outra mudança? Chame um garçom." | O cliente chama o garçom | O garçom chamado não tem como lançar a mudança **Observação para a cozinha** só para a equipe (FR-018, decisão do dono) |
+| "Precisa de outra mudança? Chame um garçom." | O cliente chama o garçom | O garçom chamado não tem como lançar a mudança | **Observação para a cozinha** só para a equipe (FR-018, decisão do dono) |
 | Produto **Esgotado hoje** | Some do cardápio | O garçom precisa saber que acabou para avisar o cliente | Aparece no fim da seção, apagado, com o selo "Esgotado hoje", sem "+" |
 | Produto sem preço ou inativo | Não aparece | Não deve ser vendido | Continua sem aparecer |
 | Acesso de 20 minutos e "Faltam N min" | Fecha o cardápio no celular do cliente | Não faz sentido: o garçom usa o cardápio o turno inteiro | Não se aplica. O garçom fica no cardápio enquanto estiver logado |
@@ -69,7 +69,8 @@ atender quem não pede pelo QR code.
 2. Tocando a mesa, abre o cardápio do restaurante (seções, ordem, fotos, descrição e preços da
    013) com "Mesa 12" fixo no topo e o botão **Trocar mesa**.
 3. O garçom põe produtos no carrinho como o cliente: tela do prato com adicionais e retiradas por
-   botão, mais o campo **Observação para a cozinha** (até 140 letras, só para a equipe), quantidade, os mesmos limites (até 30 linhas, até 20 de cada, adicionais até o máximo do
+   botão, mais o campo **Observação para a cozinha** (até 140 letras, só para a equipe),
+   quantidade e os mesmos limites (até 30 linhas, até 20 de cada, adicionais até o máximo do
    produto).
 4. **Enviar pedido** mostra o resumo com a mesa em destaque ("Conferir: Mesa 12") e o total.
    **Confirmar** envia. A resposta é "Pedido 5 enviado para a cozinha", com a mesa e o total, e o
