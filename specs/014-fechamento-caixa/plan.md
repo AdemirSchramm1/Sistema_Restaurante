@@ -39,7 +39,7 @@ Nenhum ponto em aberto: as premissas da spec (tabela Decisões) cobrem as escolh
 | III. Livro imutável | Sangria, reforço, contagem e remoções são inserções (`app_reject_change`). Turno fechado não aceita `UPDATE` (gatilho). Pagamentos continuam só inserção; a coluna nova é preenchida no `INSERT` |
 | IV. Precisão | `numeric(12,2)` e `decimal.js`; o esperado é só soma e subtração. A porcentagem de cada produto em Vendas arredonda só na apresentação |
 | V. Rastreabilidade | Quem e quando em cada linha; `audit_log` com `entity = cash_session`; contagens todas gravadas; o esperado não chega ao caixa antes da contagem ([R6](research.md#r6-quem-vê-o-esperado)); fechar turno de outra pessoa só gerente. RLS em todas as tabelas novas |
-| VI. Docs vivas | Neste PR: spec, plano, glossário e roadmap. No PR da implementação: `docs/produto/pedidos/06-caixa-do-dia.md` (novo), `05-conta-da-mesa.md` (pagamento exige caixa aberto; tirar do "Fora desta versão"), `09-controles-e-permissoes.md` (ações `cash.*` e `sales.report`), `docs/sistema/pedidos/01-modelo-de-dados.md` e `02-regras.md`, `04-desempenho.md` (consultas de Vendas) |
+| VI. Docs vivas | Neste PR: spec, plano, glossário e roadmap. No PR da implementação: `docs/produto/pedidos/07-caixa-do-dia.md` (novo), `05-conta-da-mesa.md` (pagamento exige caixa aberto; tirar do "Fora desta versão"), `09-controles-e-permissoes.md` (ações `cash.*` e `sales.report`), `docs/sistema/pedidos/01-modelo-de-dados.md` e `02-regras.md`, `04-desempenho.md` (consultas de Vendas) |
 | VII. Simplicidade | Um caixa por restaurante; relatório por consulta, sem tabela de resumo nem cache; CSV sem biblioteca; impressão do navegador |
 
 Sem violação; a tabela de complexidade fica vazia.
