@@ -63,7 +63,7 @@
 | Trocar QR code | – | `rotateTableQr` | Invalida o link antigo da mesa |
 | Acesso ao cardápio | – | `menu_access` | Aberto pela leitura do QR code; fecha 20 minutos depois (`MENU_ACCESS_MINUTES`) |
 | Cardápio | – | `menu` | Produtos vendidos, ativos, com preço e não esgotados |
-| Pedido | – | `order` | Da mesa, enviado pelo cliente. Não confundir com pedido de acerto nem com ponto de pedido |
+| Pedido | – | `order` | Da mesa, enviado pelo cliente (QR code) ou lançado pela equipe (015). Não confundir com pedido de acerto nem com ponto de pedido |
 | Linha do pedido | – | `order_line` | Produto, versão, quantidade, preço do produto (`basePrice`) e preço com adicionais (`unitPrice`) no envio. Sem observação livre (010). Só inserção |
 | Número do pedido | – | `order.number` + `businessDay` | Reinicia a cada dia do restaurante |
 | Situação do pedido | – | `OrderStatus`: `RECEIVED`, `PREPARING`, `READY`, `DELIVERED`, `CANCELLED` | Recebido, em preparo, pronto, entregue, cancelado |
@@ -115,6 +115,14 @@
 | Fica na gaveta | – | `kept` | Troco para o próximo turno; o resto é a retirada do fechamento |
 | Vendas | – | `salesReport` | Recebido por forma (soma dos turnos), vendas por produto e adicional. Feature 014 |
 | Permissões do caixa | – | `cash.operate`, `cash.close_any`, `cash.expected`, `cash.history`, `sales.report` | Ver spec 014, FR-008 |
+| Lançar pedido | – | `placeStaffOrder` | Pedido da mesa lançado pela equipe (garçom, caixa, gerente). Feature 015 |
+| Origem do pedido | – | `order_source` (`OrderSource`: `QR`, `STAFF`) | "QR code" ou "Equipe"; nunca muda depois do envio |
+| Lançado por | – | `placed_by` | Usuário que lançou; só na origem Equipe. O nome é lido na consulta |
+| Observação para a cozinha | – | `kitchen_note` | Texto livre até 140 por linha, só em pedido da equipe; não muda preço nem estoque |
+| Lançado errado (motivo) | – | `ENTERED_BY_MISTAKE` | Motivo de cancelamento do pedido lançado pela equipe |
+| Pedidos da mesa | – | `listTableOrders` | Pedidos da conta aberta, de todas as origens |
+| Carrinho do garçom | – | `garcom:v1:*` (`localStorage`) | Um por mesa no aparelho; não vai para o banco |
+| Permissões do lançamento | – | `order.place`, `order.cancel_own` | Gerente, caixa e garçom. Ver spec 015, FR-001 e FR-010 |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de
