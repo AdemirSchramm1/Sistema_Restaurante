@@ -39,6 +39,18 @@ sucesso ou de **Limpar**; toque duplo e reenvio depois de queda de rede caem no 
 mesmo pedido (FR-011), exatamente como `submitOrder` faz hoje (`findByClientRequest` antes,
 `isUniqueViolation` depois).
 
+Diferente do QR code, o garçom pode mudar o carrinho depois de uma falha. Se o primeiro envio
+tinha chegado, devolver o pedido antigo esconderia a mudança. Duas defesas:
+
+1. **No servidor** (FR-011): achado um pedido com o mesmo `clientRequestId`, a função pura
+   `sameRequest(stored, requested)` (`src/domain/ordering/staff-request.ts`) compara mesa e linhas
+   (produto, quantidade, adicionais e vezes, retiradas, observação, em ordem). Diferente →
+   `REQUEST_REUSED` e nada é gravado. Igual → devolve o pedido. Os preços não entram na
+   comparação: o pedido gravado já tem o preço conferido.
+2. **No aparelho** (FR-021): ver R22.
+
+Sem coluna de "impressão digital": as linhas gravadas já são a impressão.
+
 **Alternativas**: único global em `client_request_id` (funcionaria com uuid aleatório, mas muda o
 índice do QR code e o teste da 009); trava por mesa (serializa garçons diferentes sem motivo).
 
@@ -227,8 +239,9 @@ corte), testado nas três telas.
 
 **Decisão**: `OrderFilter` ganha `placedBy?: "QR" | <userId>`, aplicado no SQL. O resumo vem de uma
 consulta agregada nova `repos.orders.summaryBySource(filter)`:
-`group by source, placed_by` com `count(*)` e `sum(total)` dos não cancelados no período, mais o
-nome. As opções do filtro "Lançado por" são `QR code` + quem já lançou no período (mesma consulta).
+`group by source, placed_by` com `count(*)` e `sum(total)` dos não cancelados (`filter`), e a
+contagem dos cancelados por motivo, no período, mais o nome. O cancelado conta na origem de quem
+lançou, não de quem cancelou; o detalhe do pedido mostra os dois. As opções do filtro "Lançado por" são `QR code` + quem já lançou no período (mesma consulta).
 
 Invariante testada com os números da spec (SC-005): Σ total por origem = Σ total dos pedidos não
 cancelados do período, em `Decimal`, centavo por centavo.
@@ -300,4 +313,83 @@ normalização da busca tira também pontuação: `normalizeSearch` em `src/doma
 | Telas (FR-013, SC-006) | tela, `staff-ordering.spec.ts` |
 | Roteiro do quickstart (US1 a US5) | ponta a ponta, `tests/e2e/staff-ordering.spec.ts` |
 
+| Mesmo envio com outro conteúdo é recusado (FR-011) | unidade, `staff-request.test.ts`; integração |
+| Pedir de novo: preço de hoje, o que saiu fica de fora (FR-019) | unidade, `reorder.test.ts` |
+| Aviso de pedido parecido: janela de 5 min, outra pessoa, cancelado não conta (FR-020) | unidade, `similar-orders.test.ts` |
+| Carrinho travado no envio incerto; sessão vencida mantém (FR-021, FR-022) | componente, `send-state.test.ts`, `cart-storage.test.ts`; ponta a ponta com a rede cortada pelo Playwright (`route.abort` depois do envio) |
+| Toques (SC-007, SC-009) | ponta a ponta, contando os cliques do roteiro |
+
 Commit `test(015): … (vermelho)` antes de cada `feat(015)`, como na 013 e na 014.
+
+## R20 Pedir de novo
+
+**Decisão**: `listTableOrders` devolve, em cada linha, as escolhas em forma de pedido
+(`recipeId`, `quantity`, `addons: { addonId, times }`, `removals`, `kitchenNote`), lidas das
+tabelas `order_line_addons` e `order_line_removals` que a carga já consulta (sem ida a mais). A
+função pura `reorderLines(lines, menu)` (`src/domain/ordering/reorder.ts`) monta as linhas do
+carrinho com o **preço do cardápio de agora** e devolve à parte o que não entrou (produto esgotado,
+inativo ou sem preço; adicional que saiu; retirada que saiu) com o motivo. As escolhas que ainda
+valem entram; a linha só fica de fora se o produto saiu. Roda no aparelho, sobre o cardápio já
+carregado na página da mesa; o envio passa de novo por `checkOrder`, então um preço que mudou
+entre a montagem e o envio cai no `PRICE_CHANGED` de sempre.
+
+**Alternativas**: um caso de uso "repetir pedido" que grava direto (pula a conferência do garçom e
+o aviso de pedido parecido).
+
+## R21 Aviso de pedido parecido
+
+**Decisão**: função pura `similarRecentOrders(cart, tableOrders, userId, now)`
+(`src/domain/ordering/similar-orders.ts`): pedidos da conta aberta enviados há até 5 minutos, não
+cancelados, que não são do próprio usuário, e que têm algum `recipeId` do carrinho. Devolve
+`{ who ("Maria" ou "QR code"), products ("2 Chope"), minutesAgo }[]`. Os dados são os da aba
+**Pedidos da mesa**, que já está na página e atualiza a cada 10 s; antes de abrir o resumo, a tela
+faz um `router.refresh()` para não decidir com dados de 10 s atrás. A janela de 5 min e "não
+bloqueia" são constantes do domínio (`SIMILAR_WINDOW_MINUTES = 5`), testadas.
+
+**Alternativas**: conferir no servidor dentro do `placeStaffOrder` e recusar (vira bloqueio, e a
+mesa que pede "mais duas" de verdade teria de passar por um erro); comparar também adicionais (o
+aviso é para o garçom olhar, produto basta).
+
+## R22 Envio sem resposta
+
+**Decisão**: o envio tem quatro estados no aparelho, numa máquina pura
+`src/components/staff-ordering/send-state.ts`, testada sem React:
+
+| Estado | Entrada | Carrinho | Tela |
+|---|---|---|---|
+| `idle` | – | livre | **Enviar pedido** |
+| `sending` | toque em Confirmar | travado | "Enviando…" |
+| `uncertain` | erro de rede ou tempo esgotado (15 s) depois de sair | travado, guardado com `pendingSince` | "Não deu para saber se o pedido chegou." + **Enviar de novo** + **Ver Pedidos da mesa** |
+| `sent` | resposta `ok` | esvaziado, novo `clientRequestId` | "Pedido 5 enviado…" |
+
+Do `uncertain` só sai por resposta do servidor (reenvio com o mesmo id e o mesmo conteúdo, que
+volta `ok` com o pedido) ou quando a aba **Pedidos da mesa** mostra um pedido deste usuário criado
+depois de `pendingSince` com o mesmo conteúdo (`sameRequest` no aparelho): aí o carrinho esvazia
+com "O pedido 5 tinha chegado." Erro de negócio (preço, esgotado, mesa inativa) volta ao `idle`
+com a correção de sempre, porque o servidor respondeu e nada foi gravado. O estado `uncertain`
+fica no `localStorage` junto com o carrinho: fechar a aba não destrava.
+
+## R23 Sessão vencida
+
+**Decisão**: a chave do carrinho tem o `userId`, não a sessão (R10). A sessão vencer não apaga
+nada; quem apaga é **Sair** (no `onSubmit` do formulário, antes da ação), **Limpar** e o envio. A
+ação de envio sem sessão devolve `UNAUTHENTICATED` (já existe em `_session.ts`, "Sua sessão
+expirou. Entre novamente."), com o link para entrar. Ao entrar, o garçom cai em **Lançar pedido**
+(R15), onde a grade mostra "Carrinho: N itens" na mesa; tocar nela devolve o carrinho. Não precisa
+de endereço de volta no `/entrar`. Entrar com **outro** usuário apaga os carrinhos do anterior
+(R10).
+
+## R24 Ver conta
+
+**Decisão**: o garçom já tem `tab.read` (011), que abre `/caixa/[id]` e a impressão. **Ver conta**
+é um link para lá; o voltar do navegador devolve à mesa, e a página da conta ganha o link "Voltar à
+Mesa 12" para quem tem `order.place`. A página da conta já esconde **Lançar pagamento** sem
+`tab.pay`; entra um teste com o garçom. Nenhuma mudança de permissão.
+
+## R25 Feito para o polegar
+
+**Decisão**: a página da mesa tem duas barras fixas: no topo, "Mesa 12" e **Trocar mesa**; no pé,
+"Carrinho · 3 itens · R$ 98,00" (só aparece com item). As duas usam `position: sticky` dentro do
+contêiner da página (não `fixed`), para a letra em 200% e o teclado do celular não as jogarem por
+cima do conteúdo; `expectStickyAfterScroll` e `expectReadableAt200` da matriz cobrem. Na lista, o
+produto já no carrinho mostra "2" entre "−" e "+", com 44 px cada.

@@ -11,6 +11,12 @@ code (`checkOrder`), entra na mesma conta (011) e na mesma cozinha, e guarda **o
 lançou**. Cozinha, Garçom, conta e consulta mostram de onde veio; a consulta filtra e resume por
 origem. O garçom cancela só o que lançou e só antes do preparo.
 
+Revisão para o salão (pedido do dono, 2026-11-15): **Pedir de novo** ("mais uma rodada" em 3
+toques), **aviso de pedido parecido** quando outra pessoa ou o QR code lançou o mesmo produto na
+mesa há até 5 minutos, **carrinho travado** quando o envio fica sem resposta (o reenvio nunca
+duplica nem engole uma mudança), carrinho que sobrevive à sessão vencida, **Ver conta**, barra do
+carrinho no pé da tela e cancelados por pessoa no resumo do gerente.
+
 Nenhuma tabela nova: `orders` ganha `source` e `placed_by` (com `menu_access_id` opcional e um
 check que amarra os três), `order_lines` ganha `kitchen_note`, e o motivo de cancelamento ganha
 "Lançado errado". Um caso de uso novo (`placeStaffOrder`) divide com o `submitOrder` da 009 o
@@ -25,7 +31,7 @@ ajudante que grava pedido e conta. Nenhuma dependência nova.
 | Banco | PostgreSQL 17 (Neon); migração `0015_staff_orders` (a `0014` é da 014, caixa do dia, ainda não implementada; ver Riscos) |
 | Testes | Vitest (unidade, componentes e integração com PostgreSQL em container), Playwright (ponta a ponta e matriz de telas da 013) |
 | Plataforma | Vercel; garçom no próprio celular ou num tablet do restaurante; caixa no computador |
-| Desempenho | Lançar 3 produtos em < 45 s (SC-001); pedido na cozinha em ≤ 10 s (SC-004, mesmo `AutoRefresh`); grade e cardápio da mesa sem crescer em idas ao banco com o número de mesas ou produtos (regra da 012) |
+| Desempenho | Lançar 3 produtos em < 45 s (SC-001); 2 produtos simples em até 6 toques (SC-007); repetir um pedido em até 3 toques (SC-009); pedido na cozinha em ≤ 10 s (SC-004, mesmo `AutoRefresh`); grade e cardápio da mesa sem crescer em idas ao banco com o número de mesas ou produtos (regra da 012) |
 | Restrições | Dinheiro em decimal exato; pedido, linhas e eventos só inserção; origem e quem lançou nunca mudam; uma conta aberta por mesa com qualquer mistura de origens; nada cruza restaurantes; cardápio do cliente não muda |
 | Escala | 1 a 10 garçons por restaurante; até ~60 mesas; dezenas de pedidos por hora no pico |
 
@@ -69,6 +75,14 @@ Detalhes e alternativas em [research.md](research.md).
   mais; filtro e resumo por origem na consulta; `OPENED` com `user_id`.
 - **R15 a R18 Telas**: menu e tela inicial do garçom, endereços, matriz de telas com a coluna
   Garçom, busca sem acento no aparelho.
+- **R20 Pedir de novo**: escolhas gravadas viram linhas do carrinho com o preço de hoje; o que saiu
+  fica de fora com o motivo; o envio passa pela conferência de sempre.
+- **R21 Aviso de pedido parecido**: função pura sobre os Pedidos da mesa, janela de 5 min, não
+  bloqueia.
+- **R2 + R22 Envio sem resposta**: o servidor recusa o mesmo envio com outro conteúdo
+  (`sameRequest`, `REQUEST_REUSED`); o aparelho trava o carrinho no estado `uncertain` até saber.
+- **R23 a R25**: sessão vencida não apaga o carrinho; Ver conta usa a tela da 011; barras fixas e
+  "− 2 +" na lista.
 
 ## Modelo de dados (migração `0015_staff_orders`)
 
@@ -89,8 +103,8 @@ tab_events            (sem mudança) OPENED com user_id no pedido da equipe
 
 Contrato completo em [contracts/use-cases.md](contracts/use-cases.md).
 
-- Novos: `listTablesForStaff`, `getStaffMenu`, `placeStaffOrder`, `listTableOrders`; ações em
-  `src/actions/staff-orders.ts`.
+- Novos: `listTablesForStaff`, `getStaffMenu`, `placeStaffOrder`, `listTableOrders` (com as
+  escolhas para Pedir de novo); ações em `src/actions/staff-orders.ts`.
 - Mudam: `submitOrder` (grava `QR` pelo `saveOrder`), `cancelOrder` (`order.cancel_own`),
   `listKitchenOrders`, `listReadyOrders` (Só os meus), `listOrders` (filtro e resumo), `getOrder`,
   `getTab`, `listTabs` (origem e observação).
@@ -99,7 +113,8 @@ Contrato completo em [contracts/use-cases.md](contracts/use-cases.md).
 
 ```text
 src/domain/ordering/          order.ts (+ ORDER_SOURCES, ENTERED_BY_MISTAKE, cancelScope),
-                              kitchen-note.ts (novo), checkout.ts (kitchenNote na linha), *.test.ts
+                              kitchen-note.ts, staff-request.ts, reorder.ts, similar-orders.ts
+                              (novos), checkout.ts (kitchenNote na linha), *.test.ts
 src/domain/menu/              staff-menu.ts (novo), search.ts (novo), *.test.ts
 src/domain/access/            permissions.ts (+ order.place, order.cancel_own)
 src/application/ordering/     staff-orders.ts (novo: listTablesForStaff, getStaffMenu,
@@ -113,7 +128,9 @@ src/infra/db/                 schema/ordering.ts, migrations/0015_staff_orders.s
 src/actions/                  staff-orders.ts (novo), kitchen.ts (revalidar a mesa)
 src/components/staff-ordering/ table-grid.tsx, table-menu.tsx (modos Fotos e Lista, busca),
                               product-row.tsx, kitchen-note-field.tsx, staff-cart.tsx,
-                              confirm-order.tsx, table-orders.tsx, cart-storage.ts, *.test.tsx
+                              confirm-order.tsx (aviso de pedido parecido), table-orders.tsx
+                              (Pedir de novo, Ver conta), cart-bar.tsx, send-state.ts,
+                              cart-storage.ts, *.test.tsx
 src/components/ordering/      kitchen-board.tsx, ready-list.tsx (Só os meus), line-changes.tsx
                               (+ KitchenNote), cart-state.ts (kitchenNote na chave), dish-options.tsx
                               (campo da observação só quando pedido)
@@ -125,11 +142,13 @@ app/(app)/pedidos/            page.tsx (filtro e resumo), [id]/page.tsx, garcom/
 tests/integration/ordering/   staff-orders.test.ts (envio, origem, check do banco, sem chave e sem
                               limite, mesa inativa, toque duplo, conta compartilhada em paralelo,
                               conta fechada no meio, cancelar o próprio × começar preparo, outro
-                              garçom, auditoria, isolamento, resumo por origem)
+                              garçom, mesmo envio com outro conteúdo, auditoria, isolamento,
+                              resumo por origem com cancelados)
 tests/integration/performance/ indexes.test.ts (+ grade, Só os meus, filtro Lançado por)
 tests/screens/                matrix.ts (coluna Garçom), fixtures.ts (asWaiter),
                               staff-ordering.spec.ts (novo)
-tests/e2e/                    staff-ordering.spec.ts (roteiro do quickstart), accessibility
+tests/e2e/                    staff-ordering.spec.ts (roteiro do quickstart, rede cortada depois
+                              do envio, contagem de toques), accessibility
                               (Lançar pedido, mesa)
 ```
 
@@ -142,7 +161,8 @@ tests/e2e/                    staff-ordering.spec.ts (roteiro do quickstart), ac
    verdes.
 3. US1 Lançar pedido (grade, cardápio, tela do prato, carrinho, envio) → US2 Quem lançou (cozinha,
    garçom, conta, consulta com filtro e resumo) → US3 Pedidos da mesa → US4 Cancelar o próprio →
-   US5 Lista, busca, carrinho no aparelho e matriz de telas.
+   US5 Lista, busca, carrinho no aparelho, envio sem resposta e matriz de telas → US6 Pedir de
+   novo e aviso de pedido parecido.
 4. Docs (produto, sistema, permissões, testes de tela, desempenho) e e2e com axe.
 
 ## Riscos
@@ -161,6 +181,14 @@ tests/e2e/                    staff-ordering.spec.ts (roteiro do quickstart), ac
   o gerente vê tudo na consulta filtrando por "Lançado por" e situação Cancelado.
 - **Peso da tela no celular**: o modo Lista não carrega fotos; o modo Fotos usa as variantes da 013
   com carregamento tardio. `weight.spec.ts` ganha a página da mesa.
+
+- **Aviso de pedido parecido com dados velhos**: a lista da mesa tem até 10 s; a tela atualiza
+  antes de abrir o resumo. Se mesmo assim dois garçons confirmarem no mesmo segundo, os dois
+  pedidos entram (o aviso não bloqueia) e o gerente vê na consulta; o cancelamento "Lançado
+  errado" resolve enquanto a cozinha não começou.
+- **Carrinho travado sem saída**: se o servidor ficar fora do ar, o garçom fica com o carrinho
+  travado; **Ver Pedidos da mesa** e o reenvio são as saídas, e o gerente pode lançar pelo próprio
+  aparelho. Não há "destravar à força", de propósito: é o que impede o pedido em dobro.
 
 ## Complexity Tracking
 

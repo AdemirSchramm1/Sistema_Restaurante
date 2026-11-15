@@ -33,9 +33,16 @@ com um restaurante). Em sessão na nuvem, ligar o Docker antes do `pnpm db:up`.
 | 15 | Chef: Começar preparo no pedido 1; João abre Pedidos da mesa | Pedido 1 sem **Cancelar**; texto "A cozinha já começou. Peça ao chef ou ao gerente para cancelar." |
 | 16 | Chef: Pronto no pedido 1; João: Garçom → **Só os meus** | Só o pedido 1; toca **Entregue** |
 | 17 | Ana fecha a conta da Mesa 12 enquanto João monta outro X-Burger nela; João envia | Pedido aceito, "A conta anterior desta mesa foi fechada. Este pedido abriu uma conta nova." |
-| 18 | Gerente: Pedidos → hoje, "Lançado por: João" | Só os pedidos de João; resumo "QR code: 1 pedido, R$ 9,00 · João: N pedidos, R$ …"; a soma bate com o total do dia |
+| 18 | Gerente: Pedidos → hoje, "Lançado por: João" | Só os pedidos de João; resumo "QR code: 1 pedido, R$ 9,00 · João: N pedidos, R$ …, 1 cancelado (Lançado errado)"; a soma bate com o total do dia |
 | 19 | João toca **Sair** com um carrinho montado; Maria entra no mesmo aparelho | Grade sem "Carrinho" em nenhuma mesa |
 | 20 | Chef abre `/pedidos/lancar` pelo endereço | "Sem acesso" e a tentativa na auditoria |
+| 21 | João: Mesa 12 → Pedidos da mesa → **Pedir de novo** no pedido 1 | Carrinho com 2 X-Burger + 2 Fatia de queijo, sem cebola, "mal passado", preço de hoje |
+| 22 | Chef marca X-Burger "Esgotado hoje"; João toca **Pedir de novo** no pedido 1 | Nada entra; "X-Burger está esgotado hoje e não entrou." (chef desmarca depois) |
+| 23 | Maria lança 1 Suco na Mesa 12; João põe 1 Suco no carrinho e toca **Enviar pedido** | Aviso "Maria lançou 1 Suco nesta mesa há 0 min."; botão **Lançar mesmo assim** |
+| 24 | João corta a rede do celular depois de tocar **Confirmar** (o pedido chega ao servidor) | "Não deu para saber se o pedido chegou."; "+", "−" e **Limpar** desligados |
+| 25 | Rede volta; **Enviar de novo** | O mesmo número de pedido, um só na cozinha; carrinho vazio |
+| 26 | Sessão de João vence com carrinho na Mesa 4; João entra de novo | Grade com "Carrinho: N itens" na Mesa 4 |
+| 27 | João: Mesa 12 → Pedidos da mesa → **Ver conta** | Conta da 011 com a impressão; sem **Lançar pagamento** |
 
 ## Testes automatizados
 

@@ -1,6 +1,6 @@
 # Feature 015 — Garçom lança o pedido da mesa pelo cardápio
 
-**Branch**: `claude/project-thread-tzn6wk` · **Criada**: 2026-11-15 · **Status**: em revisão
+**Branch**: `claude/project-thread-tzn6wk` · **Criada**: 2026-11-15 · **Status**: em revisão (revisada em 2026-11-15 para o uso real do salão)
 
 **Pedido do dono** (2026-11-15): "essa parte é importantíssima pois ela que cuida dos pedidos o
 garçom faz o pedido, mas devemos trabalhar assim também o garçom tem um acesso especifico dentro do
@@ -46,6 +46,12 @@ O dono pediu para verificar como o cardápio atende o garçom. O cardápio do cl
 | Carrinho | Um por celular | O garçom atende várias mesas | Um carrinho por mesa, guardado no aparelho até enviar ou limpar |
 | Preço que mudou, produto que saiu, sem pedido em dobro | Conferidos no envio | Sim | Mesmas regras |
 | Matriz de 9 telas, claro e escuro (013, US6) | Testes de tela do cliente | O garçom usa celular e, às vezes, tablet | A tela do garçom entra na mesma matriz |
+| Pedir mais do mesmo ("mais duas cervejas") | O cliente monta de novo | É o pedido mais comum do salão | **Pedir de novo** em cada linha e em cada pedido de **Pedidos da mesa** |
+| Mesmo produto tocado várias vezes | Soma na mesma linha do carrinho | Na lista, o garçom precisa ver quanto já pôs | A linha da lista mostra "2 no carrinho" e ganha o "−" |
+| Dois atendentes na mesma mesa | Cada celular do cliente vê só os seus pedidos | Dois garçons (ou garçom e QR code) lançam a mesma coisa | **Aviso de pedido parecido** antes de confirmar |
+| Botão de envio sem resposta | Mensagem de erro; reenviar não duplica | O garçom muda o carrinho e reenvia: o segundo envio poderia sumir | Carrinho **travado** até saber se o pedido chegou |
+| Sessão do celular vence no meio do turno | Não se aplica (cliente não entra) | O garçom fica logado o turno inteiro | Entrar de novo e o carrinho continua lá |
+| Conta da mesa | Cliente não vê a conta | O cliente pergunta "quanto deu?" | **Ver conta** a partir dos Pedidos da mesa, com a impressão da 011 |
 
 ## Histórias
 
@@ -71,7 +77,9 @@ atender quem não pede pelo QR code.
 3. O garçom põe produtos no carrinho como o cliente: tela do prato com adicionais e retiradas por
    botão, mais o campo **Observação para a cozinha** (até 140 letras, só para a equipe),
    quantidade e os mesmos limites (até 30 linhas, até 20 de cada, adicionais até o máximo do
-   produto).
+   produto). Produto, escolhas e observação iguais somam na mesma linha; observação diferente vira
+   outra linha ("X-Burger mal passado" e "X-Burger ao ponto"). Uma barra fixa no pé da tela mostra
+   "Carrinho · 3 itens · R$ 98,00" o tempo todo, ao alcance do polegar, e abre o carrinho.
 4. **Enviar pedido** mostra o resumo com a mesa em destaque ("Conferir: Mesa 12") e o total.
    **Confirmar** envia. A resposta é "Pedido 5 enviado para a cozinha", com a mesa e o total, e o
    carrinho daquela mesa esvazia.
@@ -109,7 +117,9 @@ filtrar por "Lançado por: João" e ver só os dois; abrir um deles e ver "Lanç
    lançou pedido) e a coluna "Lançado por". O detalhe do pedido mostra "Lançado por João às 20:14"
    no histórico de situações.
 6. No fim da consulta, o resumo do período mostra, por origem, quantos pedidos não cancelados e o
-   total deles ("QR code: 42 pedidos, R$ 2.310,00 · João: 18 pedidos, R$ 1.020,00").
+   total deles, e quantos foram cancelados ("QR code: 42 pedidos, R$ 2.310,00, 1 cancelado ·
+   João: 18 pedidos, R$ 1.020,00, 2 cancelados (2 Lançado errado)"). Garçom que cancela muito
+   "Lançado errado" aparece aqui para o gerente.
 7. O nome mostrado é o nome do usuário **no momento da consulta**; o pedido guarda o usuário, não
    uma cópia do nome. Usuário removido da equipe continua aparecendo pelo nome nos pedidos antigos.
 
@@ -130,6 +140,10 @@ da conta até agora.
 3. Atualiza sozinho a cada 10 segundos, como o cardápio do cliente.
 4. Pedido pronto aparece com **Entregue** (o garçom marca dali mesmo, como na tela Garçom).
 5. Mesa sem conta aberta mostra "Nenhum pedido aberto nesta mesa."
+6. **Ver conta** abre a conta da mesa como o caixa vê (011), com a impressão da conta para mostrar
+   ao cliente. O garçom não recebe pagamento: **Lançar pagamento** continua só com quem tem a
+   permissão do caixa.
+7. A observação para a cozinha aparece nas linhas, igual na cozinha.
 
 ### US4 — Corrigir pedido lançado errado (P2)
 
@@ -178,8 +192,39 @@ pelo menos 44 px.
 5. Vale a matriz de telas da 013 (9 tamanhos, claro e escuro, dois motores de navegador): nada rola
    para o lado, nenhum texto cortado, botões de pelo menos 44 px, letra em 200% legível, girar o
    aparelho não perde o carrinho.
-6. Sem internet, **Enviar pedido** avisa "Sem conexão. O pedido não foi enviado." e o carrinho
-   continua. Reenviar depois não duplica.
+6. Sem internet antes de enviar, **Enviar pedido** avisa "Sem conexão. O pedido não foi enviado."
+   e o carrinho continua.
+7. Se o envio saiu e a resposta não voltou (rede caiu no meio), a tela diz "Não deu para saber se
+   o pedido chegou. Toque em **Enviar de novo**: ele não é lançado duas vezes." O carrinho fica
+   **travado** (não dá para mudar nem limpar) até o garçom tocar **Enviar de novo** e receber a
+   resposta, ou abrir **Pedidos da mesa** e ver que o pedido chegou. Assim uma mudança feita depois
+   nunca se perde dentro do pedido que já tinha chegado.
+8. Se a sessão vence no meio do turno, o envio leva para a tela de entrar; entrando de novo com o
+   mesmo usuário, o carrinho de cada mesa está lá.
+
+### US6 — Pedir de novo e não lançar em dobro (P2)
+
+Como garçom, quero repetir o que a mesa já pediu com um toque e ser avisado quando alguém acabou
+de lançar a mesma coisa, porque "mais uma rodada" é o pedido mais comum e dois atendentes na mesma
+mesa é o erro mais comum.
+
+**Teste independente**: na Mesa 12 com o pedido 5 (2 Chope e 1 X-Burger sem cebola), abrir Pedidos
+da mesa, tocar **Pedir de novo** no pedido 5 e ver as três escolhas no carrinho com o preço de
+hoje; Maria lança 2 Chope na Mesa 12; João toca **Enviar pedido** e vê o aviso "Maria lançou 2
+Chope nesta mesa há 1 min. Lançar mesmo assim?".
+
+**Cenários**
+
+1. Cada linha e cada pedido de **Pedidos da mesa** (de qualquer origem, inclusive cancelado) tem
+   **Pedir de novo**, que põe no carrinho da mesa o mesmo produto, quantidade, adicionais,
+   retiradas e observação, com o preço de **hoje**.
+2. O que não dá mais para pedir (esgotado, inativo, sem preço, adicional que saiu) não entra; a tela
+   diz o que ficou de fora ("Purê está esgotado hoje e não entrou.").
+3. Ao tocar **Enviar pedido**, se nos últimos 5 minutos outra pessoa ou o QR code lançou nesta mesa
+   algum produto que está no carrinho, o resumo mostra o aviso com quem, o quê e há quanto tempo,
+   e **Confirmar** vira **Lançar mesmo assim**. Os pedidos do próprio garçom não avisam (ele acabou
+   de lançar e sabe), nem os cancelados.
+4. O aviso não bloqueia: só pede uma confirmação a mais.
 
 ## Casos-limite
 
@@ -201,6 +246,17 @@ pelo menos 44 px.
   tentativa negada.
 - A mesa tem 10 pedidos pelo QR code no mesmo acesso: o cliente vê "Chame um garçom"; o garçom
   lança normalmente.
+- O mesmo envio chega de novo com outra mesa ou outro conteúdo (carrinho mudado depois de uma falha,
+  aparelho com defeito): o sistema não devolve o pedido antigo como se fosse este; recusa com "Este
+  envio já foi usado para outro pedido. Confira em Pedidos da mesa." e nada é gravado.
+- A sessão do garçom vence com carrinho montado: entra de novo e o carrinho continua (só **Sair**
+  apaga).
+- O gerente cancela um pedido de João: o pedido mostra os dois nomes, "Lançado por João" e
+  "Cancelado por Gerente"; o resumo conta o cancelado na origem João.
+- Mesa trocada depois que a cozinha começou: o garçom não cancela; o chef ou o gerente cancela
+  (com a pergunta dos ingredientes da 011) e o garçom lança de novo na mesa certa com **Pedir de
+  novo**. Transferir pedido entre mesas continua fora.
+- Produto pedido pelo cliente no QR code e o mesmo produto no carrinho do garçom: avisa (US6-3).
 
 ## Requisitos
 
@@ -223,13 +279,14 @@ pelo menos 44 px.
   usuário.
 - **FR-007** A abertura de conta por pedido da equipe registra no histórico da conta quem abriu.
 - **FR-008** Cozinha, Garçom (com "Só os meus"), conta da mesa, Contas fechadas e consulta Pedidos
-  mostram a origem; a consulta filtra por origem e por quem lançou e resume quantidade e total por
-  origem no período (pedidos não cancelados).
+  mostram a origem; a consulta filtra por origem e por quem lançou e resume, por origem no
+  período, quantidade e total dos não cancelados e quantos foram cancelados, por motivo.
 - **FR-009** **Pedidos da mesa**: os pedidos da conta aberta, de todas as origens, com situação e
   total da conta, atualizando a cada 10 segundos; **Entregue** nos prontos.
 - **FR-010** Cancelamento pelo garçom: só pedido que ele lançou, só em Recebido, com motivo da lista
   (novo motivo **Lançado errado**). Os demais cancelamentos seguem a 009 e a 011.
-- **FR-011** Sem pedido em dobro: o mesmo envio (toque duplo, reenvio) devolve o mesmo pedido.
+- **FR-011** Sem pedido em dobro: o mesmo envio (toque duplo, reenvio) devolve o mesmo pedido. O
+  mesmo envio com outra mesa ou outro conteúdo é recusado, sem gravar nada.
 - **FR-012** Carrinho por mesa guardado no aparelho, apagado ao enviar, ao tocar **Limpar** e ao
   sair do usuário.
 - **FR-013** A tela do garçom passa na matriz de telas da 013 (9 tamanhos, claro e escuro, dois
@@ -246,6 +303,18 @@ pelo menos 44 px.
   **Observação para a cozinha** (até 140 letras, uma por linha do pedido). Aparece em destaque na
   cozinha, no Garçom, na conta e na consulta; não muda preço nem estoque; o cardápio do cliente
   continua sem campo de texto.
+- **FR-019** **Pedir de novo** numa linha ou num pedido da mesa põe as mesmas escolhas no carrinho
+  com o preço de hoje e diz o que não entrou por não estar mais disponível.
+- **FR-020** **Aviso de pedido parecido**: antes de confirmar, avisa se outra pessoa da equipe ou o
+  QR code lançou nesta mesa, nos últimos 5 minutos, um produto que está no carrinho; não bloqueia.
+- **FR-021** Envio sem resposta trava o carrinho até a confirmação de que chegou ou não; reenviar
+  usa o mesmo envio (FR-011).
+- **FR-022** O carrinho sobrevive à sessão vencida e ao novo login do mesmo usuário; só **Sair**,
+  **Limpar** e o envio apagam.
+- **FR-023** **Ver conta** em Pedidos da mesa mostra a conta e a impressão da 011, sem receber
+  pagamento.
+- **FR-024** A tela do garçom mostra sempre, ao alcance do polegar, a mesa e o carrinho (itens e
+  total) e, na lista, quanto de cada produto já está no carrinho, com "+" e "−".
 
 ## Entidades
 
@@ -271,6 +340,13 @@ pelo menos 44 px.
 - **SC-005** Na consulta de um dia, a soma dos totais por origem é igual ao total dos pedidos não
   cancelados do dia, centavo por centavo.
 - **SC-006** A tela do garçom passa em todos os tamanhos e modos da matriz de telas.
+- **SC-007** Da grade de mesas até "Pedido enviado", lançar 2 produtos sem escolhas leva no máximo
+  6 toques: a mesa, "+", "+", o carrinho, **Enviar pedido** e **Confirmar** (buscar e rolar à
+  parte).
+- **SC-008** Em 100% dos testes de rede caindo depois do envio, reenviar não cria um segundo
+  pedido e nenhuma mudança do carrinho se perde.
+- **SC-009** Repetir um pedido de 3 linhas com escolhas leva no máximo 3 toques (Pedir de novo,
+  Enviar, Confirmar).
 
 ## Premissas
 
@@ -289,7 +365,17 @@ pelo menos 44 px.
 
 Entrar por PIN em aparelho compartilhado, comissão e ranking de garçons, transferir pedido entre
 mesas e juntar mesas, pedido para viagem e delivery, desconto e cortesia, editar pedido enviado,
-dividir pedido por pessoa da mesa, impressão de comanda na cozinha, funcionar sem internet.
+impressão de comanda na cozinha, funcionar sem internet (fila de envio no aparelho), receber
+pagamento pelo garçom.
+
+Ficam para uma próxima feature, porque mudam a cozinha ou a conta e não só o lançamento:
+
+- **Lugar na mesa** (cadeira 1, 2, 3 em cada item) e **conta por pessoa**: hoje a conta da 011 só
+  divide em partes iguais. Enquanto isso, o garçom pode escrever "cadeira 2" na observação.
+- **Tempos do prato** (entrada agora, principal "segurar até eu chamar"): exige uma situação nova
+  na cozinha.
+- **Chamar o garçom pelo celular do cliente** e mesas por garçom (praças).
+- **Código numérico do produto** para lançar digitando o número.
 
 ## Decisões
 
@@ -301,3 +387,4 @@ dividir pedido por pessoa da mesa, impressão de comanda na cozinha, funcionar s
 | 2026-11-15 | Garçom cancela? | Só o que ele lançou e só antes do preparo, com o motivo "Lançado errado" (premissa) |
 | 2026-11-15 | Esgotado aparece para o garçom? | Sim, apagado e com selo, para ele avisar o cliente (premissa) |
 | 2026-11-15 | Observação livre no pedido do garçom? | **Sim, só para a equipe** (decisão do dono). Até 140 letras por linha ("mal passado"), em destaque na cozinha, sem mudar preço nem estoque. O cliente continua só com botões, como decidido na 010 |
+| 2026-11-15 | Revisão para o uso real do salão (pedido do dono: "melhora muito") | Entram Pedir de novo (US6), aviso de pedido parecido, carrinho travado no envio sem resposta, carrinho que sobrevive à sessão vencida, Ver conta, barra do carrinho no pé da tela e contagem de cancelados por pessoa. Lugar na mesa, tempos do prato e chamar garçom ficam para depois (premissa) |

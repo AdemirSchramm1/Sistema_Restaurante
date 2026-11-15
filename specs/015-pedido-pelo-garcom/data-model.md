@@ -66,6 +66,9 @@ Sem mudança de estrutura. O `OPENED` gravado por pedido da equipe leva `user_id
 | `src/domain/ordering/checkout.ts` | `RequestedLine` e `PricedLine` ganham `kitchenNote: string \| null` (o cliente sempre manda `null`) |
 | `src/domain/menu/staff-menu.ts` (novo) | `buildStaffMenu`, `StaffMenuRow = CustomerMenuRow & { soldOut: boolean }` |
 | `src/domain/menu/search.ts` (novo) | `normalizeSearch`, `matchesSearch` |
+| `src/domain/ordering/staff-request.ts` (novo) | `sameRequest(stored, requested)` (R2) |
+| `src/domain/ordering/reorder.ts` (novo) | `reorderLines(lines, menu)` → `{ lines, leftOut }` (R20) |
+| `src/domain/ordering/similar-orders.ts` (novo) | `SIMILAR_WINDOW_MINUTES = 5`, `similarRecentOrders` (R21) |
 | `src/application/ordering/ports.ts` | `OrderRecord` + `source`, `placedById`, `placedByName`; `OrderLineView` + `kitchenNote`; `NewOrder` vira união `{ source: "QR", menuAccessId } \| { source: "STAFF", placedBy }`; `OrderFilter` + `placedBy?: "QR" \| string`; `OrderRepo` + `findStaffByClientRequest(placedBy, clientRequestId)`, `summaryBySource(filter)`, `staffTables()` |
 | `src/infra/db/schema/ordering.ts` | `orderSourceEnum`, colunas e índices acima |
 
@@ -79,8 +82,9 @@ Não é banco. `localStorage`, chave `garcom:v1:<restaurantId>:<userId>:<tableId
 | `clientRequestId` | uuid do envio em curso; troca depois de enviar ou limpar |
 | `tabIdSeen` | conta aberta quando a mesa foi aberta (R11) |
 | `savedAt` | descartado com mais de 12 horas |
+| `send` | `idle` ou `{ state: "uncertain", pendingSince }` (R22); com `uncertain` o carrinho não muda nem limpa |
 
-Apagado ao enviar com sucesso, ao tocar **Limpar** e ao **Sair**; chaves de outro usuário ou
+Apagado ao enviar com sucesso, ao tocar **Limpar** e ao **Sair** (a sessão vencer não apaga); chaves de outro usuário ou
 restaurante são apagadas ao abrir **Lançar pedido**.
 
 ## Estados do pedido

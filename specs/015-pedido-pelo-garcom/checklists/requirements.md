@@ -39,3 +39,8 @@
 - O dono decidiu (2026-11-15): observação livre só para a equipe (FR-018); o cliente continua só
   com botões (010).
 - Sem conflito com a 014: ela não muda o envio do pedido nem a abertura da conta.
+- Revisão de 2026-11-15 (pedido do dono de melhorar a spec e o plano): entram US6 (Pedir de novo e
+  aviso de pedido parecido) e FR-019 a FR-024 (carrinho travado no envio sem resposta, carrinho que
+  sobrevive à sessão vencida, Ver conta, barra do carrinho), SC-007 a SC-009 (toques e reenvio) e os
+  cancelados por pessoa no resumo. Lugar na mesa, tempos do prato e chamar garçom ficam para uma
+  próxima feature, listados em Fora do escopo.
