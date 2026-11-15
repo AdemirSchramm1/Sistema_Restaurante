@@ -13,7 +13,7 @@
 
 ## Completude dos requisitos
 
-- [ ] Nenhuma decisão pendente: a observação livre do garçom (FR-018) espera a resposta do dono
+- [x] Nenhuma decisão pendente (observação do garçom decidida pelo dono em 2026-11-15)
 - [x] Requisitos testáveis e sem ambiguidade
 - [x] Critérios de sucesso mensuráveis (tempo, 100% com origem, soma centavo por centavo)
 - [x] Critérios de sucesso sem tecnologia
@@ -36,6 +36,6 @@
 - Cinco pontos foram decididos por premissa e estão na tabela de Decisões (entrada com usuário
   próprio, gerente e caixa também lançam, garçom cancela só o próprio pedido antes do preparo,
   esgotado aparece apagado, balcão é uma mesa). O `speckit clarify` pode rever qualquer um.
-- Uma decisão está pendente com o dono (observação livre para a equipe, FR-018), porque muda a
-  decisão "só botões" da 010.
+- O dono decidiu (2026-11-15): observação livre só para a equipe (FR-018); o cliente continua só
+  com botões (010).
 - Sem conflito com a 014: ela não muda o envio do pedido nem a abertura da conta.

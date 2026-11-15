@@ -36,7 +36,7 @@ O dono pediu para verificar como o cardápio atende o garçom. O cardápio do cl
 | Seções, ordem, fotos, descrição, busca | Montados na tela Cardápio (013) | Sim, é o mesmo cardápio | Reaproveita. A busca fica no topo, porque o garçom procura pelo nome que o cliente falou |
 | Cartão grande com foto, 1 coluna no celular | Bom para escolher com calma | Lento para quem já sabe o que quer | Modo **Lista** (só nome, preço e "+") além do modo com fotos; o garçom escolhe e o aparelho lembra |
 | Tela do prato com adicionais e retiradas | Só botões | Sim | Reaproveita, com os mesmos limites |
-| "Precisa de outra mudança? Chame um garçom." | O cliente chama o garçom | O garçom chamado não tem como lançar a mudança | Ver [Decisões](#decisões): observação curta só para a equipe (pendente de confirmação do dono) |
+| "Precisa de outra mudança? Chame um garçom." | O cliente chama o garçom | O garçom chamado não tem como lançar a mudança **Observação para a cozinha** só para a equipe (FR-018, decisão do dono) |
 | Produto **Esgotado hoje** | Some do cardápio | O garçom precisa saber que acabou para avisar o cliente | Aparece no fim da seção, apagado, com o selo "Esgotado hoje", sem "+" |
 | Produto sem preço ou inativo | Não aparece | Não deve ser vendido | Continua sem aparecer |
 | Acesso de 20 minutos e "Faltam N min" | Fecha o cardápio no celular do cliente | Não faz sentido: o garçom usa o cardápio o turno inteiro | Não se aplica. O garçom fica no cardápio enquanto estiver logado |
@@ -69,7 +69,7 @@ atender quem não pede pelo QR code.
 2. Tocando a mesa, abre o cardápio do restaurante (seções, ordem, fotos, descrição e preços da
    013) com "Mesa 12" fixo no topo e o botão **Trocar mesa**.
 3. O garçom põe produtos no carrinho como o cliente: tela do prato com adicionais e retiradas por
-   botão, quantidade, os mesmos limites (até 30 linhas, até 20 de cada, adicionais até o máximo do
+   botão, mais o campo **Observação para a cozinha** (até 140 letras, só para a equipe), quantidade, os mesmos limites (até 30 linhas, até 20 de cada, adicionais até o máximo do
    produto).
 4. **Enviar pedido** mostra o resumo com a mesa em destaque ("Conferir: Mesa 12") e o total.
    **Confirmar** envia. A resposta é "Pedido 5 enviado para a cozinha", com a mesa e o total, e o
@@ -241,7 +241,7 @@ pelo menos 44 px.
   ter resposta: o garçom lança pelo sistema.
 - **FR-017** Textos em português do dia a dia: "Lançar pedido", "Pedidos da mesa", "Lançado por",
   "QR code"; nunca "origem EQUIPE" ou "usuário" na tela do garçom.
-- **FR-018** *(depende da decisão pendente)* Na tela do prato, só para a equipe, o campo
+- **FR-018** Na tela do prato, só para a equipe, o campo
   **Observação para a cozinha** (até 140 letras, uma por linha do pedido). Aparece em destaque na
   cozinha, no Garçom, na conta e na consulta; não muda preço nem estoque; o cardápio do cliente
   continua sem campo de texto.
@@ -254,6 +254,8 @@ pelo menos 44 px.
 - **Histórico de situações do pedido** (009): o registro do envio guarda quem lançou.
 - **Histórico da conta** (011): a abertura guarda quem lançou o pedido que abriu a conta.
 - **Motivo de cancelamento** (009): ganha **Lançado errado**.
+- **Linha do pedido** (009): ganha a **observação para a cozinha** (até 140 letras), só em pedido
+  da equipe; não muda depois do envio.
 - **Carrinho do garçom**: fica só no aparelho, um por mesa; não vai para o banco.
 
 ## Critérios de sucesso
@@ -297,4 +299,4 @@ dividir pedido por pessoa da mesa, impressão de comanda na cozinha, funcionar s
 | 2026-11-15 | Quem lança além do garçom? | Gerente e caixa também; chef não (premissa) |
 | 2026-11-15 | Garçom cancela? | Só o que ele lançou e só antes do preparo, com o motivo "Lançado errado" (premissa) |
 | 2026-11-15 | Esgotado aparece para o garçom? | Sim, apagado e com selo, para ele avisar o cliente (premissa) |
-| 2026-11-15 | Observação livre no pedido do garçom? | **Pendente do dono.** A 010 decidiu "só botões" para o cliente. Recomendação: o garçom (só a equipe) pode escrever uma observação de até 140 letras por linha ("ponto da carne mal passado"), que aparece em destaque na cozinha e **não** muda preço nem estoque. Se o dono preferir manter só botões, sai do FR-003 e da tela do prato |
+| 2026-11-15 | Observação livre no pedido do garçom? | **Sim, só para a equipe** (decisão do dono). Até 140 letras por linha ("mal passado"), em destaque na cozinha, sem mudar preço nem estoque. O cliente continua só com botões, como decidido na 010 |
