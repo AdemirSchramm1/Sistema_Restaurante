@@ -163,7 +163,8 @@ Mesa 12 no caixa e ver o tablet voltar à tela de boas-vindas sem os pedidos ant
    em até 10 segundos e não mostra mais nada da conta fechada.
 5. **Tela sempre acesa**: enquanto o cardápio do tablet está aberto, ele pede ao aparelho para não
    apagar a tela (onde o navegador permite) e oferece **Tela cheia**.
-6. **Sem internet**: o pedido não fica guardado para envio posterior; o tablet mostra "Sem conexão com o restaurante. Chame um garçom." e volta ao cardápio sozinho
+6. **Sem internet**: o pedido não fica guardado para envio posterior; o tablet mostra "Sem
+   conexão com o restaurante. Chame um garçom." e volta ao cardápio sozinho
    quando a conexão volta, com o carrinho como estava.
 7. **Recarregar a página** ou o tablet reiniciar: volta para as boas-vindas da mesma mesa, sem
    precisar do gerente.
@@ -213,7 +214,8 @@ Mesa 12 no caixa e ver o tablet voltar à tela de boas-vindas sem os pedidos ant
 - **FR-008** O pedido guarda a origem: QR code, tablet ou garçom (015). A cozinha e a consulta de
   pedidos mostram a origem.
 - **FR-009** Permissões: logo e capa, link do tablet, liberar e trocar link são só do gerente
-  (permissão nova `table.tablet`, ou dentro de `table.manage`, a decidir no plano).
+  (decidido no plano, R13: o tablet usa `table.manage`, que já é só do gerente; logo e capa
+  usam a permissão nova `menu.appearance`, só do gerente).
 - **FR-010** Auditoria de logo, capa, ligar, liberar e trocar link, com quem e quando; o código do
   link nunca vai para o histórico.
 - **FR-011** O tablet conta como acesso ao cardápio só daquele restaurante e daquela mesa; nenhum
