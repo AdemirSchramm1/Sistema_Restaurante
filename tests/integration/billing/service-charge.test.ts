@@ -24,8 +24,8 @@ async function setup(env: TestEnv) {
 /** Pagamento gravado direto (os casos de uso de pagamento são da US2). */
 async function paid(env: TestEnv, restaurantId: string, tabId: string, by: string, amount: string) {
   await db().query(
-    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id)
-     values ($1, $2, $3, $4, $5, 'PIX', $6, $7)`,
+    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id, cash_session_id)
+     values ($1, $2, $3, $4, $5, 'PIX', $6, $7, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`,
     [crypto.randomUUID(), restaurantId, env.clock.now(), by, tabId, amount, crypto.randomUUID()],
   );
   await db().query("update table_tabs set version = version + 1 where id = $1", [tabId]);

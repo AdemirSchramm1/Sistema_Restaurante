@@ -100,7 +100,7 @@ export const cashEntries = pgTable(
     clientRequestId: uuid("client_request_id").notNull(),
   },
   (t) => [
-    index("cash_entries_session").on(t.cashSessionId),
+    // Também serve a leitura dos lançamentos do turno: não precisa de outro índice só do turno.
     uniqueIndex("cash_entries_client_request").on(t.cashSessionId, t.clientRequestId),
     check("cash_entries_amount", sql`amount > 0`),
     check("cash_entries_by", sql`created_by is not null`),

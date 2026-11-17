@@ -2,10 +2,12 @@ import { addMember, newRestaurant, ownerTestDb, type TestEnv } from "../harness"
 import { orderingScenario, scan, tableWithQr, unwrap } from "../ordering/fixtures";
 import { submitOrder } from "../../../src/application/ordering/submit-order";
 import { advanceOrderStatus, markDelivered } from "../../../src/application/ordering/kitchen";
+import { openCash } from "../cash/fixtures";
 
 /**
  * Mesa 12 da spec 011: X-Burger (+ Fatia de queijo, "Sem cebola") e Suco; gerente, chef, garçom e
- * caixa. `deliver` leva o pedido da cozinha à mesa; `tabId` acha a conta aberta da mesa.
+ * caixa. `deliver` leva o pedido da cozinha à mesa; `tabId` acha a conta aberta da mesa. O caixa do
+ * dia já está aberto (spec 014: todo pagamento entra num turno), com troco de R$ 0,00.
  */
 export async function billingScenario(env: TestEnv) {
   const m = await newRestaurant(env, "Restaurante Sabor");
@@ -14,6 +16,7 @@ export async function billingScenario(env: TestEnv) {
   const waiter = await addMember(env, m, ["WAITER"], "Garçom Beto");
   const cashier = await addMember(env, m, ["CASHIER"], "Caixa Carla");
   const stockkeeper = await addMember(env, m, ["STOCKKEEPER"], "Estoquista Dani");
+  const cashSessionId = await openCash(env, cashier);
 
   async function advance(orderId: string, to: "PREPARING" | "READY" | "DELIVERED") {
     const v = (await ownerTestDb().$client.query("select version from orders where id = $1", [orderId]))
@@ -43,5 +46,5 @@ export async function billingScenario(env: TestEnv) {
     );
     return { ...order, tableId: table.tableId, cookie, tabId: await tabId(table.tableId) };
   }
-  return { m, s, chef, waiter, cashier, stockkeeper, advance, deliver, tabId, placeAt };
+  return { m, s, chef, waiter, cashier, stockkeeper, cashSessionId, advance, deliver, tabId, placeAt };
 }

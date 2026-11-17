@@ -5178,21 +5178,6 @@
         }
       },
       "indexes": {
-        "cash_entries_session": {
-          "name": "cash_entries_session",
-          "columns": [
-            {
-              "expression": "cash_session_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "cash_entries_client_request": {
           "name": "cash_entries_client_request",
           "columns": [

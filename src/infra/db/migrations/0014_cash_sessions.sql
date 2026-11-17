@@ -85,7 +85,6 @@ ALTER TABLE "cash_entries" ADD CONSTRAINT "cash_entries_cash_session_id_cash_ses
 ALTER TABLE "cash_entry_removals" ADD CONSTRAINT "cash_entry_removals_entry_id_cash_entries_id_fk" FOREIGN KEY ("entry_id") REFERENCES "public"."cash_entries"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cash_sessions" ADD CONSTRAINT "cash_sessions_closing_count_id_cash_counts_id_fk" FOREIGN KEY ("closing_count_id") REFERENCES "public"."cash_counts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "cash_counts_session" ON "cash_counts" USING btree ("cash_session_id","created_at");--> statement-breakpoint
-CREATE INDEX "cash_entries_session" ON "cash_entries" USING btree ("cash_session_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cash_entries_client_request" ON "cash_entries" USING btree ("cash_session_id","client_request_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cash_entry_removals_entry" ON "cash_entry_removals" USING btree ("entry_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cash_sessions_one_open" ON "cash_sessions" USING btree ("restaurant_id") WHERE status = 'OPEN';--> statement-breakpoint

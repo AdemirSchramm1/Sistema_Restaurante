@@ -18,6 +18,11 @@ import { listGroupTree } from "../../../src/application/inventory/list-group-tre
 import { listRecipes } from "../../../src/application/inventory/recipes";
 import { getShellInfo } from "../../../src/application/shell";
 import { listSuppliers } from "../../../src/application/suppliers/suppliers";
+import { cashScenario } from "../cash/fixtures";
+import { unwrap } from "../ordering/fixtures";
+import { getCurrentCashSession } from "../../../src/application/cash/sessions";
+import { getCashClosing } from "../../../src/application/cash/closing";
+import { getCashSessionReport, listCashSessions } from "../../../src/application/cash/reports";
 
 /**
  * Spec 012, US4 cenário 4 e R2: as telas mais usadas consultam por índice. Nenhuma lê a tabela
@@ -88,5 +93,51 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
     expect(r.ok && r.value.length).toBe(2);
     expect(usedIndexes()).toContain("recipes_menu_order");
     expect(fullScans()).toEqual([]);
+  });
+
+  it("caixa do dia: turno aberto, último fechado, somas por turno, contagens e lista de turnos por índice (spec 014)", async () => {
+    const c = await cashScenario(env);
+    const first = await c.specShift();
+    unwrap(await c.closeTabOf(first.tabId));
+    unwrap(await c.closeSession(first.sessionId, "127.00", { kept: "100.00" }));
+    const { deps, fullScans, planCount, usedIndexes } = explaining;
+    const day = "2026-10-31";
+
+    const problems: string[] = [];
+    const indexes = new Set<string>();
+    const check = async (screens: Record<string, () => Promise<unknown>>) => {
+      for (const [screen, load] of Object.entries(screens)) {
+        fullScans();
+        const r = (await load()) as { ok: boolean };
+        expect(r.ok, screen).toBe(true);
+        expect(planCount(), `${screen}: nenhum plano capturado`).toBeGreaterThan(0);
+        for (const index of usedIndexes()) indexes.add(index);
+        problems.push(...fullScans().map((s) => `${screen}: ${s}`));
+      }
+    };
+    await check({
+      "caixa fechado (último turno fechado)": () => getCurrentCashSession(deps, c.ana),
+      "relatório do turno fechado": () => getCashSessionReport(deps, c.m, first.sessionId),
+      "lista de turnos": () => listCashSessions(deps, c.m, { from: day, to: day }),
+    });
+
+    const second = await c.openSession("100.00");
+    unwrap(await c.count(second, "100.00"));
+    await check({
+      "caixa aberto": () => getCurrentCashSession(deps, c.m),
+      "fechar caixa": () => getCashClosing(deps, c.ana),
+      "relatório do turno aberto": () => getCashSessionReport(deps, c.m, second),
+    });
+    expect(problems).toEqual([]);
+    for (const index of [
+      "cash_sessions_one_open",
+      "cash_sessions_day",
+      "cash_entries_client_request",
+      "cash_counts_session",
+      "tab_payments_cash_session",
+      "tab_payment_removals_cash_session",
+      "table_tabs_cash_session",
+    ])
+      expect([...indexes].sort().join(","), index).toContain(index);
   });
 });
