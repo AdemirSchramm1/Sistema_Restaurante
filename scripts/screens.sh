@@ -6,7 +6,7 @@
 #   pnpm test:screens                      roda tudo
 #   pnpm test:screens tests/screens/x.spec.ts
 #   pnpm test:screens:update               regrava as imagens de referência (revise no PR)
-#   SCREENS_PROJECTS=telas-webkit pnpm test:screens --shard=1/2    um motor, metade dos arquivos
+#   SCREENS_PROJECTS=telas-webkit pnpm test:screens --grep dark    um motor, só o modo escuro
 #
 # Precisa do banco migrado (pnpm db:up && pnpm db:migrate && pnpm db:dev-login) e do build
 # (pnpm build). Com SCREENS_IN_CONTAINER=1 (job "telas" da CI, que já roda na imagem) não usa Docker.

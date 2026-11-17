@@ -101,7 +101,8 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
 - A CI roda em todo PR, com os jobs em paralelo: **estatico** (`format:check`, `lint`,
   `typecheck`), **unidade** (`test:unit`, `test:mutation`), **integracao** (`test:menu`, que roda
   todos os testes de unidade e de integração com a régua de 100% do cardápio), **e2e** (`test:e2e`
-  com o axe) e **telas** (`test:screens` em 4 partes: 2 motores × 2 metades dos arquivos).
+  com o axe) e **telas** (`test:screens` em 6 partes: 2 motores × cardápio do cliente claro, escuro e o resto dos
+  arquivos).
 - PR que só muda documentação (Markdown, `docs/`, `specs/`, `.specify/`) roda só o **estatico**; os
   outros jobs aparecem como pulados. Commit novo no PR cancela a rodada anterior.
 - Teste que falha "de vez em quando" é defeito do teste: conserta a causa (dado fixo, esperar a

@@ -146,8 +146,9 @@ jobs:
 
   # Testes de tela (spec 013): matriz de 9 telas, claro e escuro, Chromium e WebKit, com comparação
   # de imagem. Roda dentro da imagem oficial do Playwright para os pixels serem os da referência.
-  # Quatro partes em paralelo (motor × metade dos arquivos); cada uma tem o seu banco e o seu
-  # restaurante de teste, então nenhuma depende da outra.
+  # Seis partes em paralelo: cada motor roda o cardápio do cliente (o arquivo mais demorado) no
+  # modo claro, no modo escuro, e o resto dos arquivos. As três partes se completam: arquivo ou
+  # teste novo cai sozinho em uma delas. Cada parte tem o seu banco e o seu restaurante de teste.
   telas:
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -157,8 +158,15 @@ jobs:
       fail-fast: false
       matrix:
         motor: [telas-chromium, telas-webkit]
-        parte: [1, 2]
-    name: telas (${{ matrix.motor }}, ${{ matrix.parte }}/2)
+        parte: [cardapio-claro, cardapio-escuro, resto]
+        include:
+          - parte: cardapio-claro
+            args: tests/screens/customer-menu.spec.ts --grep-invert dark
+          - parte: cardapio-escuro
+            args: tests/screens/customer-menu.spec.ts --grep dark
+          - parte: resto
+            args: "'tests/screens/(?!customer-menu)'"
+    name: telas (${{ matrix.motor }}, ${{ matrix.parte }})
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     services:
@@ -199,7 +207,7 @@ jobs:
           restore-keys: |
             next-telas-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm build
-      - run: pnpm test:screens --shard=${{ matrix.parte }}/2
+      - run: scripts/screens.sh ${{ matrix.args }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
