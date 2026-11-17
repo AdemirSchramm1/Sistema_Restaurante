@@ -20,14 +20,15 @@ Recebido ──► Em preparo ──► Pronto ──► Entregue
 ## Tela da Cozinha
 
 - Três colunas: **Recebidos**, **Em preparo**, **Prontos**, o mais antigo primeiro.
-- Cada pedido mostra "Mesa N" em destaque, o número, há quantos minutos chegou e as linhas com as
-  mudanças embaixo do prato ("+ 2 Fatia de queijo", "**SEM** cebola").
+- Cada pedido mostra "Mesa N" em destaque, quem lançou ("João" ou "QR code", spec 015), o número,
+  há quantos minutos chegou e as linhas com as mudanças embaixo do prato ("+ 2 Fatia de queijo",
+  "**SEM** cebola") e a observação da equipe em destaque ("Obs.: mal passado").
 - Pedido novo aparece sozinho em até 10 segundos (a tela atualiza a cada 5), marcado **Novo**.
 - **Atrasado**: recebido ou em preparo há mais de 20 minutos (borda e texto, não só cor).
 - Botões **Começar preparo** e **Pronto**. **Começar preparo** baixa do estoque o que o pedido usa
   (ver abaixo).
-- **Cancelar** pede o motivo: cliente desistiu, acabou o produto, pedido indevido ou outro (com
-  texto de até 140 letras). Depois do preparo, pergunta também pelos ingredientes (ver abaixo).
+- **Cancelar** pede o motivo: cliente desistiu, acabou o produto, pedido indevido, lançado errado
+  (015) ou outro (com texto de até 140 letras). Depois do preparo, pergunta também pelos ingredientes (ver abaixo).
 - **Esgotado hoje**: lista dos produtos do cardápio com o interruptor. Esgotado sai do cardápio do
   cliente até o fim do dia e volta sozinho no dia seguinte. Também na página do produto.
 
@@ -61,10 +62,16 @@ sem o que foi tirado, mais os adicionais, tudo × quantidade; ver
 ## Tela do Garçom
 
 - Só os pedidos **Prontos**, o que ficou pronto primeiro em cima, com "Mesa N" bem grande.
+- Cada pronto mostra quem lançou e a observação; o filtro **Só os meus** deixa só os pedidos que
+  a pessoa lançou (spec 015).
 - **Entregue** tira o pedido da tela.
+
+O garçom também lança pedidos e cancela o próprio pedido ainda em Recebido: ver
+[08 — Lançar pedido](08-lancar-pedido.md).
 
 ## Consulta de pedidos
 
-Tela **Pedidos**: lista por período (até 31 dias; padrão hoje), mesa e situação, com número, dia,
-hora, mesa, situação e total. Abrir um pedido mostra as linhas com preços, adicionais, retiradas e
+Tela **Pedidos**: lista por período (até 31 dias; padrão hoje), mesa, situação e **Lançado por**
+(QR code ou a pessoa da equipe), com número, dia, hora, mesa, quem lançou, situação e total. No fim,
+o resumo **Por quem lançou**: pedidos não cancelados, total e cancelados por motivo de cada origem. Abrir um pedido mostra as linhas com preços, adicionais, retiradas e
 o histórico de situações com quem mudou e quando.

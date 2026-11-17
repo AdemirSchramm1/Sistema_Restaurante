@@ -103,7 +103,7 @@ export function TableScreen(props: ScreenProps) {
   if (!useHydrated())
     return (
       <p role="status" className="text-muted-foreground">
-        Abrindo a {`Mesa ${props.menu.table.name}`}…
+        {`Abrindo a Mesa ${props.menu.table.name}…`}
       </p>
     );
   return <Screen {...props} />;
@@ -173,11 +173,6 @@ function Screen({
     setSent(null);
   };
   const addPlain = (p: StaffMenuProduct) => change(addToCart(lines, plain(p)));
-  const removePlain = (p: StaffMenuProduct) => {
-    const k = choiceKey(plain(p));
-    const line = lines.find((l) => l.key === k);
-    if (line) change(setQuantity(lines, k, line.quantity - 1));
-  };
   const chooseMode = (m: Mode) => {
     setMode(m);
     try {
@@ -329,7 +324,7 @@ function Screen({
                   className="h-11 min-w-11 text-lg"
                   aria-label={`Menos um ${p.name}`}
                   disabled={locked || !plainLine}
-                  onClick={() => removePlain(p)}
+                  onClick={() => change(setQuantity(lines, plainLine!.key, plainLine!.quantity - 1))}
                 >
                   −
                 </Button>

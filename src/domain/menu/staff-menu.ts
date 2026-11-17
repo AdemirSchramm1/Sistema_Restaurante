@@ -1,4 +1,5 @@
 import { isSoldOut } from "../ordering/menu";
+import type { CatalogProduct } from "../ordering/checkout";
 import {
   buildCustomerMenu,
   type CustomerMenu,
@@ -33,4 +34,36 @@ export function buildStaffMenu<T extends CustomerMenuRow>(
       return { ...s, products: [...rows.filter((p) => !p.soldOut), ...rows.filter((p) => p.soldOut)] };
     }),
   };
+}
+
+/**
+ * Produto da equipe com o catálogo de agora: preço, e adicionais e retiradas que valem hoje. O
+ * esgotado vem sem escolhas (não pode ir ao carrinho). Lista vazia quando o produto saiu do cardápio
+ * entre a leitura do cardápio e a do catálogo (pronta para o `flatMap`).
+ */
+export function staffProduct<P>(
+  row: { description: string | null; photo: P; soldOut: boolean },
+  p: CatalogProduct | undefined,
+) {
+  if (!p?.salePrice || !(row.soldOut || p.available)) return [];
+  const base = {
+    id: p.id,
+    name: p.name,
+    price: p.salePrice.toFixed(2),
+    description: row.description,
+    photo: row.photo,
+    soldOut: row.soldOut,
+  };
+  if (row.soldOut) return [{ ...base, addons: [], removables: [] }];
+  return [
+    {
+      ...base,
+      addons: p.options.addons
+        .filter((a) => a.available)
+        .map((a) => ({ id: a.addonId, name: a.name, price: a.price.toFixed(2), maxTimes: a.maxTimes })),
+      removables: p.options.removables
+        .filter((x) => x.available)
+        .map((x) => ({ kind: x.component.kind, id: x.component.id, label: x.label })),
+    },
+  ];
 }

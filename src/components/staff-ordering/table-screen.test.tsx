@@ -5,6 +5,7 @@ import type { StaffMenuView, TableOrdersView } from "@/application/ordering/staf
 import { TableScreen, type PlaceFn } from "./table-screen";
 import { cartKey, loadCart, saveCart } from "./cart-storage";
 import { UNCERTAIN_TEXT } from "./send-state";
+import type { ErrorCode } from "@/domain/shared/result";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 afterEach(() => {
@@ -304,5 +305,178 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
     const cart = screen.getByRole("region", { name: "Carrinho" });
     expect(within(cart).getByLabelText("Quantidade de Chope").textContent).toBe("1");
     expect(within(cart).getByText("Pudim está esgotado hoje e não entrou.")).toBeTruthy();
+  });
+});
+
+describe("mesa no Lançar pedido: caminhos de volta e recusas (spec 015)", () => {
+  const refused = (code: ErrorCode, message: string, details: Record<string, unknown> = {}) =>
+    vi.fn<PlaceFn>(async () => ({ ok: false, error: { code, message, details }, at: 1 }));
+  const sendWith = async (place: PlaceFn) => {
+    screenWith(place);
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
+    toCart();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Confirmar" })));
+  };
+
+  it("no servidor mostra só que está abrindo a mesa", async () => {
+    const { renderToString } = await import("react-dom/server");
+    const html = renderToString(
+      <TableScreen
+        menu={menu}
+        orders={noOrders}
+        restaurantId="r1"
+        userId="joao"
+        timezone="America/Sao_Paulo"
+        serverNow={new Date().toISOString()}
+        place={vi.fn()}
+        deliver={noop}
+        cancel={noop}
+      />,
+    );
+    expect(html).toContain("Abrindo a Mesa 12");
+  });
+
+  it("carrinho: + e − na linha, Limpar; Voltar no Conferir; abas", () => {
+    screenWith(vi.fn());
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
+    toCart();
+    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    expect(screen.getByLabelText("Quantidade de Chope").textContent).toBe("2");
+    fireEvent.click(screen.getByRole("button", { name: "Menos um Chope" }));
+    expect(screen.getByLabelText("Quantidade de Chope").textContent).toBe("1");
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
+    expect(screen.getByText("Nada no carrinho ainda.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Pedidos da mesa" }));
+    expect(screen.getByText("Nenhum pedido aberto nesta mesa.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Cardápio" }));
+    expect(screen.getByLabelText("Buscar no cardápio")).toBeTruthy();
+  });
+
+  it("na Lista, tocar no nome abre a tela do prato; Voltar fecha", () => {
+    screenWith(vi.fn());
+    fireEvent.click(screen.getByRole("button", { name: "Lista" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Purê de batata/ }));
+    expect(screen.getByLabelText("Observação para a cozinha")).toBeTruthy();
+  });
+
+  it("preço mudou: o carrinho atualiza e avisa", async () => {
+    await sendWith(
+      refused("PRICE_CHANGED", "O preço mudou.", { prices: [{ recipeId: "chope", price: "14.00" }] }),
+    );
+    expect(screen.getByTestId("cart-total").textContent).toBe("R$ 14,00");
+  });
+
+  it("produto esgotou: sai do carrinho com o aviso", async () => {
+    await sendWith(refused("PRODUCT_UNAVAILABLE", "Produto indisponível.", { recipeIds: ["chope"] }));
+    expect(screen.getByText("Nada no carrinho ainda.")).toBeTruthy();
+  });
+
+  it("sessão vencida: entra de novo e o carrinho continua", async () => {
+    await sendWith(refused("UNAUTHENTICATED", "Entre de novo."));
+    expect(screen.getByText("Sua sessão venceu. Entre de novo: o carrinho continua aqui.")).toBeTruthy();
+    expect(screen.getByLabelText("Quantidade de Chope").textContent).toBe("1");
+  });
+
+  it("a rede caiu entre o Conferir e o Confirmar", async () => {
+    const place = vi.fn<PlaceFn>();
+    screenWith(place);
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
+    toCart();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    vi.stubGlobal("navigator", { onLine: false });
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Confirmar" })));
+    expect(screen.getByText("Sem conexão. O pedido não foi enviado.")).toBeTruthy();
+    expect(place).not.toHaveBeenCalled();
+  });
+
+  it("conta anterior fechada: o pedido abriu outra", async () => {
+    await sendWith(
+      vi.fn<PlaceFn>(async () => ({ ok: true, data: { ...sent, previousTabClosed: true }, at: 1 })),
+    );
+    expect(screen.getByText(/A conta anterior desta mesa foi fechada/)).toBeTruthy();
+  });
+
+  it("armazenamento bloqueado: o modo vale só nesta tela", () => {
+    const getItem = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("bloqueado");
+    });
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("bloqueado");
+    });
+    screenWith(vi.fn());
+    fireEvent.click(screen.getByRole("button", { name: "Lista" }));
+    expect(screen.getByRole("button", { name: "Lista" }).getAttribute("aria-pressed")).toBe("true");
+    getItem.mockRestore();
+    setItem.mockRestore();
+  });
+});
+
+describe("mesa no Lançar pedido: mais caminhos (spec 015)", () => {
+  const refusedWith = (code: ErrorCode, message: string) =>
+    vi.fn<PlaceFn>(async () => ({ ok: false, error: { code, message, details: {} }, at: 1 }));
+  const send = async (place: PlaceFn) => {
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
+    toCart();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Confirmar" })));
+    return place;
+  };
+
+  it("recusa sem nada para mudar no carrinho mostra a mensagem do servidor", async () => {
+    for (const code of ["PRICE_CHANGED", "OPTION_UNAVAILABLE"] as const) {
+      const place = refusedWith(code, `Recusado: ${code}`);
+      screenWith(place);
+      await send(place);
+      expect(screen.getByText(`Recusado: ${code}`)).toBeTruthy();
+      cleanup();
+      localStorage.clear();
+    }
+  });
+
+  it("travado: Ver Pedidos da mesa; a tela do prato não muda o carrinho e Voltar ao cardápio fecha", () => {
+    const line = {
+      key: "chope",
+      productId: "chope",
+      name: "Chope",
+      basePrice: "12.00",
+      quantity: 1,
+      addons: [],
+      removals: [],
+    };
+    saveCart(localStorage, key, {
+      lines: [line],
+      clientRequestId: "c1",
+      tabIdSeen: null,
+      savedAt: Date.now(),
+      send: { state: "uncertain", pendingSince: Date.now() },
+    });
+    screenWith(vi.fn());
+    fireEvent.click(screen.getByRole("button", { name: "Ver Purê de batata" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar ao pedido" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ver carrinho" }));
+    expect(screen.queryByText("Purê de batata")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Ver Pedidos da mesa" }));
+    expect(screen.getByRole("tab", { name: "Pedidos da mesa" }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("tab", { name: "Cardápio" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ver Purê de batata" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao cardápio" }));
+    expect(screen.getByLabelText("Buscar no cardápio")).toBeTruthy();
+  });
+
+  it("lembra o modo Lista e mostra os títulos das seções", () => {
+    localStorage.setItem("garcom:modo", "lista");
+    screenWith(vi.fn(), {
+      menu: {
+        ...menu,
+        showSectionTitles: true,
+        sections: [{ ...menu.sections[0]!, id: "beb", name: "Bebidas" }],
+      },
+    });
+    expect(screen.getByRole("button", { name: "Lista" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("heading", { name: "Bebidas" })).toBeTruthy();
   });
 });

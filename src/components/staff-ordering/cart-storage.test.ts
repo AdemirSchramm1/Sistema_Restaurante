@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   CART_MAX_AGE_MS,
   cartKey,
   cartsOf,
   clearAllCarts,
+  deviceStorage,
   forgetOtherUsers,
   loadCart,
   removeCart,
@@ -48,6 +49,7 @@ const broken = {
 } as unknown as Storage;
 
 const NOW = 1_800_000_000_000;
+afterEach(() => vi.unstubAllGlobals());
 const cart = (over: Partial<StoredCart> = {}): StoredCart => ({
   lines: [
     {
@@ -127,5 +129,27 @@ describe("carrinho do garçom guardado no aparelho (spec 015, FR-012, FR-022, R1
     expect(() => forgetOtherUsers(broken, "r1", "joao")).not.toThrow();
     expect(cartsOf(broken, "r1", "joao", NOW).size).toBe(0);
     expect(loadCart(null, "k", NOW)).toBeNull();
+    expect(() => clearAllCarts(null)).not.toThrow();
+    expect(() => forgetOtherUsers(null, "r1", "joao")).not.toThrow();
+    expect(cartsOf(null, "r1", "joao", NOW).size).toBe(0);
+  });
+
+  it("carrinho vencido não conta na grade", () => {
+    const s = new MemoryStorage() as unknown as Storage;
+    saveCart(s, cartKey("r1", "joao", "m12"), cart({ savedAt: NOW - CART_MAX_AGE_MS - 1 }));
+    expect(cartsOf(s, "r1", "joao", NOW).size).toBe(0);
+  });
+
+  it("armazenamento do aparelho: nenhum no servidor; bloqueado vira null", () => {
+    expect(deviceStorage()).toBeNull();
+    const local = new MemoryStorage();
+    vi.stubGlobal("window", { localStorage: local });
+    expect(deviceStorage()).toBe(local);
+    vi.stubGlobal("window", {
+      get localStorage(): Storage {
+        throw new Error("SecurityError");
+      },
+    });
+    expect(deviceStorage()).toBeNull();
   });
 });

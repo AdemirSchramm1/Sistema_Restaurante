@@ -355,7 +355,32 @@ describe("Pedidos da mesa (spec 015, US3, FR-009)", () => {
       orders: [],
     });
     expect(code(await listTableOrders(env.deps, t.joao, crypto.randomUUID()))).toBe("NOT_FOUND");
+    expect(code(await listTableOrders(env.deps, t.joao, "12"))).toBe("NOT_FOUND");
     expect(code(await listTableOrders(env.deps, t.chef, t.tableId))).toBe("FORBIDDEN");
+    expect(code(await getStaffMenu(env.deps, t.chef, t.tableId))).toBe("FORBIDDEN");
+    expect(code(await placeStaffOrder(env.deps, t.joao, { tableId: "lixo" }))).toBe("VALIDATION");
+  });
+
+  it("o gerente cancela qualquer pedido ainda em Recebido; depois do preparo, não por aqui", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const a = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    const b = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    await t.advance(b.orderId, "PREPARING");
+    const view = unwrap(await listTableOrders(env.deps, t.m, t.tableId));
+    expect(view.orders.map((o) => [o.number, o.canCancel])).toEqual([
+      [b.number, false],
+      [a.number, true],
+    ]);
+  });
+
+  it("repetir o envio depois que a conta vista fechou ainda avisa da conta nova", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const input = t.input([t.juice()], { tabIdSeen: crypto.randomUUID() });
+    const first = unwrap(await placeStaffOrder(env.deps, t.joao, input));
+    expect(first.previousTabClosed).toBe(true);
+    expect(unwrap(await placeStaffOrder(env.deps, t.joao, input)).previousTabClosed).toBe(true);
   });
 });
 

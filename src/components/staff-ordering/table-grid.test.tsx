@@ -78,4 +78,19 @@ describe("grade de mesas do garçom (spec 015, US1-1, US5-4)", () => {
     grid({ qrOrdersOff: true });
     expect(screen.getByText("O QR code está desligado: só a equipe lança pedidos.")).toBeTruthy();
   });
+
+  it("no servidor não conta carrinho nenhum (o aparelho só é lido no navegador)", async () => {
+    const { renderToString } = await import("react-dom/server");
+    const html = renderToString(
+      <TableGrid
+        tables={tables}
+        qrOrdersOff={false}
+        restaurantId="r1"
+        userId="joao"
+        serverNow="2026-11-17T20:35:00Z"
+      />,
+    );
+    expect(html).toContain("/pedidos/lancar/m12");
+    expect(html).not.toContain("Carrinho");
+  });
 });

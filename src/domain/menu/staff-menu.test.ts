@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildStaffMenu } from "./staff-menu";
+import { buildStaffMenu, staffProduct } from "./staff-menu";
+import type { CatalogProduct } from "../ordering/checkout";
 import { buildCustomerMenu, type CustomerMenuRow, type MenuSectionRow } from "./customer-menu";
 import { d } from "../shared/decimal";
 
@@ -68,5 +69,54 @@ describe("cardápio da equipe (spec 015, FR-003)", () => {
       today,
     );
     expect(rows(menu)).toEqual(["Bebidas: Chope (esgotado)"]);
+  });
+});
+
+describe("produto do cardápio da equipe com o catálogo de agora (spec 015, FR-003)", () => {
+  const entry = (over: Partial<CatalogProduct> = {}): CatalogProduct => ({
+    id: "x",
+    name: "X-Burger",
+    versionId: "v1",
+    salePrice: d("28"),
+    available: true,
+    options: {
+      addons: [
+        { addonId: "queijo", name: "Fatia de queijo", price: d("3"), maxTimes: 2, available: true },
+        { addonId: "velho", name: "Velho", price: d("1"), maxTimes: 1, available: false },
+      ],
+      removables: [
+        { component: { kind: "ITEM", id: "cebola" }, label: "Sem cebola", available: true },
+        { component: { kind: "ITEM", id: "alface" }, label: "Sem alface", available: false },
+      ],
+    },
+    ...over,
+  });
+  const row = { description: "Da casa", photo: null, soldOut: false };
+
+  it("com preço, adicionais e retiradas que valem hoje", () => {
+    expect(staffProduct(row, entry())).toEqual([
+      {
+        id: "x",
+        name: "X-Burger",
+        price: "28.00",
+        description: "Da casa",
+        photo: null,
+        soldOut: false,
+        addons: [{ id: "queijo", name: "Fatia de queijo", price: "3.00", maxTimes: 2 }],
+        removables: [{ kind: "ITEM", id: "cebola", label: "Sem cebola" }],
+      },
+    ]);
+  });
+
+  it("esgotado: apagado e sem escolhas", () => {
+    expect(staffProduct({ ...row, soldOut: true }, entry({ available: false }))).toMatchObject([
+      { soldOut: true, addons: [], removables: [] },
+    ]);
+  });
+
+  it("saiu do cardápio entre as duas leituras: some", () => {
+    expect(staffProduct(row, undefined)).toEqual([]);
+    expect(staffProduct(row, entry({ salePrice: null }))).toEqual([]);
+    expect(staffProduct(row, entry({ available: false }))).toEqual([]);
   });
 });

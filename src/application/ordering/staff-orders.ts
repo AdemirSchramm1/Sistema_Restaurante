@@ -8,7 +8,7 @@ import { saveOrder } from "./save-order";
 import { parseStaffOrderInput } from "./staff-order-input";
 import { can } from "@/domain/access/permissions";
 import { tabTotals } from "@/domain/billing/tab";
-import { buildStaffMenu } from "@/domain/menu/staff-menu";
+import { buildStaffMenu, staffProduct } from "@/domain/menu/staff-menu";
 import type { CustomerMenu } from "@/domain/menu/customer-menu";
 import { menuProducts } from "@/domain/menu/customer-menu";
 import { businessDay } from "@/domain/ordering/business-day";
@@ -150,31 +150,7 @@ async function staffMenu(repos: Repos, today: string): Promise<CustomerMenu<Staf
   const sections = grouped.sections
     .map((s) => ({
       ...s,
-      products: s.products.flatMap((r): StaffMenuProduct[] => {
-        const p = catalog.get(r.id);
-        if (!p || !p.salePrice) return [];
-        const base = {
-          id: p.id,
-          name: p.name,
-          price: p.salePrice.toFixed(2),
-          description: r.description,
-          photo: r.photo,
-        };
-        if (r.soldOut) return [{ ...base, addons: [], removables: [], soldOut: true }];
-        if (!p.available) return [];
-        return [
-          {
-            ...base,
-            soldOut: false,
-            addons: p.options.addons
-              .filter((a) => a.available)
-              .map((a) => ({ id: a.addonId, name: a.name, price: a.price.toFixed(2), maxTimes: a.maxTimes })),
-            removables: p.options.removables
-              .filter((x) => x.available)
-              .map((x) => ({ kind: x.component.kind, id: x.component.id, label: x.label })),
-          },
-        ];
-      }),
+      products: s.products.flatMap((r): StaffMenuProduct[] => staffProduct(r, catalog.get(r.id))),
     }))
     .filter((s) => s.products.length > 0);
   return { showSectionTitles: grouped.showSectionTitles, sections };
@@ -280,8 +256,8 @@ export async function placeStaffOrder(
     });
     if (!saved) {
       // Outro toque com o mesmo envio chegou primeiro.
-      const first = await repos.orders.findStaffByClientRequest(ctx.userId, clientRequestId);
-      return first ? answer(first) : err("STALE_RECORD");
+      // O índice único só recusa quando o mesmo (pessoa, envio) já está gravado: ele existe.
+      return answer((await repos.orders.findStaffByClientRequest(ctx.userId, clientRequestId))!);
     }
     await repos.audit.record({
       entity: ENTITY,

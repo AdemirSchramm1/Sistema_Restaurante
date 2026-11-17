@@ -58,6 +58,8 @@ tela do seu menu.
 | Ver a cozinha e mudar a situação (Em preparo, Pronto) | `order.kitchen` | Gerente, chef |
 | Cancelar pedido (com motivo) | `order.cancel` | Gerente, chef |
 | Ver prontos e marcar entregue | `order.deliver` | Gerente, chef, garçom |
+| Lançar pedido para a mesa, Pedidos da mesa, Pedir de novo (015) | `order.place` | Gerente, caixa, garçom |
+| Cancelar o próprio pedido ainda em Recebido (015) | `order.cancel_own` | Gerente, caixa, garçom |
 | Consultar pedidos | `order.read` | Gerente, chef, garçom |
 | Marcar "Esgotado hoje" | `product.sold_out` | Gerente, chef |
 | Ver adicionais | `addon.read` | Gerente, chef |
