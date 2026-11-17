@@ -5,7 +5,7 @@ import { serverDeps } from "@/infra/server";
 import { getOrder } from "@/application/ordering/orders";
 import { CANCEL_REASON_LABELS, ORDER_STATUS_LABELS } from "@/domain/ordering/order";
 import { brl } from "@/components/ordering/format";
-import { LineChanges } from "@/components/ordering/line-changes";
+import { KitchenNote, LineChanges } from "@/components/ordering/line-changes";
 import { Card, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -34,7 +34,10 @@ export default async function Page({ params }: PageProps<"/pedidos/[id]">) {
             {ORDER_STATUS_LABELS[o.status]}
             {o.cancelReason &&
               ` · ${CANCEL_REASON_LABELS[o.cancelReason]}${o.cancelNote ? `: ${o.cancelNote}` : ""}`}{" "}
-            · enviado em {when(o.submittedAt)}
+            ·{" "}
+            {o.source === "STAFF"
+              ? `lançado por ${o.placedByName ?? "Equipe"} em ${when(o.submittedAt)}`
+              : `pelo QR code em ${when(o.submittedAt)}`}
           </>
         }
       />
@@ -51,6 +54,7 @@ export default async function Page({ params }: PageProps<"/pedidos/[id]">) {
                   <span>{brl(l.unitPrice)} cada</span>
                 </div>
                 <LineChanges changes={l.changes} />
+                <KitchenNote note={l.kitchenNote} />
               </li>
             ))}
           </ul>

@@ -8,6 +8,7 @@ import { ROLE_LABELS, type Role } from "@/domain/access/permissions";
 import { cn } from "@/lib/utils";
 import { Brand, PRODUCT_NAME } from "./brand";
 import { MainNav } from "./nav";
+import { clearAllCarts, deviceStorage } from "@/components/staff-ordering/cart-storage";
 
 const PANEL_ID = "menu-lateral";
 
@@ -95,7 +96,7 @@ export function AppShell({
                 {roles.map((r) => ROLE_LABELS[r]).join(", ")}
               </p>
             </div>
-            <form action={signOut}>
+            <form action={signOut} onSubmit={() => clearAllCarts(deviceStorage())}>
               <button
                 type="submit"
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 font-medium text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-sidebar-primary"

@@ -77,6 +77,31 @@ describe("conta da mesa (spec 011, US1)", () => {
     expect(within(order).getByText("R$ 68,00")).toBeTruthy();
   });
 
+  it("cada pedido diz quem lançou e mostra a observação (spec 015)", () => {
+    const [o7, o8, o9] = tab().orders;
+    render(
+      <TabDetail
+        tab={tab({
+          orders: [
+            {
+              ...o7!,
+              source: "STAFF",
+              placedByName: "João",
+              lines: [{ ...o7!.lines[0]!, kitchenNote: "bem passado" }],
+            },
+            { ...o8!, source: "QR", placedByName: null },
+            o9!,
+          ],
+        })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
+    const seven = screen.getByRole("article", { name: "Pedido 7" });
+    expect(within(seven).getByText("João")).toBeTruthy();
+    expect(within(seven).getByText(/bem passado/)).toBeTruthy();
+    expect(within(screen.getByRole("article", { name: "Pedido 8" })).getByText("QR code")).toBeTruthy();
+  });
+
   it("pedido não entregue mostra a situação; cancelado vem riscado, com o motivo, fora do total", () => {
     render(<TabDetail tab={tab()} timezone="America/Sao_Paulo" />);
     expect(within(screen.getByRole("article", { name: "Pedido 8" })).getByText("Pronto")).toBeTruthy();

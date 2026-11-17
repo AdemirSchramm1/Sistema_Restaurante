@@ -7,7 +7,8 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { brl } from "@/components/ordering/format";
-import { LineChanges } from "@/components/ordering/line-changes";
+import { KitchenNote, LineChanges } from "@/components/ordering/line-changes";
+import { placedByText } from "@/components/staff-ordering/format";
 import { pendingText, percent, timeIn } from "./format";
 
 /** Conta da mesa como a tela recebe: dinheiro em string decimal, datas em ISO. */
@@ -25,7 +26,16 @@ export type TabDetailView = {
     cancelReason: CancelReason | null;
     cancelNote: string | null;
     total: string;
-    lines: { quantity: number; productName: string; unitPrice: string; changes: string[] }[];
+    /** Quem lançou (spec 015): sem a origem, a tela não diz. */
+    source?: "QR" | "STAFF";
+    placedByName?: string | null;
+    lines: {
+      quantity: number;
+      productName: string;
+      unitPrice: string;
+      changes: string[];
+      kitchenNote?: string | null;
+    }[];
   }[];
   subtotal: string;
   serviceRate: string | null;
@@ -97,6 +107,11 @@ function OrderBlock({ order }: { order: Order }) {
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">Pedido {order.number}</h3>
+        {order.source && (
+          <span className="text-sm text-muted-foreground">
+            {placedByText({ source: order.source, placedByName: order.placedByName ?? null })}
+          </span>
+        )}
         {cancelled ? (
           <span className="text-sm font-medium">
             {`Cancelado: ${order.cancelReason ? CANCEL_REASON_LABELS[order.cancelReason] : ""}${order.cancelNote ? ` (${order.cancelNote})` : ""}`}
@@ -115,6 +130,7 @@ function OrderBlock({ order }: { order: Order }) {
               <span className="text-sm text-muted-foreground">{`${brl(d(l.unitPrice))} cada`}</span>
             </div>
             <LineChanges changes={l.changes} />
+            <KitchenNote note={l.kitchenNote} />
           </li>
         ))}
       </ul>

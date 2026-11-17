@@ -39,6 +39,15 @@ describe("casco da tela (spec 012, US2)", () => {
     expect(screen.getByRole("button", { name: "Sair" })).toBeTruthy();
   });
 
+  it("Sair apaga do aparelho os carrinhos não enviados do garçom (spec 015, FR-022)", () => {
+    localStorage.setItem("garcom:v1:r1:u1:m12", "{}");
+    localStorage.setItem("garcom:modo", "lista");
+    shell();
+    fireEvent.submit(screen.getByRole("button", { name: "Sair" }).closest("form")!);
+    expect(localStorage.getItem("garcom:v1:r1:u1:m12")).toBeNull();
+    expect(localStorage.getItem("garcom:modo")).toBe("lista");
+  });
+
   it("o menu destaca a tela do endereço atual e mostra a contagem do Repor", () => {
     shell();
     const nav = screen.getByRole("navigation", { name: "Menu principal" });

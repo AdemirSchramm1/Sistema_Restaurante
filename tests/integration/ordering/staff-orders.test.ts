@@ -448,6 +448,12 @@ describe("quem lançou cada pedido (spec 015, US2, FR-008)", () => {
       { value: t.maria.userId, label: "Maria" },
     ]);
     expect(code(await ordersBySource(env.deps, t.m, { from: day, to: "2026-12-31" }))).toBe("INVALID_PERIOD");
+    // Endereço digitado à mão com lixo no filtro: lista vazia, sem erro do banco.
+    expect(unwrap(await listOrders(env.deps, t.m, { from: day, to: day, placedBy: "lixo" }))).toEqual([]);
+    expect(
+      unwrap(await ordersBySource(env.deps, t.m, { from: day, to: day, placedBy: "lixo", tableId: "lixo" }))
+        .summary,
+    ).toEqual([]);
 
     const detail = unwrap(await getOrder(env.deps, t.m, j3.orderId));
     expect(detail).toMatchObject({ source: "STAFF", placedByName: "João" });

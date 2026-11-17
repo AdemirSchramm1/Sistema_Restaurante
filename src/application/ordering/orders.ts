@@ -95,9 +95,9 @@ export async function listOrders(
     const rows = await repos.orders.list({
       fromDay: input.from,
       toDay: input.to,
-      tableId: input.tableId,
+      tableId: filterId(input.tableId),
       status: input.status,
-      placedBy: input.placedBy,
+      placedBy: filterId(input.placedBy, "QR"),
     });
     return ok(
       rows.map((o) => ({
@@ -171,6 +171,12 @@ export type SourceSummaryView = {
  * Resumo da consulta por origem (spec 015, US2-6 e SC-005): pedidos não cancelados e o total deles,
  * e os cancelados por motivo; mais as opções do filtro Lançado por.
  */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Id que não casa com nada: filtro com lixo no endereço vira lista vazia, não erro do banco. */
+const NO_MATCH = "00000000-0000-0000-0000-000000000000";
+const filterId = (v: string | undefined, also?: string) =>
+  v === undefined || v === also || UUID.test(v) ? v : NO_MATCH;
+
 export async function ordersBySource(
   deps: Deps,
   ctx: RequestContext,
@@ -184,8 +190,8 @@ export async function ordersBySource(
     const rows = await repos.orders.summaryBySource({
       fromDay: input.from,
       toDay: input.to,
-      tableId: input.tableId,
-      placedBy: input.placedBy,
+      tableId: filterId(input.tableId),
+      placedBy: filterId(input.placedBy, "QR"),
     });
     const placers = await repos.orders.staffPlacers();
     return ok({

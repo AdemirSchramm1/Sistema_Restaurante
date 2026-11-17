@@ -9,6 +9,7 @@ import { KitchenBoard } from "@/components/ordering/kitchen-board";
 import { AutoRefresh } from "@/components/ordering/auto-refresh";
 import { NoAccess } from "@/components/layout/no-access";
 import { PageHeader } from "@/components/layout/page-header";
+import { placedByText } from "@/components/staff-ordering/format";
 
 export const metadata: Metadata = { title: "Cozinha" };
 export const dynamic = "force-dynamic";
@@ -25,7 +26,11 @@ export default async function Page() {
       <PageHeader title="Cozinha" description="Pedidos das mesas por etapa. A tela se atualiza sozinha." />
       <KitchenBoard
         serverNow={r.value.serverNow}
-        orders={r.value.orders.map((o) => ({ ...o, submittedAt: o.submittedAt.toISOString() }))}
+        orders={r.value.orders.map((o) => ({
+          ...o,
+          submittedAt: o.submittedAt.toISOString(),
+          placedBy: placedByText(o),
+        }))}
         advance={advanceOrderStatusAction}
         cancel={cancelOrderAction}
       />

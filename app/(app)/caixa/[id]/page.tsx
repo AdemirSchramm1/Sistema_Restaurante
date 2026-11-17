@@ -56,10 +56,20 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
             : { href: "/caixa/contas", label: "Voltar para as contas fechadas" }
         }
         actions={
-          <Link href={`/caixa/${t.id}/imprimir`} className={buttonVariants({ variant: "outline" })}>
-            <Printer aria-hidden="true" />
-            Imprimir conta
-          </Link>
+          <>
+            {t.status === "OPEN" && can(ctx.roles, "order.place") && (
+              <Link
+                href={`/pedidos/lancar/${t.tableId}?aba=pedidos`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Voltar à Mesa {t.tableName}
+              </Link>
+            )}
+            <Link href={`/caixa/${t.id}/imprimir`} className={buttonVariants({ variant: "outline" })}>
+              <Printer aria-hidden="true" />
+              Imprimir conta
+            </Link>
+          </>
         }
       />
       <TabDetail tab={view} timezone={t.timezone}>
