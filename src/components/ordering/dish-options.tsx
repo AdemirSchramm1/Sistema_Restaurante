@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { MenuProduct } from "@/application/ordering/menu";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
+import { KITCHEN_NOTE_MAX } from "@/domain/ordering/kitchen-note";
 import { Button } from "@/components/ui/button";
 import { brl, priceOrFree } from "./format";
 import { lineTotal, type CartLineData } from "./cart-state";
@@ -14,17 +15,21 @@ const DISH_SIZES = "(min-width: 672px) 640px, 100vw";
 
 /**
  * Tela do prato: a foto maior e a descrição inteira (spec 013, US6) e só botões, nenhum campo de
- * texto (spec 010, US3; decisão "Só botões"). Mudança que não está nos botões é com o garçom.
+ * texto para o cliente (spec 010, US3; decisão "Só botões"). Mudança que não está nos botões é com
+ * o garçom, que tem a Observação para a cozinha (`staff`, spec 015, FR-018).
  */
 export function DishOptions({
   product,
   onAdd,
   onClose,
+  staff = false,
 }: {
   product: MenuProduct;
   onAdd: (line: CartLineData) => void;
   onClose: () => void;
+  staff?: boolean;
 }) {
+  const [note, setNote] = useState("");
   const [times, setTimes] = useState<Record<string, number>>({});
   const [removed, setRemoved] = useState<Set<string>>(new Set());
   const [quantity, setQuantity] = useState(1);
@@ -38,6 +43,7 @@ export function DishOptions({
       .filter((a) => (times[a.id] ?? 0) > 0)
       .map((a) => ({ id: a.id, name: a.name, price: a.price, times: times[a.id]! })),
     removals: product.removables.filter((r) => removed.has(`${r.kind}:${r.id}`)),
+    ...(staff ? { kitchenNote: note.trim() || null } : {}),
   };
   const bump = (id: string, by: number, max: number) =>
     setTimes((t) => ({ ...t, [id]: Math.max(0, Math.min(max, (t[id] ?? 0) + by)) }));
@@ -130,7 +136,28 @@ export function DishOptions({
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground">Precisa de outra mudança? Chame um garçom.</p>
+      {staff ? (
+        <div className="grid grid-cols-1 gap-1">
+          <label htmlFor="kitchen-note" className="font-medium">
+            Observação para a cozinha
+          </label>
+          <textarea
+            id="kitchen-note"
+            rows={2}
+            maxLength={KITCHEN_NOTE_MAX}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Ex.: mal passado, molho à parte"
+            aria-describedby="kitchen-note-count"
+            className="min-h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base"
+          />
+          <span id="kitchen-note-count" className="text-right text-sm text-muted-foreground">
+            {[...note].length}/{KITCHEN_NOTE_MAX}
+          </span>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Precisa de outra mudança? Chame um garçom.</p>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2">
