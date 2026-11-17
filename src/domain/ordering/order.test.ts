@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   CANCEL_REASONS,
+  CANCEL_REASON_LABELS,
+  ORDER_SOURCES,
   ORDER_STATUS_LABELS,
+  cancelScope,
+  type OrderStatus,
   checkCancel,
   checkTransition,
   isLate,
@@ -50,7 +54,13 @@ describe("situações do pedido (spec 009, FR-008)", () => {
 
 describe("cancelar pedido (spec 009, US4-6)", () => {
   it("motivos da lista fechada", () => {
-    expect(CANCEL_REASONS).toEqual(["CUSTOMER_GAVE_UP", "OUT_OF_PRODUCT", "IMPROPER_ORDER", "OTHER"]);
+    expect(CANCEL_REASONS).toEqual([
+      "CUSTOMER_GAVE_UP",
+      "OUT_OF_PRODUCT",
+      "IMPROPER_ORDER",
+      "ENTERED_BY_MISTAKE",
+      "OTHER",
+    ]);
   });
 
   it("cancela qualquer pedido ainda não entregue (depois do preparo, dizendo se usou os ingredientes)", () => {
@@ -112,5 +122,43 @@ describe("cancelar depois do preparo (spec 011, US5)", () => {
     ]);
     expect(checkCancel("READY", "CUSTOMER_GAVE_UP", null, false).ok).toBe(true);
     expect(checkCancel("RECEIVED", "CUSTOMER_GAVE_UP", null, null).ok).toBe(true);
+  });
+});
+
+describe("origem e cancelar o próprio (spec 015, FR-006 e FR-010)", () => {
+  const JOAO = "11111111-1111-4111-8111-111111111111";
+  const MARIA = "22222222-2222-4222-8222-222222222222";
+  const staff = (status: OrderStatus, placedById = JOAO) => ({ status, source: "STAFF" as const, placedById });
+  const qr = (status: OrderStatus) => ({ status, source: "QR" as const, placedById: null });
+  const waiter = { userId: JOAO, canCancel: false, canCancelOwn: true };
+  const chef = { userId: MARIA, canCancel: true, canCancelOwn: false };
+
+  it("origens QR code e Equipe; motivo novo Lançado errado", () => {
+    expect(ORDER_SOURCES).toEqual(["QR", "STAFF"]);
+    expect(CANCEL_REASONS).toContain("ENTERED_BY_MISTAKE");
+    expect(CANCEL_REASON_LABELS.ENTERED_BY_MISTAKE).toBe("Lançado errado");
+    expect(checkCancel("RECEIVED", "ENTERED_BY_MISTAKE", null).ok).toBe(true);
+  });
+
+  it("quem tem order.cancel cancela qualquer pedido não final", () => {
+    expect(cancelScope(staff("RECEIVED"), chef)).toBe("ANY");
+    expect(cancelScope(qr("PREPARING"), chef)).toBe("ANY");
+    expect(cancelScope(staff("READY"), chef)).toBe("ANY");
+  });
+
+  it("o garçom cancela só o que lançou e só em Recebido", () => {
+    expect(cancelScope(staff("RECEIVED"), waiter)).toBe("OWN");
+    expect(cancelScope(staff("PREPARING"), waiter)).toBe("KITCHEN_STARTED");
+    expect(cancelScope(staff("READY"), waiter)).toBe("KITCHEN_STARTED");
+    expect(cancelScope(staff("RECEIVED", MARIA), waiter)).toBe("FORBIDDEN");
+    expect(cancelScope(qr("RECEIVED"), waiter)).toBe("FORBIDDEN");
+  });
+
+  it("sem nenhuma das duas, ninguém cancela; pedido final não cancela", () => {
+    expect(cancelScope(staff("RECEIVED"), { userId: JOAO, canCancel: false, canCancelOwn: false })).toBe(
+      "FORBIDDEN",
+    );
+    expect(cancelScope(staff("DELIVERED"), chef)).toBe("FINAL");
+    expect(cancelScope(staff("CANCELLED"), waiter)).toBe("FINAL");
   });
 });

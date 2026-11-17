@@ -97,7 +97,9 @@ describe("pedidos pelo QR code (spec 009, FR-010) e adicionais (spec 010, FR-008
 
   it("garçom só vê prontos, marca entregue, consulta pedidos e vê a conta (spec 011); não vê estoque", () => {
     expect(ACTIONS.filter((a) => can(["WAITER"], a)).sort()).toEqual([
+      "order.cancel_own",
       "order.deliver",
+      "order.place",
       "order.read",
       "tab.read",
     ]);
@@ -133,6 +135,8 @@ describe("conta da mesa e caixa (spec 011, FR-010)", () => {
     expect(ACTIONS.filter((a) => can(["CASHIER"], a)).sort()).toEqual([
       "cash.history",
       "cash.operate",
+      "order.cancel_own",
+      "order.place",
       "order.read",
       "tab.history",
       "tab.pay",
@@ -177,5 +181,19 @@ describe("caixa do dia (spec 014, FR-008)", () => {
     const cash = ACTIONS.filter((a) => a.startsWith("cash.") || a === "sales.report");
     expect(cash).toHaveLength(5);
     for (const role of ["WAITER", "CHEF"] as const) expect(cash.filter((a) => can([role], a))).toEqual([]);
+  });
+});
+
+describe("garçom lança o pedido da mesa (spec 015, FR-001 e FR-010)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
+  const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
+
+  it("lançar pedido e cancelar o próprio: gerente, garçom e caixa", () => {
+    expect(who("order.place")).toEqual(["MANAGER", "WAITER", "CASHIER"]);
+    expect(who("order.cancel_own")).toEqual(["MANAGER", "WAITER", "CASHIER"]);
+  });
+
+  it("cancelar qualquer pedido continua só com gerente e chef", () => {
+    expect(who("order.cancel")).toEqual(["MANAGER", "CHEF"]);
   });
 });

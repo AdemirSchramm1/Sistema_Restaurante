@@ -69,3 +69,11 @@ export function isLate(status: OrderStatus, submittedAt: Date, now: Date): boole
   if (status !== "RECEIVED" && status !== "PREPARING") return false;
   return now.getTime() - submittedAt.getTime() > LATE_MINUTES * 60_000;
 }
+
+export const ORDER_SOURCES = [] as unknown as readonly ["QR", "STAFF"];
+export type OrderSource = (typeof ORDER_SOURCES)[number];
+export type CancelScope = "ANY" | "OWN" | "KITCHEN_STARTED" | "FORBIDDEN" | "FINAL";
+export const cancelScope = (
+  _order: { status: OrderStatus; source: OrderSource; placedById: string | null },
+  _who: { userId: string; canCancel: boolean; canCancelOwn: boolean },
+): CancelScope => "FORBIDDEN";
