@@ -99,6 +99,13 @@
       "when": 1794557509738,
       "tag": "0013_menu_editing",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794887768774,
+      "tag": "0014_cash_sessions",
+      "breakpoints": true
     }
   ]
 }

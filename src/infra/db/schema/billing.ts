@@ -15,6 +15,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { base, editable } from "./common";
 import { diningTables } from "./ordering";
+import { cashSessions } from "./cash";
 
 /** Conta da mesa e pagamentos (feature 011, specs/011-fechamento-conta-mesa/data-model.md). */
 
@@ -59,8 +60,11 @@ export const tableTabs = pgTable(
     subtotal: numeric("subtotal", { precision: 12, scale: 2 }),
     serviceCharge: numeric("service_charge", { precision: 12, scale: 2 }),
     total: numeric("total", { precision: 12, scale: 2 }),
+    /** Turno do caixa aberto quando a conta fechou (spec 014); nulo antes da 014 e na conta de R$ 0,00. */
+    cashSessionId: uuid("cash_session_id").references(() => cashSessions.id),
   },
   (t) => [
+    index("table_tabs_cash_session").on(t.cashSessionId),
     uniqueIndex("table_tabs_one_open")
       .on(t.restaurantId, t.tableId)
       .where(sql`status = 'OPEN'`),
@@ -87,8 +91,12 @@ export const tabPayments = pgTable(
     received: numeric("received", { precision: 12, scale: 2 }),
     change: numeric("change", { precision: 12, scale: 2 }),
     clientRequestId: uuid("client_request_id").notNull(),
+    /** Turno do caixa em que entrou (spec 014). Obrigatório em linha nova; nulo só nas de antes da 014. */
+    cashSessionId: uuid("cash_session_id").references(() => cashSessions.id),
   },
   (t) => [
+    index("tab_payments_cash_session").on(t.cashSessionId, t.method),
+    check("tab_payments_cash_session", sql`cash_session_id is not null`),
     uniqueIndex("tab_payments_client_request").on(t.tabId, t.clientRequestId),
     check("tab_payments_amount", sql`amount > 0`),
     check("tab_payments_by", sql`created_by is not null`),
@@ -107,8 +115,12 @@ export const tabPaymentRemovals = pgTable(
     paymentId: uuid("payment_id")
       .notNull()
       .references(() => tabPayments.id),
+    /** Turno do caixa em que foi tirado (spec 014). Obrigatório em linha nova. */
+    cashSessionId: uuid("cash_session_id").references(() => cashSessions.id),
   },
   (t) => [
+    index("tab_payment_removals_cash_session").on(t.cashSessionId),
+    check("tab_payment_removals_cash_session", sql`cash_session_id is not null`),
     uniqueIndex("tab_payment_removals_payment").on(t.paymentId),
     check("tab_payment_removals_by", sql`created_by is not null`),
   ],
