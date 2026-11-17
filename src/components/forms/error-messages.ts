@@ -117,6 +117,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COUNT_OUTDATED: "Entrou dinheiro no turno depois da contagem. Conte de novo.",
   KEPT_ABOVE_COUNTED: "O que fica na gaveta não pode passar do que foi contado.",
   NOTE_REQUIRED: "Escreva uma observação.",
+  STAFF_TABLE_INACTIVE: "Esta mesa foi inativada. Fale com o gerente.",
+  KITCHEN_STARTED: "A cozinha já começou. Peça ao chef ou ao gerente para cancelar.",
+  REQUEST_REUSED: "Este envio já foi usado para outro pedido. Confira em Pedidos da mesa.",
 };
 
 /** Caixa do dia (spec 014): o mesmo código com o detalhe de qual ação pediu o caixa aberto. */
@@ -146,6 +149,11 @@ const money = (v: unknown) => formatBrl(d(String(v)));
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
   const details = error.details;
+  // Garçom (spec 015): a mesa vem no detalhe; a observação da cozinha tem o seu texto.
+  if (error.code === "STAFF_TABLE_INACTIVE" && details?.tableName)
+    return `A Mesa ${String(details.tableName)} foi inativada. Fale com o gerente.`;
+  if (error.code === "NOTE_TOO_LONG" && error.field?.endsWith("kitchenNote"))
+    return "A observação passa de 140 letras.";
   if (error.code === "CASH_SESSION_REQUIRED") return CASH_REQUIRED[String(details?.action)] ?? base;
   if (error.code === "NOTE_REQUIRED") return NOTE_REQUIRED[String(details?.reason)] ?? base;
   if (error.code === "CASH_SESSION_ALREADY_OPEN" && details?.openedAt)

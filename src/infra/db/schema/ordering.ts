@@ -16,6 +16,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { base, editable } from "./common";
+import { users } from "./auth";
 import { items, recipes, recipeVersions, units } from "./catalog";
 import { tableTabs } from "./billing";
 
@@ -34,8 +35,11 @@ export const orderCancelReasonEnum = pgEnum("order_cancel_reason", [
   "CUSTOMER_GAVE_UP",
   "OUT_OF_PRODUCT",
   "IMPROPER_ORDER",
+  "ENTERED_BY_MISTAKE",
   "OTHER",
 ]);
+/** De onde veio o pedido (spec 015): o cliente pelo QR code ou alguém da equipe. */
+export const orderSourceEnum = pgEnum("order_source", ["QR", "STAFF"]);
 
 /** Mesa. O token do link fica em texto: está impresso na mesa (research R1). */
 export const diningTables = pgTable(
@@ -90,9 +94,8 @@ export const orders = pgTable(
     tableId: uuid("table_id")
       .notNull()
       .references(() => diningTables.id),
-    menuAccessId: uuid("menu_access_id")
-      .notNull()
-      .references(() => menuAccesses.id),
+    /** Só no pedido pelo QR code (spec 015). */
+    menuAccessId: uuid("menu_access_id").references(() => menuAccesses.id),
     clientRequestId: uuid("client_request_id").notNull(),
     businessDay: date("business_day", { mode: "string" }).notNull(),
     number: integer("number").notNull(),
@@ -105,9 +108,22 @@ export const orders = pgTable(
     version: integer("version").notNull().default(1),
     /** Conta da mesa (spec 011); nula só nos pedidos de antes da 011. */
     tabId: uuid("tab_id").references(() => tableTabs.id),
+    /** Origem e quem lançou (spec 015, FR-006); nunca mudam. */
+    source: orderSourceEnum("source").notNull().default("QR"),
+    placedBy: uuid("placed_by").references(() => users.id),
   },
   (t) => [
     uniqueIndex("orders_client_request").on(t.menuAccessId, t.clientRequestId),
+    uniqueIndex("orders_staff_client_request")
+      .on(t.restaurantId, t.placedBy, t.clientRequestId)
+      .where(sql`source = 'STAFF'`),
+    index("orders_placed_by")
+      .on(t.restaurantId, t.placedBy, t.businessDay)
+      .where(sql`source = 'STAFF'`),
+    check(
+      "orders_source_shape",
+      sql`(source = 'QR' and menu_access_id is not null and placed_by is null) or (source = 'STAFF' and menu_access_id is null and placed_by is not null)`,
+    ),
     index("orders_tab").on(t.tabId),
     uniqueIndex("orders_day_number").on(t.restaurantId, t.businessDay, t.number),
     index("orders_open").on(t.restaurantId, t.status, t.submittedAt),
@@ -137,9 +153,12 @@ export const orderLines = pgTable(
     quantity: smallint("quantity").notNull(),
     basePrice: numeric("base_price", { precision: 12, scale: 2 }).notNull(),
     unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+    /** Observação para a cozinha, só da equipe (spec 015, FR-018). */
+    kitchenNote: text("kitchen_note"),
   },
   (t) => [
     uniqueIndex("order_lines_position").on(t.orderId, t.position),
+    check("order_lines_kitchen_note", sql`char_length(kitchen_note) between 1 and 140`),
     check("order_lines_quantity", sql`quantity between 1 and 20`),
     check("order_lines_base_price", sql`base_price > 0`),
     check("order_lines_unit_price", sql`unit_price >= base_price`),

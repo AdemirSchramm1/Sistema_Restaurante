@@ -110,7 +110,10 @@ export type ErrorCode =
   | "COUNT_REQUIRED"
   | "COUNT_OUTDATED"
   | "KEPT_ABOVE_COUNTED"
-  | "NOTE_REQUIRED";
+  | "NOTE_REQUIRED"
+  | "STAFF_TABLE_INACTIVE"
+  | "KITCHEN_STARTED"
+  | "REQUEST_REUSED";
 
 export type DomainError = {
   code: ErrorCode;

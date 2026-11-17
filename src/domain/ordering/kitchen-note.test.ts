@@ -18,7 +18,7 @@ describe("observação para a cozinha (spec 015, FR-018)", () => {
   it("141 letras é recusado; acento conta uma letra", () => {
     const r = checkKitchenNote("a".repeat(141));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error.code).toBe("NOTE_TOO_LONG");
+    if (!r.ok) expect(r.error).toEqual({ code: "NOTE_TOO_LONG", field: "kitchenNote" });
     expect(checkKitchenNote("ç".repeat(140)).ok).toBe(true);
   });
 });

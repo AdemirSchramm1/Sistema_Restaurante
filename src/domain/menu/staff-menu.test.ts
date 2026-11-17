@@ -62,7 +62,7 @@ describe("cardápio da equipe (spec 015, FR-003)", () => {
       [
         product("Sem preço", { salePrice: null }),
         product("Inativo", { active: false }),
-        product("Pão", { kind: "PREP" }),
+        product("Pão", { kind: "SUB_RECIPE" }),
         product("Chope", { sectionId: "bebidas", soldOutOn: today }),
       ],
       today,

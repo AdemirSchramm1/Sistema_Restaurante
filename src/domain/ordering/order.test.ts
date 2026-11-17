@@ -128,7 +128,11 @@ describe("cancelar depois do preparo (spec 011, US5)", () => {
 describe("origem e cancelar o próprio (spec 015, FR-006 e FR-010)", () => {
   const JOAO = "11111111-1111-4111-8111-111111111111";
   const MARIA = "22222222-2222-4222-8222-222222222222";
-  const staff = (status: OrderStatus, placedById = JOAO) => ({ status, source: "STAFF" as const, placedById });
+  const staff = (status: OrderStatus, placedById = JOAO) => ({
+    status,
+    source: "STAFF" as const,
+    placedById,
+  });
   const qr = (status: OrderStatus) => ({ status, source: "QR" as const, placedById: null });
   const waiter = { userId: JOAO, canCancel: false, canCancelOwn: true };
   const chef = { userId: MARIA, canCancel: true, canCancelOwn: false };

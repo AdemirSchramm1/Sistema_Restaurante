@@ -72,12 +72,13 @@ describe("caixa: contas abertas e a conta da mesa (spec 011, US1)", () => {
       { number: extra.number, status: "CANCELLED", cancelReason: "CUSTOMER_GAVE_UP", total: "9.00" },
     ]);
     expect(tab.orders[0]!.lines).toEqual([
-      {
+      expect.objectContaining({
         quantity: 2,
         productName: "X-Burger",
         unitPrice: expect.anything(),
         changes: ["+ 2 Fatia de queijo", "SEM cebola"],
-      },
+        kitchenNote: null,
+      }),
     ]);
     expect({
       subtotal: money(tab.subtotal),
