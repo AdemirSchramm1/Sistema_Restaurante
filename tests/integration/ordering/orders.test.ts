@@ -93,7 +93,9 @@ describe("chave de pedidos e consulta (spec 009, US6)", () => {
       cancelReason: "CUSTOMER_GAVE_UP",
       tableName: "12",
     });
-    expect(one.lines).toEqual([{ quantity: 1, productName: "Suco", unitPrice: "9.00", changes: [] }]);
+    expect(one.lines).toEqual([
+      { quantity: 1, productName: "Suco", unitPrice: "9.00", changes: [], kitchenNote: null },
+    ]);
     expect(one.events.map((e) => [e.fromStatus, e.toStatus, e.userName])).toEqual([
       [null, "RECEIVED", null],
       ["RECEIVED", "CANCELLED", "Gerente"],

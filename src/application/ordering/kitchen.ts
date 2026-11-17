@@ -4,14 +4,16 @@ import { authorize, auditStamp } from "../shared";
 import { recordOrderSale, reverseOrderSale } from "../inventory/sales";
 import type { OrderRecord } from "./ports";
 import {
+  cancelScope,
   checkCancel,
   checkTransition,
   isLate,
   leftTheShelf,
   type CancelReason,
+  type OrderSource,
   type OrderStatus,
 } from "@/domain/ordering/order";
-import type { Action } from "@/domain/access/permissions";
+import { can, type Action } from "@/domain/access/permissions";
 import { businessDay } from "@/domain/ordering/business-day";
 import { isSoldOut } from "@/domain/ordering/menu";
 import { err, ok, type Result } from "@/domain/shared/result";
@@ -20,9 +22,18 @@ import { err, ok, type Result } from "@/domain/shared/result";
 
 const ENTITY = "order";
 
-export type OrderLineSummary = { quantity: number; productName: string; changes: string[] };
+export type OrderLineSummary = {
+  quantity: number;
+  productName: string;
+  changes: string[];
+  /** Observação para a cozinha (spec 015, FR-018). */
+  kitchenNote: string | null;
+};
 
-export type KitchenOrder = {
+/** De onde veio (spec 015, US2): "QR code" ou o nome de quem lançou. */
+type Placed = { source: OrderSource; placedById: string | null; placedByName: string | null };
+
+export type KitchenOrder = Placed & {
   id: string;
   number: number;
   tableName: string;
@@ -33,7 +44,7 @@ export type KitchenOrder = {
   lines: OrderLineSummary[];
 };
 
-export type ReadyOrder = {
+export type ReadyOrder = Placed & {
   id: string;
   number: number;
   tableName: string;
@@ -43,7 +54,18 @@ export type ReadyOrder = {
 };
 
 const lines = (o: OrderRecord): OrderLineSummary[] =>
-  o.lines.map(({ quantity, productName, changes }) => ({ quantity, productName, changes }));
+  o.lines.map(({ quantity, productName, changes, kitchenNote }) => ({
+    quantity,
+    productName,
+    changes,
+    kitchenNote,
+  }));
+
+const placed = (o: OrderRecord): Placed => ({
+  source: o.source,
+  placedById: o.placedById,
+  placedByName: o.placedByName,
+});
 
 /** Pedidos recebidos, em preparo e prontos, mais antigo primeiro. */
 export async function listKitchenOrders(
@@ -61,6 +83,7 @@ export async function listKitchenOrders(
         id: o.id,
         number: o.number,
         tableName: o.tableName,
+        ...placed(o),
         submittedAt: o.submittedAt,
         status: o.status,
         late: isLate(o.status, o.submittedAt, now),
@@ -71,19 +94,25 @@ export async function listKitchenOrders(
   });
 }
 
-/** Pedidos prontos para levar, mais antigo primeiro. */
-export async function listReadyOrders(deps: Deps, ctx: RequestContext): Promise<Result<ReadyOrder[]>> {
+/** Pedidos prontos para levar, mais antigo primeiro; "Só os meus" (spec 015, US2-3). */
+export async function listReadyOrders(
+  deps: Deps,
+  ctx: RequestContext,
+  input: { onlyMine?: boolean } = {},
+): Promise<Result<ReadyOrder[]>> {
   const allowed = await authorize(deps, ctx, "order.deliver", ENTITY);
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const rows = await repos.orders.listByStatus(["READY"]);
     return ok(
       rows
+        .filter((o) => !input.onlyMine || o.placedById === ctx.userId)
         .sort((a, b) => a.statusChangedAt.getTime() - b.statusChangedAt.getTime())
         .map((o) => ({
           id: o.id,
           number: o.number,
           tableName: o.tableName,
+          ...placed(o),
           readyAt: o.statusChangedAt,
           version: o.version,
           lines: lines(o),
@@ -148,7 +177,8 @@ export async function markDelivered(
 /**
  * Cancela com motivo da lista; "Outro" pede texto de até 140. Depois do preparo (spec 011, US5),
  * estorna a venda e, com `ingredientsUsed`, lança a perda; a conta da mesa muda de versão porque o
- * total mudou.
+ * total mudou. Quem só tem `order.cancel_own` (spec 015, R6) cancela o pedido que lançou, e só em
+ * Recebido: nada saiu da prateleira, então `ingredientsUsed` não conta.
  */
 export async function cancelOrder(
   deps: Deps,
@@ -161,13 +191,29 @@ export async function cancelOrder(
     ingredientsUsed?: boolean;
   },
 ): Promise<Result<void>> {
-  const allowed = await authorize(deps, ctx, "order.cancel", ENTITY, input.id);
-  if (!allowed.ok) return allowed;
-  return deps.tenant(ctx.restaurantId, async (repos) => {
+  const who = {
+    userId: ctx.userId,
+    canCancel: can(ctx.roles, "order.cancel"),
+    canCancelOwn: can(ctx.roles, "order.cancel_own"),
+  };
+  if (!who.canCancel && !who.canCancelOwn) {
+    const denied = await authorize(deps, ctx, "order.cancel", ENTITY, input.id);
+    if (!denied.ok) return denied;
+  }
+  const r = await deps.tenant(ctx.restaurantId, async (repos): Promise<Result<void>> => {
     const current = await repos.orders.get(input.id);
     if (!current) return err("NOT_FOUND");
+    const scope = cancelScope(current, who);
+    if (scope === "FORBIDDEN") return err("FORBIDDEN", undefined, { action: "order.cancel_own" });
+    if (scope === "KITCHEN_STARTED") return err("KITCHEN_STARTED");
     if (current.version !== input.version) return err("STALE_RECORD");
-    const c = checkCancel(current.status, input.reason, input.note, input.ingredientsUsed ?? null);
+    const own = scope === "OWN";
+    const c = checkCancel(
+      current.status,
+      input.reason,
+      input.note,
+      own ? null : (input.ingredientsUsed ?? null),
+    );
     if (!c.ok) return c;
     const audit = auditStamp(deps, ctx);
     const changed = await repos.orders.changeStatus(
@@ -184,6 +230,26 @@ export async function cancelOrder(
     if (current.tabId) await repos.tabs.touch(current.tabId, audit);
     return ok(undefined);
   });
+  if (!r.ok && r.error.code === "FORBIDDEN")
+    // Pedido de outra pessoa ou do QR code: a tentativa fica na trilha (FR-014).
+    await deps.tenant(ctx.restaurantId, async (repos) => {
+      await repos.audit.record({
+        entity: ENTITY,
+        entityId: input.id,
+        action: "DENIED",
+        changes: { action: "order.cancel_own" },
+        userId: ctx.userId,
+        origin: ctx.origin,
+      });
+      return ok(undefined);
+    });
+  if (!r.ok && r.error.code === "STALE_RECORD" && !who.canCancel) {
+    // Corrida com o Começar preparo: o garçom vê o motivo, não "alguém mudou".
+    const now = await deps.tenant(ctx.restaurantId, async (repos) => ok(await repos.orders.get(input.id)));
+    if (now.ok && now.value && cancelScope(now.value, who) === "KITCHEN_STARTED")
+      return err("KITCHEN_STARTED");
+  }
+  return r;
 }
 
 /** Produtos vendidos (ativos e com preço) com o interruptor "Esgotado hoje" (spec 009, US5). */

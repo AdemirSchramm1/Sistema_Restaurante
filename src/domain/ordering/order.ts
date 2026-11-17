@@ -80,6 +80,8 @@ export function isLate(status: OrderStatus, submittedAt: Date, now: Date): boole
 /** De onde veio o pedido (spec 015, FR-006): o cliente pelo QR code ou alguém da equipe. */
 export const ORDER_SOURCES = ["QR", "STAFF"] as const;
 export type OrderSource = (typeof ORDER_SOURCES)[number];
+/** Na tela do garçom, a equipe aparece pelo nome de quem lançou; "Equipe" é só o rótulo do filtro. */
+export const ORDER_SOURCE_LABELS: Record<OrderSource, string> = { QR: "QR code", STAFF: "Equipe" };
 
 /**
  * Quem pode cancelar este pedido (spec 015, R6). `ANY`: gerente e chef (`order.cancel`). `OWN`: quem

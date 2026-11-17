@@ -10,8 +10,19 @@ import {
 } from "../../../src/application/ordering/staff-orders";
 import { submitOrder } from "../../../src/application/ordering/submit-order";
 import { setTableActive } from "../../../src/application/ordering/tables";
-import { setAcceptingQrOrders } from "../../../src/application/ordering/orders";
-import { setProductSoldOut } from "../../../src/application/ordering/kitchen";
+import {
+  getOrder,
+  listOrders,
+  ordersBySource,
+  setAcceptingQrOrders,
+} from "../../../src/application/ordering/orders";
+import {
+  advanceOrderStatus,
+  cancelOrder,
+  listKitchenOrders,
+  listReadyOrders,
+  setProductSoldOut,
+} from "../../../src/application/ordering/kitchen";
 import { setRecipeSalePrice } from "../../../src/application/inventory/product-costs";
 import { d } from "../../../src/domain/shared/decimal";
 
@@ -345,5 +356,201 @@ describe("Pedidos da mesa (spec 015, US3, FR-009)", () => {
     });
     expect(code(await listTableOrders(env.deps, t.joao, crypto.randomUUID()))).toBe("NOT_FOUND");
     expect(code(await listTableOrders(env.deps, t.chef, t.tableId))).toBe("FORBIDDEN");
+  });
+});
+
+describe("quem lançou cada pedido (spec 015, US2, FR-008)", () => {
+  it("cozinha e Garçom mostram a origem e a observação; Só os meus filtra os prontos", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const qr = unwrap(
+      await submitOrder(env.deps, t.s.cookie, { clientRequestId: crypto.randomUUID(), lines: [t.s.juice()] }),
+    );
+    const joao = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.burger(1, "mal passado")])));
+    const maria = unwrap(await placeStaffOrder(env.deps, t.maria, t.input([t.juice()])));
+    const kitchen = unwrap(await listKitchenOrders(env.deps, t.chef)).orders;
+    expect(kitchen.map((o) => [o.number, o.source, o.placedByName])).toEqual([
+      [qr.number, "QR", null],
+      [joao.number, "STAFF", "João"],
+      [maria.number, "STAFF", "Maria"],
+    ]);
+    expect(kitchen[1]!.lines[0]!.kitchenNote).toBe("mal passado");
+    for (const id of [qr.orderId, joao.orderId, maria.orderId]) {
+      await t.advance(id, "PREPARING");
+      await t.advance(id, "READY");
+    }
+    const all = unwrap(await listReadyOrders(env.deps, t.joao));
+    expect(all.map((o) => o.placedByName)).toEqual([null, "João", "Maria"]);
+    const mine = unwrap(await listReadyOrders(env.deps, t.joao, { onlyMine: true }));
+    expect(mine.map((o) => [o.number, o.placedById])).toEqual([[joao.number, t.joao.userId]]);
+  });
+
+  it("consulta filtra por Lançado por e resume por origem, com cancelados por motivo (SC-005)", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const day = "2026-10-31";
+    await t.s.place([t.s.juice()]);
+    const cancelledQr = await t.s.place([t.s.juice()]);
+    const j1 = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.burger()])));
+    const j2 = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice(2)])));
+    const j3 = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    unwrap(await placeStaffOrder(env.deps, t.maria, t.input([t.juice()])));
+    unwrap(
+      await cancelOrder(env.deps, t.chef, {
+        id: cancelledQr.orderId,
+        reason: "CUSTOMER_GAVE_UP",
+        note: null,
+        version: 1,
+      }),
+    );
+    unwrap(
+      await cancelOrder(env.deps, t.joao, {
+        id: j3.orderId,
+        reason: "ENTERED_BY_MISTAKE",
+        note: null,
+        version: 1,
+      }),
+    );
+
+    const rows = unwrap(await listOrders(env.deps, t.m, { from: day, to: day, placedBy: t.joao.userId }));
+    expect(rows.map((o) => [o.number, o.source, o.placedByName]).sort()).toEqual(
+      [
+        [j1.number, "STAFF", "João"],
+        [j2.number, "STAFF", "João"],
+        [j3.number, "STAFF", "João"],
+      ].sort(),
+    );
+    expect(unwrap(await listOrders(env.deps, t.m, { from: day, to: day, placedBy: "QR" }))).toHaveLength(2);
+
+    const summary = unwrap(await ordersBySource(env.deps, t.m, { from: day, to: day }));
+    expect(summary.summary).toEqual([
+      {
+        source: "QR",
+        placedById: null,
+        name: null,
+        count: 1,
+        total: "9.00",
+        cancelled: [{ reason: "CUSTOMER_GAVE_UP", count: 1 }],
+      },
+      {
+        source: "STAFF",
+        placedById: t.joao.userId,
+        name: "João",
+        count: 2,
+        total: "86.00",
+        cancelled: [{ reason: "ENTERED_BY_MISTAKE", count: 1 }],
+      },
+      { source: "STAFF", placedById: t.maria.userId, name: "Maria", count: 1, total: "9.00", cancelled: [] },
+    ]);
+    expect(summary.placedByOptions).toEqual([
+      { value: "QR", label: "QR code" },
+      { value: t.joao.userId, label: "João" },
+      { value: t.maria.userId, label: "Maria" },
+    ]);
+    expect(code(await ordersBySource(env.deps, t.m, { from: day, to: "2026-12-31" }))).toBe("INVALID_PERIOD");
+
+    const detail = unwrap(await getOrder(env.deps, t.m, j3.orderId));
+    expect(detail).toMatchObject({ source: "STAFF", placedByName: "João" });
+    expect(detail.events.map((e) => [e.toStatus, e.userName])).toEqual([
+      ["RECEIVED", "João"],
+      ["CANCELLED", "João"],
+    ]);
+  });
+});
+
+describe("cancelar o próprio pedido (spec 015, US4, FR-010)", () => {
+  it("João cancela o que lançou, em Recebido, com Lançado errado; a cozinha não vê mais", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const o = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    unwrap(
+      await cancelOrder(env.deps, t.joao, {
+        id: o.orderId,
+        reason: "ENTERED_BY_MISTAKE",
+        note: null,
+        version: 1,
+        ingredientsUsed: true,
+      }),
+    );
+    const row = (await q("select status, cancel_reason from orders where id = $1", [o.orderId])).rows[0];
+    expect(row).toEqual({ status: "CANCELLED", cancel_reason: "ENTERED_BY_MISTAKE" });
+    expect(unwrap(await listKitchenOrders(env.deps, t.chef)).orders).toEqual([]);
+  });
+
+  it("pedido de outra pessoa ou do QR code: recusado e registrado", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const maria = unwrap(await placeStaffOrder(env.deps, t.maria, t.input([t.juice()])));
+    const qr = await t.s.place([t.s.juice()]);
+    for (const id of [maria.orderId, qr.orderId])
+      expect(
+        code(
+          await cancelOrder(env.deps, t.joao, { id, reason: "ENTERED_BY_MISTAKE", note: null, version: 1 }),
+        ),
+      ).toBe("FORBIDDEN");
+    const denied = (
+      await q(
+        "select entity_id from audit_log where action = 'DENIED' and user_id = $1 order by occurred_at",
+        [t.joao.userId],
+      )
+    ).rows.map((r) => r.entity_id);
+    expect(denied).toEqual([maria.orderId, qr.orderId]);
+    expect(
+      code(
+        await cancelOrder(env.deps, t.stockkeeper, {
+          id: qr.orderId,
+          reason: "OTHER",
+          note: "x",
+          version: 1,
+        }),
+      ),
+    ).toBe("FORBIDDEN");
+  });
+
+  it("depois do Começar preparo: A cozinha já começou; o estoque baixa só uma vez", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const o = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    await t.advance(o.orderId, "PREPARING");
+    expect(
+      code(
+        await cancelOrder(env.deps, t.joao, {
+          id: o.orderId,
+          reason: "ENTERED_BY_MISTAKE",
+          note: null,
+          version: 2,
+        }),
+      ),
+    ).toBe("KITCHEN_STARTED");
+    // A tela ainda tinha a versão de antes do preparo: mesmo assim a resposta é a da cozinha.
+    expect(
+      code(
+        await cancelOrder(env.deps, t.joao, {
+          id: o.orderId,
+          reason: "ENTERED_BY_MISTAKE",
+          note: null,
+          version: 1,
+        }),
+      ),
+    ).toBe("KITCHEN_STARTED");
+  });
+
+  it("cancelar e Começar preparo ao mesmo tempo: só um vale e o estoque nunca baixa de cancelado", async () => {
+    const env = testEnv();
+    const t = await staffScenario(env);
+    const o = unwrap(await placeStaffOrder(env.deps, t.joao, t.input([t.juice()])));
+    const [cancel, start] = await Promise.all([
+      cancelOrder(env.deps, t.joao, { id: o.orderId, reason: "ENTERED_BY_MISTAKE", note: null, version: 1 }),
+      advanceOrderStatus(env.deps, t.chef, { id: o.orderId, to: "PREPARING", version: 1 }),
+    ]);
+    expect([cancel.ok, start.ok].filter(Boolean)).toHaveLength(1);
+    const status = (await q("select status from orders where id = $1", [o.orderId])).rows[0].status;
+    const sales = (
+      await q("select count(*)::int as n from stock_movements where order_id = $1 and type = 'SALE_RECIPE'", [
+        o.orderId,
+      ])
+    ).rows[0].n;
+    expect(sales).toBe(status === "CANCELLED" ? 0 : 1);
+    if (!cancel.ok) expect(["KITCHEN_STARTED", "STALE_RECORD"]).toContain(cancel.error.code);
   });
 });

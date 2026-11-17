@@ -2,7 +2,12 @@ import type { Deps } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize, auditStamp } from "../shared";
 import type { OrderEventRecord } from "./ports";
-import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
+import {
+  ORDER_SOURCE_LABELS,
+  type CancelReason,
+  type OrderSource,
+  type OrderStatus,
+} from "@/domain/ordering/order";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 /** Chave "Recebendo pedidos pelo QR code" e consulta de pedidos (spec 009, US6). */
@@ -55,6 +60,9 @@ export type OrderListRow = {
   number: number;
   businessDay: string;
   tableName: string;
+  /** Origem e quem lançou (spec 015, US2-5). */
+  source: OrderSource;
+  placedByName: string | null;
   submittedAt: Date;
   status: OrderStatus;
   total: string;
@@ -77,7 +85,7 @@ export function checkPeriod(from: string, to: string): Result<void> {
 export async function listOrders(
   deps: Deps,
   ctx: RequestContext,
-  input: { from: string; to: string; tableId?: string; status?: OrderStatus },
+  input: { from: string; to: string; tableId?: string; status?: OrderStatus; placedBy?: string },
 ): Promise<Result<OrderListRow[]>> {
   const allowed = await authorize(deps, ctx, "order.read", "order");
   if (!allowed.ok) return allowed;
@@ -89,6 +97,7 @@ export async function listOrders(
       toDay: input.to,
       tableId: input.tableId,
       status: input.status,
+      placedBy: input.placedBy,
     });
     return ok(
       rows.map((o) => ({
@@ -96,6 +105,8 @@ export async function listOrders(
         number: o.number,
         businessDay: o.businessDay,
         tableName: o.tableName,
+        source: o.source,
+        placedByName: o.placedByName,
         submittedAt: o.submittedAt,
         status: o.status,
         total: o.total.toFixed(2),
@@ -107,7 +118,13 @@ export async function listOrders(
 export type OrderDetail = OrderListRow & {
   cancelReason: CancelReason | null;
   cancelNote: string | null;
-  lines: { quantity: number; productName: string; unitPrice: string; changes: string[] }[];
+  lines: {
+    quantity: number;
+    productName: string;
+    unitPrice: string;
+    changes: string[];
+    kitchenNote: string | null;
+  }[];
   events: OrderEventRecord[];
 };
 
@@ -122,6 +139,8 @@ export async function getOrder(deps: Deps, ctx: RequestContext, id: string): Pro
       number: o.number,
       businessDay: o.businessDay,
       tableName: o.tableName,
+      source: o.source,
+      placedByName: o.placedByName,
       submittedAt: o.submittedAt,
       status: o.status,
       total: o.total.toFixed(2),
@@ -132,8 +151,49 @@ export async function getOrder(deps: Deps, ctx: RequestContext, id: string): Pro
         productName: l.productName,
         unitPrice: l.unitPrice.toFixed(2),
         changes: l.changes,
+        kitchenNote: l.kitchenNote,
       })),
       events: await repos.orders.events(id),
+    });
+  });
+}
+
+export type SourceSummaryView = {
+  source: OrderSource;
+  placedById: string | null;
+  name: string | null;
+  count: number;
+  total: string;
+  cancelled: { reason: CancelReason; count: number }[];
+};
+
+/**
+ * Resumo da consulta por origem (spec 015, US2-6 e SC-005): pedidos não cancelados e o total deles,
+ * e os cancelados por motivo; mais as opções do filtro Lançado por.
+ */
+export async function ordersBySource(
+  deps: Deps,
+  ctx: RequestContext,
+  input: { from: string; to: string; tableId?: string; placedBy?: string },
+): Promise<Result<{ summary: SourceSummaryView[]; placedByOptions: { value: string; label: string }[] }>> {
+  const allowed = await authorize(deps, ctx, "order.read", "order");
+  if (!allowed.ok) return allowed;
+  const period = checkPeriod(input.from, input.to);
+  if (!period.ok) return period;
+  return deps.tenant(ctx.restaurantId, async (repos) => {
+    const rows = await repos.orders.summaryBySource({
+      fromDay: input.from,
+      toDay: input.to,
+      tableId: input.tableId,
+      placedBy: input.placedBy,
+    });
+    const placers = await repos.orders.staffPlacers();
+    return ok({
+      summary: rows.map((r) => ({ ...r, total: r.total.toFixed(2) })),
+      placedByOptions: [
+        { value: "QR", label: ORDER_SOURCE_LABELS.QR },
+        ...placers.map((p) => ({ value: p.id, label: p.name })),
+      ],
     });
   });
 }

@@ -76,6 +76,7 @@ describe("quadro da cozinha (spec 009 US4)", () => {
       "Cliente desistiu",
       "Produto acabou",
       "Pedido indevido",
+      "Lançado errado",
       "Outro",
     ]);
     expect(screen.queryByLabelText("Qual o motivo?")).toBeNull();

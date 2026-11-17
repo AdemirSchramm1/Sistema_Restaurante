@@ -29,7 +29,12 @@ describe("cozinha e garçom (spec 009 US4 + spec 010 US4)", () => {
     ]);
     expect(board.orders[0]).toMatchObject({ id: first.orderId, version: 1 });
     expect(board.orders[0]!.lines).toEqual([
-      { quantity: 2, productName: "X-Burger", changes: ["+ 2 Fatia de queijo", "SEM cebola"] },
+      {
+        quantity: 2,
+        productName: "X-Burger",
+        changes: ["+ 2 Fatia de queijo", "SEM cebola"],
+        kitchenNote: null,
+      },
     ]);
   });
 
