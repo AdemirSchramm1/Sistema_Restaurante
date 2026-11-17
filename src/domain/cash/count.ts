@@ -33,6 +33,9 @@ export function sumDenominations(denominations: Denominations): Decimal {
 
 const isDenomination = (v: string): v is Denomination => (DENOMINATIONS as readonly string[]).includes(v);
 
+/** Quantidade de cédulas: inteiro de zero para cima. */
+const isQuantity = (q: unknown): q is number => Number.isInteger(q) && (q as number) >= 0;
+
 /**
  * Contado: zero ou mais, com até 2 casas. Com a calculadora, cada chave é uma cédula ou moeda da
  * lista, cada quantidade é um inteiro de zero para cima e a soma é o contado. Quantidades zero não
@@ -45,7 +48,7 @@ export function checkCount(input: {
   if (!isCashAmount(input.counted)) return err("INVALID_AMOUNT", "counted");
   const used: Denominations = {};
   for (const [value, quantity] of Object.entries(input.denominations ?? {})) {
-    if (!isDenomination(value) || typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 0)
+    if (!isDenomination(value) || !isQuantity(quantity))
       return err("DENOMINATIONS_MISMATCH", "denominations");
     if (quantity > 0) used[value] = quantity;
   }

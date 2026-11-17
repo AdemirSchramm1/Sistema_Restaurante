@@ -16,6 +16,7 @@ describe("planilha de vendas (spec 014, US6-7 e research R8)", () => {
 
   it("dinheiro sai com vírgula e 2 casas; negativo continua número", () => {
     expect(toCsv([[d("1234.5"), d("-2"), d("0")]])).toBe(`${BOM}1234,50;-2,00;0,00\r\n`);
+    expect(toCsv([[-2, 0]])).toBe(`${BOM}-2;0\r\n`);
   });
 
   it("escapa aspas, ponto e vírgula e quebra de linha", () => {

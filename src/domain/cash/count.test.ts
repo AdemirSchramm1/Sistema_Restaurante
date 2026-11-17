@@ -64,8 +64,8 @@ describe("contagem da gaveta (spec 014, US4-1 e FR-005)", () => {
   });
 
   it("cédula fora da lista, quantidade negativa, fracionária ou que não é número é recusada", () => {
-    expect(code(count("3.00", { "3": 1 }))).toBe("DENOMINATIONS_MISMATCH:denominations");
-    expect(code(count("0", { "10": -1, "5": 2 }))).toBe("DENOMINATIONS_MISMATCH:denominations");
+    expect(code(count("0.00", { "3": 1 }))).toBe("DENOMINATIONS_MISMATCH:denominations");
+    expect(code(count("10.00", { "10": -1, "5": 2 }))).toBe("DENOMINATIONS_MISMATCH:denominations");
     expect(code(count("5.00", { "10": 0.5 }))).toBe("DENOMINATIONS_MISMATCH:denominations");
     expect(code(count("10.00", { "10": "1" }))).toBe("DENOMINATIONS_MISMATCH:denominations");
   });

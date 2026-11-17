@@ -163,7 +163,7 @@ reforço, conta e fecha, e o gerente vê o turno.
 - [x] T076 [P] `docs/produto/estoque/09-controles-e-permissoes.md`: tabela "Caixa do dia (feature 014)" com `cash.operate`, `cash.close_any`, `cash.expected`, `cash.history`, `sales.report`; controles do manual que a 014 atende (sangria registrada com motivo, contagem antes de ver o esperado, todas as contagens guardadas, turno fechado imutável)
 - [x] T077 [P] `docs/sistema/pedidos/01-modelo-de-dados.md` e `02-regras.md` (turno, lançamentos, contagem, ordem de trava conta → turno, esperado); `docs/sistema/04-desempenho.md` (consultas de Vendas e o limite de 5 idas); `docs/produto/estoque/13-decisoes-adotadas.md` (as premissas da spec)
 - [x] T078 Roadmap em `docs/produto/estoque/00-visao-geral.md`: 014 "Feito"
-- [ ] T079 `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:cash`, `pnpm test:mutation`, `pnpm test:integration` e `pnpm test:e2e --trace off` verdes; rodar o [quickstart](quickstart.md) à mão e marcar as tarefas
+- [x] T079 `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:cash`, `pnpm test:mutation`, `pnpm test:integration` e `pnpm test:e2e --trace off` verdes; rodar o [quickstart](quickstart.md) à mão e marcar as tarefas
 
 ## Dependências
 
