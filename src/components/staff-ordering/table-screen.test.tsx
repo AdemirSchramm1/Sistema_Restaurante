@@ -117,8 +117,8 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
   it("confere e envia: o carrinho esvazia e some do aparelho", async () => {
     const place = vi.fn<PlaceFn>(async () => ({ ok: true, data: sent, at: 1 }));
     screenWith(place);
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
     expect(loadCart(localStorage, key, Date.now())?.lines).toHaveLength(1);
     toCart();
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
@@ -142,7 +142,7 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
       .mockResolvedValueOnce({ ok: true, data: sent, at: 1 });
     screenWith(place);
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
     toCart();
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Confirmar" })));
@@ -188,7 +188,7 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
       at: 1,
     }));
     screenWith(place);
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
     toCart();
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Confirmar" })));
@@ -201,7 +201,7 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
     vi.stubGlobal("navigator", { onLine: false });
     const place = vi.fn<PlaceFn>();
     screenWith(place);
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
     toCart();
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
     expect(screen.getByText("Sem conexão. O pedido não foi enviado.")).toBeTruthy();
@@ -246,7 +246,7 @@ describe("mesa no Lançar pedido (spec 015, US1, US3 a US6)", () => {
       ],
     };
     screenWith(vi.fn(), { orders });
-    fireEvent.click(screen.getByRole("button", { name: "Mais um Chope" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar Chope" }));
     toCart();
     fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
     const dialog = screen.getByRole("dialog");

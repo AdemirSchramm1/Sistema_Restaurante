@@ -379,7 +379,7 @@ function Screen({
           <Button
             type="button"
             className="h-11 min-w-11"
-            aria-label={`Mais um ${p.name}`}
+            aria-label={`Adicionar ${p.name}`}
             disabled={locked}
             onClick={() => addPlain(p)}
           >

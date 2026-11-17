@@ -138,6 +138,24 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   await expect(page.getByRole("article", { name: "Mesa 1, pedido 1" })).toBeVisible();
   expect(await seriousViolations(page), "/pedidos/garcom").toEqual([]);
 
+  // Spec 015: Lançar pedido, a mesa com o carrinho e o resumo, e Pedidos da mesa.
+  await page.goto("/pedidos/lancar");
+  expect(await seriousViolations(page), "/pedidos/lancar").toEqual([]);
+  await page.getByRole("link", { name: /Mesa 1\b/ }).click();
+  await expect(page.getByRole("heading", { name: "Mesa 1", level: 1 })).toBeVisible();
+  expect(await seriousViolations(page), "mesa no Lançar pedido").toEqual([]);
+  await page.getByRole("button", { name: "Lista" }).click();
+  await expect(page.getByRole("button", { name: "Lista" })).toHaveAttribute("aria-pressed", "true");
+  // A troca de cor dos botões Fotos/Lista anima; o axe mede depois que ela termina.
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(400);
+  expect(await seriousViolations(page), "mesa em Lista").toEqual([]);
+  await page.getByRole("tab", { name: "Pedidos da mesa" }).click();
+  await expect(page.getByRole("tab", { name: "Pedidos da mesa" })).toHaveAttribute("aria-selected", "true");
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(400);
+  expect(await seriousViolations(page), "Pedidos da mesa").toEqual([]);
+
   for (const path of ["/pedidos", "/pedidos/adicionais", addon]) {
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
