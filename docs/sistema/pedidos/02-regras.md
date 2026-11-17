@@ -133,3 +133,38 @@ fecha (`REMAINING_NOT_ZERO`) até tirar o pagamento a mais.
 - Auditoria (`entity = 'table_tab'`): `paymentAdded`, `paymentRemoved`, `serviceWaived`, `status`
   (fechar e reabrir, com `reason`); taxa do restaurante em `entity = 'restaurant'`
   (`serviceChargeRate`).
+
+## Caixa do dia (014) — `src/domain/cash/`
+
+| Regra | Função |
+|---|---|
+| Esperado = troco + dinheiro recebido no turno − dinheiro de outro turno tirado neste + reforços − sangrias; pode ser negativo | `expectedCash`, `sessionSummary` |
+| Recebido por forma = lançados no turno − tirados no próprio turno; pagamento tirado num turno seguinte fica no de origem | `receivedByMethod` |
+| Conta passo a passo do relatório | `steps` |
+| Abrir: troco ≥ 0 com 2 casas; troco diferente do `previous_kept` pede observação (`OPENING_NOTE_REQUIRED`) | `checkOpening` |
+| Sangria: valor > 0, motivo da lista, observação obrigatória em `OTHER`, nunca acima do esperado (`WITHDRAWAL_EXCEEDS_EXPECTED`, `details.expected`) | `checkWithdrawal` |
+| Reforço: valor > 0; tirar reforço não pode deixar o esperado negativo (`EXPECTED_WOULD_BE_NEGATIVE`) | `checkSupply`, `checkSupplyRemoval` |
+| Contagem: ≥ 0, 2 casas; com cédulas, a soma bate com o contado (`DENOMINATIONS_MISMATCH`) | `checkCount`, `sumDenominations` |
+| Fechar: diferença = contado − esperado; com diferença, observação (`NOTE_REQUIRED`); `0 ≤ fica ≤ contado` (`KEPT_ABOVE_COUNTED`) | `closingResult`, `outcomeOf` |
+| Vendas: ordem por valor e parte em % com 1 casa somando 100,0 | `salesShares` |
+| Planilha: `;`, BOM, `\r\n`, vírgula decimal, apóstrofo antes de `=`, `+`, `-`, `@` | `toCsv` |
+
+## Caixa do dia (014) — aplicação, `src/application/cash/`
+
+- Ordem das travas: **conta → turno**. `addPayment` e `removePayment` travam a conta, depois o turno
+  aberto (`cashSessions.lockOpen`); sem turno → `CASH_SESSION_REQUIRED` (`details.action`: `remove`
+  muda o texto). Gravam `cash_session_id` e somam 1 na versão do turno.
+- `closeTab` grava o turno aberto sem travá-lo. Conta de R$ 0,00 fecha sem turno.
+- `openCashSession`: o índice único decide quem abriu; quem perde recebe `CASH_SESSION_ALREADY_OPEN`
+  com quem e quando.
+- `addCashEntry` trava o turno e confere o esperado depois da trava: duas sangrias ao mesmo tempo
+  nunca passam do esperado. `removeCashEntry` só no turno aberto (`CASH_SESSION_CLOSED`).
+- `countCash(sessionId, …)` grava a contagem com a versão do turno e só então devolve esperado e
+  diferença; não soma versão. `closeCashSession(sessionId, …)` usa a última contagem
+  (`COUNT_REQUIRED`, `COUNT_OUTDATED`) e grava o retrato. Quem abriu ou `cash.close_any`.
+- `getCurrentCashSession` (`tab.read`): o esperado só sai do servidor com `cash.expected`.
+  `getCashSessionReport` (`cash.history`): no turno aberto, o esperado só para o gerente ou depois
+  de uma contagem gravada.
+- `salesReport` (`sales.report`): turnos (`sessionRows`), vendas (`sales.ofPeriod`, duas consultas)
+  e fuso numa transação só; o número de idas ao banco não cresce com os pedidos.
+- Auditoria (`entity = 'cash_session'`): `opened`, `entryAdded`, `entryRemoved`, `counted`, `closed`.

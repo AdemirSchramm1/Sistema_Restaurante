@@ -39,7 +39,7 @@ export default async function Page({ params, searchParams }: PageProps<"/caixa/t
         actions={
           <Link
             href={`/caixa/turnos/${report.id}/imprimir`}
-            className={buttonVariants({ variant: "outline" })}
+            className={buttonVariants({ variant: "outline", size: "lg" })}
           >
             <Printer aria-hidden="true" />
             Imprimir

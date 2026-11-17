@@ -167,5 +167,6 @@ O estoque baixa sozinho quando a cozinha toca **Começar preparo**, não no fech
 ## Fora desta versão
 
 Desconto e cortesia, couvert, dividir por itens, transferir pedido entre mesas e juntar mesas,
-pagamento pelo celular do cliente, maquininha e Pix automático, nota fiscal, abertura e fechamento
-de caixa (troco inicial, sangria, conferência do turno), pedido lançado pela equipe e delivery.
+pagamento pelo celular do cliente, maquininha e Pix automático, nota fiscal, pedido lançado pela
+equipe e delivery. Abrir e fechar o caixa (troco, sangria, reforço, contagem) é o
+[capítulo 7](07-caixa-do-dia.md): desde a spec 014, lançar e tirar pagamento exigem o caixa aberto.

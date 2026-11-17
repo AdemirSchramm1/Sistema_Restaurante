@@ -35,7 +35,9 @@ export function SessionsList({ sessions, timezone }: { sessions: SessionRowView[
         {sessions.map((s) => (
           <tr key={s.id}>
             <Td>
-              <TextLink href={`/caixa/turnos/${s.id}`}>{dayText(s.businessDay)}</TextLink>
+              <TextLink href={`/caixa/turnos/${s.id}`} className="inline-flex min-h-11 items-center">
+                {dayText(s.businessDay)}
+              </TextLink>
             </Td>
             <Td>{who(timeIn(s.openedAt, timezone), s.openedByName)}</Td>
             <Td>{s.closedAt ? who(timeIn(s.closedAt, timezone), s.closedByName) : "Caixa aberto"}</Td>

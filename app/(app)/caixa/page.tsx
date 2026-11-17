@@ -48,7 +48,7 @@ export default async function Page({ searchParams }: PageProps<"/caixa">) {
         description="Mesas com conta aberta. A tela se atualiza sozinha."
         actions={
           can(ctx.roles, "tab.history") && (
-            <Link href="/caixa/contas" className={buttonVariants({ variant: "outline" })}>
+            <Link href="/caixa/contas" className={buttonVariants({ variant: "outline", size: "lg" })}>
               <Receipt aria-hidden="true" />
               Contas fechadas
             </Link>
@@ -88,7 +88,7 @@ export default async function Page({ searchParams }: PageProps<"/caixa">) {
       )}
       {settings?.ok && (
         <details className="rounded-lg border border-border p-4">
-          <summary className="cursor-pointer font-medium">Taxa de serviço do restaurante</summary>
+          <summary className="cursor-pointer py-2.5 font-medium">Taxa de serviço do restaurante</summary>
           <div className="mt-3">
             <ServiceRateForm
               rate={settings.value.rate?.toString() ?? null}

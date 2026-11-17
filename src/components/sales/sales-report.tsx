@@ -48,18 +48,18 @@ export function SalesReportPage({ report: r }: { report: SalesReportView }) {
       <form className="flex flex-wrap items-end gap-3" role="search">
         <div className="grid gap-1">
           <Label htmlFor="de">De</Label>
-          <Input id="de" type="date" name="de" defaultValue={r.from} />
+          <Input id="de" type="date" name="de" size="lg" defaultValue={r.from} />
         </div>
         <div className="grid gap-1">
           <Label htmlFor="ate">Até</Label>
-          <Input id="ate" type="date" name="ate" defaultValue={r.to} />
+          <Input id="ate" type="date" name="ate" size="lg" defaultValue={r.to} />
         </div>
-        <Button type="submit" variant="outline">
+        <Button type="submit" variant="outline" size="lg">
           Filtrar
         </Button>
         <a
           href={`/vendas/planilha?de=${r.from}&ate=${r.to}`}
-          className={buttonVariants({ variant: "ghost" })}
+          className={buttonVariants({ variant: "ghost", size: "lg" })}
           download
         >
           <Download aria-hidden="true" />

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { devices, expect, test, type Page } from "@playwright/test";
 import { signUp } from "./helpers";
-import { createTables, customize, newAddon, newDish, newItem, qrPath } from "./ordering-helpers";
+import { createTables, customize, newAddon, newDish, newItem, openCash, qrPath } from "./ordering-helpers";
 import { login, seedMenu } from "../support/seed";
 
 /** Falhas graves de acessibilidade (WCAG 2.1 A e AA) numa página. */
@@ -164,6 +164,7 @@ test("caixa, conta da mesa, conta impressa, contas fechadas e cancelar depois do
   await page.getByText("Taxa de serviço do restaurante").click();
   await expect(page.getByLabel("Taxa de serviço (%)")).toBeVisible();
   expect(await seriousViolations(page), "/caixa sem contas, com a taxa do restaurante").toEqual([]);
+  await openCash(page, "150,00");
 
   // Dois sucos do celular: o primeiro é entregue; o segundo, cancelado depois do preparo.
   const phoneContext = await browser.newContext({ ...devices["Pixel 7"], locale: "pt-BR" });

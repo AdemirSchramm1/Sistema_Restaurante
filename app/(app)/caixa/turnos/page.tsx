@@ -42,13 +42,13 @@ export default async function Page({ searchParams }: PageProps<"/caixa/turnos">)
       <form className="flex flex-wrap items-end gap-3" role="search">
         <div className="grid gap-1">
           <Label htmlFor="de">De</Label>
-          <Input id="de" type="date" name="de" defaultValue={from} />
+          <Input id="de" type="date" name="de" size="lg" defaultValue={from} />
         </div>
         <div className="grid gap-1">
           <Label htmlFor="ate">Até</Label>
-          <Input id="ate" type="date" name="ate" defaultValue={to} />
+          <Input id="ate" type="date" name="ate" size="lg" defaultValue={to} />
         </div>
-        <Button type="submit" variant="outline">
+        <Button type="submit" variant="outline" size="lg">
           Filtrar
         </Button>
       </form>

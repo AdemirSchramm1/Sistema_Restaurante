@@ -153,6 +153,44 @@ restaurante, criação, mesa, abertura nem `service_rate`. `app_user` tem `SELEC
 | `menu_accesses` | `end_reason` (acima); os encerramentos antigos viram `RESCAN` na migração |
 | enum `role` | `CASHIER` |
 
+## Caixa do dia (feature 014)
+
+Migração `0014_cash_sessions`. Valores em `numeric(12,2)`. Todas com `restaurant_id`, RLS
+`tenant_isolation` e `GRANT` para `app_user`.
+
+### `cash_sessions` (turno do caixa)
+
+| Coluna | Regra |
+|---|---|
+| `status` | `cash_session_status`: `OPEN`, `CLOSED`. Um turno aberto por restaurante: índice único parcial `where status = 'OPEN'` (`CASH_SESSION_ALREADY_OPEN`) |
+| `business_day` | Dia do restaurante em que abriu (o turno que passa da meia-noite fica no dia da abertura); índice `(restaurant_id, business_day)` para Turnos e Vendas |
+| `opened_at`, `opened_by`, `opening_float`, `previous_kept`, `opening_note` | Troco ≥ 0; `previous_kept` é o que ficou na gaveta no fechamento anterior |
+| `client_request_id` | Id gerado pela tela: o toque duplo em Abrir caixa devolve o mesmo turno (não estava no data-model da spec; entrou na implementação) |
+| `closed_at`, `closed_by`, `expected`, `counted`, `difference`, `kept`, `service_charge`, `count_id`, `close_note` | Retrato gravado ao fechar; checks: todos preenchidos se e só se `CLOSED`, `difference = counted − expected`, `0 ≤ kept ≤ counted` |
+| `version` | +1 a cada dinheiro que entra ou sai (pagamento, pagamento tirado, sangria, reforço, lançamento tirado) e no fechamento. A contagem guarda a versão; fechar com versão diferente → `COUNT_OUTDATED` |
+
+Trigger `cash_session_closed_is_final`: turno fechado não muda; abertura não muda; `DELETE`
+recusado.
+
+### Só inserção (`app_reject_change`)
+
+| Tabela | Colunas |
+|---|---|
+| `cash_entries` | `kind` (`WITHDRAWAL` sangria, `SUPPLY` reforço), `amount > 0`, `reason` (`SAFE`, `SUPPLIER_PAYMENT`, `DAILY_EXPENSE`, `OTHER`; só e sempre na sangria), `note` (≤ 140), `client_request_id` (único com o turno) |
+| `cash_entry_removals` | `entry_id` (único): lançamento tirado deixa de contar |
+| `cash_counts` | `counted ≥ 0`, `denominations jsonb` (cédulas da calculadora ou nulo), `session_version` |
+
+Trigger `app_cash_session_must_be_open` (`BEFORE INSERT` em `tab_payments`, `tab_payment_removals`,
+`cash_entries` e `cash_counts`): nada entra em turno fechado, mesmo que o código erre.
+
+### Colunas novas em tabelas da 011
+
+| Tabela | Coluna |
+|---|---|
+| `tab_payments` | `cash_session_id` (turno em que entrou; nulo só nos pagamentos de antes da 014). Índice `(cash_session_id, method)` |
+| `tab_payment_removals` | `cash_session_id` (turno em que foi tirado). Índice `(cash_session_id)` |
+| `table_tabs` | `cash_session_id` (turno aberto quando a conta fechou; a taxa da conta entra nele) |
+
 ## Cardápio editável (feature 013)
 
 ### `menu_sections` (seção do cardápio) — editável, trava otimista para renomear
