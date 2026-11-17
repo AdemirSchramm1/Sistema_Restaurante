@@ -25,6 +25,10 @@ export async function closeTestDbs() {
 
 const TABLES = [
   "menu_sections",
+  "cash_entry_removals",
+  "cash_entries",
+  "cash_counts",
+  "cash_sessions",
   "tab_events",
   "tab_payment_removals",
   "tab_payments",

@@ -51,6 +51,11 @@ export const ACTIONS = [
   "tab.reopen",
   "tab.settings",
   "menu.write",
+  "cash.operate",
+  "cash.close_any",
+  "cash.expected",
+  "cash.history",
+  "sales.report",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -75,7 +80,7 @@ const MATRIX: Record<Role, readonly Action[]> = {
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
   WAITER: ["order.deliver", "order.read", "tab.read"],
-  CASHIER: ["order.read", "tab.read", "tab.pay", "tab.history"],
+  CASHIER: ["order.read", "tab.read", "tab.pay", "tab.history", "cash.operate", "cash.history"],
 };
 
 export function can(roles: readonly Role[], action: Action): boolean {
