@@ -356,7 +356,7 @@ function Screen({
   const productCard = (p: StaffMenuProduct) => (
     <li
       key={p.id}
-      className={`flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-xs ${p.soldOut ? "opacity-60" : ""}`}
+      className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-xs"
     >
       <button
         type="button"
@@ -368,11 +368,16 @@ function Screen({
         }}
         className="grid min-h-11 grid-cols-1 gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ProductPhoto photo={p.photo} name={p.name} eager={false} />
+        {/* Esgotado: só a foto apaga; o texto continua legível (contraste AA). */}
+        <span className={p.soldOut ? "opacity-50 grayscale" : undefined}>
+          <ProductPhoto photo={p.photo} name={p.name} eager={false} />
+        </span>
         <span className="font-medium [overflow-wrap:anywhere]">{p.name}</span>
       </button>
       <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
-        <span className="font-semibold text-primary">{brl(p.price)}</span>
+        <span className={p.soldOut ? "text-muted-foreground" : "font-semibold text-primary"}>
+          {brl(p.price)}
+        </span>
         {p.soldOut ? (
           <Badge tone="neutral">Esgotado hoje</Badge>
         ) : (
