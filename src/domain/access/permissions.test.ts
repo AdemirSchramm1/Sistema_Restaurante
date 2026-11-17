@@ -131,6 +131,8 @@ describe("conta da mesa e caixa (spec 011, FR-010)", () => {
 
   it("caixa vê o caixa, recebe, fecha e consulta contas e pedidos; não vê estoque nem cozinha", () => {
     expect(ACTIONS.filter((a) => can(["CASHIER"], a)).sort()).toEqual([
+      "cash.history",
+      "cash.operate",
       "order.read",
       "tab.history",
       "tab.pay",
@@ -153,5 +155,27 @@ describe("editar o cardápio (spec 013, FR-001)", () => {
 
   it("menu.write é do gerente e do chef, e de mais ninguém", () => {
     expect(ALL.filter((r) => can([r], "menu.write"))).toEqual(["MANAGER", "CHEF"]);
+  });
+});
+
+describe("caixa do dia (spec 014, FR-008)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
+  const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
+
+  it("abrir, sangria, reforço, fechar o próprio turno e ver turnos fechados: gerente e caixa", () => {
+    expect(who("cash.operate")).toEqual(["MANAGER", "CASHIER"]);
+    expect(who("cash.history")).toEqual(["MANAGER", "CASHIER"]);
+  });
+
+  it("fechar o turno de outra pessoa, ver o esperado do turno aberto e Vendas: só o gerente", () => {
+    expect(who("cash.close_any")).toEqual(["MANAGER"]);
+    expect(who("cash.expected")).toEqual(["MANAGER"]);
+    expect(who("sales.report")).toEqual(["MANAGER"]);
+  });
+
+  it("garçom e chef não têm nenhuma ação do caixa do dia", () => {
+    const cash = ACTIONS.filter((a) => a.startsWith("cash.") || a === "sales.report");
+    expect(cash).toHaveLength(5);
+    for (const role of ["WAITER", "CHEF"] as const) expect(cash.filter((a) => can([role], a))).toEqual([]);
   });
 });
