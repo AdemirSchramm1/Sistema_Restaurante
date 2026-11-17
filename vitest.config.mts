@@ -34,6 +34,7 @@ const cashCoverage = {
     "src/components/cash/**/*.{ts,tsx}",
     "src/components/sales/**/*.{ts,tsx}",
     "src/infra/db/repositories/cash-repository.ts",
+    "src/infra/db/repositories/sales-repository.ts",
   ],
   exclude: ["**/*.test.{ts,tsx}"],
   thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },

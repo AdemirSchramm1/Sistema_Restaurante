@@ -150,4 +150,19 @@ export interface CashSessionRepo {
   serviceCharge(sessionId: string): Promise<Decimal>;
 }
 
-export type CashRepos = { cashSessions: CashSessionRepo };
+/** Vendas de um período, pelo dia do pedido (spec 014, US6). Pedido cancelado não conta. */
+export type PeriodSales = {
+  products: { recipeId: string; name: string; quantity: number; amount: Decimal }[];
+  addons: { addonId: string; name: string; times: number; amount: Decimal }[];
+  /** Taxa de serviço das contas fechadas no período. */
+  serviceCharge: Decimal;
+  /** Pedidos do período ainda não entregues (Recebido, Em preparo, Pronto). */
+  pendingOrders: number;
+};
+
+export interface SalesRepo {
+  /** Duas idas ao banco, qualquer que seja o número de pedidos. */
+  ofPeriod(fromDay: string, toDay: string): Promise<PeriodSales>;
+}
+
+export type CashRepos = { cashSessions: CashSessionRepo; sales: SalesRepo };

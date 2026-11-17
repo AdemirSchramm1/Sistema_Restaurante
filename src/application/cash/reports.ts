@@ -1,4 +1,4 @@
-import type { Deps } from "../ports";
+import type { Deps, Repos } from "../ports";
 import type { RequestContext } from "../context";
 import { authorize } from "../shared";
 import { isId } from "../form-input";
@@ -123,30 +123,34 @@ export async function listCashSessions(
   if (!allowed.ok) return allowed;
   const period = checkPeriod(input.from, input.to);
   if (!period.ok) return period;
-  return deps.tenant(ctx.restaurantId, async (repos) => {
-    const sessions = await repos.cashSessions.list(input.from, input.to);
-    const payments = await repos.cashSessions.payments(sessions.map((s) => s.id));
-    const { timezone } = await repos.orderingSettings.get();
-    return ok({
-      timezone,
-      sessions: sessions.map((s, i): CashSessionRow => {
-        const p = payments[i]!;
-        const received = receivedByMethod(p.paid, p.removedInSession);
-        return {
-          id: s.id,
-          businessDay: s.businessDay,
-          status: s.status,
-          openedAt: s.openedAt,
-          openedByName: s.openedByName,
-          closedAt: s.closing?.at ?? null,
-          closedByName: s.closing?.byName ?? null,
-          receivedByMethod: received,
-          removedFromOtherSessions: p.removedFromOtherSessions,
-          received: totalOf(received),
-          difference: s.closing?.difference ?? null,
-          result: s.closing ? outcomeOf(s.closing.difference) : null,
-        };
-      }),
-    });
+  return deps.tenant(ctx.restaurantId, async (repos) =>
+    ok({
+      sessions: await sessionRows(repos, input.from, input.to),
+      timezone: (await repos.orderingSettings.get()).timezone,
+    }),
+  );
+}
+
+/** Turnos do período com o recebido de cada um: duas idas ao banco, qualquer que seja o número. */
+export async function sessionRows(repos: Repos, from: string, to: string): Promise<CashSessionRow[]> {
+  const sessions = await repos.cashSessions.list(from, to);
+  const payments = await repos.cashSessions.payments(sessions.map((s) => s.id));
+  return sessions.map((s, i): CashSessionRow => {
+    const p = payments[i]!;
+    const received = receivedByMethod(p.paid, p.removedInSession);
+    return {
+      id: s.id,
+      businessDay: s.businessDay,
+      status: s.status,
+      openedAt: s.openedAt,
+      openedByName: s.openedByName,
+      closedAt: s.closing?.at ?? null,
+      closedByName: s.closing?.byName ?? null,
+      receivedByMethod: received,
+      removedFromOtherSessions: p.removedFromOtherSessions,
+      received: totalOf(received),
+      difference: s.closing?.difference ?? null,
+      result: s.closing ? outcomeOf(s.closing.difference) : null,
+    };
   });
 }

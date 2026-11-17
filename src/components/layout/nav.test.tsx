@@ -77,8 +77,8 @@ describe("menu lateral por área (spec 012, US2)", () => {
         ["Itens", "Produtos", "Lançamentos", "Repor", "Gráficos", "Custos", "Fornecedores", "Grupos"],
       ],
       // "Cardápio" entrou na spec 013 (tela da equipe para editar o cardápio).
-      // "Turnos" entrou na spec 014 (caixa do dia).
-      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Turnos", "Pedidos", "Cardápio"]],
+      // "Turnos" e "Vendas" entraram na spec 014 (caixa do dia).
+      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"]],
       ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
     ]);
   });
@@ -176,5 +176,17 @@ describe("entrada Turnos no menu (spec 014, US5)", () => {
     expect(activeHref("/caixa/turnos", hrefs)).toBe("/caixa/turnos");
     expect(activeHref("/caixa/turnos/3f6c/imprimir", hrefs)).toBe("/caixa/turnos");
     expect(activeHref("/caixa/fechar", hrefs)).toBe("/caixa");
+  });
+});
+
+describe("entrada Vendas no menu (spec 014, US6)", () => {
+  it("só o gerente vê, em Operação", () => {
+    expect(navFor(["MANAGER"]).find((n) => n.label === "Vendas")).toMatchObject({
+      href: "/vendas",
+      action: "sales.report",
+      section: "operation",
+    });
+    for (const role of ["CASHIER", "WAITER", "CHEF", "STOCKKEEPER"] as const)
+      expect(labels([role])).not.toContain("Vendas");
   });
 });

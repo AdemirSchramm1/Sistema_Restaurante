@@ -99,6 +99,7 @@ export const NAV: readonly NavEntry[] = [
     section: "operation",
     icon: CalendarClock,
   },
+  { href: "/vendas", label: "Vendas", action: "sales.report", section: "operation", icon: ChartColumn },
   { href: "/pedidos", label: "Pedidos", action: "order.read", section: "operation", icon: ClipboardList },
   {
     href: "/pedidos/cardapio",

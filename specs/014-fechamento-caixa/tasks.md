@@ -132,7 +132,7 @@ sangria R$ 150,00, reforço R$ 50,00, esperado R$ 127,00, contado R$ 125,00, "Fa
 - [x] T058 [P] [teste] [US5] `src/components/cash/sessions-list.test.tsx`: tabela com dia, abertura, fechamento, quem, recebido e selo "Bateu" (`success`), "Sobra" (`info`) ou "Falta" (`danger`), link para o relatório; lista vazia com `EmptyState` que explica
 - [x] T059 [P] [US5] `src/components/cash/sessions-list.tsx` (verde o T058)
 - [x] T060 [US5] `app/(app)/caixa/turnos/page.tsx`, `app/(app)/caixa/turnos/[id]/page.tsx` e `app/(app)/caixa/turnos/[id]/imprimir/page.tsx`; entrada **Turnos** (`/caixa/turnos`, `cash.history`, área Operação) em `src/components/layout/nav.tsx` com o teste de `nav` primeiro (`src/components/layout/nav.test.tsx`: o caixa vê Caixa, Contas, Turnos e Pedidos; o garçom não vê Turnos; "Turnos" fica ativo em `/caixa/turnos/…`)
-- [ ] T061 [US5] [teste] `tests/integration/performance/indexes.test.ts`: lista de turnos por `business_day` usa `cash_sessions (restaurant_id, business_day)`
+- [x] T061 [US5] [teste] `tests/integration/performance/indexes.test.ts`: lista de turnos por `business_day` usa `cash_sessions (restaurant_id, business_day)`
 
 **Ponto de controle (MVP do pedido)**: US1 a US5 completas: o caixa abre, recebe, faz sangria e
 reforço, conta e fecha, e o gerente vê o turno.
@@ -143,17 +143,17 @@ reforço, conta e fecha, e o gerente vê o turno.
 **Teste independente**: 3 X-Burger (um com + 2 Fatia de queijo), 2 Sucos e um X-Burger cancelado →
 "X-Burger 3 un R$ 94,00", "Suco 2 un R$ 18,00", adicionais, formas de pagamento e turnos do dia.
 
-- [ ] T062 [P] [teste] [US6] `src/domain/cash/sales.test.ts`: `salesShares` ordena do maior valor para o menor (empate pelo nome), calcula a parte de cada um sobre o total sem arredondar o valor; a soma das partes apresentadas com 1 casa fecha em 100,0% (o resto vai para o maior); total zero → partes zero, sem divisão por zero
-- [ ] T063 [P] [US6] `src/domain/cash/sales.ts` (verde o T062)
-- [ ] T064 [P] [teste] [US6] `src/domain/cash/csv.test.ts`: `toCsv` usa `;`, BOM e quebra `\r\n`; decimal com vírgula ("94,00"); escapa aspas, `;` e quebra de linha (`Suco "da casa"; 500 ml` → `"Suco ""da casa""; 500 ml"`); célula que começa com `=`, `+`, `-` ou `@` ganha `'` na frente; valores negativos continuam números ("-2,00" como valor, não como texto de fórmula, porque vêm de `Decimal`)
-- [ ] T065 [P] [US6] `src/domain/cash/csv.ts` (verde o T064)
-- [ ] T066 [teste] [US6] `tests/integration/cash/sales.test.ts`: `salesReport` do dia do teste independente dá X-Burger 3 un R$ 94,00, Suco 2 un R$ 18,00, Fatia de queijo 2 vezes R$ 4,00, sem o cancelado; Σ produtos = Σ `orders.total` não cancelados do período, centavo por centavo (SC-006); `byMethod` = soma dos turnos do período; `serviceCharge` das contas com `closed_day` no período; turnos com diferença e `differenceTotal`; `pendingOrders` conta Recebido, Em preparo e Pronto; período de 32 dias → `INVALID_PERIOD`; caixa → `FORBIDDEN`; nada de outro restaurante
-- [ ] T067 [US6] Consultas de vendas em `src/infra/db/repositories/report-repository.ts` e `salesReport` em `src/application/cash/sales.ts` (verde o T066)
-- [ ] T068 [US6] [teste] `tests/integration/performance/sales-report.test.ts`: com 500 pedidos de 3 linhas num dia, `salesReport` faz no máximo 5 idas ao banco e responde em menos de 2 s no banco local (SC-005); `indexes.test.ts` ganha as consultas de produtos, adicionais e taxa do período
-- [ ] T069 [P] [teste] [US6] `src/components/sales/sales-report.test.tsx`: filtro de período com "hoje" por padrão; tabelas de formas, produtos (com a parte em %) e adicionais; aviso de pedidos pendentes; o texto que explica por que vendas e recebido podem ser diferentes; turnos com link; **Baixar planilha** aponta para `/vendas/planilha?de=…&ate=…`; tabelas com `Td numeric`; lista vazia com `EmptyState`
-- [ ] T070 [P] [US6] `src/components/sales/sales-report.tsx` (verde o T069)
-- [ ] T071 [teste] [US6] `tests/integration/cash/sales-csv.test.ts`: a rota `GET /vendas/planilha` devolve `text/csv; charset=utf-8` com BOM e as duas seções; sem `sales.report` → 403; período inválido → 400
-- [ ] T072 [US6] `app/(app)/vendas/page.tsx` e `app/(app)/vendas/planilha/route.ts`; entrada **Vendas** (`/vendas`, `sales.report`, área Operação, ícone `ChartColumn`) em `src/components/layout/nav.tsx` com o teste de `nav` antes (só o gerente vê) (verde o T071)
+- [x] T062 [P] [teste] [US6] `src/domain/cash/sales.test.ts`: `salesShares` ordena do maior valor para o menor (empate pelo nome), calcula a parte de cada um sobre o total sem arredondar o valor; a soma das partes apresentadas com 1 casa fecha em 100,0% (o resto vai para o maior); total zero → partes zero, sem divisão por zero
+- [x] T063 [P] [US6] `src/domain/cash/sales.ts` (verde o T062)
+- [x] T064 [P] [teste] [US6] `src/domain/cash/csv.test.ts`: `toCsv` usa `;`, BOM e quebra `\r\n`; decimal com vírgula ("94,00"); escapa aspas, `;` e quebra de linha (`Suco "da casa"; 500 ml` → `"Suco ""da casa""; 500 ml"`); célula que começa com `=`, `+`, `-` ou `@` ganha `'` na frente; valores negativos continuam números ("-2,00" como valor, não como texto de fórmula, porque vêm de `Decimal`)
+- [x] T065 [P] [US6] `src/domain/cash/csv.ts` (verde o T064)
+- [x] T066 [teste] [US6] `tests/integration/cash/sales.test.ts`: `salesReport` do dia do teste independente dá X-Burger 3 un R$ 94,00, Suco 2 un R$ 18,00, Fatia de queijo 2 vezes R$ 4,00, sem o cancelado; Σ produtos = Σ `orders.total` não cancelados do período, centavo por centavo (SC-006); `byMethod` = soma dos turnos do período; `serviceCharge` das contas com `closed_day` no período; turnos com diferença e `differenceTotal`; `pendingOrders` conta Recebido, Em preparo e Pronto; período de 32 dias → `INVALID_PERIOD`; caixa → `FORBIDDEN`; nada de outro restaurante
+- [x] T067 [US6] Consultas de vendas em `src/infra/db/repositories/report-repository.ts` e `salesReport` em `src/application/cash/sales.ts` (verde o T066)
+- [x] T068 [US6] [teste] `tests/integration/performance/sales-report.test.ts`: com 500 pedidos de 3 linhas num dia, `salesReport` faz no máximo 5 idas ao banco e responde em menos de 2 s no banco local (SC-005); `indexes.test.ts` ganha as consultas de produtos, adicionais e taxa do período
+- [x] T069 [P] [teste] [US6] `src/components/sales/sales-report.test.tsx`: filtro de período com "hoje" por padrão; tabelas de formas, produtos (com a parte em %) e adicionais; aviso de pedidos pendentes; o texto que explica por que vendas e recebido podem ser diferentes; turnos com link; **Baixar planilha** aponta para `/vendas/planilha?de=…&ate=…`; tabelas com `Td numeric`; lista vazia com `EmptyState`
+- [x] T070 [P] [US6] `src/components/sales/sales-report.tsx` (verde o T069)
+- [x] T071 [teste] [US6] `tests/integration/cash/sales-csv.test.ts`: a rota `GET /vendas/planilha` devolve `text/csv; charset=utf-8` com BOM e as duas seções; sem `sales.report` → 403; período inválido → 400
+- [x] T072 [US6] `app/(app)/vendas/page.tsx` e `app/(app)/vendas/planilha/route.ts`; entrada **Vendas** (`/vendas`, `sales.report`, área Operação, ícone `ChartColumn`) em `src/components/layout/nav.tsx` com o teste de `nav` antes (só o gerente vê) (verde o T071)
 
 ## Fase 9: Telas, ponta a ponta e documentação
 
