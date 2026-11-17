@@ -25,7 +25,7 @@
 
 - [ ] T001 Modo `cash` em `vitest.config.mts` (como o `menu` da 013) e script `test:cash` em `package.json`: projetos `unit` e `integration` juntos, cobertura só de `src/domain/cash/**`, `src/application/cash/**`, `src/components/cash/**`, `src/components/sales/**` e `src/infra/db/repositories/cash-repository.ts`, limite de 100% de linhas, desvios e funções, relatório em `coverage/cash`
 - [ ] T002 `stryker.config.json`: `mutate` passa a incluir `src/domain/cash/**/*.ts` e excluir `src/domain/cash/**/*.test.ts`; `thresholds.break` continua 100
-- [ ] T003 `.github/workflows/ci.yml`: `pnpm test:cash` no job `check`, junto do `pnpm test:menu`
+- [ ] T003 `.github/workflows/ci.yml`: `pnpm test:cash` no job `integracao`, junto do `pnpm test:menu`
 
 ## Fase 2: Base (bloqueia todas as histórias)
 

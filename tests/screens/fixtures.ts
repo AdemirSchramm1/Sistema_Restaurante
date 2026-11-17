@@ -66,6 +66,16 @@ export { expect } from "@playwright/test";
 
 /** Falhas graves de acessibilidade (WCAG 2.1 A e AA) na página (TDD-005). */
 export async function seriousViolations(page: Page): Promise<string[]> {
+  // Espera as transições de cor acabarem: no meio delas (botão que acabou de ser tocado) o axe lê
+  // uma cor de passagem que a pessoa nunca vê parada e acusa contraste baixo de vez em quando.
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a instanceof CSSTransition)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   return r.violations
     .filter((v) => v.impact === "serious" || v.impact === "critical")
