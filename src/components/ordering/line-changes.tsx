@@ -19,3 +19,16 @@ export function LineChanges({ changes }: { changes: readonly string[] }) {
     </ul>
   );
 }
+
+/**
+ * Observação para a cozinha (spec 015, FR-018): em destaque, com a palavra "Obs." na frente, para
+ * não depender só de cor.
+ */
+export function KitchenNote({ note }: { note: string | null | undefined }) {
+  if (!note) return null;
+  return (
+    <p className="ml-4 text-sm font-semibold text-warning-soft-foreground [overflow-wrap:anywhere]">
+      <span className="rounded bg-warning-soft px-1">Obs.:</span> {note}
+    </p>
+  );
+}
