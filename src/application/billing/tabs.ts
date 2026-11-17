@@ -70,6 +70,8 @@ export type TabView = {
   blockers: CloseBlocker[];
   payments: TabPaymentRecord[];
   events: TabEventRecord[];
+  /** Há caixa aberto? Sem ele a tela desliga "Lançar pagamento" e "Tirar" (spec 014). */
+  cashSessionOpen: boolean;
   serverNow: string;
 };
 
@@ -77,13 +79,14 @@ export type TabView = {
 export async function listOpenTabs(
   deps: Deps,
   ctx: RequestContext,
-): Promise<Result<{ tabs: OpenTabView[]; serverNow: string }>> {
+): Promise<Result<{ tabs: OpenTabView[]; cashSessionOpen: boolean; serverNow: string }>> {
   const allowed = await authorize(deps, ctx, "tab.read", TAB_ENTITY);
   if (!allowed.ok) return allowed;
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const rows = await repos.tabs.listOpen();
     return ok({
       serverNow: deps.clock.now().toISOString(),
+      cashSessionOpen: (await repos.cashSessions.current()) !== null,
       tabs: rows.map((t) => {
         const totals = tabTotals(t);
         return {
@@ -144,6 +147,7 @@ export async function loadTab(deps: Deps, repos: Repos, id: string): Promise<Res
     blockers,
     payments,
     events: await repos.tabs.events(id),
+    cashSessionOpen: (await repos.cashSessions.current()) !== null,
     serverNow: deps.clock.now().toISOString(),
   });
 }
@@ -227,7 +231,8 @@ export async function setServiceWaived(
 /**
  * Fecha a conta e libera a mesa (US2-5): falta R$ 0,00 e nada pendente na cozinha. Grava o retrato
  * dos valores e o dia local do fechamento, e encerra os acessos ao cardápio da mesa: o próximo
- * pedido pelo QR code abre uma conta nova.
+ * pedido pelo QR code abre uma conta nova. Guarda o turno do caixa aberto, se houver (spec 014): a
+ * conta de R$ 0,00 fecha sem caixa; reabrir não mexe nele e o novo fechamento grava o turno de então.
  */
 export async function closeTab(
   deps: Deps,
@@ -248,6 +253,7 @@ export async function closeTab(
 
     const audit = auditStamp(deps, ctx);
     const { timezone } = await repos.orderingSettings.get();
+    const session = await repos.cashSessions.current();
     await repos.tabs.close(
       tab.id,
       {
@@ -255,6 +261,7 @@ export async function closeTab(
         serviceCharge: totals.serviceCharge,
         total: totals.total,
         closedDay: businessDay(audit.at, timezone),
+        cashSessionId: session?.id ?? null,
       },
       audit,
     );

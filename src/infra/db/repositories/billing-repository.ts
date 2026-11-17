@@ -228,10 +228,11 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
         received: p.received?.toFixed(2) ?? null,
         change: p.change?.toFixed(2) ?? null,
         clientRequestId: p.clientRequestId,
+        cashSessionId: p.cashSessionId,
       });
     },
 
-    async removePayment(paymentId, id, audit) {
+    async removePayment(paymentId, id, cashSessionId, audit) {
       try {
         await withSavepoint(tx, () =>
           tx.insert(tabPaymentRemovals).values({
@@ -240,6 +241,7 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
             createdAt: audit.at,
             createdBy: audit.by,
             paymentId,
+            cashSessionId,
           }),
         );
         return ok(undefined);
@@ -277,7 +279,16 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
         subtotal: s.subtotal.toFixed(2),
         serviceCharge: s.serviceCharge.toFixed(2),
         total: s.total.toFixed(2),
+        cashSessionId: s.cashSessionId,
       });
+    },
+
+    async countOpen() {
+      const [r] = await tx
+        .select({ n: sql<number>`count(*)::int` })
+        .from(tableTabs)
+        .where(and(eq(tableTabs.restaurantId, restaurantId), eq(tableTabs.status, "OPEN")));
+      return r!.n;
     },
 
     async reopen(id, audit) {

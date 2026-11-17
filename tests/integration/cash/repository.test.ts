@@ -253,6 +253,26 @@ describe("repositório do caixa (spec 014, data-model.md)", () => {
     });
   });
 
+  it("erro do banco que não é o esperado não é engolido", async () => {
+    const env = testEnv();
+    const s = await cashScenario(env);
+    const audit = { at: env.clock.now(), by: s.ana.userId };
+    const session = {
+      id: env.deps.ids.next(),
+      businessDay: "2026-10-31",
+      openingFloat: d("-1"),
+      previousKept: null,
+      note: null,
+      clientRequestId: crypto.randomUUID(),
+    };
+    await expect(inRepos(env, s.ana, (repos) => repos.cashSessions.open(session, audit))).rejects.toThrow();
+    await expect(
+      inRepos(env, s.ana, (repos) =>
+        repos.cashSessions.removeEntry(env.deps.ids.next(), env.deps.ids.next(), audit),
+      ),
+    ).rejects.toThrow();
+  });
+
   it("um restaurante não vê o turno do outro", async () => {
     const env = testEnv();
     const s = await cashScenario(env);

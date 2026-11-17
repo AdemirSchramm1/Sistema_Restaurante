@@ -7,6 +7,7 @@ import type { CatalogRepos } from "./inventory/ports";
 import type { SupplierRepos } from "./suppliers/ports";
 import type { OrderingRepos } from "./ordering/ports";
 import type { BillingRepos } from "./billing/ports";
+import type { CashRepos } from "./cash/ports";
 import type { MenuRepos, PhotoProcessor, PhotoStorage } from "./menu/ports";
 
 export interface Clock {
@@ -62,6 +63,7 @@ export type Repos = AccessRepos &
   SupplierRepos &
   OrderingRepos &
   BillingRepos &
+  CashRepos &
   MenuRepos & { audit: AuditRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */

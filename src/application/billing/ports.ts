@@ -91,6 +91,8 @@ export type NewPayment = {
   received: Decimal | null;
   change: Decimal | null;
   clientRequestId: string;
+  /** Turno do caixa em que o pagamento entrou (spec 014). */
+  cashSessionId: string;
 };
 
 export type NewTabEvent = {
@@ -124,12 +126,19 @@ export interface TabRepo {
   paymentByClientRequest(tabId: string, clientRequestId: string): Promise<TabPaymentRecord | null>;
   getPayment(tabId: string, paymentId: string): Promise<TabPaymentRecord | null>;
   insertPayment(p: NewPayment, audit: Audit): Promise<void>;
-  /** `ALREADY_REMOVED` se já foi tirado. */
-  removePayment(paymentId: string, id: string, audit: Audit): Promise<Result<void>>;
+  /** `ALREADY_REMOVED` se já foi tirado. A remoção guarda o turno do caixa em que foi feita. */
+  removePayment(paymentId: string, id: string, cashSessionId: string, audit: Audit): Promise<Result<void>>;
   addEvent(e: NewTabEvent): Promise<void>;
   /** Na conta já travada; +1 na versão. */
   setServiceWaived(id: string, waived: boolean, audit: Audit): Promise<void>;
-  close(id: string, snapshot: ClosedTotals & { closedDay: string }, audit: Audit): Promise<void>;
+  /** `cashSessionId`: turno do caixa aberto na hora de fechar; nulo se não há (conta de R$ 0,00). */
+  close(
+    id: string,
+    snapshot: ClosedTotals & { closedDay: string; cashSessionId: string | null },
+    audit: Audit,
+  ): Promise<void>;
+  /** Quantas mesas têm conta aberta (aviso do fechamento do caixa, spec 014). */
+  countOpen(): Promise<number>;
   /** `TABLE_HAS_OPEN_TAB` se a mesa já tem outra conta aberta. */
   reopen(id: string, audit: Audit): Promise<Result<void>>;
   listClosed(filter: TabFilter): Promise<ClosedTabRow[]>;

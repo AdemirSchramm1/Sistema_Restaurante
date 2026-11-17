@@ -150,7 +150,8 @@ export async function cashScenario(env: TestEnv, name = "Restaurante Sabor") {
     });
   };
   const sessionRow = async (id: string) =>
-    (await db().query("select * from cash_sessions where id = $1", [id])).rows[0] as Record<string, unknown>;
+    (await db().query("select s.*, s.business_day::text as day from cash_sessions s where s.id = $1", [id]))
+      .rows[0] as Record<string, unknown>;
 
   /**
    * O turno da spec (US2 a US5): troco R$ 150,00; mesa 12 paga R$ 77,00 em dinheiro (recebido

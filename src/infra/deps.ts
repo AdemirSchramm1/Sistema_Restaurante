@@ -26,6 +26,7 @@ import {
 } from "./db/repositories/ordering-repository";
 import { addonRepository, customizationRepository } from "./db/repositories/addon-repository";
 import { billingSettingsRepository, tabRepository } from "./db/repositories/billing-repository";
+import { cashSessionRepository } from "./db/repositories/cash-repository";
 import { menuBoardRepository } from "./db/repositories/menu-repository";
 import { publicOrderingLookups } from "./db/public-ordering";
 import { createAuth, type Auth } from "./auth/auth";
@@ -64,6 +65,7 @@ function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
     orderChoices: orderChoicesRepository(tx),
     tabs: tabRepository(tx, restaurantId, uuidIds.next),
     billingSettings: billingSettingsRepository(tx, restaurantId),
+    cashSessions: cashSessionRepository(tx, restaurantId),
     menuBoard: menuBoardRepository(tx, restaurantId),
   };
 }

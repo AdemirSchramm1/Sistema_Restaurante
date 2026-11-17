@@ -22,7 +22,7 @@ describe("abrir o caixa (spec 014, US1)", () => {
     const row = await s.sessionRow(id);
     expect(row).toMatchObject({
       status: "OPEN",
-      business_day: "2026-11-17",
+      day: "2026-11-17",
       opened_by: s.ana.userId,
       opening_float: "150.00",
       previous_kept: null,
