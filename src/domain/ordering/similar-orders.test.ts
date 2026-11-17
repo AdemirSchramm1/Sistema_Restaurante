@@ -52,6 +52,11 @@ describe("aviso de pedido parecido (spec 015, US6-3, FR-020)", () => {
     expect(find([order({ submittedAt: ago(5) })])).toHaveLength(1);
   });
 
+  it("quem lançou sem nome (usuário apagado) aparece como alguém da equipe", () => {
+    const w = find([order({ placedByName: null, submittedAt: ago(3) })]);
+    expect(similarText(w[0]!)).toBe("Alguém da equipe lançou 2 Chope nesta mesa há 3 min.");
+  });
+
   it("três produtos viram lista com vírgula", () => {
     const w = find(
       [

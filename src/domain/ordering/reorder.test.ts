@@ -94,12 +94,14 @@ describe("Pedir de novo (spec 015, US6-1, US6-2, FR-019)", () => {
       [
         { ...burgerLine, addons: [{ addonId: "ovo", times: 1 }] },
         { ...burgerLine, removals: [{ kind: "ITEM", id: "tomate" }] },
+        { ...burgerLine, removals: [{ kind: "RECIPE", id: "cebola" }] },
         { ...burgerLine, addons: [{ addonId: "bacon", times: 2 }] },
       ],
       menu,
     );
     expect(r.lines).toEqual([]);
     expect(r.leftOut).toEqual([
+      "X-Burger mudou desde o pedido e não entrou. Lance pelo cardápio.",
       "X-Burger mudou desde o pedido e não entrou. Lance pelo cardápio.",
       "X-Burger mudou desde o pedido e não entrou. Lance pelo cardápio.",
       "X-Burger mudou desde o pedido e não entrou. Lance pelo cardápio.",
