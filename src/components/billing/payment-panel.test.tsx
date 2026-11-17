@@ -28,14 +28,16 @@ describe("receber exige o caixa aberto (spec 014, US1-1)", () => {
     render(<PaymentPanel tabId="t1" remaining="100.00" action={async () => null} cashSessionOpen={false} />);
     const submit = screen.getByRole("button", { name: "Lançar pagamento" }) as HTMLButtonElement;
     expect(submit.disabled).toBe(true);
-    const reason = screen.getByText("Abra o caixa antes de receber.");
+    const reason = screen.getByText(/Abra o caixa antes de receber\./);
     expect(submit.getAttribute("aria-describedby")).toBe(reason.closest("[id]")?.id);
     expect(screen.getByRole("link", { name: "Ir para o Caixa" }).getAttribute("href")).toBe("/caixa");
   });
 
   it("com o caixa aberto, como antes: o botão funciona e não há aviso", () => {
     render(<PaymentPanel tabId="t1" remaining="100.00" action={async () => null} cashSessionOpen />);
-    expect((screen.getByRole("button", { name: "Lançar pagamento" }) as HTMLButtonElement).disabled).toBe(false);
-    expect(screen.queryByText("Abra o caixa antes de receber.")).toBeNull();
+    expect((screen.getByRole("button", { name: "Lançar pagamento" }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+    expect(screen.queryByText(/Abra o caixa antes de receber/)).toBeNull();
   });
 });

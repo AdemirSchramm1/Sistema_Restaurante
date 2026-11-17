@@ -149,14 +149,18 @@ describe("relatório do turno (spec 014, US5)", () => {
     expect(screen.queryByRole("table", { name: "Pagamentos tirados de outro turno" })).toBeNull();
     cleanup();
     render(
-      <SessionReport report={{ ...closed, removedFromOtherSessions: [{ method: "CASH", amount: "30.00" }] }} />,
+      <SessionReport
+        report={{ ...closed, removedFromOtherSessions: [{ method: "CASH", amount: "30.00" }] }}
+      />,
     );
     expect(rowsOf("Pagamentos tirados de outro turno")).toEqual(["Dinheiro | R$ 30,00"]);
   });
 
   it("troco diferente do que ficou na gaveta mostra o valor anterior e a observação da abertura (US1-3)", () => {
     render(
-      <SessionReport report={{ ...closed, previousKept: "180.00", openingNote: "Paguei o gás com o troco" }} />,
+      <SessionReport
+        report={{ ...closed, previousKept: "180.00", openingNote: "Paguei o gás com o troco" }}
+      />,
     );
     expect(screen.getByText("Ficaram R$ 180,00 na gaveta no fechamento anterior.")).toBeTruthy();
     expect(screen.getByText("Observação da abertura: Paguei o gás com o troco")).toBeTruthy();
@@ -170,7 +174,7 @@ describe("relatório do turno (spec 014, US5)", () => {
     render(<SessionReport report={{ ...closed, steps, expected: "-23.00" }} />);
     const value = screen.getByText("R$ -23,00");
     expect(value.className).toContain("text-destructive");
-    expect(screen.getByText("R$ 77,00", { selector: "td" }).className).not.toContain("text-destructive");
+    expect(screen.getByText("R$ 50,00", { selector: "td" }).className).not.toContain("text-destructive");
   });
 
   it("turno aberto, para o gerente: parcial, sem contado e sem diferença (US5-3)", () => {

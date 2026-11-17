@@ -50,9 +50,10 @@ describe("contar o dinheiro da gaveta (spec 014, US4-1 e US4-2)", () => {
     typeIn("Quantas de R$ 5", "1");
     typeIn("Quantas de R$ 2", "0");
     await clickButton("Confirmar contagem");
-    expect(s.calls).toEqual([
-      { sessionId: "s1", denominations: '{"100":1,"20":1,"5":1}', counted: "125,00" },
-    ]);
+    expect(s.calls).toHaveLength(1);
+    const { denominations, ...sent } = s.calls[0]!;
+    expect(sent).toEqual({ sessionId: "s1", counted: "125,00" });
+    expect(JSON.parse(denominations!)).toEqual({ "100": 1, "20": 1, "5": 1 });
   });
 
   it("o caixa pode digitar o total direto: a calculadora zera e as cédulas não vão", async () => {

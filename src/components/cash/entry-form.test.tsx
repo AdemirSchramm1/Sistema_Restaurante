@@ -95,7 +95,9 @@ describe("sangria e reforço (spec 014, US3)", () => {
   });
 
   it("reforço gravado avisa com o nome certo", async () => {
-    render(<EntryForm kind="SUPPLY" action={actionSpy({ ok: true, data: { entryId: "e2" }, at: 1 }).action} />);
+    render(
+      <EntryForm kind="SUPPLY" action={actionSpy({ ok: true, data: { entryId: "e2" }, at: 1 }).action} />,
+    );
     typeIn("Valor (R$)", "50,00");
     await clickButton("Registrar reforço");
     expect(screen.getByRole("status").textContent).toContain("Reforço registrado.");

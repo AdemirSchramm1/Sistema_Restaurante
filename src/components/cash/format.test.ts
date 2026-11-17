@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  atBy,
   countsText,
   dateIn,
   dayText,
@@ -45,6 +46,11 @@ describe("textos do caixa do dia (spec 014)", () => {
     expect(sinceWhen("2026-11-14T14:02:00.000Z", now, TZ)).toBe("14/11 11:02");
     // Virada do dia no fuso do restaurante, não no UTC: 01:30 UTC ainda é ontem à noite.
     expect(sinceWhen("2026-11-17T01:30:00.000Z", now, TZ)).toBe("ontem 22:30");
+  });
+
+  it("quando e quem: sem o nome, só a hora", () => {
+    expect(atBy("2026-11-17T14:40:00.000Z", "Bruno", TZ)).toBe("às 11:40 por Bruno");
+    expect(atBy("2026-11-17T14:40:00.000Z", null, TZ)).toBe("às 11:40");
   });
 
   it("campo de dinheiro: 150.00 vira 150,00 e o texto digitado vira decimal ou nada", () => {

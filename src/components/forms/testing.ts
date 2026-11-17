@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import type { ActionState } from "@/actions/_session";
+import type { ErrorCode } from "@/domain/shared/result";
 
 /** Ajudantes dos testes de formulário: uma Server Action de mentira que guarda o que recebeu. */
 export function actionSpy(result: ActionState = { ok: true, data: null, at: 1 }) {
@@ -12,7 +13,7 @@ export function actionSpy(result: ActionState = { ok: true, data: null, at: 1 })
 }
 
 /** Recusa do servidor com o texto que a tela mostra. */
-export const refusal = (code: string, message: string, field?: string): ActionState => ({
+export const refusal = (code: ErrorCode, message: string, field?: string): ActionState => ({
   ok: false,
   error: { code, message, field },
   at: 1,

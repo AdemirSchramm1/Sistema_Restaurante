@@ -46,7 +46,15 @@ describe("lista de turnos (spec 014, US5)", () => {
     show([
       { ...closed, id: "a", difference: "0.00", result: "BALANCED" },
       { ...closed, id: "b", difference: "3.00", result: "OVER", closedByName: null, openedByName: null },
-      { ...closed, id: "c", status: "OPEN", closedAt: null, closedByName: null, difference: null, result: null },
+      {
+        ...closed,
+        id: "c",
+        status: "OPEN",
+        closedAt: null,
+        closedByName: null,
+        difference: null,
+        result: null,
+      },
     ]);
     const [balanced, over, open] = rows();
     expect(within(balanced!).getByText("Bateu").className).toContain("bg-success-soft");

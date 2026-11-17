@@ -216,8 +216,8 @@ describe("o que a tela do caixa recebe: dinheiro em texto com 2 casas e datas em
       difference: "-2.00",
       result: "SHORT",
     });
-    expect(sessionRowView({ ...row, status: "OPEN", closedAt: null, difference: null, result: null })).toMatchObject(
-      { closedAt: null, difference: null, result: null },
-    );
+    expect(
+      sessionRowView({ ...row, status: "OPEN", closedAt: null, difference: null, result: null }),
+    ).toMatchObject({ closedAt: null, difference: null, result: null });
   });
 });
