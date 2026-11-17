@@ -5,9 +5,77 @@ on:
   push:
     branches: [main]
 
+# Commit novo no mesmo PR cancela a rodada anterior; em main cada commit roda até o fim.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Os jobs rodam em paralelo (ninguém espera outro terminar). PR que só mexe em documentação
+# (Markdown, docs/, specs/, .specify/) roda só o job "estatico"; os outros aparecem como pulados.
 jobs:
-  check:
+  changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          code=true
+          if [ "$EVENT" = "pull_request" ] && files=$(git diff --name-only "$BASE"...HEAD); then
+            if ! printf '%s\n' "$files" | grep -Ev '(\.md$|^docs/|^specs/|^\.specify/)' | grep -q .; then
+              code=false
+            fi
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Mudou código: $code"
+
+  estatico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+
+  unidade:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:unit
+      # Spec 013 (TDD-008): todo mutante do domínio do cardápio morto.
+      - run: pnpm test:mutation
+
+  # Unidade e integração juntas, com a régua de 100% do cardápio (spec 013, TDD-008). É aqui que
+  # todos os testes de integração rodam: `test:menu` não filtra projeto, então um `test:integration`
+  # separado repetiria os mesmos testes.
+  integracao:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17
@@ -28,18 +96,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test:unit
-      - run: pnpm test:integration
-      # Spec 013 (TDD-008): 100% do código novo do cardápio e todo mutante do domínio morto.
       - run: pnpm test:menu
-      - run: pnpm test:mutation
 
   e2e:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    needs: check
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17
@@ -70,6 +133,12 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm db:dev-login
       - run: pnpm exec playwright install --with-deps chromium
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm build
       - run: pnpm test:e2e
         env:
@@ -77,9 +146,27 @@ jobs:
 
   # Testes de tela (spec 013): matriz de 9 telas, claro e escuro, Chromium e WebKit, com comparação
   # de imagem. Roda dentro da imagem oficial do Playwright para os pixels serem os da referência.
+  # Seis partes em paralelo: cada motor roda o cardápio do cliente (o arquivo mais demorado) no
+  # modo claro, no modo escuro, e o resto dos arquivos. As três partes se completam: arquivo ou
+  # teste novo cai sozinho em uma delas. Cada parte tem o seu banco e o seu restaurante de teste.
   telas:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    needs: check
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        motor: [telas-chromium, telas-webkit]
+        parte: [cardapio-claro, cardapio-escuro, resto]
+        include:
+          - parte: cardapio-claro
+            args: tests/screens/customer-menu.spec.ts --grep-invert dark
+          - parte: cardapio-escuro
+            args: tests/screens/customer-menu.spec.ts --grep dark
+          - parte: resto
+            args: "'tests/screens/(?!customer-menu)'"
+    name: telas (${{ matrix.motor }}, ${{ matrix.parte }})
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     services:
@@ -101,6 +188,7 @@ jobs:
       MENU_PHOTOS: file
       MENU_PHOTO_DIR: .menu-photos
       SCREENS_IN_CONTAINER: "1"
+      SCREENS_PROJECTS: ${{ matrix.motor }}
       HOME: /root
     steps:
       - uses: actions/checkout@v4
@@ -112,11 +200,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm db:dev-login
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-telas-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            next-telas-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm build
-      - run: pnpm test:screens
+      - run: scripts/screens.sh ${{ matrix.args }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: telas-diferencas
+          name: telas-diferencas-${{ matrix.motor }}-${{ matrix.parte }}
           path: test-results/
           retention-days: 7

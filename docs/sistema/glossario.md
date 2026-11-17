@@ -116,13 +116,22 @@
 | Vendas | – | `salesReport` | Recebido por forma (soma dos turnos), vendas por produto e adicional. Feature 014 |
 | Permissões do caixa | – | `cash.operate`, `cash.close_any`, `cash.expected`, `cash.history`, `sales.report` | Ver spec 014, FR-008 |
 | Lançar pedido | – | `placeStaffOrder` | Pedido da mesa lançado pela equipe (garçom, caixa, gerente). Feature 015 |
-| Origem do pedido | – | `order_source` (`OrderSource`: `QR`, `STAFF`) | "QR code" ou "Equipe"; nunca muda depois do envio |
+| Origem do pedido | – | `order_source` (`OrderSource`: `QR`, `STAFF`, `TABLET`) | "QR code", "Equipe" ou "tablet" (016); nunca muda depois do envio |
 | Lançado por | – | `placed_by` | Usuário que lançou; só na origem Equipe. O nome é lido na consulta |
 | Observação para a cozinha | – | `kitchen_note` | Texto livre até 140 por linha, só em pedido da equipe; não muda preço nem estoque |
 | Lançado errado (motivo) | – | `ENTERED_BY_MISTAKE` | Motivo de cancelamento do pedido lançado pela equipe |
 | Pedidos da mesa | – | `listTableOrders` | Pedidos da conta aberta, de todas as origens |
 | Carrinho do garçom | – | `garcom:v1:*` (`localStorage`) | Um por mesa no aparelho; não vai para o banco |
 | Permissões do lançamento | – | `order.place`, `order.cancel_own` | Gerente, caixa e garçom. Ver spec 015, FR-001 e FR-010 |
+| Aparência do restaurante | – | `appearance` (`logo`, `cover`) | Logo (1:1) e foto de capa (3:1) no topo do cardápio do cliente. Feature 016 |
+| Formato da foto | – | `PhotoShape`: `PRODUCT`, `LOGO`, `COVER` | Recorte, tamanho mínimo e larguras de cada tipo de foto |
+| Tablet da mesa | – | acesso `TABLET` (`menu_access_kind`) | Aparelho fixo na mesa com o cardápio aberto sem prazo; um por mesa |
+| Link do tablet | – | `tablet_token` (`/t/{token}`) | Liga o primeiro aparelho que o abre; diferente do QR code |
+| Liberar / Trocar link | – | `RELEASED`, `LINK_ROTATED` (`menu_access_end_reason`) | Desliga o tablet ligado; trocar também invalida o link antigo |
+| Visto há / Sem sinal | – | `last_seen_at`, `tabletSignal` | Última checagem do tablet; acima de 10 min, "Sem sinal" |
+| Boas-vindas do tablet | – | `TabletScreen`: `WELCOME`, `MENU`, `STILL_THERE`, `SENT` | Telas do tablet; volta às boas-vindas sozinho |
+| Layout do cardápio | – | `MenuLayout`: `list`, `grid3`, `grid3side`, `grid4side` | Linhas no celular, 3 ou 4 colunas, carrinho ao lado ou barra no pé |
+| Permissão da aparência | – | `menu.appearance` | Só gerente. O tablet da mesa usa `table.manage` |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de

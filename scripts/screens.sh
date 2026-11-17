@@ -6,6 +6,7 @@
 #   pnpm test:screens                      roda tudo
 #   pnpm test:screens tests/screens/x.spec.ts
 #   pnpm test:screens:update               regrava as imagens de referência (revise no PR)
+#   SCREENS_PROJECTS=telas-webkit pnpm test:screens --grep dark    um motor, só o modo escuro
 #
 # Precisa do banco migrado (pnpm db:up && pnpm db:migrate && pnpm db:dev-login) e do build
 # (pnpm build). Com SCREENS_IN_CONTAINER=1 (job "telas" da CI, que já roda na imagem) não usa Docker.
@@ -14,7 +15,10 @@ set -euo pipefail
 IMAGE="mcr.microsoft.com/playwright:v1.63.0-noble"
 PORT="${SCREENS_PORT:-3000}"
 BASE_URL="http://localhost:${PORT}"
-ARGS=(--project=telas-chromium --project=telas-webkit "$@")
+# SCREENS_PROJECTS escolhe os motores (a CI roda um por job); o padrão são os dois.
+ARGS=()
+for project in ${SCREENS_PROJECTS:-telas-chromium telas-webkit}; do ARGS+=(--project="$project"); done
+ARGS+=("$@")
 
 if [ -f .env.local ]; then set -a; . ./.env.local; set +a; fi
 export MENU_PHOTOS="${MENU_PHOTOS:-file}" MENU_PHOTO_DIR="${MENU_PHOTO_DIR:-.menu-photos}"

@@ -98,9 +98,15 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
   morra. Uma linha que nenhum teste exige não passa.
 - **As telas também têm teste**: a matriz de 9 tamanhos × 2 modos de cor × 2 motores, com
   asserções de layout e comparação de imagem. Ver [05-testes-de-tela.md](05-testes-de-tela.md).
-- A CI roda em todo PR: `format:check` → `lint` → `typecheck` → `test:unit` → `test:integration`, e
-  `test:e2e` (com o axe) no job de ponta a ponta; `test:menu`, `test:mutation` e `test:screens` nos
-  jobs do cardápio.
+- A CI roda em todo PR, com os jobs em paralelo: **estatico** (`format:check`, `lint`,
+  `typecheck`), **unidade** (`test:unit`, `test:mutation`), **integracao** (`test:menu`, que roda
+  todos os testes de unidade e de integração com a régua de 100% do cardápio), **e2e** (`test:e2e`
+  com o axe) e **telas** (`test:screens` em 6 partes: 2 motores × cardápio do cliente claro, escuro e o resto dos
+  arquivos).
+- PR que só muda documentação (Markdown, `docs/`, `specs/`, `.specify/`) roda só o **estatico**; os
+  outros jobs aparecem como pulados. Commit novo no PR cancela a rodada anterior.
+- Teste que falha "de vez em quando" é defeito do teste: conserta a causa (dado fixo, esperar a
+  tela parar) em vez de rodar de novo.
 - PR com CI vermelha não é mergeado.
 
 ## TDD no fluxo Spec Kit
