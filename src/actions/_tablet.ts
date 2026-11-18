@@ -1,5 +1,5 @@
 import type { Deps } from "@/application/ports";
-import { bindTablet } from "@/application/ordering/menu-access";
+import { bindTablet, tabletStatus } from "@/application/ordering/menu-access";
 import { messageFor } from "@/components/forms/error-messages";
 import { messagePage, NO_STORE } from "./_qr-scan";
 
@@ -31,5 +31,14 @@ export async function tabletBindResponse(
   return new Response(null, {
     status: 303,
     headers: { ...NO_STORE, Location: "/cardapio", "Set-Cookie": cookie },
+  });
+}
+
+/** `GET /api/cardapio/tablet`: sinal do tablet (spec 016, R5). Sem tablet: 401 `UNKNOWN`. */
+export async function tabletStatusResponse(deps: Deps, cookie: string | null): Promise<Response> {
+  const status = await tabletStatus(deps, cookie);
+  return Response.json(status ?? { state: "UNKNOWN" }, {
+    status: status ? 200 : 401,
+    headers: { "Cache-Control": "no-store" },
   });
 }

@@ -630,11 +630,12 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         tv: number;
         tab_id: string | null;
         changed: string | null;
-        n: number;
+        n: string;
       }>(
+        // Soma das versões: muda a cada pedido novo e a cada mudança de situação, mesmo no mesmo instante.
         sql`select r.version as rv, t.version as tv, tab.id as tab_id,
               (select max(o.status_changed_at)::text from orders o where o.tab_id = tab.id) as changed,
-              (select count(*)::int from orders o where o.tab_id = tab.id) as n
+              (select count(*) || '.' || coalesce(sum(o.version), 0) from orders o where o.tab_id = tab.id) as n
             from restaurants r
             join dining_tables t on t.id = ${tableId} and t.restaurant_id = r.id
             left join table_tabs tab on tab.table_id = t.id and tab.status = 'OPEN'

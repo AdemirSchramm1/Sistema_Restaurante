@@ -151,3 +151,38 @@ export async function bindTablet(
   });
   return bound.ok && bound.value ? { kind: "BOUND", cookie: token } : { kind: "IN_USE" };
 }
+
+/** O que o tablet sabe pelo sinal (spec 016, R5). */
+export type TabletState = "OK" | "TABLE_INACTIVE" | "ORDERING_PAUSED" | "RELEASED" | "LINK_ROTATED";
+export type TabletStatusView = { state: TabletState; tableName: string; tabId: string | null; stamp: string };
+
+/**
+ * `GET /api/cardapio/tablet` (spec 016, R5): situação do tablet, a conta aberta da mesa e um `stamp`
+ * que muda quando algo que o tablet mostra mudou. É também o sinal de vida (`last_seen_at`, no
+ * máximo uma gravação por minuto). `null`: o cookie não é de um tablet.
+ */
+export async function tabletStatus(deps: Deps, cookie: string | null): Promise<TabletStatusView | null> {
+  if (!cookie) return null;
+  const found = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
+  if (!found || found.kind !== "TABLET") return null;
+  const r = await deps.tenant(found.restaurantId, async (repos) => {
+    const loaded = await loadAccess(repos, found.menuAccessId);
+    if (!loaded.ok) return loaded;
+    const { access, table, settings } = loaded.value;
+    const now = deps.clock.now();
+    if (access.endedAt === null) await repos.menuAccesses.touch(access.id, now);
+    const { tabId, stamp } = await repos.orders.tabletStamp(table.id);
+    const state: TabletState =
+      access.endReason === "RELEASED"
+        ? "RELEASED"
+        : access.endReason === "LINK_ROTATED"
+          ? "LINK_ROTATED"
+          : !table.active
+            ? "TABLE_INACTIVE"
+            : !settings.acceptingQrOrders
+              ? "ORDERING_PAUSED"
+              : "OK";
+    return ok({ state, tableName: table.name, tabId, stamp });
+  });
+  return r.ok ? r.value : null;
+}
