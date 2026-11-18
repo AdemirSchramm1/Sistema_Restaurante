@@ -46,8 +46,9 @@ export function secondsLeft(a: MenuAccessTimes, now: Date): number | null {
 }
 
 export function shouldWarn(a: MenuAccessTimes, now: Date, hasUnsent: boolean): boolean {
-  const left = secondsLeft(a, now);
-  return hasUnsent && left !== null && left > 0 && left <= WARN_SECONDS;
+  // Sem prazo (tablet) conta como zero: nunca avisa.
+  const left = secondsLeft(a, now) ?? 0;
+  return hasUnsent && left > 0 && left <= WARN_SECONDS;
 }
 
 /** Pedidos por acesso: 10 no celular do QR code, sem limite no tablet da mesa. */

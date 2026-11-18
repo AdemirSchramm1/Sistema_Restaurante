@@ -40,9 +40,8 @@ export function tabletScreen(
   if (ev.kind === "tabChanged") return go("WELCOME", st, at, true);
   if (ev.kind === "sent") return go("SENT", st, at);
   if (ev.kind === "touch") {
-    const touched = { ...st, lastTouch: at };
-    if (st.screen === "MENU") return stay(touched);
-    return go("MENU", touched, at, st.screen === "SENT");
+    // No cardápio só renova o tempo; das outras telas volta ao cardápio (depois de enviar, limpo).
+    return go("MENU", { ...st, lastTouch: at }, at, st.screen === "SENT");
   }
   const elapsed = (from: number) => at - from;
   switch (st.screen) {
@@ -55,7 +54,7 @@ export function tabletScreen(
       return elapsed(st.since) < SENT_SECONDS * 1000
         ? stay(st)
         : go("MENU", { ...st, lastTouch: at }, at, true);
-    default:
+    case "WELCOME":
       return stay(st);
   }
 }

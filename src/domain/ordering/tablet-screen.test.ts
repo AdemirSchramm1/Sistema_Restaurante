@@ -72,6 +72,33 @@ describe("tela do tablet (spec 016, US5)", () => {
       state: { screen: "MENU", lastTouch: s(22) },
       clearCart: true,
     });
+    // Voltou sozinho ao cardápio: os 3 min parado contam a partir daí, não do toque antigo.
+    const back = tabletScreen(sent, { kind: "tick", at: s(30), cartEmpty: true }).state;
+    expect(back.lastTouch).toBe(s(30));
+    expect(tabletScreen(back, { kind: "tick", at: s(209), cartEmpty: true }).state.screen).toBe("MENU");
+    expect(tabletScreen(back, { kind: "tick", at: s(210), cartEmpty: true }).state.screen).toBe("WELCOME");
+  });
+
+  it("ficar na mesma tela nunca limpa o carrinho; tocar no cardápio só renova o tempo", () => {
+    const welcome = openTabletScreen(0);
+    expect(tabletScreen(welcome, { kind: "tick", at: s(5000), cartEmpty: false })).toEqual({
+      state: welcome,
+      clearCart: false,
+    });
+    const menu = tabletScreen(welcome, { kind: "touch", at: 0 }).state;
+    expect(tabletScreen(menu, { kind: "tick", at: s(100), cartEmpty: false })).toEqual({
+      state: menu,
+      clearCart: false,
+    });
+    expect(tabletScreen(menu, { kind: "touch", at: s(100) })).toMatchObject({
+      state: { screen: "MENU", lastTouch: s(100) },
+      clearCart: false,
+    });
+    const asking = tabletScreen(menu, { kind: "tick", at: s(180), cartEmpty: false }).state;
+    expect(tabletScreen(asking, { kind: "tick", at: s(200), cartEmpty: false }).clearCart).toBe(false);
+    const sent = tabletScreen(menu, { kind: "sent", at: s(1) });
+    expect(sent.clearCart).toBe(false);
+    expect(tabletScreen(sent.state, { kind: "tick", at: s(5), cartEmpty: true }).clearCart).toBe(false);
   });
 
   it("a conta mudou: em qualquer tela, boas-vindas com o carrinho limpo", () => {

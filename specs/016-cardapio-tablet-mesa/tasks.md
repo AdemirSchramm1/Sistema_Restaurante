@@ -119,7 +119,7 @@ no tablet mostra a capa escurecida com o logo, o nome e "Mesa 12".
 - [x] T050 [P] [teste] [US1] `src/components/menu/appearance-form.test.tsx` (US1-1, US1-2, US1-6): quadro **Aparência** só com `menu.appearance`; escolher arquivo mostra o recorte 1:1 do logo e 3:1 da capa antes de salvar; arquivo pequeno mostra a mensagem do T010 sem enviar; **Trocar**; **Tirar** pede confirmação; usa `reduce-photo.ts` da 013
 - [x] T051 [P] [US1] `src/components/menu/appearance-form.tsx`, ações `src/actions/appearance.ts` e o quadro em `app/(app)/pedidos/cardapio/page.tsx` (verde o T050)
 - [x] T052 [US1] [teste] `tests/screens/appearance.spec.ts` e `customer-menu.spec.ts`: topo com capa e logo nos 9 tamanhos, claro e escuro; quadro **Aparência** nos tamanhos da equipe; contraste do texto do topo medido na tela com a `capa.jpg` (≥ 4,5:1)
-- [ ] T053 [US1] Refazer as imagens de referência do cardápio do cliente (`pnpm build && pnpm test:screens:update` no contêiner do Playwright), com as fotos fixas do T003; o commit lista os tamanhos e diz que o motivo é o layout novo (FR-012)
+- [x] T053 [US1] Refazer as imagens de referência do cardápio do cliente (`pnpm build && pnpm test:screens:update` no contêiner do Playwright), com as fotos fixas do T003; o commit lista os tamanhos e diz que o motivo é o layout novo (FR-012)
 
 **Ponto de controle**: cardápio novo completo para o QR code; dá para entrar em produção sem o
 tablet.
@@ -171,18 +171,18 @@ boas-vindas vazias; fechar a conta da Mesa 12 → boas-vindas sem os pedidos ant
 - [x] T081 [US5] `src/components/ordering/tablet-shell.tsx` e o modo tablet em `menu-app.tsx` (sem "Faltam N min" nem o aviso dos 10 pedidos) (verde o T080)
 - [x] T082 [P] [teste] [US5] `src/components/menu/preview-frame.test.tsx`: a pré-visualização ganha a escolha "Celular pelo QR code" / "Tablet da mesa"; no tablet mostra as boas-vindas e o cardápio sem prazo, sem enviar nada
 - [x] T083 [P] [US5] `preview-frame.tsx`, `getMenuPreview` com `mode` e `app/(app)/pedidos/cardapio/ver/page.tsx` (verde o T082)
-- [ ] T084 [US5] [teste] `tests/screens/tablet.spec.ts`: boas-vindas, cardápio do tablet com o carrinho ao lado, "Ainda está aí?" e "Sem conexão" nos tamanhos `tablet-*` e `computador`, e o **Tablet da mesa** da equipe nos tamanhos da equipe, claro e escuro, Chromium e WebKit; imagens de referência novas a partir do build de produção (SC-006)
+- [x] T084 [US5] [teste] `tests/screens/tablet.spec.ts`: boas-vindas, cardápio do tablet com o carrinho ao lado, "Ainda está aí?" e "Sem conexão" nos tamanhos `tablet-*` e `computador`, e o **Tablet da mesa** da equipe nos tamanhos da equipe, claro e escuro, Chromium e WebKit; imagens de referência novas a partir do build de produção (SC-006)
 
 **Ponto de controle**: o roteiro do quickstart passa à mão do passo 1 ao 24.
 
 ## Fase 8: Ponta a ponta e documentação
 
-- [ ] T085 [teste] `tests/e2e/tablet.spec.ts`: o roteiro do [quickstart](quickstart.md) com dois contextos do navegador (tablet e "outro aparelho"), `page.clock` para os 3 min, os 30 s, os 10 s e os 10 min sem sinal; SC-003 (ligar em menos de 1 min a partir de **Criar link**); SC-004 (relógio adiantado 12 h em passos de 10 min, a checagem roda em cada passo, e um pedido enviado no fim entra na conta)
-- [ ] T086 [P] [teste] `tests/e2e/accessibility.spec.ts`: axe sem violação no cardápio novo (celular e tablet deitado), boas-vindas, "Ainda está aí?", **Tablet da mesa** e quadro **Aparência**
+- [x] T085 [teste] `tests/e2e/tablet.spec.ts`: o roteiro do [quickstart](quickstart.md) com dois contextos do navegador (tablet e "outro aparelho"), `page.clock` para os 3 min, os 30 s, os 10 s e os 10 min sem sinal; SC-003 (ligar em menos de 1 min a partir de **Criar link**); SC-004 (relógio adiantado 12 h em passos de 10 min, a checagem roda em cada passo, e um pedido enviado no fim entra na conta)
+- [x] T086 [P] [teste] `tests/e2e/accessibility.spec.ts`: axe sem violação no cardápio novo (celular e tablet deitado), boas-vindas, "Ainda está aí?", **Tablet da mesa** e quadro **Aparência**
 - [x] T087 [P] [teste] `tests/integration/performance/indexes.test.ts` e `tests/integration/performance/tablet-status.test.ts`: a checagem do tablet e o `listTabletStatus` usam índice; 60 tablets checando ao mesmo tempo respondem em menos de 200 ms cada no banco do teste, com no máximo 1 gravação de sinal de vida por tablet por minuto
 - [x] T088 [P] Docs de produto: `docs/produto/pedidos/02-cardapio-do-cliente.md` (layout, carrinho, topo, "+" direto), `01-mesas-e-qr-code.md` (link do tablet), `06-editar-o-cardapio.md` (Aparência), `05-conta-da-mesa.md` (fechar a conta não desliga o tablet), `09-tablet-da-mesa.md` (novo: ligar, liberar, trocar, boas-vindas, travar o aparelho), `00-visao-geral.md` e `docs/produto/estoque/09-controles-e-permissoes.md` (`menu.appearance`, `table.manage` cobre o tablet)
 - [x] T089 [P] Docs de sistema: `docs/sistema/pedidos/01-modelo-de-dados.md`, `02-regras.md`, `03-rota-publica.md` (`/t/{token}`, `/api/cardapio/tablet`, cookie `menu_tablet`), `04-plano-de-testes.md`, `docs/sistema/05-testes-de-tela.md` (layouts e telas novas), `04-desempenho.md` (checagem do tablet); linha 016 do roadmap em `docs/produto/estoque/00-visao-geral.md` vira "Feito"
-- [ ] T090 Conferência final: `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:integration`, `pnpm test:menu`, `pnpm test:mutation`, `pnpm test:e2e --trace off`, `pnpm build && pnpm test:screens`; a descrição do PR lista as imagens de referência refeitas, com antes e depois, e avisa a ordem das migrações (T012)
+- [x] T090 Conferência final: `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:integration`, `pnpm test:menu`, `pnpm test:mutation`, `pnpm test:e2e --trace off`, `pnpm build && pnpm test:screens`; a descrição do PR lista as imagens de referência refeitas, com antes e depois, e avisa a ordem das migrações (T012)
 
 ## Dependências
 
