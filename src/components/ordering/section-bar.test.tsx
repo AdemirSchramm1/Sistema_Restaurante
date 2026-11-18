@@ -50,6 +50,8 @@ describe("barra de seções", () => {
     const { unmount } = render(<SectionBar sections={sections} current={null} onPick={onPick} />);
     fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
     expect(onPick).toHaveBeenCalledWith("s2");
+    fireEvent.click(screen.getByRole("link", { name: "Outros" }));
+    expect(onPick).toHaveBeenLastCalledWith("outros");
     unmount();
     render(<SectionBar sections={sections} current={null} />);
     fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
