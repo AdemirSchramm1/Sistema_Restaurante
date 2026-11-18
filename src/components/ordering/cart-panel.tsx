@@ -5,6 +5,11 @@ import { cn } from "@/lib/utils";
 import { Cart, type SubmitFn } from "./cart";
 import { CartBar } from "./cart-bar";
 import type { CartLine } from "./cart-state";
+import type { SubmitOrderResult } from "@/application/ordering/submit-order";
+import { brl } from "./format";
+
+/** Quanto tempo o aviso "Pedido enviado" fica no pé da tela estreita. */
+const NOTICE_MS = 8000;
 
 /**
  * Carrinho sempre à vista (spec 016, US3, R10). Um só carrinho, posto pela largura no CSS:
@@ -27,15 +32,17 @@ export function CartPanel({
   highlight: string | null;
 }) {
   const [over, setOver] = useState(false);
-  /** Acabou de enviar: o aviso "Pedido enviado" fica à vista até a pessoa voltar ao cardápio. */
-  const [justSent, setJustSent] = useState(false);
+  /**
+   * Na tela estreita o carrinho fecha ao enviar; o aviso "Pedido enviado" fica no pé por alguns
+   * segundos, para o cliente ver que deu certo sem precisar fechar nada.
+   */
+  const [notice, setNotice] = useState<SubmitOrderResult | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(noticeTimer.current), []);
   const title = useRef<HTMLHeadingElement>(null);
   // Carrinho esvaziado com ele aberto por cima: nada a mostrar, volta ao cardápio.
-  const open = over && (lines.length > 0 || justSent);
-  const close = () => {
-    setOver(false);
-    setJustSent(false);
-  };
+  const open = over && lines.length > 0;
+  const close = () => setOver(false);
   useEffect(() => {
     if (open) title.current?.focus();
   }, [open]);
@@ -61,8 +68,11 @@ export function CartPanel({
           lines={lines}
           onChange={onChange}
           submit={submit}
-          onSent={() => {
-            setJustSent(true);
+          onSent={(sent) => {
+            setOver(false);
+            setNotice(sent);
+            clearTimeout(noticeTimer.current);
+            noticeTimer.current = setTimeout(() => setNotice(null), NOTICE_MS);
             onSent?.();
           }}
           highlight={highlight}
@@ -72,6 +82,17 @@ export function CartPanel({
       </aside>
       {open && (
         <div aria-hidden className="fixed inset-0 z-30 bg-overlay lg:hidden" onClick={close} />
+      )}
+      {!open && notice && lines.length === 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-30 p-2 pb-[env(safe-area-inset-bottom)] lg:hidden">
+          <p
+            role="status"
+            className="rounded-xl border border-success/30 bg-success-soft px-4 py-3 text-center text-success-soft-foreground shadow-lg"
+          >
+            <span className="block font-semibold">Pedido enviado para a cozinha</span>
+            Pedido nº {notice.number} · {brl(notice.total)}
+          </p>
+        </div>
       )}
       {!open && <CartBar lines={lines} onOpen={show} />}
       {lines.length > 0 && (

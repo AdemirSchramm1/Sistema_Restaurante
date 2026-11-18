@@ -16,6 +16,7 @@ export function ProductPhoto({
   eager = false,
   sizes = CARD_SIZES,
   className,
+  decorative = false,
 }: {
   photo: Photo | null;
   name: string;
@@ -24,6 +25,8 @@ export function ProductPhoto({
   sizes?: string;
   /** Largura na linha do celular (spec 016). */
   className?: string;
+  /** Dentro de um botão que já mostra o nome: a foto não repete o nome para o leitor de tela. */
+  decorative?: boolean;
 }) {
   if (!photo) return null;
   return (
@@ -35,7 +38,7 @@ export function ProductPhoto({
       sizes={sizes}
       width={400}
       height={300}
-      alt={name}
+      alt={decorative ? "" : name}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       className={cn("aspect-[4/3] h-auto w-full rounded-lg bg-muted object-cover", className)}

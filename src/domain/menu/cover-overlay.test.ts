@@ -15,4 +15,8 @@ describe("camada escura da capa (spec 016, US1-3, R9)", () => {
   it("a regra pega uma camada fraca demais: 30% embaixo não passa", () => {
     expect(coverTextContrast(0.3)).toBeLessThan(4.5);
   });
+
+  it("camada quase preta: o cinza cai na parte linear da curva sRGB e o contraste chega perto de 21:1", () => {
+    expect(coverTextContrast(0.97)).toBeGreaterThan(19);
+  });
 });

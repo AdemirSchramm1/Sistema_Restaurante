@@ -44,7 +44,7 @@ export function Cart({
   onChange: (lines: CartLine[]) => void;
   /** `null` na pré-visualização da equipe (spec 013, US5): o carrinho aparece, mas não envia. */
   submit: SubmitFn | null;
-  onSent?: () => void;
+  onSent?: (sent: SubmitOrderResult) => void;
   /** Linha que acabou de mudar (spec 016, US3-3). */
   highlight?: string | null;
   /** Aberto por cima do cardápio na tela estreita (spec 016, US3-2). */
@@ -83,7 +83,7 @@ export function Cart({
         setConfirming(false);
         requestId.current = null;
         onChange([]);
-        onSent?.();
+        onSent?.(r.data);
         return;
       }
       if (!r) return;

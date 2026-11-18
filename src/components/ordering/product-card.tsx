@@ -30,11 +30,6 @@ export function ProductCard({
   onQuickAdd: () => void;
   onOpen: () => void;
 }) {
-  // O nome do botão contém o texto que ele mostra (axe label-content-name-mismatch): "Ver", o nome, a
-  // descrição e o preço. Do tablet em diante o preço sai do botão (vai para o pé), mas segue no nome.
-  const label = [`Ver ${product.name}`, product.description?.replace(/\s+/g, " ").trim(), brl(product.price)]
-    .filter(Boolean)
-    .join(" ");
   return (
     <li
       data-place
@@ -42,7 +37,6 @@ export function ProductCard({
     >
       <button
         type="button"
-        aria-label={label}
         onClick={onOpen}
         className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background tab:flex-col tab:items-stretch tab:gap-2"
       >
@@ -52,8 +46,12 @@ export function ProductCard({
           eager={eager}
           sizes={CARD_PHOTO_SIZES}
           className="w-28 shrink-0 tab:w-full"
+          decorative
         />
         <span className="grid min-w-0 flex-1 grid-cols-1 content-start gap-1">
+          <span className="sr-only">Ver</span>{" "}
+          {/* O nome do botão é o texto que ele mostra, com "Ver" na frente só para o leitor de tela (axe
+              label-content-name-mismatch); a foto é decorativa porque o nome do prato vem logo ao lado. */}
           <h3
             data-clamp
             title={product.name}

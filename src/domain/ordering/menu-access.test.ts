@@ -93,4 +93,8 @@ describe("tablet fixo na mesa: acesso sem prazo (spec 016, FR-005, R1)", () => {
     expect(ordersLimit("QR")).toBe(10);
     expect(ordersLimit("TABLET")).toBeNull();
   });
+
+  it("acesso encerrado antes do prazo: zero segundos", () => {
+    expect(secondsLeft(access({ endedAt: at("05:00") }), at("06:00"))).toBe(0);
+  });
 });

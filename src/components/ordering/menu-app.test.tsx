@@ -156,14 +156,16 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
 
   it("só as duas primeiras fotos da tela vêm sem espera", () => {
     render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
-    expect(screen.getAllByRole("img").map((i) => [i.getAttribute("alt"), i.getAttribute("loading")])).toEqual(
-      [
-        ["X-Burger", "eager"],
-        ["X-Bacon", "eager"],
-        ["Suco", "lazy"],
-        ["Pudim", "lazy"],
-      ],
-    );
+    // A foto do cartão é decorativa (o nome vem ao lado): acha pelo título do cartão.
+    const photos = [...document.querySelectorAll("li img[data-photo]")];
+    expect(
+      photos.map((i) => [i.closest("li")!.querySelector("h3")!.textContent, i.getAttribute("loading")]),
+    ).toEqual([
+      ["X-Burger", "eager"],
+      ["X-Bacon", "eager"],
+      ["Suco", "lazy"],
+      ["Pudim", "lazy"],
+    ]);
   });
 
   it("a busca procura em todas as seções e mantém a ordem do cardápio, sem títulos", () => {
@@ -209,8 +211,10 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
     };
     view.rerender(<MenuApp menu={refreshed} orders={[]} submit={vi.fn()} />);
     expect(buttons().slice(0, 2)).toEqual(["Pôr Água no carrinho", "Pôr Suco no carrinho"]);
-    expect(screen.getByRole("img", { name: "Água" }).getAttribute("src")).toBe("/fotos/menu/nova/300.webp");
-    expect(screen.queryByRole("img", { name: "Suco" })).toBeNull();
+    const photoOfCard = (name: string) =>
+      screen.getByRole("heading", { level: 3, name }).closest("li")!.querySelector("img");
+    expect(photoOfCard("Água")!.getAttribute("src")).toBe("/fotos/menu/nova/300.webp");
+    expect(photoOfCard("Suco")).toBeNull();
     expect(screen.getByTestId("cart-total").textContent).toBe("R$ 10,00");
   });
 

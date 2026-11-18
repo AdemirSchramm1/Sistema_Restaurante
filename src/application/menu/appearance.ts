@@ -57,21 +57,20 @@ export async function setAppearanceImage(
   if (!stored) return err("PHOTO_STORAGE_FAILED");
   const photo: Photo = { base: stored.base, widths: variants.map((v) => v.width) };
 
-  let previous: Photo | null;
+  // A transação sempre termina em `ok`; o anterior sai por aqui para ser apagado depois do commit.
+  const replaced: { photo: Photo | null } = { photo: null };
   try {
-    previous = await deps
-      .tenant(ctx.restaurantId, async (repos) => {
-        const before = current(await repos.menuBoard.appearance(), input.kind);
-        await repos.menuBoard.setAppearance(input.kind, photo, auditStamp(deps, ctx));
-        await record(repos, ctx, input.kind, [before?.base ?? null, photo.base]);
-        return ok(before);
-      })
-      .then((r) => (r.ok ? r.value : null));
+    await deps.tenant(ctx.restaurantId, async (repos) => {
+      replaced.photo = current(await repos.menuBoard.appearance(), input.kind);
+      await repos.menuBoard.setAppearance(input.kind, photo, auditStamp(deps, ctx));
+      await record(repos, ctx, input.kind, [replaced.photo?.base ?? null, photo.base]);
+      return ok(undefined);
+    });
   } catch (e) {
     await discard(deps, photo);
     throw e;
   }
-  if (previous) await discard(deps, previous);
+  if (replaced.photo) await discard(deps, replaced.photo);
   return ok({ photo });
 }
 

@@ -144,4 +144,26 @@ describe("aparência do cardápio (spec 016, US1)", () => {
     expect(denied.rows[0]!.n).toBeGreaterThanOrEqual(3);
     expect(env.photos.files.size).toBe(0);
   });
+
+  it("loja de fotos fora do ar: PHOTO_STORAGE_FAILED e nada muda; falha ao apagar o antigo não atrapalha", async () => {
+    const env = testEnv();
+    const m = await newRestaurant(env);
+    const storage = env.deps.photos.storage;
+    const down = {
+      ...env.deps,
+      photos: { ...env.deps.photos, storage: { ...storage, put: () => Promise.reject(new Error("fora")) } },
+    };
+    expect(code(await setAppearanceImage(down, m, { kind: "LOGO", bytes: await file("logo.png") }))).toBe(
+      "PHOTO_STORAGE_FAILED",
+    );
+    expect((await row(m.restaurantId)).logo_base).toBeNull();
+
+    unwrap(await setAppearanceImage(env.deps, m, { kind: "LOGO", bytes: await file("logo.png") }));
+    const stuck = {
+      ...env.deps,
+      photos: { ...env.deps.photos, storage: { ...storage, remove: () => Promise.reject(new Error("preso")) } },
+    };
+    const next = unwrap(await setAppearanceImage(stuck, m, { kind: "LOGO", bytes: await file("logo.png") }));
+    expect((await row(m.restaurantId)).logo_base).toBe(next.photo.base);
+  });
 });

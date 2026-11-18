@@ -35,7 +35,7 @@ describe("cartão do produto", () => {
     setup();
     const card = screen.getByRole("listitem");
     expect(card.className).toContain("bg-card");
-    expect(screen.getByRole("img", { name: burger.name }).getAttribute("loading")).toBe("lazy");
+    expect(screen.getByRole("listitem").querySelector("img")!.getAttribute("loading")).toBe("lazy");
     const name = screen.getByRole("heading", { level: 3 });
     expect(name.textContent).toBe(burger.name);
     // Compacto (spec 016): o nome em até 2 linhas, inteiro no title e no nome acessível.
@@ -54,7 +54,7 @@ describe("cartão do produto", () => {
 
   it("a primeira foto da tela vem sem espera", () => {
     setup({}, true);
-    expect(screen.getByRole("img").getAttribute("loading")).toBe("eager");
+    expect(screen.getByRole("listitem").querySelector("img")!.getAttribute("loading")).toBe("eager");
   });
 
   it('"+" com o nome do produto e 44 × 44 px de toque (era "Adicionar" na 013)', () => {
@@ -96,14 +96,16 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
     setup();
     const card = screen.getByRole("listitem");
     expect(card.className).toContain("tab:flex-col");
-    const img = screen.getByRole("img");
+    const img = screen.getByRole("listitem").querySelector("img")!;
     expect(img.className).toContain("w-28");
     expect(img.className).toContain("tab:w-full");
     expect(img.getAttribute("sizes")).toMatch(/112px$/);
     expect(img.getAttribute("srcset")).toContain("300w");
     const plus = screen.getByRole("button", { name: `Pôr ${burger.name} no carrinho` });
     // O "+" fica fora do botão que abre o prato: os dois toques não se cobrem.
-    expect(screen.getByRole("button", { name: new RegExp(`^Ver ${burger.name}`) }).contains(plus)).toBe(false);
+    expect(screen.getByRole("button", { name: new RegExp(`^Ver ${burger.name}`) }).contains(plus)).toBe(
+      false,
+    );
   });
 
   it("o preço fica no texto na linha e desce para o pé, ao lado do +, no cartão", () => {
@@ -120,7 +122,7 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
     expect(screen.getByRole("heading", { level: 3 }).hasAttribute("data-clamp")).toBe(true);
   });
 
-  it("o nome do botão contém o texto que ele mostra: nome, descrição e preço (axe)", () => {
+  it("o nome do botão vem do texto que ele mostra, sem aria-label e com a foto decorativa (axe)", () => {
     render(
       <ul>
         <ProductCard
@@ -131,8 +133,10 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
         />
       </ul>,
     );
-    expect(screen.getByRole("button", { name: /^Ver / }).getAttribute("aria-label")).toBe(
-      `Ver ${burger.name} Pão, carne e queijo R$ 28,00`,
-    );
+    const open = screen.getByRole("button", { name: /^Ver / });
+    expect(open.hasAttribute("aria-label")).toBe(false);
+    expect(open.textContent?.startsWith(`Ver ${burger.name}`)).toBe(true);
+    expect(open.textContent).toContain("R$ 28,00");
+    open.querySelectorAll("img").forEach((img) => expect(img.getAttribute("alt")).toBe(""));
   });
 });

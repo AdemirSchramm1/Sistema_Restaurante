@@ -97,7 +97,8 @@ describe("carrinho sempre à vista (spec 016, US3-1, FR-003)", () => {
     expect(screen.getByTestId("cart-panel").className).toMatch(/(^| )hidden( |$)/);
   });
 
-  it("na tela estreita, depois de enviar, o aviso 'Pedido enviado' fica à vista até voltar ao cardápio", async () => {
+  it("na tela estreita, depois de enviar, o carrinho fecha e o aviso fica no pé por 8 s", async () => {
+    vi.useFakeTimers();
     const submit = vi.fn<SubmitFn>(async () => ({
       ok: true,
       data: { orderId: "o1", number: 4, total: "9.00", status: "RECEIVED" },
@@ -110,9 +111,16 @@ describe("carrinho sempre à vista (spec 016, US3-1, FR-003)", () => {
       fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     });
     const panel = screen.getByTestId("cart-panel");
-    expect(panel.className).not.toMatch(/(^| )hidden( |$)/);
-    expect(within(panel).getByRole("status").textContent).toContain("Pedido nº 4");
-    fireEvent.click(within(panel).getByRole("button", { name: "Voltar ao cardápio" }));
     expect(panel.className).toMatch(/(^| )hidden( |$)/);
+    const notice = screen
+      .getAllByRole("status")
+      .find((s) => s.textContent?.includes("Pedido enviado para a cozinha") && !panel.contains(s))!;
+    expect(notice.textContent).toContain("Pedido nº 4 · R$ 9,00");
+    expect(notice.parentElement!.className).toContain("lg:hidden");
+    act(() => {
+      vi.advanceTimersByTime(8000);
+    });
+    expect(notice.isConnected).toBe(false);
+    vi.useRealTimers();
   });
 });
