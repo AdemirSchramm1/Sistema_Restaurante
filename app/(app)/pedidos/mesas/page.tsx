@@ -5,9 +5,15 @@ import {
   createTableAction,
   createTablesInRangeAction,
   renameTableAction,
+  createTabletLinkAction,
+  releaseTabletAction,
   rotateTableQrAction,
+  rotateTabletLinkAction,
   setTableActiveAction,
 } from "@/actions/tables";
+import { listTabletStatus } from "@/application/ordering/tablets";
+import { TableTabletCard } from "@/components/ordering/table-tablet-card";
+import { qrSvg } from "@/infra/qr";
 import { setAcceptingQrOrdersAction } from "@/actions/orders";
 import { getOrderingSettings } from "@/application/ordering/orders";
 import { serverDeps } from "@/infra/server";
@@ -29,15 +35,26 @@ export const metadata: Metadata = { title: "Mesas" };
 export default async function Page() {
   const ctx = await requireContext();
   const deps = serverDeps();
-  const [list, qrs, settings] = await Promise.all([
+  const [list, qrs, settings, tablets] = await Promise.all([
     listTables(deps, ctx, { includeInactive: true }),
     tableQrCodes(deps, ctx, {}),
     getOrderingSettings(deps, ctx),
+    // Tablet da mesa (spec 016): só o gerente vê; os outros papéis recebem FORBIDDEN e não veem o quadro.
+    listTabletStatus(deps, ctx),
   ]);
   if (!list.ok || !qrs.ok) return <NoAccess />;
   const svgById = new Map(qrs.value.tables.map((t) => [t.id, t]));
   const active = list.value.filter((t) => t.active);
   const inactive = list.value.filter((t) => !t.active);
+  const tabletRows = tablets.ok
+    ? new Map(
+        await Promise.all(
+          tablets.value.tables.map(
+            async (t) => [t.tableId, { ...t, svg: t.link ? await qrSvg(t.link) : null }] as const,
+          ),
+        ),
+      )
+    : null;
 
   return (
     <div className="grid gap-6">
@@ -53,6 +70,14 @@ export default async function Page() {
           )
         }
       />
+
+      {tablets.ok && (
+        <p role="status" className="text-sm">
+          {tablets.value.bound === 1
+            ? "1 mesa com tablet ligado"
+            : `${tablets.value.bound} mesas com tablet ligado`}
+        </p>
+      )}
 
       {settings.ok && (
         <Card className="grid gap-2" aria-label="Recebendo pedidos pelo QR code">
@@ -125,6 +150,16 @@ export default async function Page() {
                     aria-label={`Inativar a mesa ${t.name}`}
                   />
                 </div>
+                {tabletRows?.get(t.id) && (
+                  <TableTabletCard
+                    table={tabletRows.get(t.id)!}
+                    now={tablets.ok ? tablets.value.now : ""}
+                    timezone={tablets.ok ? tablets.value.timezone : "America/Sao_Paulo"}
+                    createAction={createTabletLinkAction}
+                    releaseAction={releaseTabletAction}
+                    rotateAction={rotateTabletLinkAction}
+                  />
+                )}
               </li>
             );
           })}

@@ -9,6 +9,7 @@ import {
   rotateTableQr,
   setTableActive,
 } from "@/application/ordering/tables";
+import { createTabletLink, releaseTablet, rotateTabletLink } from "@/application/ordering/tablets";
 import { withContext, type ActionState } from "./_session";
 
 /** Mesas e QR codes (spec 009, US1). */
@@ -54,6 +55,30 @@ export async function setTableActiveAction(_prev: ActionState, form: FormData): 
 
 export async function rotateTableQrAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const state = await withContext((ctx) => rotateTableQr(serverDeps(), ctx, meta(form)));
+  if (state?.ok) revalidatePath(PATH);
+  return state;
+}
+
+/** Tablet da mesa (spec 016, US4). */
+const tablet = (form: FormData) => {
+  const { id, version } = meta(form);
+  return { tableId: id, version };
+};
+
+export async function createTabletLinkAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const state = await withContext((ctx) => createTabletLink(serverDeps(), ctx, tablet(form)));
+  if (state?.ok) revalidatePath(PATH);
+  return state;
+}
+
+export async function releaseTabletAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const state = await withContext((ctx) => releaseTablet(serverDeps(), ctx, { tableId: tablet(form).tableId }));
+  if (state?.ok) revalidatePath(PATH);
+  return state;
+}
+
+export async function rotateTabletLinkAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const state = await withContext((ctx) => rotateTabletLink(serverDeps(), ctx, tablet(form)));
   if (state?.ok) revalidatePath(PATH);
   return state;
 }

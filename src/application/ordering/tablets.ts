@@ -41,7 +41,7 @@ export type TabletStatusView = {
 export async function listTabletStatus(
   deps: Deps,
   ctx: RequestContext,
-): Promise<Result<{ tables: TabletStatusView[]; bound: number }>> {
+): Promise<Result<{ tables: TabletStatusView[]; bound: number; timezone: string; now: string }>> {
   const allowed = await authorize(deps, ctx, "table.manage", ENTITY);
   if (!allowed.ok) return allowed;
   const base = deps.appUrl.replace(/\/+$/, "");
@@ -55,7 +55,14 @@ export async function listTabletStatus(
       boundAt: r.boundAt?.toISOString() ?? null,
       lastSeenAt: r.lastSeenAt?.toISOString() ?? null,
     }));
-    return ok({ tables, bound: tables.filter((t) => t.boundAt).length });
+    // Fuso e hora do servidor para "ligado desde 16/11 20:05 · visto há 2 min".
+    const { timezone } = await repos.orderingSettings.get();
+    return ok({
+      tables,
+      bound: tables.filter((t) => t.boundAt).length,
+      timezone,
+      now: deps.clock.now().toISOString(),
+    });
   });
 }
 
