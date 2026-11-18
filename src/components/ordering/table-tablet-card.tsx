@@ -48,11 +48,27 @@ const dayTime = (iso: string, timeZone: string) => {
  * no tablet sem digitar, a situação ("visto há", "Sem sinal há") e Liberar / Trocar link com
  * confirmação. Só o gerente vê.
  */
-export function TableTabletCard({ table, now, timezone, createAction, releaseAction, rotateAction }: TableTabletCardProps) {
+export function TableTabletCard({
+  table,
+  now,
+  timezone,
+  createAction,
+  releaseAction,
+  rotateAction,
+}: TableTabletCardProps) {
   const [confirm, setConfirm] = useState<"RELEASE" | "ROTATE" | null>(null);
   const [copied, setCopied] = useState("");
   const label = `Mesa ${table.name}`;
   const signal = tabletSignal(table.lastSeenAt ? new Date(table.lastSeenAt) : null, new Date(now));
+
+  // Deu certo: a confirmação fecha e o cartão mostra a situação nova (Trocar link de novo à vista).
+  const closingOnSuccess =
+    (action: TableTabletCardProps["releaseAction"]): TableTabletCardProps["releaseAction"] =>
+    async (prev, form) => {
+      const result = await action(prev, form);
+      if (result?.ok) setConfirm(null);
+      return result;
+    };
 
   const copy = async () => {
     if (!table.link) return;
@@ -65,7 +81,10 @@ export function TableTabletCard({ table, now, timezone, createAction, releaseAct
   };
 
   return (
-    <section aria-label={`Tablet da ${label}`} className="grid gap-2 rounded-lg border border-border p-3 text-sm">
+    <section
+      aria-label={`Tablet da ${label}`}
+      className="grid gap-2 rounded-lg border border-border p-3 text-sm"
+    >
       <h3 className="font-semibold">Tablet da mesa</h3>
       {!table.link ? (
         <ActionForm
@@ -96,7 +115,10 @@ export function TableTabletCard({ table, now, timezone, createAction, releaseAct
           {table.boundAt === null ? (
             <p className="text-muted-foreground">Nenhum tablet ligado</p>
           ) : signal.kind === "LOST" ? (
-            <p data-lost className="rounded-md bg-warning-soft px-2 py-1 font-medium text-warning-soft-foreground">
+            <p
+              data-lost
+              className="rounded-md bg-warning-soft px-2 py-1 font-medium text-warning-soft-foreground"
+            >
               Tablet ligado desde {dayTime(table.boundAt, timezone)} · Sem sinal há {signal.minutes} min
             </p>
           ) : (
@@ -114,7 +136,7 @@ export function TableTabletCard({ table, now, timezone, createAction, releaseAct
                   : "O link antigo para de funcionar e o tablet ligado desliga. Abra o link novo no tablet."}
               </p>
               <ActionForm
-                action={confirm === "RELEASE" ? releaseAction : rotateAction}
+                action={closingOnSuccess(confirm === "RELEASE" ? releaseAction : rotateAction)}
                 hidden={{ id: table.tableId, version: table.version }}
                 submitLabel={confirm === "RELEASE" ? "Sim, liberar" : "Sim, trocar link"}
                 variant="destructive"
@@ -144,8 +166,13 @@ export function TableTabletCard({ table, now, timezone, createAction, releaseAct
         <ul className="mt-2 grid list-disc gap-1 pl-5">
           <li>Abra o link no navegador do tablet (não pela Tela de Início).</li>
           <li>Android: ative &quot;Fixar app&quot; nas configurações de segurança e fixe o navegador.</li>
-          <li>iPad: ative o &quot;Acesso Guiado&quot; em Acessibilidade e inicie com três toques no botão lateral.</li>
-          <li>Nas configurações de tela, deixe &quot;Bloqueio automático: Nunca&quot; e o tablet na tomada.</li>
+          <li>
+            iPad: ative o &quot;Acesso Guiado&quot; em Acessibilidade e inicie com três toques no botão
+            lateral.
+          </li>
+          <li>
+            Nas configurações de tela, deixe &quot;Bloqueio automático: Nunca&quot; e o tablet na tomada.
+          </li>
         </ul>
       </details>
     </section>

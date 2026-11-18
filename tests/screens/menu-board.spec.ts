@@ -112,7 +112,9 @@ for (const screen of STAFF_SCREENS) {
         await page.goto("/pedidos/cardapio/ver");
         const main = page.locator("main");
         const frame = page.frameLocator('iframe[title="Cardápio como o cliente vê"]');
-        await expect(frame.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+        await expect(frame.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+          "Pré-visualização: pedidos não são enviados",
+        );
         await expect(frame.getByRole("heading", { level: 2, name: "Lanches" })).toBeVisible();
         if (screen.width >= 640) {
           await main.getByRole("button", { name: "Tablet deitado" }).click();
@@ -133,7 +135,9 @@ for (const screen of STAFF_SCREENS) {
       }) => {
         await page.goto("/pedidos/cardapio/ver/cliente");
         const main = page.locator("main");
-        await expect(main.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+        await expect(main.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+          "Pré-visualização: pedidos não são enviados",
+        );
         await expectNoSideScroll(page);
         await expectNoClippedText(main);
         await expectTapTargets(main);

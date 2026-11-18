@@ -70,6 +70,30 @@ describe("tablet da mesa na tela Mesas (spec 016, US4)", () => {
     expect(within(r).getByRole("button", { name: "Sim, trocar link" })).toBeTruthy();
   });
 
+  it("deu certo: a confirmação fecha e Trocar link volta à vista; deu errado: fica aberta", async () => {
+    const releaseAction = vi.fn().mockResolvedValue({ ok: true, data: null, at: 1 });
+    const rotateAction = vi
+      .fn()
+      .mockResolvedValue({ ok: false, error: { code: "CONFLICT", message: "Mudou" }, at: 2 });
+    render(
+      <TableTabletCard
+        {...base}
+        table={{ ...base.table, boundAt: "2026-11-16T23:05:00.000Z" }}
+        releaseAction={releaseAction}
+        rotateAction={rotateAction}
+      />,
+    );
+    const r = region();
+    fireEvent.click(within(r).getByRole("button", { name: "Liberar" }));
+    fireEvent.click(within(r).getByRole("button", { name: "Sim, liberar" }));
+    await waitFor(() => expect(within(r).getByRole("button", { name: "Trocar link" })).toBeTruthy());
+    expect(within(r).queryByRole("button", { name: "Sim, liberar" })).toBeNull();
+    fireEvent.click(within(r).getByRole("button", { name: "Trocar link" }));
+    fireEvent.click(within(r).getByRole("button", { name: "Sim, trocar link" }));
+    await waitFor(() => expect(rotateAction).toHaveBeenCalled());
+    expect(within(r).getByRole("button", { name: "Sim, trocar link" })).toBeTruthy();
+  });
+
   it("sem tablet ligado não oferece Liberar", () => {
     card();
     expect(within(region()).queryByRole("button", { name: "Liberar" })).toBeNull();
@@ -78,7 +102,12 @@ describe("tablet da mesa na tela Mesas (spec 016, US4)", () => {
   it("ajuda: como travar o tablet", () => {
     card();
     const help = within(region()).getByText("Como travar o tablet").closest("details")!;
-    for (const text of [/Fixar app/, /Acesso Guiado/, /não pela Tela de Início/, /Bloqueio automático: Nunca/])
+    for (const text of [
+      /Fixar app/,
+      /Acesso Guiado/,
+      /não pela Tela de Início/,
+      /Bloqueio automático: Nunca/,
+    ])
       expect(within(help).getByText(text)).toBeTruthy();
   });
 });

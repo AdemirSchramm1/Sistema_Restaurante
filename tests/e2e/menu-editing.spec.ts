@@ -250,7 +250,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   await expect(page.getByRole("heading", { level: 1, name: "Ver como o cliente" })).toBeVisible();
 
   const frame = page.frameLocator('iframe[title="Cardápio como o cliente vê"]');
-  await expect(frame.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  await expect(frame.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+    "Pré-visualização: pedidos não são enviados",
+  );
   const cards = frame.getByRole("list", { name: "Lanches" }).getByRole("listitem");
   const columns = () =>
     cards.evaluateAll((els) => {
@@ -286,7 +288,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   expect(box.width).toBeGreaterThan(300);
   expect(box.width).toBeLessThanOrEqual(390);
   await cell.getByRole("link", { name: "Abrir em tela cheia" }).click();
-  await expect(cell.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  await expect(cell.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+    "Pré-visualização: pedidos não são enviados",
+  );
   await expect(cell.getByRole("navigation", { name: "Seções do cardápio" })).toBeVisible();
   await phone.close();
 
