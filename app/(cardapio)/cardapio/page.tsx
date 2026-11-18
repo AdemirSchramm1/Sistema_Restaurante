@@ -4,6 +4,7 @@ import { submitOrderAction } from "@/actions/menu";
 import { menuCookies } from "@/actions/_menu-cookies";
 import { messageFor } from "@/components/forms/error-messages";
 import { MenuApp } from "@/components/ordering/menu-app";
+import { TabletShell } from "@/components/ordering/tablet-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -21,5 +22,8 @@ export default async function Page() {
         </p>
       </div>
     );
-  return <MenuApp menu={menu.value} orders={orders.ok ? orders.value : []} submit={submitOrderAction} />;
+  const shown = orders.ok ? orders.value : [];
+  if (menu.value.mode === "TABLET")
+    return <TabletShell menu={menu.value} orders={shown} submit={submitOrderAction} />;
+  return <MenuApp menu={menu.value} orders={shown} submit={submitOrderAction} />;
 }

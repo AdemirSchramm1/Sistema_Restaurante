@@ -114,7 +114,15 @@ function useKeepPlaceOnRotate(): void {
  */
 export function MenuApp(
   props:
-    | { menu: MenuView; orders: AccessOrderView[]; submit: SubmitFn; preview?: false }
+    | {
+        menu: MenuView;
+        orders: AccessOrderView[];
+        submit: SubmitFn;
+        preview?: false;
+        /** Tablet da mesa (spec 016, US5): avisos para a tela do tablet. */
+        onSent?: () => void;
+        onCartChange?: (items: number) => void;
+      }
     /** Pré-visualização da equipe (spec 013, US5): o mesmo cardápio, sem mesa, sem tempo e sem envio. */
     | {
         menu: CustomerMenu<MenuProduct> & { restaurantName?: string; appearance?: Appearance };
@@ -128,6 +136,9 @@ export function MenuApp(
       ? { restaurantName: props.menu.restaurantName, appearance: props.menu.appearance }
       : null;
   const [lines, setLines] = useState<CartLine[]>([]);
+  const tablet = live?.menu.mode === "TABLET";
+  const onCartChange = live?.onCartChange;
+  useEffect(() => onCartChange?.(lines.length), [lines.length, onCartChange]);
   const [open, setOpen] = useState<MenuProduct | null>(null);
   const [q, setQ] = useState("");
   const search = useRef<HTMLInputElement>(null);
@@ -217,7 +228,8 @@ export function MenuApp(
         </div>
       )}
 
-      {live && !expired && <AutoRefresh seconds={10} />}
+      {/* O tablet se atualiza pelo sinal dele (spec 016, R5), não pela página inteira. */}
+      {live && !expired && !tablet && <AutoRefresh seconds={10} />}
 
       <div
         data-testid="menu-layout"
@@ -273,7 +285,7 @@ export function MenuApp(
                 )}
               </>
             ))}
-          {live && <MyOrders orders={live.orders} />}
+          {live && <MyOrders orders={live.orders} title={tablet ? "Pedidos enviados" : "Meus pedidos"} />}
         </div>
         {!expired &&
           (!live || live.menu.ordersLeft === null || live.menu.ordersLeft > 0 ? (
@@ -281,6 +293,7 @@ export function MenuApp(
               lines={lines}
               onChange={setLines}
               submit={live?.submit ?? null}
+              onSent={live?.onSent}
               highlight={highlight}
             />
           ) : (

@@ -3,12 +3,21 @@ import { ORDER_STATUS_LABELS } from "@/domain/ordering/order";
 import { brl } from "./format";
 import { LineChanges } from "./line-changes";
 
-/** "Meus pedidos": só os pedidos deste celular, com a situação de cada um (spec 009, US2). */
-export function MyOrders({ orders }: { orders: readonly AccessOrderView[] }) {
+/**
+ * "Meus pedidos": só os pedidos deste celular, com a situação de cada um (spec 009, US2). No tablet
+ * da mesa, "Pedidos enviados": os da conta aberta (spec 016, FR-007).
+ */
+export function MyOrders({
+  orders,
+  title = "Meus pedidos",
+}: {
+  orders: readonly AccessOrderView[];
+  title?: "Meus pedidos" | "Pedidos enviados";
+}) {
   if (!orders.length) return null;
   return (
-    <section className="grid gap-3" aria-label="Meus pedidos">
-      <h2 className="text-lg font-semibold">Meus pedidos</h2>
+    <section className="grid gap-3" aria-label={title}>
+      <h2 className="text-lg font-semibold">{title}</h2>
       <ul className="grid gap-3">
         {orders.map((o) => (
           <li key={o.number} className="grid gap-1 rounded-lg border border-border p-3">
