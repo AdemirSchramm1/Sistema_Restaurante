@@ -12,9 +12,9 @@ const noOrigin = { ip: null, userAgent: null };
 describe("acesso ao cardápio: bordas", () => {
   it("token vazio: QR code NOT_FOUND e tablet INVALID", async () => {
     const env = testEnv();
-    expect(code(await openMenuAccess(env.deps, { qrToken: "", previousCookie: null, origin: noOrigin }))).toBe(
-      "NOT_FOUND",
-    );
+    expect(
+      code(await openMenuAccess(env.deps, { qrToken: "", previousCookie: null, origin: noOrigin })),
+    ).toBe("NOT_FOUND");
     expect(await bindTablet(env.deps, { tabletToken: "", cookie: null, origin: noOrigin })).toEqual({
       kind: "INVALID",
     });
@@ -39,7 +39,9 @@ describe("acesso ao cardápio: bordas", () => {
     const first = await tablet(env, m, t.tableId);
     unwrap(await releaseTablet(env.deps, m, { tableId: t.tableId }));
     const link = (
-      await ownerTestDb().execute<{ t: string }>(sql`select tablet_token as t from dining_tables where id = ${t.tableId}`)
+      await ownerTestDb().execute<{ t: string }>(
+        sql`select tablet_token as t from dining_tables where id = ${t.tableId}`,
+      )
     ).rows[0]!.t;
     const again = await bindTablet(env.deps, { tabletToken: link, cookie: first, origin: noOrigin });
     expect(again.kind).toBe("BOUND");

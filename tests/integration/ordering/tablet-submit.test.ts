@@ -21,7 +21,8 @@ async function setup() {
   const closeOpenTab = async () => {
     const id = await b.tabId();
     const tab = unwrap(await getTab(env.deps, b.cashier, id));
-    for (const o of tab.orders) if (o.status !== "DELIVERED" && o.status !== "CANCELLED") await b.deliver(o.id);
+    for (const o of tab.orders)
+      if (o.status !== "DELIVERED" && o.status !== "CANCELLED") await b.deliver(o.id);
     const due = unwrap(await getTab(env.deps, b.cashier, id));
     if (due.remaining.greaterThan(0))
       unwrap(
@@ -43,7 +44,9 @@ describe("pedido pelo tablet (spec 016, US4)", () => {
   it("grava a origem TABLET e entra na conta da Mesa 12", async () => {
     const { b, send } = await setup();
     const r = unwrap(await send([b.s.juice()]));
-    const row = await db().query("select source, menu_access_id, tab_id from orders where id = $1", [r.orderId]);
+    const row = await db().query("select source, menu_access_id, tab_id from orders where id = $1", [
+      r.orderId,
+    ]);
     expect(row.rows[0].source).toBe("TABLET");
     expect(row.rows[0].menu_access_id).not.toBeNull();
     expect(row.rows[0].tab_id).toBe(await b.tabId());
@@ -88,7 +91,8 @@ describe("pedido pelo tablet (spec 016, US4)", () => {
       expect(row.rows).toHaveLength(1);
       // Caiu numa conta que fechou depois dele, ou numa conta aberta.
       const r = row.rows[0];
-      if (r.status === "CLOSED") expect(new Date(r.closed_at).getTime()).toBeGreaterThanOrEqual(new Date(r.submitted_at).getTime());
+      if (r.status === "CLOSED")
+        expect(new Date(r.closed_at).getTime()).toBeGreaterThanOrEqual(new Date(r.submitted_at).getTime());
       else expect(r.status).toBe("OPEN");
       // Fecha o que sobrou para a próxima rodada começar limpa.
       const open = await db().query("select id from table_tabs where table_id = $1 and status = 'OPEN'", [

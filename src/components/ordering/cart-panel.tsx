@@ -80,9 +80,7 @@ export function CartPanel({
           titleRef={title}
         />
       </aside>
-      {open && (
-        <div aria-hidden className="fixed inset-0 z-30 bg-overlay lg:hidden" onClick={close} />
-      )}
+      {open && <div aria-hidden className="fixed inset-0 z-30 bg-overlay lg:hidden" onClick={close} />}
       {!open && notice && lines.length === 0 && (
         <div className="fixed inset-x-0 bottom-0 z-30 p-2 pb-[env(safe-area-inset-bottom)] lg:hidden">
           <p

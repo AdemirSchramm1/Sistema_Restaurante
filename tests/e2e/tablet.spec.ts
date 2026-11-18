@@ -61,7 +61,10 @@ test("tablet da mesa: ligar, pedir sem prazo, voltar ao começo, liberar e troca
   const main = tab.locator("main");
   await main.getByRole("button", { name: "Pôr Suco de laranja no carrinho" }).click();
   await main.getByRole("button", { name: "Enviar pedido" }).click();
-  await tab.getByRole("dialog", { name: "Confira o pedido" }).getByRole("button", { name: "Confirmar" }).click();
+  await tab
+    .getByRole("dialog", { name: "Confira o pedido" })
+    .getByRole("button", { name: "Confirmar" })
+    .click();
   await expect(tab.getByTestId("tablet-sent")).toBeVisible();
   await tab.clock.fastForward(11_000);
   await expect(tab.getByTestId("tablet-sent")).toHaveCount(0);
@@ -83,7 +86,10 @@ test("tablet da mesa: ligar, pedir sem prazo, voltar ao começo, liberar e troca
   await welcome.getByRole("button", { name: "Ver o cardápio" }).click();
   await main.getByRole("button", { name: "Pôr Água no carrinho" }).click();
   await main.getByRole("button", { name: "Enviar pedido" }).click();
-  await tab.getByRole("dialog", { name: "Confira o pedido" }).getByRole("button", { name: "Confirmar" }).click();
+  await tab
+    .getByRole("dialog", { name: "Confira o pedido" })
+    .getByRole("button", { name: "Confirmar" })
+    .click();
   await expect(tab.getByTestId("tablet-sent")).toBeVisible();
 
   // Liberar: o tablet mostra que foi desligado; o próximo aparelho liga.

@@ -88,16 +88,14 @@ for (const screen of CUSTOMER_SCREENS) {
           // Rola até o topo sair da tela: a primeira seção fica logo abaixo da barra de seções.
           await first.evaluate((el) => el.scrollIntoView({ block: "start" }));
           const height = page.viewportSize()!.height;
-          const whole = await main
-            .locator("li[data-place]")
-            .evaluateAll(
-              (cards, h) =>
-                cards.filter((c) => {
-                  const r = c.getBoundingClientRect();
-                  return r.top >= 0 && r.bottom <= h;
-                }).length,
-              height,
-            );
+          const whole = await main.locator("li[data-place]").evaluateAll(
+            (cards, h) =>
+              cards.filter((c) => {
+                const r = c.getBoundingClientRect();
+                return r.top >= 0 && r.bottom <= h;
+              }).length,
+            height,
+          );
           expect(whole).toBeGreaterThanOrEqual(4);
         });
 

@@ -566,9 +566,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       // QR code primeiro, depois o tablet da mesa (016) e a equipe pelo nome.
       const rank = { QR: 0, TABLET: 1, STAFF: 2 } as const;
       return [...groups.values()].sort(
-        (a, b) =>
-          rank[a.source] - rank[b.source] ||
-          (a.name ?? "").localeCompare(b.name ?? "", "pt-BR"),
+        (a, b) => rank[a.source] - rank[b.source] || (a.name ?? "").localeCompare(b.name ?? "", "pt-BR"),
       );
     },
     async staffPlacers() {

@@ -12,7 +12,12 @@ describe("boas-vindas do tablet (spec 016, US5-1)", () => {
   it("capa e logo em tela cheia, 'Mesa 12' e o botão grande Ver o cardápio", () => {
     const onStart = vi.fn();
     render(
-      <TabletWelcome restaurantName="Cantina da Nona" tableName="12" appearance={{ logo, cover }} onStart={onStart} />,
+      <TabletWelcome
+        restaurantName="Cantina da Nona"
+        tableName="12"
+        appearance={{ logo, cover }}
+        onStart={onStart}
+      />,
     );
     const main = screen.getByRole("region", { name: "Boas-vindas" });
     expect(main.className).toContain("min-h-dvh");
@@ -28,7 +33,12 @@ describe("boas-vindas do tablet (spec 016, US5-1)", () => {
 
   it("sem capa e sem logo: a cor principal e o nome", () => {
     render(
-      <TabletWelcome restaurantName="Cantina" tableName="4" appearance={{ logo: null, cover: null }} onStart={() => {}} />,
+      <TabletWelcome
+        restaurantName="Cantina"
+        tableName="4"
+        appearance={{ logo: null, cover: null }}
+        onStart={() => {}}
+      />,
     );
     const main = screen.getByRole("region", { name: "Boas-vindas" });
     expect(main.className).toContain("bg-primary");

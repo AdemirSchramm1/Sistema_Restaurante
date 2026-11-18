@@ -33,7 +33,9 @@ for (const size of TABLET_SCREENS) {
         });
       });
 
-      test("cardápio do tablet: sem prazo, carrinho à vista e Pedidos enviados", async ({ asTablet: page }) => {
+      test("cardápio do tablet: sem prazo, carrinho à vista e Pedidos enviados", async ({
+        asTablet: page,
+      }) => {
         await page.getByRole("button", { name: "Ver o cardápio" }).click();
         const main = page.locator("main");
         await expect(main.getByRole("heading", { level: 1, name: "Mesa 12" })).toBeVisible();

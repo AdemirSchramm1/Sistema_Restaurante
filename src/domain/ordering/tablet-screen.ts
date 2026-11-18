@@ -20,7 +20,11 @@ export type TabletScreenEvent =
   /** A conta da mesa fechou ou abriu outra (R5): nada do cliente anterior fica na tela. */
   | { kind: "tabChanged"; at: number };
 
-export const openTabletScreen = (at: number): TabletScreen => ({ screen: "WELCOME", lastTouch: at, since: at });
+export const openTabletScreen = (at: number): TabletScreen => ({
+  screen: "WELCOME",
+  lastTouch: at,
+  since: at,
+});
 
 const go = (screen: TabletScreenName, prev: TabletScreen, at: number, clearCart = false) => ({
   state: { screen, lastTouch: prev.lastTouch, since: at },
@@ -48,7 +52,9 @@ export function tabletScreen(
     case "STILL_THERE":
       return elapsed(st.since) < STILL_THERE_SECONDS * 1000 ? stay(st) : go("WELCOME", st, at, true);
     case "SENT":
-      return elapsed(st.since) < SENT_SECONDS * 1000 ? stay(st) : go("MENU", { ...st, lastTouch: at }, at, true);
+      return elapsed(st.since) < SENT_SECONDS * 1000
+        ? stay(st)
+        : go("MENU", { ...st, lastTouch: at }, at, true);
     default:
       return stay(st);
   }

@@ -135,7 +135,8 @@ export function TabletShell({
     setBlocked(STATE_MESSAGE[body.state] ?? null);
     const at = Date.now();
     s.refreshedAt ??= at;
-    const idle = current.current.screen === "WELCOME" || (current.current.screen === "MENU" && cartItems.current === 0);
+    const idle =
+      current.current.screen === "WELCOME" || (current.current.screen === "MENU" && cartItems.current === 0);
     const changed = body.stamp !== undefined && s.stamp !== undefined && body.stamp !== s.stamp;
     if (changed || (idle && at - s.refreshedAt >= FULL_REFRESH_MS)) {
       routerRef.current.refresh();
@@ -177,8 +178,9 @@ export function TabletShell({
     let lock: WakeLockSentinelLike | null = null;
     let stopped = false;
     const request = async () => {
-      const api = (navigator as Navigator & { wakeLock?: { request(type: "screen"): Promise<WakeLockSentinelLike> } })
-        .wakeLock;
+      const api = (
+        navigator as Navigator & { wakeLock?: { request(type: "screen"): Promise<WakeLockSentinelLike> } }
+      ).wakeLock;
       if (!api) return;
       try {
         const got = await api.request("screen");

@@ -121,10 +121,7 @@ export async function getMenu(deps: Deps, cookie: MenuCookies): Promise<Result<M
  * Pedidos deste celular (deste acesso), mais novo primeiro. Nunca de outro celular da mesa. No tablet
  * da mesa (spec 016), os da conta aberta.
  */
-export async function listAccessOrders(
-  deps: Deps,
-  cookie: MenuCookies,
-): Promise<Result<AccessOrderView[]>> {
+export async function listAccessOrders(deps: Deps, cookie: MenuCookies): Promise<Result<AccessOrderView[]>> {
   const found = await accessFromCookie(deps, cookie);
   if (!found.ok) return found;
   return deps.tenant(found.value.restaurantId, async (repos) => {

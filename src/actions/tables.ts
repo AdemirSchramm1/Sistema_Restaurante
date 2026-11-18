@@ -72,7 +72,9 @@ export async function createTabletLinkAction(_prev: ActionState, form: FormData)
 }
 
 export async function releaseTabletAction(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const state = await withContext((ctx) => releaseTablet(serverDeps(), ctx, { tableId: tablet(form).tableId }));
+  const state = await withContext((ctx) =>
+    releaseTablet(serverDeps(), ctx, { tableId: tablet(form).tableId }),
+  );
   if (state?.ok) revalidatePath(PATH);
   return state;
 }

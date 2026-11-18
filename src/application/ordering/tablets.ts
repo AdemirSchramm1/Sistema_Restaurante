@@ -118,7 +118,12 @@ export async function rotateTabletLink(
     const table = await repos.tables.get(input.tableId);
     if (!table?.tabletToken) return err("NOT_FOUND");
     const stamp = auditStamp(deps, ctx);
-    const r = await repos.tables.setTabletToken(input.tableId, deps.tokens.create().token, input.version, stamp);
+    const r = await repos.tables.setTabletToken(
+      input.tableId,
+      deps.tokens.create().token,
+      input.version,
+      stamp,
+    );
     if (!r.ok) return r;
     const open = await repos.menuAccesses.openTablet(input.tableId);
     if (open) await repos.menuAccesses.end(open.id, stamp.at, "LINK_ROTATED");

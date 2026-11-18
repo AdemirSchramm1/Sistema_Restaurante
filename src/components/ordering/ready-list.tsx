@@ -37,7 +37,9 @@ export function ReadyList({ orders, deliver }: { orders: ReadyOrderView[]; deliv
             className="grid gap-3 rounded-xl border border-l-4 border-border border-l-success bg-card p-5 shadow-sm"
           >
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-display text-3xl font-semibold">Mesa {tableWithSource(o.tableName, o.source ?? "QR")}</h2>
+              <h2 className="font-display text-3xl font-semibold">
+                Mesa {tableWithSource(o.tableName, o.source ?? "QR")}
+              </h2>
               <span className="text-sm text-muted-foreground">Pedido {o.number}</span>
             </div>
             {o.placedBy && <p className="text-sm font-medium">{o.placedBy}</p>}

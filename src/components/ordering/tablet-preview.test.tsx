@@ -14,7 +14,9 @@ const menu = {
     {
       id: null,
       name: "Outros",
-      products: [{ id: "s", name: "Suco", price: "9.00", description: null, photo: null, addons: [], removables: [] }],
+      products: [
+        { id: "s", name: "Suco", price: "9.00", description: null, photo: null, addons: [], removables: [] },
+      ],
     },
   ],
 };

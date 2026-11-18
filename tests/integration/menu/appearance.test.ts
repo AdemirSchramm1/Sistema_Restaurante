@@ -161,7 +161,10 @@ describe("aparência do cardápio (spec 016, US1)", () => {
     unwrap(await setAppearanceImage(env.deps, m, { kind: "LOGO", bytes: await file("logo.png") }));
     const stuck = {
       ...env.deps,
-      photos: { ...env.deps.photos, storage: { ...storage, remove: () => Promise.reject(new Error("preso")) } },
+      photos: {
+        ...env.deps.photos,
+        storage: { ...storage, remove: () => Promise.reject(new Error("preso")) },
+      },
     };
     const next = unwrap(await setAppearanceImage(stuck, m, { kind: "LOGO", bytes: await file("logo.png") }));
     expect((await row(m.restaurantId)).logo_base).toBe(next.photo.base);

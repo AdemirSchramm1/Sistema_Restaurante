@@ -7,8 +7,11 @@ import { releaseTablet, rotateTabletLink } from "../../../src/application/orderi
 
 /** Cardápio pelo tablet da mesa (spec 016, US4; FR-005, FR-011). */
 const version = async (tableId: string) =>
-  (await ownerTestDb().execute<{ version: number }>(sql`select version from dining_tables where id = ${tableId}`))
-    .rows[0]!.version;
+  (
+    await ownerTestDb().execute<{ version: number }>(
+      sql`select version from dining_tables where id = ${tableId}`,
+    )
+  ).rows[0]!.version;
 
 describe("cardápio do tablet (spec 016, US4)", () => {
   it("modo TABLET: sem prazo e sem limite de pedidos, e 400 dias depois ainda abre", async () => {

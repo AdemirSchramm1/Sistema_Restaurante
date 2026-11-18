@@ -56,7 +56,9 @@ export function TabletWelcome({
             className="aspect-square size-40 rounded-2xl bg-on-photo object-cover shadow-lg"
           />
         )}
-        <span className={cn("text-lg font-semibold uppercase tracking-[0.16em] [overflow-wrap:anywhere]", text)}>
+        <span
+          className={cn("text-lg font-semibold uppercase tracking-[0.16em] [overflow-wrap:anywhere]", text)}
+        >
           {restaurantName}
         </span>
         <h1 className={cn("font-display text-5xl font-semibold tracking-tight", text)}>Mesa {tableName}</h1>

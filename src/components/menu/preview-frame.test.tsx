@@ -17,11 +17,11 @@ const pressed = () =>
 describe("moldura da pré-visualização", () => {
   it("começa em Celular, com a moldura de 390 px apontando para o cardápio do cliente", () => {
     render(<PreviewFrame src="/pedidos/cardapio/ver/cliente" />);
-    expect(sizes().getAllByRole("button").map((b) => b.textContent)).toEqual([
-      "Celular",
-      "Tablet em pé",
-      "Tablet deitado",
-    ]);
+    expect(
+      sizes()
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Celular", "Tablet em pé", "Tablet deitado"]);
     expect(pressed()).toEqual(["Celular"]);
     expect(frame().tagName).toBe("IFRAME");
     expect(frame().getAttribute("src")).toBe("/pedidos/cardapio/ver/cliente");
@@ -69,7 +69,9 @@ describe("moldura da pré-visualização", () => {
       "Celular pelo QR code",
       "Tablet da mesa",
     ]);
-    expect(modes.getByRole("button", { name: "Celular pelo QR code" }).getAttribute("aria-pressed")).toBe("true");
+    expect(modes.getByRole("button", { name: "Celular pelo QR code" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     fireEvent.click(modes.getByRole("button", { name: "Tablet da mesa" }));
     expect(frame().getAttribute("src")).toBe("/pedidos/cardapio/ver/cliente?modo=tablet");
     expect(pressed()).toEqual(["Tablet deitado"]);

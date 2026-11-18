@@ -24,7 +24,9 @@ describe("pedidos da conta aberta no tablet (spec 016, US5-4)", () => {
       fromTablet.number,
       fromQr.number,
     ]);
-    expect(unwrap(await listAccessOrders(env.deps, b.s.cookie)).map((o) => o.number)).toEqual([fromQr.number]);
+    expect(unwrap(await listAccessOrders(env.deps, b.s.cookie)).map((o) => o.number)).toEqual([
+      fromQr.number,
+    ]);
     expect(unwrap(await listAccessOrders(env.deps, otherPhone))).toEqual([]);
 
     const id = await b.tabId();

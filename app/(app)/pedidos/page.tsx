@@ -161,9 +161,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
             <tbody>
               {bySource.value.summary.map((s) => (
                 <tr key={s.placedById ?? s.source}>
-                  <Td>
-                    {placedByText({ source: s.source, placedByName: s.name })}
-                  </Td>
+                  <Td>{placedByText({ source: s.source, placedByName: s.name })}</Td>
                   <Td className="text-right">{s.count}</Td>
                   <Td className="text-right">{brl(s.total)}</Td>
                   <Td>

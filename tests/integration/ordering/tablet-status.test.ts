@@ -29,7 +29,11 @@ async function setup() {
     return { res, body: (await res.json()) as Record<string, unknown> };
   };
   const send = () =>
-    submitOrder(env.deps, { qr: null, tablet: cookie }, { clientRequestId: crypto.randomUUID(), lines: [b.s.juice()] });
+    submitOrder(
+      env.deps,
+      { qr: null, tablet: cookie },
+      { clientRequestId: crypto.randomUUID(), lines: [b.s.juice()] },
+    );
   return { env, b, tableId, cookie, status, send };
 }
 
@@ -68,7 +72,13 @@ describe("GET /api/cardapio/tablet (spec 016, US4)", () => {
       last = now;
     };
 
-    unwrap(await renameTable(env.deps, b.m, { id: tableId, name: "12A", version: await version("dining_tables", tableId) }));
+    unwrap(
+      await renameTable(env.deps, b.m, {
+        id: tableId,
+        name: "12A",
+        version: await version("dining_tables", tableId),
+      }),
+    );
     await changed();
     const order = unwrap(await send());
     await changed();
@@ -96,7 +106,9 @@ describe("GET /api/cardapio/tablet (spec 016, US4)", () => {
     unwrap(await releaseTablet(env.deps, b.m, { tableId }));
     expect((await status()).body).toMatchObject({ state: "RELEASED" });
     const again = await tablet(env, b.m, tableId);
-    unwrap(await rotateTabletLink(env.deps, b.m, { tableId, version: await version("dining_tables", tableId) }));
+    unwrap(
+      await rotateTabletLink(env.deps, b.m, { tableId, version: await version("dining_tables", tableId) }),
+    );
     expect((await status(again)).body).toMatchObject({ state: "LINK_ROTATED" });
   });
 

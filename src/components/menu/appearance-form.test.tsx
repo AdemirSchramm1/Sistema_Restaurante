@@ -32,7 +32,11 @@ function setup(
         calls.removed.push(Object.fromEntries(form));
         return removeOk
           ? { ok: true, data: null, at: 1 }
-          : { ok: false, error: { code: "STALE_RECORD" as const, message: "Mudou enquanto você mexia." }, at: 1 };
+          : {
+              ok: false,
+              error: { code: "STALE_RECORD" as const, message: "Mudou enquanto você mexia." },
+              at: 1,
+            };
       }}
       reduce={async (_file, _tools, shape) => {
         calls.reduce.push(shape!);

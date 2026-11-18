@@ -29,12 +29,15 @@ describe("tela do tablet (spec 016, US5)", () => {
       state: { screen: "WELCOME", lastTouch: 0, since: s(180) },
       clearCart: false,
     });
-    expect(tabletScreen(menu, { kind: "tick", at: s(180), cartEmpty: false }).state.screen).toBe("STILL_THERE");
+    expect(tabletScreen(menu, { kind: "tick", at: s(180), cartEmpty: false }).state.screen).toBe(
+      "STILL_THERE",
+    );
   });
 
   it("o tempo conta do último toque, não do último tick", () => {
     let st: TabletScreen = tabletScreen(openTabletScreen(0), { kind: "touch", at: 0 }).state;
-    for (let t = 10; t <= 170; t += 10) st = tabletScreen(st, { kind: "tick", at: s(t), cartEmpty: false }).state;
+    for (let t = 10; t <= 170; t += 10)
+      st = tabletScreen(st, { kind: "tick", at: s(t), cartEmpty: false }).state;
     st = tabletScreen(st, { kind: "touch", at: s(100) }).state;
     expect(tabletScreen(st, { kind: "tick", at: s(279), cartEmpty: false }).state.screen).toBe("MENU");
     expect(tabletScreen(st, { kind: "tick", at: s(280), cartEmpty: false }).state.screen).toBe("STILL_THERE");
@@ -47,7 +50,9 @@ describe("tela do tablet (spec 016, US5)", () => {
       state: { screen: "MENU", lastTouch: s(190), since: s(190) },
       clearCart: false,
     });
-    expect(tabletScreen(asking, { kind: "tick", at: s(209), cartEmpty: false }).state.screen).toBe("STILL_THERE");
+    expect(tabletScreen(asking, { kind: "tick", at: s(209), cartEmpty: false }).state.screen).toBe(
+      "STILL_THERE",
+    );
     expect(tabletScreen(asking, { kind: "tick", at: s(210), cartEmpty: false })).toMatchObject({
       state: { screen: "WELCOME" },
       clearCart: true,

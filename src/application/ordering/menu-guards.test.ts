@@ -20,7 +20,10 @@ const row = (id: string) => ({
   sectionId: null,
   menuPosition: 1,
 });
-const product = (id: string, over: { available?: boolean; salePrice?: ReturnType<typeof d> | null } = {}) => ({
+const product = (
+  id: string,
+  over: { available?: boolean; salePrice?: ReturnType<typeof d> | null } = {},
+) => ({
   id,
   name: id,
   versionId: `${id}-v1`,

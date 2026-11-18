@@ -20,7 +20,11 @@ const tableRow = async (id: string) =>
   ).rows[0]!;
 const tabletAudit = async (restaurantId: string) =>
   (
-    await ownerTestDb().execute<{ entity_id: string; changes: Record<string, unknown>; user_id: string | null }>(
+    await ownerTestDb().execute<{
+      entity_id: string;
+      changes: Record<string, unknown>;
+      user_id: string | null;
+    }>(
       sql`select entity_id, changes, user_id from audit_log
           where restaurant_id = ${restaurantId} and changes ? 'tablet' order by occurred_at, id`,
     )
@@ -62,8 +66,12 @@ describe("link do tablet da mesa (spec 016, US4)", () => {
     const t = await tableWithQr(env, m, "12");
     const elsewhere = await tableWithQr(env, other, "1");
     await ownerTestDb().execute(sql`update dining_tables set version = 3 where id = ${t.tableId}`);
-    expect(code(await createTabletLink(env.deps, m, { tableId: t.tableId, version: 1 }))).toBe("STALE_RECORD");
-    expect(code(await createTabletLink(env.deps, m, { tableId: elsewhere.tableId, version: 1 }))).toBe("NOT_FOUND");
+    expect(code(await createTabletLink(env.deps, m, { tableId: t.tableId, version: 1 }))).toBe(
+      "STALE_RECORD",
+    );
+    expect(code(await createTabletLink(env.deps, m, { tableId: elsewhere.tableId, version: 1 }))).toBe(
+      "NOT_FOUND",
+    );
   });
 
   it("liberar encerra o tablet ligado com RELEASED; sem tablet, NO_CHANGE", async () => {
@@ -98,7 +106,9 @@ describe("link do tablet da mesa (spec 016, US4)", () => {
     expect(fresh).not.toBe(old);
     expect(await accessRow(t.tableId)).toEqual([{ end_reason: "LINK_ROTATED", kind: "TABLET" }]);
     expect((await tabletAudit(m.restaurantId)).at(-1)!.changes).toEqual({ tablet: "link_rotated" });
-    expect(code(await rotateTabletLink(env.deps, m, { tableId: t.tableId, version: 2 }))).toBe("STALE_RECORD");
+    expect(code(await rotateTabletLink(env.deps, m, { tableId: t.tableId, version: 2 }))).toBe(
+      "STALE_RECORD",
+    );
   });
 
   it("situação: link, ligado desde, visto há e o total de ligados, numa consulta só", async () => {
@@ -142,9 +152,13 @@ describe("link do tablet da mesa (spec 016, US4)", () => {
     for (const roles of [["CHEF"], ["CASHIER"]] as const) {
       const who = await addMember(env, m, [...roles], roles[0]);
       expect(code(await listTabletStatus(env.deps, who))).toBe("FORBIDDEN");
-      expect(code(await createTabletLink(env.deps, who, { tableId: t.tableId, version: 1 }))).toBe("FORBIDDEN");
+      expect(code(await createTabletLink(env.deps, who, { tableId: t.tableId, version: 1 }))).toBe(
+        "FORBIDDEN",
+      );
       expect(code(await releaseTablet(env.deps, who, { tableId: t.tableId }))).toBe("FORBIDDEN");
-      expect(code(await rotateTabletLink(env.deps, who, { tableId: t.tableId, version: 1 }))).toBe("FORBIDDEN");
+      expect(code(await rotateTabletLink(env.deps, who, { tableId: t.tableId, version: 1 }))).toBe(
+        "FORBIDDEN",
+      );
     }
     const denied = await ownerTestDb().execute<{ n: number }>(
       sql`select count(*)::int as n from audit_log where restaurant_id = ${m.restaurantId} and action = 'DENIED'`,

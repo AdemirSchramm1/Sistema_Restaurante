@@ -99,7 +99,9 @@ describe("rota GET /t/{token} (spec 016, US4)", () => {
     const old = await tabletBindResponse(env.deps, { ...request, token });
     expect(old.status).toBe(404);
     expect(await old.text()).toContain("Link inválido. Chame um garçom.");
-    expect((await tabletBindResponse(env.deps, { ...request, token: await tokenOf(t.tableId) })).status).toBe(303);
+    expect((await tabletBindResponse(env.deps, { ...request, token: await tokenOf(t.tableId) })).status).toBe(
+      303,
+    );
   });
 
   it("mesa inativa e chave desligada ligam assim mesmo", async () => {
