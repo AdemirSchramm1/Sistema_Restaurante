@@ -119,6 +119,11 @@
   }
 }
 
+/* Cardápio do cliente (spec 016, R10): 3 colunas a partir de 600 px; lg e xl são os do Tailwind. */
+@theme {
+  --breakpoint-tab: 37.5rem;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

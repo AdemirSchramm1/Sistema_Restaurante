@@ -58,13 +58,13 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
 
   it("produto sem opções vai direto para o pedido", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar Suco" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
     expect(screen.getByTestId("cart-total").textContent).toBe("R$ 9,00");
   });
 
   it("produto com opções abre a tela do prato", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar X-Burger" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" }));
     const dish = screen.getByRole("region", { name: "X-Burger" });
     fireEvent.click(within(dish).getByRole("button", { name: "Sem cebola" }));
     fireEvent.click(within(dish).getByRole("button", { name: "Adicionar ao pedido" }));
@@ -75,8 +75,8 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
   it("busca pelo nome sem acento", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Buscar no cardápio"), { target: { value: "burg" } });
-    expect(screen.queryByRole("button", { name: "Adicionar Suco" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Adicionar X-Burger" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Pôr Suco no carrinho" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" })).toBeTruthy();
   });
 
   it("sem pedidos restantes no acesso, pede para chamar o garçom", () => {
@@ -122,7 +122,7 @@ const sectioned: MenuView = {
   ],
 };
 const buttons = () =>
-  screen.getAllByRole("button", { name: /^Adicionar / }).map((b) => b.getAttribute("aria-label"));
+  screen.getAllByRole("button", { name: /^Pôr .* no carrinho$/ }).map((b) => b.getAttribute("aria-label"));
 
 describe("cardápio do cliente por seção (spec 013, US6)", () => {
   it("cada seção tem um título h2 com âncora e a sua lista de cartões", () => {
@@ -139,8 +139,8 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
         .getAllByRole("heading", { level: 3 })
         .map((h) => h.textContent),
     ).toEqual(["X-Burger", "X-Salada", "X-Bacon"]);
-    expect(lanches.className).toContain("sm:grid-cols-2");
-    expect(lanches.className).toContain("lg:grid-cols-3");
+    expect(lanches.className).toContain("tab:grid-cols-3");
+    expect(lanches.className).toContain("xl:grid-cols-4");
     const links = within(screen.getByRole("navigation", { name: "Seções do cardápio" })).getAllByRole("link");
     expect(links.map((a) => a.getAttribute("href"))).toEqual(["#secao-s1", "#secao-s2", "#secao-outros"]);
   });
@@ -167,7 +167,12 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
   it("a busca procura em todas as seções e mantém a ordem do cardápio, sem títulos", () => {
     render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Buscar no cardápio"), { target: { value: "u" } });
-    expect(buttons()).toEqual(["Adicionar X-Burger", "Adicionar Suco", "Adicionar Água", "Adicionar Pudim"]);
+    expect(buttons()).toEqual([
+      "Pôr X-Burger no carrinho",
+      "Pôr Suco no carrinho",
+      "Pôr Água no carrinho",
+      "Pôr Pudim no carrinho",
+    ]);
     expect(screen.queryByRole("navigation", { name: "Seções do cardápio" })).toBeNull();
     expect(screen.queryByRole("heading", { level: 2, name: "Lanches" })).toBeNull();
     fireEvent.change(screen.getByLabelText("Buscar no cardápio"), { target: { value: "zzz" } });
@@ -187,7 +192,7 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
 
   it("a atualização automática troca foto e ordem sem perder o carrinho", () => {
     const view = render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar Suco" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
     const refreshed: MenuView = {
       ...sectioned,
       serverNow: new Date(Date.now() + 10_000).toISOString(),
@@ -201,7 +206,7 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
       ],
     };
     view.rerender(<MenuApp menu={refreshed} orders={[]} submit={vi.fn()} />);
-    expect(buttons().slice(0, 2)).toEqual(["Adicionar Água", "Adicionar Suco"]);
+    expect(buttons().slice(0, 2)).toEqual(["Pôr Água no carrinho", "Pôr Suco no carrinho"]);
     expect(screen.getByRole("img", { name: "Água" }).getAttribute("src")).toBe("/fotos/menu/nova/300.webp");
     expect(screen.queryByRole("img", { name: "Suco" })).toBeNull();
     expect(screen.getByTestId("cart-total").textContent).toBe("R$ 10,00");
@@ -302,7 +307,7 @@ describe("pré-visualização para a equipe (spec 013, US5)", () => {
 
   it("mostra a faixa de pré-visualização e o mesmo cardápio do cliente", () => {
     render(<MenuApp preview menu={preview} />);
-    expect(screen.getByRole("status").textContent).toBe("Pré-visualização: pedidos não são enviados");
+    expect(screen.getAllByRole("status")[0]!.textContent).toBe("Pré-visualização: pedidos não são enviados");
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Cardápio");
     expect(buttons()).toHaveLength(6);
     expect(screen.getByRole("navigation", { name: "Seções do cardápio" })).toBeTruthy();
@@ -311,7 +316,7 @@ describe("pré-visualização para a equipe (spec 013, US5)", () => {
   it("não tem botão de enviar, contador de tempo, Meus pedidos nem atualização automática", () => {
     vi.useFakeTimers();
     render(<MenuApp preview menu={preview} />);
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar Suco" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
     // O carrinho aparece, para ver como fica, mas não envia.
     expect(screen.getByTestId("cart-total").textContent).toBe("R$ 10,00");
     expect(screen.queryByRole("button", { name: "Enviar pedido" })).toBeNull();
@@ -353,5 +358,56 @@ describe("busca digitada antes da página ficar pronta (spec 013, US6)", () => {
     ).toEqual(["Água"]);
     act(() => root.unmount());
     container.remove();
+  });
+});
+
+describe("mais pratos por tela e carrinho sempre à vista (spec 016, US2 e US3)", () => {
+  it('"+" do Suco põe 1 no carrinho e anuncia o total; o do X-Burger abre o prato', () => {
+    render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
+    expect(screen.getByRole("status", { name: "Carrinho" }).textContent).toBe(
+      "Suco no carrinho. Total R$ 9,00",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
+    expect(screen.getByRole("status", { name: "Carrinho" }).textContent).toBe(
+      "Suco no carrinho. Total R$ 18,00",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" }));
+    expect(screen.getByRole("region", { name: "X-Burger" })).toBeTruthy();
+  });
+
+  it("o prato posto pela tela do prato também é anunciado", () => {
+    render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" }));
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar ao pedido" }));
+    expect(screen.getByRole("status", { name: "Carrinho" }).textContent).toBe(
+      "X-Burger no carrinho. Total R$ 28,00",
+    );
+  });
+
+  it("a linha que mudou fica destacada por 600 ms", () => {
+    vi.useFakeTimers();
+    try {
+      render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
+      const line = () => screen.getByTestId("cart-panel").querySelector("li")!;
+      expect(line().hasAttribute("data-highlight")).toBe(true);
+      act(() => vi.advanceTimersByTime(600));
+      expect(line().hasAttribute("data-highlight")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("cardápio e carrinho lado a lado na tela larga: 3 colunas e depois 4; barra no pé na estreita", () => {
+    render(<MenuApp menu={{ ...menu, showSectionTitles: false }} orders={[]} submit={vi.fn()} />);
+    const list = screen.getByRole("list", { name: "Cardápio" });
+    expect(list.className).toContain("grid-cols-1");
+    expect(list.className).toContain("tab:grid-cols-3");
+    expect(list.className).toContain("xl:grid-cols-4");
+    expect(screen.getByTestId("menu-layout").className).toContain("lg:grid-cols-[minmax(0,1fr)_320px]");
+    expect(screen.queryByTestId("cart-bar")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
+    expect(screen.getByRole("button", { name: "Ver pedido · 1 item · R$ 9,00" })).toBeTruthy();
   });
 });

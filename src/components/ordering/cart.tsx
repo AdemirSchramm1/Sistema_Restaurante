@@ -36,12 +36,20 @@ export function Cart({
   onChange,
   submit,
   onSent,
+  highlight = null,
+  onClose,
+  titleRef,
 }: {
   lines: CartLine[];
   onChange: (lines: CartLine[]) => void;
   /** `null` na pré-visualização da equipe (spec 013, US5): o carrinho aparece, mas não envia. */
   submit: SubmitFn | null;
   onSent?: () => void;
+  /** Linha que acabou de mudar (spec 016, US3-3). */
+  highlight?: string | null;
+  /** Aberto por cima do cardápio na tela estreita (spec 016, US3-2). */
+  onClose?: () => void;
+  titleRef?: React.Ref<HTMLHeadingElement>;
 }) {
   const [confirming, setConfirming] = useState(false);
   // A conferência é modal: a página atrás fica inerte (sem foco, sem toque, fora da leitura de tela).
@@ -99,10 +107,19 @@ export function Cart({
 
   return (
     <section
-      className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+      className="flex max-h-full min-h-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
       aria-label="Seu pedido"
     >
-      <h2 className="font-display text-xl font-semibold">Seu pedido</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 ref={titleRef} tabIndex={-1} className="font-display text-xl font-semibold outline-none">
+          Seu pedido
+        </h2>
+        {onClose && (
+          <Button type="button" variant="ghost" className="h-11 lg:hidden" onClick={onClose}>
+            Voltar ao cardápio
+          </Button>
+        )}
+      </div>
       {sent && (
         <Alert tone="success">
           <p className="font-semibold">Pedido enviado para a cozinha</p>
@@ -112,11 +129,15 @@ export function Cart({
         </Alert>
       )}
       {lines.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nada no pedido ainda.</p>
+        <p className="text-sm text-muted-foreground">Escolha os pratos e eles aparecem aqui.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-2">
+        <ul className="grid min-h-0 grid-cols-1 content-start gap-2 overflow-y-auto overscroll-contain">
           {lines.map((l) => (
-            <li key={l.key} className="grid grid-cols-1 gap-1 border-b border-border pb-2">
+            <li
+              key={l.key}
+              data-highlight={l.key === highlight ? "" : undefined}
+              className="grid grid-cols-1 gap-1 rounded-md border-b border-border px-1 pb-2 transition-colors duration-300 motion-reduce:transition-none data-[highlight]:bg-accent"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{l.name}</span>
                 <span>{brl(lineTotal(l))}</span>
@@ -159,28 +180,30 @@ export function Cart({
           ))}
         </ul>
       )}
-      <p className="flex flex-wrap justify-between gap-x-3 text-lg font-semibold">
-        <span>Total</span>
-        <span data-testid="cart-total">{brl(total)}</span>
-      </p>
-      {!confirming && messages.length > 0 && (
-        <Alert tone="warning" role="alert">
-          {messages.map((m) => (
-            <p key={m}>{m}</p>
-          ))}
-        </Alert>
-      )}
-      {submit && (
-        <Button
-          type="button"
-          size="xl"
-          className="h-auto min-h-12 whitespace-normal py-2"
-          disabled={lines.length === 0}
-          onClick={open}
-        >
-          Enviar pedido
-        </Button>
-      )}
+      <div data-cart-foot className="grid shrink-0 grid-cols-1 gap-3">
+        <p className="flex flex-wrap justify-between gap-x-3 text-lg font-semibold">
+          <span>Total</span>
+          <span data-testid="cart-total">{brl(total)}</span>
+        </p>
+        {!confirming && messages.length > 0 && (
+          <Alert tone="warning" role="alert">
+            {messages.map((m) => (
+              <p key={m}>{m}</p>
+            ))}
+          </Alert>
+        )}
+        {submit && (
+          <Button
+            type="button"
+            size="xl"
+            className="h-auto min-h-12 whitespace-normal py-2"
+            disabled={lines.length === 0}
+            onClick={open}
+          >
+            Enviar pedido
+          </Button>
+        )}
+      </div>
 
       {confirming &&
         createPortal(

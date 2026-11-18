@@ -7,15 +7,23 @@ import { normalizeDescription } from "@/domain/inventory/description";
 import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
 import { AutoRefresh } from "./auto-refresh";
-import { Cart, type SubmitFn } from "./cart";
-import { addToCart, type CartLine } from "./cart-state";
+import type { SubmitFn } from "./cart";
+import { CartPanel } from "./cart-panel";
+import { addToCart, cartTotal, choiceKey, type CartLine, type CartLineData } from "./cart-state";
+import { brl } from "./format";
+import { quickAdd } from "@/domain/ordering/quick-add";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
 import { ProductCard } from "./product-card";
 import { SectionBar, sectionAnchor } from "./section-bar";
 
-/** Cartões por linha: 1 no celular, 2 a partir de 640 px, 3 a partir de 1024 px (contracts/screens.md). */
-const CARDS = "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3";
+/**
+ * Cartões por linha (spec 016, R10): linhas no celular, 3 colunas a partir de 600 px (e ao lado do
+ * carrinho a partir de 1024 px) e 4 a partir de 1280 px.
+ */
+const CARDS = "grid grid-cols-1 gap-3 tab:grid-cols-3 xl:grid-cols-4";
+/** Quanto tempo a linha que mudou fica destacada no carrinho (US3-3). */
+const HIGHLIGHT_MS = 600;
 /** Quantas fotos carregam junto com a página; as outras, só quando chegam perto da tela (US6.10). */
 const EAGER_PHOTOS = 2;
 
@@ -103,6 +111,18 @@ export function MenuApp(
     if (typed) setQ(typed);
   }, []);
   const [expired, setExpired] = useState(false);
+  const [announce, setAnnounce] = useState("");
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const highlightTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  /** Põe no carrinho, anuncia o total para o leitor de tela e destaca a linha (US3-3). */
+  const put = (data: CartLineData) => {
+    const next = addToCart(lines, data);
+    setLines(next);
+    setAnnounce(`${data.name} no carrinho. Total ${brl(cartTotal(next).toFixed(2))}`);
+    setHighlight(choiceKey(data));
+    clearTimeout(highlightTimer.current);
+    highlightTimer.current = setTimeout(() => setHighlight(null), HIGHLIGHT_MS);
+  };
 
   const query = normalizeDescription(q);
   const all = menu.sections.flatMap((s) => s.products);
@@ -123,22 +143,13 @@ export function MenuApp(
         key={p.id}
         product={p}
         eager={eager.has(p.id)}
-        onAdd={() => add(p)}
+        onQuickAdd={() => add(p)}
         onOpen={() => setOpen(p)}
       />
     ));
   const add = (p: MenuProduct) => {
-    if (p.addons.length === 0 && p.removables.length === 0)
-      setLines((c) =>
-        addToCart(c, {
-          productId: p.id,
-          name: p.name,
-          basePrice: p.price,
-          quantity: 1,
-          addons: [],
-          removals: [],
-        }),
-      );
+    const r = quickAdd(p);
+    if (r.kind === "ADD") put(r.line);
     else setOpen(p);
   };
 
@@ -174,62 +185,79 @@ export function MenuApp(
 
       {live && !expired && <AutoRefresh seconds={10} />}
 
-      {!expired &&
-        (open ? (
-          <DishOptions
-            product={open}
-            onClose={() => setOpen(null)}
-            onAdd={(line) => {
-              setLines((c) => addToCart(c, line));
-              setOpen(null);
-            }}
-          />
-        ) : (
-          <>
-            <Input
-              type="search"
-              ref={search}
-              aria-label="Buscar no cardápio"
-              placeholder="Buscar no cardápio"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="h-11 text-base"
-            />
-            {titled ? (
+      <div
+        data-testid="menu-layout"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6"
+      >
+        <div className="grid min-w-0 grid-cols-1 gap-5">
+          {!expired &&
+            (open ? (
+              <DishOptions
+                product={open}
+                onClose={() => setOpen(null)}
+                onAdd={(line) => {
+                  put(line);
+                  setOpen(null);
+                }}
+              />
+            ) : (
               <>
-                <SectionBar sections={menu.sections} current={current} />
-                {menu.sections.map((section) => (
-                  <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
-                    <h2
-                      id={sectionAnchor(section.id)}
-                      data-place
-                      className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
-                    >
-                      {section.name}
-                    </h2>
-                    <ul className={CARDS} aria-label={section.name}>
-                      {cards(section.products)}
-                    </ul>
-                  </section>
-                ))}
+                <Input
+                  type="search"
+                  ref={search}
+                  aria-label="Buscar no cardápio"
+                  placeholder="Buscar no cardápio"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="h-11 text-base"
+                />
+                {titled ? (
+                  <>
+                    <SectionBar sections={menu.sections} current={current} />
+                    {menu.sections.map((section) => (
+                      <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
+                        <h2
+                          id={sectionAnchor(section.id)}
+                          data-place
+                          className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
+                        >
+                          {section.name}
+                        </h2>
+                        <ul className={CARDS} aria-label={section.name}>
+                          {cards(section.products)}
+                        </ul>
+                      </section>
+                    ))}
+                  </>
+                ) : (
+                  <ul className={CARDS} aria-label="Cardápio">
+                    {cards(shown)}
+                    {shown.length === 0 && (
+                      <li className="text-sm text-muted-foreground">Nada com esse nome.</li>
+                    )}
+                  </ul>
+                )}
               </>
-            ) : (
-              <ul className={CARDS} aria-label="Cardápio">
-                {cards(shown)}
-                {shown.length === 0 && <li className="text-sm text-muted-foreground">Nada com esse nome.</li>}
-              </ul>
-            )}
-            {!live || live.menu.ordersLeft > 0 ? (
-              <Cart lines={lines} onChange={setLines} submit={live?.submit ?? null} />
-            ) : (
-              <p role="status" className="rounded-xl bg-muted p-4 text-center">
-                Chame um garçom para continuar pedindo.
-              </p>
-            )}
-          </>
-        ))}
-
-      {live && <MyOrders orders={live.orders} />}
+            ))}
+          {live && <MyOrders orders={live.orders} />}
+        </div>
+        {!expired &&
+          (!live || live.menu.ordersLeft > 0 ? (
+            <CartPanel
+              lines={lines}
+              onChange={setLines}
+              submit={live?.submit ?? null}
+              highlight={highlight}
+            />
+          ) : (
+            <p role="status" className="rounded-xl bg-muted p-4 text-center">
+              Chame um garçom para continuar pedindo.
+            </p>
+          ))}
+      </div>
+      <p role="status" aria-label="Carrinho" className="sr-only">
+        {announce}
+      </p>
     </div>
   );
 }
