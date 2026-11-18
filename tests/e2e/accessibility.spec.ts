@@ -325,3 +325,36 @@ test("cardápio com seções e fotos, tela do prato e tela Cardápio sem falhas 
     expect(await seriousViolations(page), path).toEqual([]);
   }
 });
+
+test("boas-vindas e cardápio do tablet, Ainda está aí?, Tablet da mesa e Aparência sem falhas graves (spec 016)", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  const s = seedMenu("board");
+  await login(page, s.manager, s.password);
+  await page.goto("/pedidos/cardapio");
+  await expect(page.getByRole("region", { name: "Aparência" })).toBeVisible();
+  expect(await seriousViolations(page), "quadro Aparência").toEqual([]);
+
+  await page.goto("/pedidos/mesas");
+  const box = page.getByRole("region", { name: "Tablet da Mesa 12" });
+  await box.getByRole("button", { name: "Criar link do tablet" }).click();
+  await expect(box.locator("code")).toHaveText(/\/t\//);
+  expect(await seriousViolations(page), "Tablet da mesa").toEqual([]);
+  const link = new URL((await box.locator("code").textContent())!).pathname;
+
+  const context = await browser.newContext({ ...devices["Galaxy Tab S4 landscape"], locale: "pt-BR" });
+  const tab = await context.newPage();
+  await tab.clock.install();
+  await tab.goto(link);
+  await expect(tab.getByRole("region", { name: "Boas-vindas" })).toBeVisible();
+  expect(await seriousViolations(tab), "boas-vindas do tablet").toEqual([]);
+  await tab.getByRole("button", { name: "Ver o cardápio" }).click();
+  await tab.locator("main").getByRole("button", { name: "Pôr Suco de laranja no carrinho" }).click();
+  expect(await seriousViolations(tab), "cardápio do tablet deitado").toEqual([]);
+  await tab.clock.fastForward("03:01");
+  await expect(tab.getByRole("alertdialog", { name: "Ainda está aí?" })).toBeVisible();
+  expect(await seriousViolations(tab), "Ainda está aí?").toEqual([]);
+  await context.close();
+});
