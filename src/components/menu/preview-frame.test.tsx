@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { PreviewFrame } from "./preview-frame";
 
 afterEach(cleanup);
 
 /** "Ver como o cliente" (spec 013, US5). */
 const frame = () => screen.getByTitle("Cardápio como o cliente vê") as HTMLIFrameElement;
+const sizes = () => within(screen.getByRole("group", { name: "Tamanho da tela" }));
 const pressed = () =>
-  screen
+  sizes()
     .getAllByRole("button")
     .filter((b) => b.getAttribute("aria-pressed") === "true")
     .map((b) => b.textContent);
@@ -16,7 +17,7 @@ const pressed = () =>
 describe("moldura da pré-visualização", () => {
   it("começa em Celular, com a moldura de 390 px apontando para o cardápio do cliente", () => {
     render(<PreviewFrame src="/pedidos/cardapio/ver/cliente" />);
-    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual([
+    expect(sizes().getAllByRole("button").map((b) => b.textContent)).toEqual([
       "Celular",
       "Tablet em pé",
       "Tablet deitado",
@@ -59,5 +60,24 @@ describe("moldura da pré-visualização", () => {
     expect(screen.getByRole("group", { name: "Tamanho da tela" })).toBeTruthy();
     const link = screen.getByRole("link", { name: "Abrir em tela cheia" });
     expect(link.getAttribute("href")).toBe("/pedidos/cardapio/ver/cliente");
+  });
+
+  it("escolha Celular pelo QR code / Tablet da mesa (spec 016): o tablet abre deitado, com ?modo=tablet", () => {
+    render(<PreviewFrame src="/pedidos/cardapio/ver/cliente" />);
+    const modes = within(screen.getByRole("group", { name: "Como o cliente vê" }));
+    expect(modes.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "Celular pelo QR code",
+      "Tablet da mesa",
+    ]);
+    expect(modes.getByRole("button", { name: "Celular pelo QR code" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(modes.getByRole("button", { name: "Tablet da mesa" }));
+    expect(frame().getAttribute("src")).toBe("/pedidos/cardapio/ver/cliente?modo=tablet");
+    expect(pressed()).toEqual(["Tablet deitado"]);
+    expect(screen.getByRole("link", { name: "Abrir em tela cheia" }).getAttribute("href")).toBe(
+      "/pedidos/cardapio/ver/cliente?modo=tablet",
+    );
+    fireEvent.click(modes.getByRole("button", { name: "Celular pelo QR code" }));
+    expect(frame().getAttribute("src")).toBe("/pedidos/cardapio/ver/cliente");
+    expect(pressed()).toEqual(["Celular"]);
   });
 });
