@@ -24,10 +24,10 @@ export async function getAppearance(deps: Deps, ctx: RequestContext): Promise<Re
   return deps.tenant(ctx.restaurantId, async (repos) => ok(await repos.menuBoard.appearance()));
 }
 
+/** Auditoria como na research R14: `{ logo: [base anterior, base nova] }` ou `{ cover: […] }`. */
 const record = (
   repos: Parameters<Parameters<Deps["tenant"]>[1]>[0],
   ctx: RequestContext,
-  event: "appearance.set" | "appearance.remove",
   kind: AppearanceKind,
   base: [string | null, string | null],
 ) =>
@@ -35,7 +35,7 @@ const record = (
     entity: ENTITY,
     entityId: ctx.restaurantId,
     action: "UPDATE",
-    changes: { event, kind, base },
+    changes: { [kind === "LOGO" ? "logo" : "cover"]: base },
     userId: ctx.userId,
     origin: ctx.origin,
   });
@@ -63,7 +63,7 @@ export async function setAppearanceImage(
       .tenant(ctx.restaurantId, async (repos) => {
         const before = current(await repos.menuBoard.appearance(), input.kind);
         await repos.menuBoard.setAppearance(input.kind, photo, auditStamp(deps, ctx));
-        await record(repos, ctx, "appearance.set", input.kind, [before?.base ?? null, photo.base]);
+        await record(repos, ctx, input.kind, [before?.base ?? null, photo.base]);
         return ok(before);
       })
       .then((r) => (r.ok ? r.value : null));
@@ -86,7 +86,7 @@ export async function removeAppearanceImage(
     const before = current(await repos.menuBoard.appearance(), input.kind);
     if (!before) return err("NO_CHANGE");
     await repos.menuBoard.setAppearance(input.kind, null, auditStamp(deps, ctx));
-    await record(repos, ctx, "appearance.remove", input.kind, [before.base, null]);
+    await record(repos, ctx, input.kind, [before.base, null]);
     return ok(before);
   });
   if (!removed.ok) return removed;

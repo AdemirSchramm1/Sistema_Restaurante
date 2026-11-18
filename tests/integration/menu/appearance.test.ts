@@ -27,7 +27,7 @@ const audit = async (restaurantId: string) =>
   (
     await ownerTestDb().execute<{ entity: string; action: string; changes: Record<string, unknown> }>(
       sql`select entity, action, changes from audit_log
-          where restaurant_id = ${restaurantId} and entity = 'restaurant' and changes ? 'event' order by occurred_at, id`,
+          where restaurant_id = ${restaurantId} and entity = 'restaurant' and (changes ? 'logo' or changes ? 'cover') order by occurred_at, id`,
     )
   ).rows;
 
@@ -55,12 +55,12 @@ describe("aparência do cardápio (spec 016, US1)", () => {
       {
         entity: "restaurant",
         action: "UPDATE",
-        changes: { event: "appearance.set", kind: "LOGO", base: [null, logo.photo.base] },
+        changes: { logo: [null, logo.photo.base] },
       },
       {
         entity: "restaurant",
         action: "UPDATE",
-        changes: { event: "appearance.set", kind: "COVER", base: [null, cover.photo.base] },
+        changes: { cover: [null, cover.photo.base] },
       },
     ]);
     expect(unwrap(await getAppearance(env.deps, m))).toEqual({ logo: logo.photo, cover: cover.photo });
@@ -123,7 +123,7 @@ describe("aparência do cardápio (spec 016, US1)", () => {
     expect((await audit(m.restaurantId)).at(-1)).toEqual({
       entity: "restaurant",
       action: "UPDATE",
-      changes: { event: "appearance.remove", kind: "LOGO", base: [logo.photo.base, null] },
+      changes: { logo: [logo.photo.base, null] },
     });
   });
 
