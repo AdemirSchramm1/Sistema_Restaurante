@@ -73,7 +73,14 @@ export function MenuHeader({
             >
               {restaurantName}
             </span>
-            <h1 className={cn("font-display text-3xl font-semibold tracking-tight [overflow-wrap:anywhere]", text)}>{title}</h1>
+            <h1
+              className={cn(
+                "font-display text-3xl font-semibold tracking-tight [overflow-wrap:anywhere]",
+                text,
+              )}
+            >
+              {title}
+            </h1>
           </div>
         </div>
       </header>
