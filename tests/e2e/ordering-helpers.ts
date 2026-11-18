@@ -108,6 +108,10 @@ export async function expireMenuAccesses(restaurantName: string, tableName: stri
   const client = new pg.Client({ connectionString: url });
   await client.connect();
   try {
+    // O acesso é imutável depois de aberto (spec 016): só o teste, como dono da tabela, desliga a trava
+    // dentro da transação para recuar o relógio.
+    await client.query("begin");
+    await client.query("alter table menu_accesses disable trigger menu_accesses_frozen");
     await client.query(
       `update menu_accesses a
           set opened_at = a.opened_at - interval '21 minutes', expires_at = a.expires_at - interval '21 minutes'
@@ -115,6 +119,11 @@ export async function expireMenuAccesses(restaurantName: string, tableName: stri
         where t.id = a.table_id and r.id = t.restaurant_id and r.name = $1 and t.name = $2 and a.ended_at is null`,
       [restaurantName, tableName],
     );
+    await client.query("alter table menu_accesses enable trigger menu_accesses_frozen");
+    await client.query("commit");
+  } catch (e) {
+    await client.query("rollback");
+    throw e;
   } finally {
     await client.end();
   }

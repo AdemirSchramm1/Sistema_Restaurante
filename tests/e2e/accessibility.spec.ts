@@ -123,7 +123,7 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   expect(await seriousViolations(cell), "resumo do pedido").toEqual([]);
   await cell.getByRole("button", { name: "Confirmar" }).click();
-  await expect(cell.getByText("Pedido enviado para a cozinha")).toBeVisible();
+  await expect(cell.getByText("Pedido enviado para a cozinha").filter({ visible: true })).toBeVisible();
   expect(await seriousViolations(cell), "cardápio com pedido enviado").toEqual([]);
   await phoneContext.close();
 

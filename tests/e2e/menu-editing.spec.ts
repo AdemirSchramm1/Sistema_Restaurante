@@ -262,8 +262,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
     });
   await expect(cards).toHaveCount(4);
   expect(await columns()).toBe(1);
+  // A partir de 600 px, 3 colunas (spec 016, R10); deitado, 3 ao lado do carrinho.
   await page.getByRole("button", { name: "Tablet em pé" }).click();
-  await expect.poll(columns).toBe(2);
+  await expect.poll(columns).toBe(3);
   await page.getByRole("button", { name: "Tablet deitado" }).click();
   await expect.poll(columns).toBe(3);
   await expect(page.getByRole("button", { name: "Tablet deitado" })).toHaveAttribute("aria-pressed", "true");

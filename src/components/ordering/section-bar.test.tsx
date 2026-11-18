@@ -41,6 +41,8 @@ describe("barra de seções", () => {
     render(<SectionBar sections={sections} current="s2" />);
     const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "true");
     expect(current.map((a) => a.textContent)).toEqual(["Lanches"]);
+    // Troca de cor na hora, sem transição: nunca fica um instante com contraste baixo.
+    expect(current[0]!.className).not.toContain("transition");
   });
 
   it("Outros também pode ser a atual", () => {

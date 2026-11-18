@@ -60,7 +60,7 @@ export function SectionBar({
                 href={`#${sectionAnchor(s.id)}`}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4 text-base font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                  "inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4 text-base font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card text-foreground hover:bg-muted",
