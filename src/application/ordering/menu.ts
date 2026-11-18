@@ -117,7 +117,10 @@ export async function getMenu(deps: Deps, cookie: MenuCookies): Promise<Result<M
   });
 }
 
-/** Pedidos deste celular (deste acesso), mais novo primeiro. Nunca de outro celular da mesa. */
+/**
+ * Pedidos deste celular (deste acesso), mais novo primeiro. Nunca de outro celular da mesa. No tablet
+ * da mesa (spec 016), os da conta aberta.
+ */
 export async function listAccessOrders(
   deps: Deps,
   cookie: MenuCookies,
@@ -127,7 +130,14 @@ export async function listAccessOrders(
   return deps.tenant(found.value.restaurantId, async (repos) => {
     const access = await repos.menuAccesses.get(found.value.menuAccessId);
     if (!access || !isAccessOpen(access, deps.clock.now())) return err("ACCESS_EXPIRED");
-    const orders = await repos.orders.listForAccess(access.id);
+    // No tablet, a conta aberta da mesa, de qualquer origem; sem conta aberta, nada (spec 016, FR-007).
+    const orders =
+      access.kind === "TABLET"
+        ? await (async () => {
+            const { tabId } = await repos.orders.tabletStamp(access.tableId);
+            return tabId ? (await repos.orders.listForTab(tabId)).reverse() : [];
+          })()
+        : await repos.orders.listForAccess(access.id);
     return ok(
       orders.map((o) => ({
         number: o.number,
