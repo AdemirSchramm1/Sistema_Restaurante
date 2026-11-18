@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { MenuView } from "@/application/ordering/menu";
+import { renderToString } from "react-dom/server";
 import { TabletShell } from "./tablet-shell";
 
 const refresh = vi.fn();
@@ -21,17 +22,20 @@ const menu: MenuView = {
     {
       id: null,
       name: "Outros",
-      products: [{ id: "s", name: "Suco", price: "9.00", description: null, photo: null, addons: [], removables: [] }],
+      products: [
+        { id: "s", name: "Suco", price: "9.00", description: null, photo: null, addons: [], removables: [] },
+      ],
     },
   ],
 };
 
 type Status = { state: string; tableName?: string; tabId?: string | null; stamp?: string };
-let replies: (Status | "FAIL")[] = [];
+let replies: (Status | "FAIL" | "ERROR")[] = [];
 let last: Status = { state: "OK", tableName: "12", tabId: null, stamp: "a" };
 const fetchMock = vi.fn(async (_url: string) => {
   const next = replies.shift();
   if (next === "FAIL") throw new TypeError("rede");
+  if (next === "ERROR") return new Response("erro", { status: 500 });
   if (next) last = next;
   return new Response(JSON.stringify(last), { status: last.state === "UNKNOWN" ? 401 : 200 });
 });
@@ -215,7 +219,9 @@ describe("tablet da mesa (spec 016, US5)", () => {
     expect(screen.queryByRole("alert")).toBeNull();
     replies = ["FAIL"];
     await advance(10_000);
-    expect(screen.getByRole("alert").textContent).toContain("Sem conexão com o restaurante. Chame um garçom.");
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Sem conexão com o restaurante. Chame um garçom.",
+    );
     expect(total()).toBe("R$ 9,00");
     await advance(10_000);
     expect(screen.queryByRole("alert")).toBeNull();
@@ -269,6 +275,80 @@ describe("tablet da mesa (spec 016, US5)", () => {
     Object.defineProperty(document, "fullscreenEnabled", { value: false, configurable: true });
   });
 
+  it("erro do servidor conta como falha; voltar a rede checa na hora", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    await advance(0);
+    start();
+    await advance(0);
+    replies = ["ERROR"];
+    await advance(10_000);
+    replies = ["ERROR"];
+    await advance(10_000);
+    expect(screen.getByRole("alert").textContent).toContain("Sem conexão com o restaurante");
+    const calls = fetchMock.mock.calls.length;
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(fetchMock.mock.calls.length).toBe(calls + 1);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("aparelho desconhecido (401 sem stamp nem conta): avisa que o link não vale", async () => {
+    replies = [{ state: "UNKNOWN" }];
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    await advance(0);
+    expect(screen.getByRole("alert").textContent).toContain("Link inválido. Chame um garçom.");
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("tela acesa: pedido que chega depois de sair é solto; aba escondida não pede; soltar que falha não quebra", async () => {
+    let resolve!: (lock: { release(): Promise<void> }) => void;
+    const late = vi.fn().mockRejectedValue(new Error("já solto"));
+    const request = vi.fn(() => new Promise<{ release(): Promise<void> }>((r) => (resolve = r)));
+    Object.defineProperty(navigator, "wakeLock", { value: { request }, configurable: true });
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    start();
+    await advance(0);
+    Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(request).toHaveBeenCalledTimes(1);
+    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    cleanup();
+    await act(async () => {
+      resolve({ release: late });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(late).toHaveBeenCalledTimes(1);
+    // @ts-expect-error -- apaga a API para os outros testes
+    delete navigator.wakeLock;
+  });
+
+  it("Tela cheia recusada pelo navegador: segue sem tela cheia", async () => {
+    Object.defineProperty(document, "fullscreenEnabled", { value: true, configurable: true });
+    const requestFullscreen = vi.fn().mockRejectedValue(new Error("negado"));
+    document.documentElement.requestFullscreen = requestFullscreen;
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    start();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Tela cheia" }));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(requestFullscreen).toHaveBeenCalled();
+    expect(screen.getByRole("heading", { level: 1, name: "Mesa 12" })).toBeTruthy();
+    Object.defineProperty(document, "fullscreenEnabled", { value: false, configurable: true });
+  });
+
+  it("no servidor a página sai sem o botão Tela cheia (o navegador decide depois)", () => {
+    Object.defineProperty(document, "fullscreenEnabled", { value: true, configurable: true });
+    const html = renderToString(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    expect(html).toContain("Ver o cardápio");
+    expect(html).not.toContain("Tela cheia");
+    Object.defineProperty(document, "fullscreenEnabled", { value: false, configurable: true });
+  });
+
   it("o carrinho não vai para o localStorage", async () => {
     render(<TabletShell menu={menu} orders={[]} submit={submit} />);
     start();
@@ -280,7 +360,15 @@ describe("tablet da mesa (spec 016, US5)", () => {
     render(
       <TabletShell
         menu={menu}
-        orders={[{ number: 3, submittedAt: "2026-11-16T22:00:00.000Z", status: "PREPARING", total: "9.00", lines: [] }]}
+        orders={[
+          {
+            number: 3,
+            submittedAt: "2026-11-16T22:00:00.000Z",
+            status: "PREPARING",
+            total: "9.00",
+            lines: [],
+          },
+        ]}
         submit={submit}
       />,
     );

@@ -68,6 +68,8 @@ describe("carrinho sempre à vista (spec 016, US3-1, FR-003)", () => {
     expect(panel.getAttribute("role")).toBe("dialog");
     expect(document.activeElement).toBe(within(panel).getByRole("heading", { name: "Seu pedido" }));
     expect(screen.queryByRole("button", { name: /^Ver pedido/ })).toBeNull();
+    fireEvent.keyDown(panel, { key: "a" });
+    expect(panel.getAttribute("role")).toBe("dialog");
     fireEvent.keyDown(panel, { key: "Escape" });
     expect(panel.className).toMatch(/(^| )hidden( |$)/);
     fireEvent.click(screen.getByRole("button", { name: /^Ver pedido/ }));

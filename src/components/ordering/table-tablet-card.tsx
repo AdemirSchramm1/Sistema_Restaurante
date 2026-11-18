@@ -59,6 +59,7 @@ export function TableTabletCard({
   const [confirm, setConfirm] = useState<"RELEASE" | "ROTATE" | null>(null);
   const [copied, setCopied] = useState("");
   const label = `Mesa ${table.name}`;
+  const link = table.link;
   const signal = tabletSignal(table.lastSeenAt ? new Date(table.lastSeenAt) : null, new Date(now));
 
   // Deu certo: a confirmação fecha e o cartão mostra a situação nova (Trocar link de novo à vista).
@@ -70,10 +71,9 @@ export function TableTabletCard({
       return result;
     };
 
-  const copy = async () => {
-    if (!table.link) return;
+  const copy = async (link: string) => {
     try {
-      await navigator.clipboard.writeText(table.link);
+      await navigator.clipboard.writeText(link);
       setCopied("Link copiado");
     } catch {
       setCopied("Não deu para copiar. Selecione o link e copie.");
@@ -86,7 +86,7 @@ export function TableTabletCard({
       className="grid gap-2 rounded-lg border border-border p-3 text-sm"
     >
       <h3 className="font-semibold">Tablet da mesa</h3>
-      {!table.link ? (
+      {!link ? (
         <ActionForm
           action={createAction}
           hidden={{ id: table.tableId, version: table.version }}
@@ -96,8 +96,8 @@ export function TableTabletCard({
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <code className="min-w-0 break-all rounded bg-muted px-2 py-1 text-xs">{table.link}</code>
-            <Button type="button" size="sm" variant="outline" onClick={copy}>
+            <code className="min-w-0 break-all rounded bg-muted px-2 py-1 text-xs">{link}</code>
+            <Button type="button" size="sm" variant="outline" onClick={() => copy(link)}>
               Copiar
             </Button>
           </div>

@@ -102,6 +102,21 @@ describe("abas em até 2 linhas a partir de 600 px (spec 016, US2-5)", () => {
     for (const a of screen.getAllByRole("link")) expect(a.className).toContain("whitespace-nowrap");
   });
 
+  it("virou uma linha: não volta a quebrar enquanto a largura for a mesma (sem pisca-pisca); girou, tenta de novo", () => {
+    const resize = fakeResize();
+    render(<SectionBar sections={many} current={null} />);
+    const ul = screen.getByRole("navigation").querySelector("ul")!;
+    rows(4);
+    resize();
+    expect(ul.dataset.wrap).toBe("false");
+    rows(9);
+    resize();
+    expect(ul.dataset.wrap).toBe("false");
+    Object.defineProperty(ul, "clientWidth", { configurable: true, value: 1024 });
+    resize();
+    expect(ul.dataset.wrap).toBe("true");
+  });
+
   it("sem ResizeObserver (navegador antigo) fica quebrando", () => {
     vi.stubGlobal("ResizeObserver", undefined);
     render(<SectionBar sections={many} current={null} />);

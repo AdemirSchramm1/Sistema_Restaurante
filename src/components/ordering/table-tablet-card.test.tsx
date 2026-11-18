@@ -47,6 +47,18 @@ describe("tablet da mesa na tela Mesas (spec 016, US4)", () => {
     await waitFor(() => expect(within(r).getByRole("status").textContent).toBe("Link copiado"));
   });
 
+  it("sem permissão para copiar: diz como copiar à mão", async () => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockRejectedValue(new Error("negado")) } });
+    card();
+    const r = region();
+    fireEvent.click(within(r).getByRole("button", { name: "Copiar" }));
+    await waitFor(() =>
+      expect(within(r).getByRole("status").textContent).toBe(
+        "Não deu para copiar. Selecione o link e copie.",
+      ),
+    );
+  });
+
   it("ligado: desde quando e visto há quanto tempo", () => {
     card({ boundAt: "2026-11-16T23:05:00.000Z", lastSeenAt: "2026-11-16T23:28:00.000Z" });
     expect(within(region()).getByText("Tablet ligado desde 16/11 20:05 · visto há 2 min")).toBeTruthy();
@@ -74,7 +86,7 @@ describe("tablet da mesa na tela Mesas (spec 016, US4)", () => {
     const releaseAction = vi.fn().mockResolvedValue({ ok: true, data: null, at: 1 });
     const rotateAction = vi
       .fn()
-      .mockResolvedValue({ ok: false, error: { code: "CONFLICT", message: "Mudou" }, at: 2 });
+      .mockResolvedValue({ ok: false, error: { code: "STALE_RECORD", message: "Mudou" }, at: 2 });
     render(
       <TableTabletCard
         {...base}

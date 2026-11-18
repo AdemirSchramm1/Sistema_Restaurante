@@ -16,7 +16,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function setup(check: Result<Blob> = ok(new Blob(["r"]))) {
+function setup(
+  check: Result<Blob> = ok(new Blob(["r"])),
+  { sent = ok(fresh) as Result<Photo>, removeOk = true }: { sent?: Result<Photo>; removeOk?: boolean } = {},
+) {
   const calls = {
     reduce: [] as string[],
     upload: [] as string[],
@@ -27,7 +30,9 @@ function setup(check: Result<Blob> = ok(new Blob(["r"]))) {
       appearance={{ logo, cover: null }}
       removeAction={async (_p, form) => {
         calls.removed.push(Object.fromEntries(form));
-        return { ok: true, data: null, at: 1 };
+        return removeOk
+          ? { ok: true, data: null, at: 1 }
+          : { ok: false, error: { code: "STALE_RECORD" as const, message: "Mudou enquanto você mexia." }, at: 1 };
       }}
       reduce={async (_file, _tools, shape) => {
         calls.reduce.push(shape!);
@@ -35,7 +40,8 @@ function setup(check: Result<Blob> = ok(new Blob(["r"]))) {
       }}
       upload={async (input) => {
         calls.upload.push(input.kind!);
-        return ok(fresh) as Result<Photo>;
+        input.onProgress?.(40);
+        return sent;
       }}
     />,
   );
@@ -84,5 +90,47 @@ describe("quadro Aparência", () => {
     await act(async () => fireEvent.click(within(ask).getByRole("button", { name: "Tirar o logo" })));
     expect(calls.removed).toEqual([{ kind: "LOGO" }]);
     expect(screen.getByText("Logo tirado do cardápio")).toBeTruthy();
+  });
+
+  it("envio que falha: a barra some, a mensagem aparece e a prévia fica; Cancelar descarta", async () => {
+    const calls = setup(undefined, { sent: err("PHOTO_STORAGE_FAILED") });
+    await pick("Escolher foto de capa");
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Salvar foto de capa" })));
+    expect(calls.upload).toEqual(["COVER"]);
+    expect(screen.getByText("Não foi possível enviar a foto. Tente de novo.")).toBeTruthy();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByRole("img", { name: "Prévia da foto de capa" })).toBeTruthy();
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "Prévia da foto de capa" })).getByRole("button", {
+        name: "Cancelar",
+      }),
+    );
+    expect(screen.queryByRole("img", { name: "Prévia da foto de capa" })).toBeNull();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:previa");
+  });
+
+  it("escolher e desistir na janela de arquivos não faz nada", async () => {
+    const calls = setup();
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Escolher foto de capa"), { target: { files: [] } });
+    });
+    expect(calls.reduce).toEqual([]);
+  });
+
+  it("Tirar: Cancelar volta ao botão; se der errado, a mensagem aparece e o logo fica", async () => {
+    const calls = setup(undefined, { removeOk: false });
+    fireEvent.click(screen.getByRole("button", { name: "Tirar logo" }));
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "Tirar o logo do cardápio?" })).getByRole("button", {
+        name: "Cancelar",
+      }),
+    );
+    expect(screen.queryByRole("group", { name: "Tirar o logo do cardápio?" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Tirar logo" }));
+    const ask = screen.getByRole("group", { name: "Tirar o logo do cardápio?" });
+    await act(async () => fireEvent.click(within(ask).getByRole("button", { name: "Tirar o logo" })));
+    expect(calls.removed).toEqual([{ kind: "LOGO" }]);
+    expect(within(ask).getByText("Mudou enquanto você mexia.")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Logo do restaurante" })).toBeTruthy();
   });
 });
