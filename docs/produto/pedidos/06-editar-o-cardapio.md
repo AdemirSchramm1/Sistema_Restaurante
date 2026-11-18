@@ -10,6 +10,7 @@ O gerente e o chef montam o que o cliente vê: seções, ordem, foto, descriçã
 | Ver a tela **Cardápio** (menu, área Operação) e mudar seções, ordem, foto e descrição | Gerente e chef (`menu.write`) |
 | Mudar o preço e criar produto novo pela tela Cardápio | Quem também tem `recipe.write` (gerente e chef) |
 | Marcar "Esgotado hoje" | Quem tem `product.sold_out` |
+| Pôr, trocar e tirar o logo e a foto de capa (016) | Gerente (`menu.appearance`); o chef vê o quadro sem os botões |
 
 Os outros papéis não veem a tela; se abrirem o endereço, caem em "Sem acesso". Cada tentativa sem
 permissão fica gravada na auditoria.
@@ -84,10 +85,23 @@ não foi enviada. Tente de novo."
 O nome e os ingredientes continuam sendo mudados no cadastro do produto ("Editar nome e
 ingredientes").
 
+## Aparência
+
+Quadro **Aparência** no topo da tela Cardápio (spec 016, US1): o **logo** (quadrado, pelo menos
+200 px no lado menor) e a **foto de capa** (cortada em 3:1, pelo menos 1200 px de largura). Cada um
+tem escolher, ver antes de salvar, salvar, cancelar, **Trocar** e **Tirar** (com confirmação). A
+foto é reduzida no aparelho antes de subir e o servidor grava os tamanhos prontos (logo 96, 192 e
+384 px; capa 600, 1200 e 1920 px). Imagem pequena: "O logo precisa ter pelo menos 200 px no lado
+menor." ou "A foto de capa precisa ter pelo menos 1200 px de largura.". Trocar ou tirar fica no
+histórico do restaurante, com quem e quando. O cliente vê o logo e a capa no topo do cardápio e nas
+boas-vindas do tablet.
+
 ## Ver como o cliente
 
-Mostra o cardápio como ele está agora para quem lê o QR code, em três tamanhos: **Celular** (1
-coluna), **Tablet em pé** (2 colunas) e **Tablet deitado** (3 colunas). Uma faixa avisa
+Mostra o cardápio como ele está agora, como **Celular pelo QR code** ou como **Tablet da mesa**
+(016, com as boas-vindas e sem prazo), em três tamanhos: **Celular** (linhas), **Tablet em pé** (3
+cartões por linha) e **Tablet deitado** (3 cartões e o carrinho ao lado). O Tablet da mesa abre
+deitado. Uma faixa avisa
 "Pré-visualização: pedidos não são enviados". Dá para montar um pedido para ver como fica, mas não
 para enviar. Nenhum acesso de mesa é aberto e nada é gravado. No celular, a pré-visualização ocupa
 a largura da tela, sem os botões de tamanho.

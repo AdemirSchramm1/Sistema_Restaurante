@@ -80,3 +80,13 @@ Restaurante recém-criado, gerente logado, mesmo computador antes e depois.
 | `/caixa` | 34 | 16 | 109,2 ms | 55,6 ms |
 
 Detalhes, banco local e o que sobrou em [research.md](../../specs/012-nova-cara-e-desempenho/research.md#r12-depois).
+
+## Tablet da mesa (016)
+
+60 tablets checam o restaurante a cada 10 s (60 s nas boas-vindas). A checagem é uma transação curta
+com uma consulta (`tabletStamp`) e grava o sinal de vida no máximo uma vez por minuto por tablet
+(`update … where last_seen_at <= now - 60 s`), então 60 tablets geram no máximo uma gravação por
+segundo. `tests/integration/performance/tablet-status.test.ts` roda 60 checagens em paralelo e exige
+menos de 200 ms cada no banco do teste; `indexes.test.ts` confere que a checagem, o cardápio do
+tablet, os pedidos da conta e a tela Mesas (`listTabletStatus`, uma consulta para todas as mesas)
+não leem tabela inteira.

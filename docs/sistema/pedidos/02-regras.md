@@ -189,3 +189,25 @@ fecha (`REMAINING_NOT_ZERO`) até tirar o pagamento a mais.
   `clientRequestId`. Sair apaga todos; abrir Lançar pedido apaga os de outra pessoa.
 - `ordersBySource` (`order.read`): resumo da consulta por origem, com cancelados por motivo. Filtro
   com lixo no endereço vira lista vazia, não erro do banco.
+
+## Tablet da mesa (016) — `src/domain/ordering/` e `src/application/ordering/tablets.ts`
+
+- `menu-access.ts`: `kind` `QR` ou `TABLET`; `expiresAt` nulo no tablet (`isAccessOpen` e
+  `canSubmitWith` só olham `ended_at`); `ordersLimit(kind)`: 10 no `QR`, nenhum no tablet.
+- `closedAccessError`: `RELEASED` → `TABLET_RELEASED`, `LINK_ROTATED` → `TABLET_LINK_INVALID`,
+  `TAB_CLOSED` → `TABLE_TAB_CLOSED`, prazo → `ACCESS_EXPIRED`.
+- `submitOrder` grava `source` pelo `kind`. Fechar a conta (`endOpenForTable`) encerra só acessos
+  `QR`; o próximo pedido do tablet abre conta nova pelo `openForOrder` da 011.
+- `listAccessOrders` no tablet lê a conta aberta da mesa (`listForTab`), de qualquer origem.
+- `tablet-signal.ts`: `tabletSignal(lastSeenAt, now)` → `NEVER`, `SEEN` ou `LOST` (mais de 10 min).
+- `tablet-screen.ts`: máquina pura da tela do tablet. `WELCOME` → toque → `MENU`; 180 s sem toque →
+  `WELCOME` (carrinho vazio) ou `STILL_THERE`; 30 s em `STILL_THERE` → `WELCOME` limpando o
+  carrinho; `sent` → `SENT` por 10 s → `MENU` limpo; `tabChanged` → `WELCOME` limpo. O tempo conta
+  do último toque.
+- `tablets.ts`: `createTabletLink` (`NO_CHANGE` se já existe, trava pela `version` da mesa),
+  `releaseTablet`, `rotateTabletLink` (token novo e acesso encerrado na mesma transação) e
+  `listTabletStatus` (uma consulta para todas as mesas). Auditoria `{ tablet: "link_created" |
+  "bound" | "released" | "link_rotated" }`, nunca com o token.
+- Aparência (`src/application/menu/appearance.ts`): logo e capa gravados antes no armazenamento e só
+  depois no banco; os arquivos antigos saem depois do commit; falhou o banco, os novos são apagados.
+  Auditoria `{ logo: [antes, depois] }` ou `{ cover: [...] }` na entidade `restaurant`.

@@ -172,3 +172,10 @@ Desconto e cortesia, couvert, dividir por itens, transferir pedido entre mesas e
 pagamento pelo celular do cliente, maquininha e Pix automático, nota fiscal, pedido lançado pela
 equipe e delivery. Abrir e fechar o caixa (troco, sangria, reforço, contagem) é o
 [capítulo 7](07-caixa-do-dia.md): desde a spec 014, lançar e tirar pagamento exigem o caixa aberto.
+
+## Fechar a conta e o tablet da mesa (spec 016)
+
+Fechar a conta encerra os acessos dos **celulares** da mesa (QR code), mas **não desliga o tablet
+fixo na mesa**: em até 10 segundos ele volta às boas-vindas sem nada da conta fechada, e o próximo
+pedido dele abre uma conta nova. Um pedido do tablet enviado no instante do fechamento cai na conta
+que fechou (se chegou antes) ou numa conta nova, nunca fora de conta.
