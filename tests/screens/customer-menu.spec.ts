@@ -135,7 +135,8 @@ for (const screen of CUSTOMER_SCREENS) {
         await expectSurvivesRotation(
           page,
           async () => (await total.textContent()) ?? "",
-          main.getByRole("heading", { level: 2, name: "Bebidas" }),
+          // Uma seção do meio: com os cartões compactos (spec 016) a página não rola até Bebidas no topo.
+          main.getByRole("heading", { level: 2, name: "Lanches" }),
         );
         await expectNoSideScroll(page);
       });

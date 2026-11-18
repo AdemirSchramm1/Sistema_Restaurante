@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { SectionBar, sectionAnchor } from "./section-bar";
 
 afterEach(() => {
@@ -43,6 +43,16 @@ describe("barra de seções", () => {
     expect(current.map((a) => a.textContent)).toEqual(["Lanches"]);
     // Troca de cor na hora, sem transição: nunca fica um instante com contraste baixo.
     expect(current[0]!.className).not.toContain("transition");
+  });
+
+  it("tocar numa seção avisa qual foi (e funciona sem quem escute)", () => {
+    const onPick = vi.fn();
+    const { unmount } = render(<SectionBar sections={sections} current={null} onPick={onPick} />);
+    fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
+    expect(onPick).toHaveBeenCalledWith("s2");
+    unmount();
+    render(<SectionBar sections={sections} current={null} />);
+    fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
   });
 
   it("Outros também pode ser a atual", () => {

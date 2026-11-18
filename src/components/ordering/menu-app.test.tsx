@@ -248,6 +248,13 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
     expect(current()).toEqual(["Bebidas"]);
     act(() => notify([{ target: observed[2]!, isIntersecting: true }]));
     expect(current()).toEqual(["Outros"]);
+    // Tocou em Lanches na barra: o pulo passa por outras seções sem trocar a marca, até a pessoa usar o teclado.
+    fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
+    act(() => notify([{ target: observed[1]!, isIntersecting: true }]));
+    expect(current()).toEqual(["Lanches"]);
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    act(() => notify([{ target: observed[1]!, isIntersecting: true }]));
+    expect(current()).toEqual(["Bebidas"]);
     vi.unstubAllGlobals();
   });
 });
@@ -302,6 +309,20 @@ describe("girar o aparelho (spec 013, US6.8)", () => {
     vi.unstubAllGlobals();
   });
 
+  it("no fim da página, o que estava no topo continua sendo o ponto que a tela mantém ao girar", () => {
+    const { scrolled, places } = setup();
+    vi.stubGlobal("scrollTo", vi.fn());
+    places[4]!.getBoundingClientRect = box(70, 100);
+    set("scrollY", 5000 - 768);
+    fireEvent.scroll(window);
+    // Deitado, o fim da página deixaria o título de Bebidas acima da tela.
+    places[4]!.getBoundingClientRect = box(-485, -455);
+    set("innerWidth", 844);
+    fireEvent(window, new Event("resize"));
+    expect(scrolled.mock.calls).toEqual([["secao-s2"]]);
+    vi.unstubAllGlobals();
+  });
+
   it("no fim da página a última seção fica marcada na barra", () => {
     setup();
     set("scrollY", 5000 - 768);
@@ -311,6 +332,27 @@ describe("girar o aparelho (spec 013, US6.8)", () => {
       .filter((a) => a.getAttribute("aria-current") === "true")
       .map((a) => a.textContent);
     expect(marked).toEqual(["Outros"]);
+  });
+
+  it("tocar numa seção da barra a marca, mesmo quando a página não rola até ela; rolar de novo volta a valer", () => {
+    setup();
+    const marked = () =>
+      screen
+        .getAllByRole("link")
+        .filter((a) => a.getAttribute("aria-current") === "true")
+        .map((a) => a.textContent);
+    fireEvent.click(screen.getByRole("link", { name: "Bebidas" }));
+    expect(marked()).toEqual(["Bebidas"]);
+    // O pulo até a âncora para no fim da página: continua a seção tocada.
+    set("scrollY", 5000 - 768);
+    act(() => fireEvent.scroll(window));
+    expect(marked()).toEqual(["Bebidas"]);
+    // A pessoa rola: o fim da página volta a marcar a última seção.
+    act(() => {
+      fireEvent.touchStart(window);
+      fireEvent.scroll(window);
+    });
+    expect(marked()).toEqual(["Outros"]);
   });
 
   it("não mexe quando só a altura muda (a barra do navegador some ao rolar)", () => {

@@ -275,6 +275,21 @@ describe("tablet da mesa (spec 016, US5)", () => {
     Object.defineProperty(document, "fullscreenEnabled", { value: false, configurable: true });
   });
 
+  it("o navegador diz que está sem rede: uma resposta que chega atrasada não tira o aviso", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    start();
+    Object.defineProperty(navigator, "onLine", { value: false, configurable: true });
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    await advance(0);
+    expect(fetchMock).toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toContain("Sem conexão com o restaurante");
+    Object.defineProperty(navigator, "onLine", { value: true, configurable: true });
+    await advance(10_000);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("erro do servidor conta como falha; voltar a rede checa na hora", async () => {
     render(<TabletShell menu={menu} orders={[]} submit={submit} />);
     await advance(0);

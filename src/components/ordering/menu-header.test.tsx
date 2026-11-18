@@ -29,8 +29,10 @@ describe("topo do cardápio com a cara do restaurante (spec 016, US1-2 a US1-5)"
   it("altura de 120 px no celular e 160 px a partir de 600 px", () => {
     render(<MenuHeader restaurantName="Cantina" title="Mesa 12" appearance={{ logo, cover }} />);
     const banner = screen.getByRole("banner");
-    expect(banner.className).toContain("h-30");
-    expect(banner.className).toContain("tab:h-40");
+    // Altura mínima, não fixa: com a letra em 200% a capa cresce e o nome não é cortado.
+    expect(banner.className).toContain("min-h-30");
+    expect(banner.className).toContain("tab:min-h-40");
+    expect(banner.className).not.toMatch(/(^| )(tab:)?h-\d/);
   });
 
   it("logo quadrado com cantos arredondados, com o nome do restaurante", () => {

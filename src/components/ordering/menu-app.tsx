@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccessOrderView, MenuProduct, MenuView } from "@/application/ordering/menu";
 import type { CustomerMenu } from "@/domain/menu/customer-menu";
 import { normalizeDescription } from "@/domain/inventory/description";
@@ -31,17 +31,34 @@ const EAGER_PHOTOS = 2;
 
 /**
  * Seção que está na tela, para marcar na barra. Vale a última que cruzou a faixa logo abaixo da
- * barra; sair da faixa não desmarca, para a barra nunca ficar sem seção no meio da rolagem.
+ * barra; sair da faixa não desmarca, para a barra nunca ficar sem seção no meio da rolagem. A seção
+ * tocada na barra fica marcada até a pessoa rolar de novo, mesmo que a página não chegue até ela.
  */
-function useCurrentSection(anchors: readonly string[]): string | null {
+function useCurrentSection(anchors: readonly string[]) {
   const [current, setCurrent] = useState<string | null>(null);
+  const pinned = useRef(false);
   const key = anchors.join(" ");
+  const pick = useCallback((id: string) => {
+    pinned.current = true;
+    setCurrent(id);
+  }, []);
+  // A pessoa voltou a rolar: a posição da página manda de novo.
+  useEffect(() => {
+    const unpin = () => {
+      pinned.current = false;
+    };
+    const events = ["wheel", "touchstart", "keydown"] as const;
+    for (const e of events) window.addEventListener(e, unpin, { passive: true });
+    return () => {
+      for (const e of events) window.removeEventListener(e, unpin);
+    };
+  }, []);
   // No fim da página a última seção pode não chegar à faixa (cardápio curto, spec 016): ela vale.
   useEffect(() => {
     if (!key) return;
     const last = key.split(" ").at(-1)!.slice("secao-".length);
     const onScroll = () => {
-      if (window.scrollY > 0 && atBottom()) setCurrent(last);
+      if (!pinned.current && window.scrollY > 0 && atBottom()) setCurrent(last);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -51,7 +68,7 @@ function useCurrentSection(anchors: readonly string[]): string | null {
     const observer = new IntersectionObserver(
       (entries) => {
         const seen = entries.find((e) => e.isIntersecting);
-        if (seen) setCurrent(seen.target.id.slice("secao-".length));
+        if (seen && !pinned.current) setCurrent(seen.target.id.slice("secao-".length));
       },
       { rootMargin: "-64px 0px -60% 0px" },
     );
@@ -61,7 +78,7 @@ function useCurrentSection(anchors: readonly string[]): string | null {
     }
     return () => observer.disconnect();
   }, [key]);
-  return current;
+  return { current, pick };
 }
 
 /** A página está rolada até o fim (com 2 px de folga). */
@@ -94,8 +111,10 @@ function useKeepPlaceOnRotate(): void {
     const onResize = () => {
       if (window.innerWidth === width) return;
       width = window.innerWidth;
-      if (bottom) window.scrollTo(0, document.documentElement.scrollHeight);
-      else place?.scrollIntoView({ block: "start" });
+      // O que estava no topo volta ao topo; se a página não rolar até lá, ela para no fim, com ele à
+      // vista. Sem nada marcado no fim da página (cardápio curto), volta ao fim (spec 016).
+      if (place) place.scrollIntoView({ block: "start" });
+      else if (bottom) window.scrollTo(0, document.documentElement.scrollHeight);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
@@ -166,7 +185,7 @@ export function MenuApp(
   const shown = query ? all.filter((p) => normalizeDescription(p.name).includes(query)) : all;
   const titled = menu.showSectionTitles && !query && !open && !expired;
   useKeepPlaceOnRotate();
-  const current = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
+  const { current, pick } = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
   /** As primeiras fotos na ordem da tela. */
   const eager = new Set(
     shown
@@ -259,7 +278,7 @@ export function MenuApp(
                 />
                 {titled ? (
                   <>
-                    <SectionBar sections={menu.sections} current={current} />
+                    <SectionBar sections={menu.sections} current={current} onPick={pick} />
                     {menu.sections.map((section) => (
                       <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
                         <h2

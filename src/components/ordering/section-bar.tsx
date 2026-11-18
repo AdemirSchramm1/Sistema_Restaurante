@@ -36,8 +36,11 @@ function useWrapUpToTwoRows() {
 export function SectionBar({
   sections,
   current,
+  onPick,
 }: {
   sections: readonly { id: string | null; name: string }[];
+  /** Tocou numa seção: ela fica marcada mesmo que a página não role até ela. */
+  onPick?: (current: string) => void;
   /** Seção que está na tela: o id dela, "outros", ou `null` antes de rolar. */
   current: string | null;
 }) {
@@ -59,6 +62,7 @@ export function SectionBar({
               <a
                 href={`#${sectionAnchor(s.id)}`}
                 aria-current={active ? "true" : undefined}
+                onClick={() => onPick?.(s.id ?? "outros")}
                 className={cn(
                   "inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4 text-base font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active

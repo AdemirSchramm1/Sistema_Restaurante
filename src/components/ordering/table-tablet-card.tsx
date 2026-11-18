@@ -91,13 +91,14 @@ export function TableTabletCard({
           action={createAction}
           hidden={{ id: table.tableId, version: table.version }}
           submitLabel="Criar link do tablet"
+          size="lg"
           aria-label={`Criar link do tablet da ${label}`}
         />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <code className="min-w-0 break-all rounded bg-muted px-2 py-1 text-xs">{link}</code>
-            <Button type="button" size="sm" variant="outline" onClick={() => copy(link)}>
+            <Button type="button" size="lg" variant="outline" onClick={() => copy(link)}>
               Copiar
             </Button>
           </div>
@@ -140,9 +141,10 @@ export function TableTabletCard({
                 hidden={{ id: table.tableId, version: table.version }}
                 submitLabel={confirm === "RELEASE" ? "Sim, liberar" : "Sim, trocar link"}
                 variant="destructive"
+                size="lg"
                 className="flex flex-wrap gap-2"
               >
-                <Button type="button" size="sm" variant="ghost" onClick={() => setConfirm(null)}>
+                <Button type="button" size="lg" variant="ghost" onClick={() => setConfirm(null)}>
                   Cancelar
                 </Button>
               </ActionForm>
@@ -150,11 +152,11 @@ export function TableTabletCard({
           ) : (
             <div className="flex flex-wrap gap-2">
               {table.boundAt !== null && (
-                <Button type="button" size="sm" variant="outline" onClick={() => setConfirm("RELEASE")}>
+                <Button type="button" size="lg" variant="outline" onClick={() => setConfirm("RELEASE")}>
                   Liberar
                 </Button>
               )}
-              <Button type="button" size="sm" variant="outline" onClick={() => setConfirm("ROTATE")}>
+              <Button type="button" size="lg" variant="outline" onClick={() => setConfirm("ROTATE")}>
                 Trocar link
               </Button>
             </div>
@@ -162,7 +164,7 @@ export function TableTabletCard({
         </>
       )}
       <details className="text-muted-foreground">
-        <summary className="cursor-pointer text-foreground">Como travar o tablet</summary>
+        <summary className="cursor-pointer py-3 text-foreground">Como travar o tablet</summary>
         <ul className="mt-2 grid list-disc gap-1 pl-5">
           <li>Abra o link no navegador do tablet (não pela Tela de Início).</li>
           <li>Android: ative &quot;Fixar app&quot; nas configurações de segurança e fixe o navegador.</li>

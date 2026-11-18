@@ -125,6 +125,8 @@ export function TabletShell({
       body = null;
     }
     const s = seen.current;
+    // Sem rede pelo navegador: uma resposta que saiu antes de cair não tira o aviso.
+    if (!navigator.onLine) return setOffline(true);
     if (!body) {
       s.failures += 1;
       if (s.failures >= FAILURES_TO_OFFLINE) setOffline(true);
@@ -218,7 +220,7 @@ export function TabletShell({
           <div className="flex justify-end">
             <Button
               type="button"
-              size="sm"
+              size="lg"
               variant="outline"
               onClick={() => {
                 try {

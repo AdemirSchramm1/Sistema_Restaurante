@@ -19,6 +19,8 @@ const TEXTS: Record<
   {
     title: string;
     box: string;
+    /** Lugar no quadro: o logo do tamanho dele; a capa ocupa o resto e desce de linha quando não cabe. */
+    item: string;
     empty: string;
     pick: string;
     change: string;
@@ -35,7 +37,8 @@ const TEXTS: Record<
 > = {
   LOGO: {
     title: "Logo",
-    box: "aspect-square w-40",
+    box: "aspect-square w-40 max-w-full",
+    item: "flex-[0_1_auto]",
     empty: "Sem logo",
     pick: "Escolher logo",
     change: "Trocar logo",
@@ -52,6 +55,7 @@ const TEXTS: Record<
   COVER: {
     title: "Foto de capa",
     box: "aspect-[3/1] w-full max-w-xl",
+    item: "flex-[1_1_16rem]",
     empty: "Sem foto de capa",
     pick: "Escolher foto de capa",
     change: "Trocar foto de capa",
@@ -165,7 +169,7 @@ function AppearanceImage({
   };
 
   return (
-    <section aria-label={t.title} className="grid content-start gap-3">
+    <section aria-label={t.title} className={cn("grid min-w-0 grid-cols-1 content-start gap-3", t.item)}>
       <h3 className="font-medium">{t.title}</h3>
       <div className={cn("overflow-hidden rounded-lg border border-border bg-muted", t.box)}>
         {draft ? (
@@ -250,7 +254,7 @@ export function AppearanceForm({
   return (
     <section
       aria-label="Aparência"
-      className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-xs"
+      className="grid min-w-0 gap-4 rounded-xl border border-border bg-card p-4 shadow-xs"
     >
       <div className="grid gap-1">
         <h2 className="font-display text-xl font-semibold">Aparência</h2>
@@ -258,7 +262,7 @@ export function AppearanceForm({
           O logo e a foto de capa aparecem no topo do cardápio do cliente e no tablet da mesa.
         </p>
       </div>
-      <div className="grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)]">
+      <div className="flex min-w-0 flex-wrap gap-6">
         <AppearanceImage
           kind="LOGO"
           photo={appearance.logo}

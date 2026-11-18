@@ -27,7 +27,7 @@ export function MenuHeader({
     <div className="grid grid-cols-1 gap-2">
       <header
         className={cn(
-          "relative -mx-4 flex h-30 items-end overflow-hidden px-4 pb-3 tab:mx-0 tab:h-40 tab:rounded-xl",
+          "relative -mx-4 flex min-h-30 items-end overflow-hidden px-4 pb-3 tab:mx-0 tab:min-h-40 tab:rounded-xl",
           !cover && "bg-primary",
         )}
       >
@@ -73,7 +73,7 @@ export function MenuHeader({
             >
               {restaurantName}
             </span>
-            <h1 className={cn("font-display text-3xl font-semibold tracking-tight", text)}>{title}</h1>
+            <h1 className={cn("font-display text-3xl font-semibold tracking-tight [overflow-wrap:anywhere]", text)}>{title}</h1>
           </div>
         </div>
       </header>
