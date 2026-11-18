@@ -192,7 +192,7 @@ test("chef cria produto pela tela Cardápio e muda o preço com um carrinho aber
   const phone = await browser.newContext();
   const cell = await phone.newPage();
   await cell.goto(s.qrPath);
-  await cell.getByRole("button", { name: "Adicionar Limonada suíça" }).click();
+  await cell.getByRole("button", { name: "Pôr Limonada suíça no carrinho" }).click();
   await expect(cell.getByTestId("cart-total")).toHaveText("R$ 9,00");
 
   await page.goto("/pedidos/cardapio");
@@ -205,7 +205,6 @@ test("chef cria produto pela tela Cardápio e muda o preço com um carrinho aber
   const details = page.getByRole("form", { name: "Descrição e seção" });
   await details.getByRole("button", { name: "Salvar descrição e seção" }).click();
   await expect(details.getByRole("status")).toHaveText("Salvo");
-
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   const confirm = cell.getByRole("dialog", { name: "Confira o pedido" });
   await confirm.getByRole("button", { name: "Confirmar" }).click();
@@ -272,7 +271,7 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   for (const hidden of ["Café", "Sorvete", "Brownie"])
     await expect(frame.getByRole("heading", { level: 3, name: hidden })).toHaveCount(0);
   // Dá para montar o pedido para ver como fica, mas não para enviar.
-  await frame.getByRole("button", { name: "Adicionar Água" }).click();
+  await frame.getByRole("button", { name: "Pôr Água no carrinho" }).click();
   await expect(frame.getByTestId("cart-total")).toHaveText("R$ 5,00");
   await expect(frame.getByRole("button", { name: "Enviar pedido" })).toHaveCount(0);
   await expect(frame.getByText(/Faltam \d+ min/)).toHaveCount(0);

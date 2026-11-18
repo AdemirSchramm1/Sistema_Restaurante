@@ -43,7 +43,7 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
     expect(screen.getByText("Cantina da Nona")).toBeTruthy();
     expect(screen.getByText("Mesa 5")).toBeTruthy();
-    expect(screen.getByText("R$ 28,00")).toBeTruthy();
+    expect(screen.getAllByText("R$ 28,00")[0]).toBeTruthy();
   });
 
   it("cada prato é um cartão, com o preço em destaque (spec 012)", () => {
@@ -51,7 +51,7 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
     const items = within(screen.getByRole("list", { name: "Cardápio" })).getAllByRole("listitem");
     expect(items).toHaveLength(2);
     for (const item of items) expect(item.className).toContain("bg-card");
-    const price = within(items[1]!).getByText("R$ 28,00");
+    const price = within(items[1]!).getAllByText("R$ 28,00")[0]!;
     expect(price.className).toContain("text-primary");
     expect(price.className).toContain("font-semibold");
   });
@@ -249,6 +249,7 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
 describe("girar o aparelho (spec 013, US6.8)", () => {
   const box = (top: number, bottom: number) => () => ({ top, bottom }) as DOMRect;
   const setup = () => {
+    Object.defineProperty(document.documentElement, "scrollHeight", { value: 5000, configurable: true });
     render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
     const scrolled = vi.fn();
     const places = [...document.querySelectorAll<HTMLElement>("[data-place]")];
@@ -280,6 +281,30 @@ describe("girar o aparelho (spec 013, US6.8)", () => {
     set("innerWidth", 568);
     fireEvent(window, new Event("resize"));
     expect(scrolled.mock.calls).toEqual([["secao-s2"]]);
+  });
+
+  it("no fim da página, volta ao fim depois de girar (cardápio curto, spec 016)", () => {
+    const { scrolled } = setup();
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    set("scrollY", 5000 - 768);
+    fireEvent.scroll(window);
+    set("innerWidth", 568);
+    fireEvent(window, new Event("resize"));
+    expect(scrolled).not.toHaveBeenCalled();
+    expect(scrollTo).toHaveBeenCalledWith(0, 5000);
+    vi.unstubAllGlobals();
+  });
+
+  it("no fim da página a última seção fica marcada na barra", () => {
+    setup();
+    set("scrollY", 5000 - 768);
+    act(() => fireEvent.scroll(window));
+    const marked = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("aria-current") === "true")
+      .map((a) => a.textContent);
+    expect(marked).toEqual(["Outros"]);
   });
 
   it("não mexe quando só a altura muda (a barra do navegador some ao rolar)", () => {

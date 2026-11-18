@@ -34,6 +34,16 @@ const EAGER_PHOTOS = 2;
 function useCurrentSection(anchors: readonly string[]): string | null {
   const [current, setCurrent] = useState<string | null>(null);
   const key = anchors.join(" ");
+  // No fim da página a última seção pode não chegar à faixa (cardápio curto, spec 016): ela vale.
+  useEffect(() => {
+    if (!key) return;
+    const last = key.split(" ").at(-1)!.slice("secao-".length);
+    const onScroll = () => {
+      if (window.scrollY > 0 && atBottom()) setCurrent(last);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [key]);
   useEffect(() => {
     if (!key || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
@@ -52,6 +62,9 @@ function useCurrentSection(anchors: readonly string[]): string | null {
   return current;
 }
 
+/** A página está rolada até o fim (com 2 px de folga). */
+const atBottom = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+
 /** Abaixo desta linha (a barra de seções) começa o que o cliente está vendo. */
 const TOP_LINE = 64;
 
@@ -64,8 +77,11 @@ const TOP_LINE = 64;
 function useKeepPlaceOnRotate(): void {
   useEffect(() => {
     let place: Element | null = null;
+    let bottom = false;
     let width = window.innerWidth;
     const onScroll = () => {
+      // No fim da página, o que está à vista é o fim: ao girar, volta ao fim (spec 016).
+      bottom = window.scrollY > 0 && atBottom();
       place =
         window.scrollY > 0
           ? ([...document.querySelectorAll("[data-place]")].find(
@@ -76,7 +92,8 @@ function useKeepPlaceOnRotate(): void {
     const onResize = () => {
       if (window.innerWidth === width) return;
       width = window.innerWidth;
-      place?.scrollIntoView({ block: "start" });
+      if (bottom) window.scrollTo(0, document.documentElement.scrollHeight);
+      else place?.scrollIntoView({ block: "start" });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);

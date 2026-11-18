@@ -47,7 +47,7 @@ describe("cartão do produto", () => {
     // No cartão a descrição fica em até 2 linhas (era 3 na 013); inteira, só na tela do prato.
     expect(description.className).toContain("line-clamp-2");
     expect(description.hasAttribute("data-clamp")).toBe(true);
-    const price = screen.getByText("R$ 42,00");
+    const price = screen.getAllByText("R$ 42,00")[0]!;
     expect(price.className).toContain("text-primary");
     expect(price.className).toContain("font-semibold");
   });
@@ -102,13 +102,21 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
     expect(img.getAttribute("sizes")).toMatch(/112px$/);
     expect(img.getAttribute("srcset")).toContain("300w");
     const plus = screen.getByRole("button", { name: `Pôr ${burger.name} no carrinho` });
-    expect(plus.parentElement!.className).toContain("tab:absolute");
+    // O "+" fica fora do botão que abre o prato: os dois toques não se cobrem.
+    expect(screen.getByRole("button", { name: `Ver ${burger.name}` }).contains(plus)).toBe(false);
   });
 
-  it("o preço tem altura de toque e não fica embaixo do + no cartão", () => {
+  it("o preço fica no texto na linha e desce para o pé, ao lado do +, no cartão", () => {
     setup();
-    const price = screen.getByText("R$ 42,00");
-    expect(price.className).toContain("min-h-11");
-    expect(price.className).toContain("tab:pr-14");
+    const [inRow, inCard] = screen.getAllByText("R$ 42,00");
+    expect(inRow!.className).toContain("tab:hidden");
+    expect(inCard!.className).toMatch(/^hidden .*tab:inline/);
+    expect(inCard!.getAttribute("aria-hidden")).toBe("true");
+    expect(inCard!.parentElement!.contains(screen.getByRole("button", { name: /^Pôr / }))).toBe(true);
+  });
+
+  it("o nome cortado em 2 linhas é corte de propósito (data-clamp)", () => {
+    setup();
+    expect(screen.getByRole("heading", { level: 3 }).hasAttribute("data-clamp")).toBe(true);
   });
 });

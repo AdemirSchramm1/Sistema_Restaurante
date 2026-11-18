@@ -1,7 +1,7 @@
 import type { Result } from "@/domain/shared/result";
 import type { Audit } from "../access/ports";
 import type { CustomerMenuRow } from "@/domain/menu/customer-menu";
-import type { Photo } from "@/domain/menu/photo";
+import type { Photo, PhotoShape } from "@/domain/menu/photo";
 
 /** Portas da edição do cardápio (spec 013, contracts/use-cases.md). */
 
@@ -51,11 +51,18 @@ export interface MenuBoardRepo {
   setDescription(id: string, description: string | null, version: number, audit: Audit): Promise<boolean>;
   /** Grava ou limpa a foto, sem subir a `version`. */
   setPhoto(id: string, photo: Photo | null, audit: Audit): Promise<void>;
+  /** Logo e capa do restaurante (spec 016, R8). */
+  appearance(): Promise<Appearance>;
+  /** Grava ou tira o logo ou a capa; soma 1 na versão do restaurante (o tablet vê pelo carimbo). */
+  setAppearance(kind: AppearanceKind, photo: Photo | null, audit: Audit): Promise<void>;
 }
 
 export interface PhotoProcessor {
-  /** Lê pelo conteúdo, gira, recorta 4:3 no centro e gera WebP nas larguras pedidas pelo domínio. */
-  process(bytes: Uint8Array): Promise<Result<{ variants: PhotoVariant[] }>>;
+  /**
+   * Lê pelo conteúdo, gira, recorta no centro na proporção do formato (4:3 o prato; 1:1 o logo e
+   * 3:1 a capa, spec 016) e gera WebP nas larguras pedidas pelo domínio.
+   */
+  process(bytes: Uint8Array, shape?: PhotoShape): Promise<Result<{ variants: PhotoVariant[] }>>;
 }
 
 export interface PhotoStorage {
@@ -65,3 +72,6 @@ export interface PhotoStorage {
 }
 
 export type MenuRepos = { menuBoard: MenuBoardRepo };
+
+export type AppearanceKind = "LOGO" | "COVER";
+export type Appearance = { logo: Photo | null; cover: Photo | null };

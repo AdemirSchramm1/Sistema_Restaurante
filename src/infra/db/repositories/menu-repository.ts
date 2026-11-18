@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import type { MenuBoardRepo, MenuProductRecord } from "@/application/menu/ports";
 import type { Tx } from "../db";
-import { menuSections, recipes } from "../schema";
+import { menuSections, recipes, restaurants } from "../schema";
 import { dec } from "./util";
 
 /** Seções, ordem, descrição e foto do cardápio (spec 013). */
@@ -129,6 +129,35 @@ export function menuBoardRepository(tx: Tx, restaurantId: string): MenuBoardRepo
           updatedBy: audit.by,
         })
         .where(eq(recipes.id, id));
+    },
+    async appearance() {
+      const [r] = await tx
+        .select({
+          logoBase: restaurants.logoBase,
+          logoWidths: restaurants.logoWidths,
+          coverBase: restaurants.coverBase,
+          coverWidths: restaurants.coverWidths,
+        })
+        .from(restaurants)
+        .where(eq(restaurants.id, restaurantId));
+      const photo = (base: string | null | undefined, widths: number[] | null | undefined) =>
+        base && widths ? { base, widths } : null;
+      return { logo: photo(r?.logoBase, r?.logoWidths), cover: photo(r?.coverBase, r?.coverWidths) };
+    },
+    async setAppearance(kind, photo, audit) {
+      const base = photo?.base ?? null;
+      const widths = photo?.widths ?? null;
+      await tx
+        .update(restaurants)
+        .set({
+          ...(kind === "LOGO"
+            ? { logoBase: base, logoWidths: widths }
+            : { coverBase: base, coverWidths: widths }),
+          version: sql`${restaurants.version} + 1`,
+          updatedAt: audit.at,
+          updatedBy: audit.by,
+        })
+        .where(eq(restaurants.id, restaurantId));
     },
   };
 }

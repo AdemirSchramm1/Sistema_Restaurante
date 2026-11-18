@@ -72,7 +72,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await expect(cell.getByText(restaurant)).toBeVisible();
 
   // Tela do prato: só botões; o + para no limite.
-  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
+  await cell.getByRole("button", { name: "Pôr X-Burger no carrinho" }).click();
   const dish = cell.getByRole("region", { name: "X-Burger" });
   await expect(dish.getByRole("textbox")).toHaveCount(0);
   const more = dish.getByRole("button", { name: "Mais Fatia de queijo" });
@@ -89,6 +89,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await expect(cell.getByTestId("cart-total")).toHaveText("R$ 68,00");
 
   // Envia; dois toques em Confirmar não criam dois pedidos.
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   const confirm = cell.getByRole("dialog", { name: "Confira o pedido" });
   await expect(confirm).toContainText("2 × X-Burger");
@@ -129,7 +130,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await expect(waiter.getByText("Nenhum pedido pronto para levar.")).toBeVisible();
 
   // Preço do adicional muda com o pedido montado: aviso e nova confirmação.
-  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
+  await cell.getByRole("button", { name: "Pôr X-Burger no carrinho" }).click();
   await dish.getByRole("button", { name: "Mais Fatia de queijo" }).click();
   await dish.getByRole("button", { name: "Mais Fatia de queijo" }).click();
   await dish.getByRole("button", { name: "Adicionar ao pedido" }).click();
@@ -139,6 +140,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await addonForm.getByLabel("Preço (R$)").fill("3,50");
   await addonForm.getByRole("button", { name: "Salvar alterações" }).click();
   await expect(addonForm.getByText("Alterações salvas.")).toBeVisible();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   await confirm.getByRole("button", { name: "Confirmar" }).click();
   await expect(confirm.getByRole("alert")).toContainText("O preço de Fatia de queijo mudou para R$ 3,50.");
@@ -160,7 +162,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   });
   await cell.reload();
   await expect(cell.getByRole("heading", { name: "Mesa 5" })).toBeVisible();
-  await expect(cell.getByRole("button", { name: "Adicionar X-Burger" })).toHaveCount(0);
+  await expect(cell.getByRole("button", { name: "Pôr X-Burger no carrinho" })).toHaveCount(0);
   await kitchen.getByRole("form", { name: "Disponível de novo: X-Burger" }).getByRole("button").click();
   await expect(kitchen.getByRole("form", { name: "Esgotado hoje: X-Burger" })).toBeVisible({
     timeout: 10_000,
@@ -175,7 +177,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
         .filter({ hasText: "Seu tempo acabou. Escaneie o QR code da mesa de novo para continuar." }),
     ).toBeVisible();
     await cell.goto(table5);
-    await expect(cell.getByRole("button", { name: "Adicionar X-Burger" })).toBeVisible();
+    await expect(cell.getByRole("button", { name: "Pôr X-Burger no carrinho" })).toBeVisible();
     await expect(cell.getByRole("region", { name: "Meus pedidos" })).toHaveCount(0);
   }
 

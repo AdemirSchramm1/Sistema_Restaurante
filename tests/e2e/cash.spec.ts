@@ -69,8 +69,9 @@ test("caixa do dia: abrir com troco, sangria, reforço, contar sem ver o esperad
   const phoneContext = await browser.newContext({ ...devices["Pixel 7"], locale: "pt-BR" });
   const cell = await phoneContext.newPage();
   await cell.goto(table12);
-  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
-  await cell.getByRole("button", { name: "Adicionar Suco" }).click();
+  await cell.getByRole("button", { name: "Pôr X-Burger no carrinho" }).click();
+  await cell.getByRole("button", { name: "Pôr Suco no carrinho" }).click();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   await cell
     .getByRole("dialog", { name: "Confira o pedido" })

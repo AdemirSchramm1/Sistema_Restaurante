@@ -33,7 +33,7 @@ export function ProductCard({
   return (
     <li
       data-place
-      className="relative flex min-w-0 scroll-mt-20 items-start gap-3 rounded-xl border border-border bg-card p-3 shadow-xs tab:flex-col tab:items-stretch tab:gap-2"
+      className="flex min-w-0 scroll-mt-20 items-start gap-3 rounded-xl border border-border bg-card p-3 shadow-xs tab:flex-col tab:items-stretch tab:gap-2"
     >
       <button
         type="button"
@@ -50,6 +50,7 @@ export function ProductCard({
         />
         <span className="grid min-w-0 flex-1 grid-cols-1 content-start gap-1">
           <h3
+            data-clamp
             title={product.name}
             className="line-clamp-2 text-base font-medium leading-snug [overflow-wrap:anywhere]"
           >
@@ -60,12 +61,16 @@ export function ProductCard({
               {product.description}
             </p>
           )}
-          <span className="min-h-11 content-center text-base font-semibold tabular-nums text-primary tab:pr-14">
+          <span className="text-base font-semibold tabular-nums text-primary tab:hidden">
             {brl(product.price)}
           </span>
         </span>
       </button>
-      <span className="tab:absolute tab:bottom-3 tab:right-3">
+      {/* No cartão (a partir de 600 px) o preço desce para o pé, ao lado do "+", sem os toques se cobrirem. */}
+      <span className="flex shrink-0 items-center justify-between gap-2 tab:mt-auto">
+        <span aria-hidden className="hidden text-base font-semibold tabular-nums text-primary tab:inline">
+          {brl(product.price)}
+        </span>
         <QuickAddButton name={product.name} onClick={onQuickAdd} />
       </span>
     </li>

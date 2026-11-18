@@ -101,3 +101,46 @@ describe("fotos do cardápio (spec 013, FR-003)", () => {
     expect(out.map((v) => v.width)).toEqual([300, 600]);
   });
 });
+
+describe("logo e capa do restaurante (spec 016, R8)", () => {
+  const shaped = async (name: string, shape: "LOGO" | "COVER" | "PRODUCT") => {
+    const r = await sharpProcessor.process(await photo(name), shape);
+    if (!r.ok) throw new Error(r.error.code);
+    return r.value.variants;
+  };
+
+  it("logo de 400 px vira 1:1 em 96, 192 e 384", async () => {
+    const out = await shaped("logo.png", "LOGO");
+    expect(out.map((v) => v.width)).toEqual([96, 192, 384]);
+    for (const v of out) {
+      const meta = await sharp(v.bytes).metadata();
+      expect([meta.format, meta.width, meta.height]).toEqual(["webp", v.width, v.width]);
+    }
+  });
+
+  it("capa de 1920 × 640 vira 3:1 em 600, 1200 e 1920", async () => {
+    const out = await shaped("capa.jpg", "COVER");
+    expect(out.map((v) => v.width)).toEqual([600, 1200, 1920]);
+    for (const v of out) {
+      const meta = await sharp(v.bytes).metadata();
+      expect([meta.width, meta.height]).toEqual([v.width, v.width / 3]);
+    }
+  });
+
+  it("logo pequeno e capa estreita: PHOTO_TOO_SMALL com o formato", async () => {
+    expect(await sharpProcessor.process(await photo("logo-pequeno.png"), "LOGO")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "LOGO" } },
+    });
+    expect(await sharpProcessor.process(await photo("capa-estreita.jpg"), "COVER")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "COVER" } },
+    });
+  });
+
+  it("o prato continua 4:3", async () => {
+    const out = await shaped("deitada.jpg", "PRODUCT");
+    const meta = await sharp(out[0]!.bytes).metadata();
+    expect([meta.width, meta.height]).toEqual([300, 225]);
+  });
+});
