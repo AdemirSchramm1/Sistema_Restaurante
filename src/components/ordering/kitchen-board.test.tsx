@@ -55,6 +55,12 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     ).toBeTruthy();
   });
 
+  it("pedido do tablet: 'Mesa 12 · tablet' (spec 016, FR-008)", () => {
+    render(<KitchenBoard {...props} orders={[order({ source: "TABLET" })]} />);
+    const card = screen.getByRole("article", { name: "Pedido 1, Mesa 12 · tablet" });
+    expect(within(card).getByText("Mesa 12 · tablet")).toBeTruthy();
+  });
+
   it("botão de cada situação", () => {
     render(
       <KitchenBoard

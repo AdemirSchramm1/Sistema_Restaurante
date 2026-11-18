@@ -97,7 +97,7 @@ export async function listOrders(
       toDay: input.to,
       tableId: filterId(input.tableId),
       status: input.status,
-      placedBy: filterId(input.placedBy, "QR"),
+      placedBy: sourceFilter(input.placedBy),
     });
     return ok(
       rows.map((o) => ({
@@ -174,8 +174,9 @@ export type SourceSummaryView = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Id que não casa com nada: filtro com lixo no endereço vira lista vazia, não erro do banco. */
 const NO_MATCH = "00000000-0000-0000-0000-000000000000";
-const filterId = (v: string | undefined, also?: string) =>
-  v === undefined || v === also || UUID.test(v) ? v : NO_MATCH;
+const filterId = (v: string | undefined) => (v === undefined || UUID.test(v) ? v : NO_MATCH);
+/** "Lançado por": QR code, tablet da mesa (spec 016) ou alguém da equipe pelo id. */
+const sourceFilter = (v: string | undefined) => (v === "QR" || v === "TABLET" ? v : filterId(v));
 
 export async function ordersBySource(
   deps: Deps,
@@ -191,13 +192,14 @@ export async function ordersBySource(
       fromDay: input.from,
       toDay: input.to,
       tableId: filterId(input.tableId),
-      placedBy: filterId(input.placedBy, "QR"),
+      placedBy: sourceFilter(input.placedBy),
     });
     const placers = await repos.orders.staffPlacers();
     return ok({
       summary: rows.map((r) => ({ ...r, total: r.total.toFixed(2) })),
       placedByOptions: [
         { value: "QR", label: ORDER_SOURCE_LABELS.QR },
+        { value: "TABLET", label: "Tablet da mesa" },
         ...placers.map((p) => ({ value: p.id, label: p.name })),
       ],
     });

@@ -6,7 +6,8 @@ import { submitOrder } from "../../../src/application/ordering/submit-order";
 import { getMenu } from "../../../src/application/ordering/menu";
 import { closeTab, getTab } from "../../../src/application/billing/tabs";
 import { addPayment } from "../../../src/application/billing/payments";
-import { d } from "../../../src/domain/shared/decimal";
+import { listOrders, ordersBySource } from "../../../src/application/ordering/orders";
+import { businessDay } from "../../../src/domain/ordering/business-day";
 
 /** Pedido pelo tablet da mesa (spec 016, US4; FR-005, FR-008). */
 const db = () => ownerTestDb().$client;
@@ -95,5 +96,24 @@ describe("pedido pelo tablet (spec 016, US4)", () => {
       ]);
       if (open.rows[0]) unwrap((await closeOpenTab()).closed);
     }
+  });
+
+  it("consulta: filtro Origem 'Tablet' e o tablet no resumo, depois do QR code", async () => {
+    const { env, b, send } = await setup();
+    unwrap(await send([b.s.juice()]));
+    await b.s.place([b.s.juice()]);
+    const day = businessDay(env.clock.now(), "America/Sao_Paulo");
+    const tabletOnly = unwrap(await listOrders(env.deps, b.m, { from: day, to: day, placedBy: "TABLET" }));
+    expect(tabletOnly.map((o) => o.source)).toEqual(["TABLET"]);
+    const qrOnly = unwrap(await listOrders(env.deps, b.m, { from: day, to: day, placedBy: "QR" }));
+    expect(qrOnly.map((o) => o.source)).toEqual(["QR"]);
+    const r = unwrap(await ordersBySource(env.deps, b.m, { from: day, to: day }));
+    expect(r.placedByOptions.slice(0, 2)).toEqual([
+      { value: "QR", label: "QR code" },
+      { value: "TABLET", label: "Tablet da mesa" },
+    ]);
+    expect(r.summary.map((x) => x.source)).toEqual(["QR", "TABLET"]);
+    const filtered = unwrap(await ordersBySource(env.deps, b.m, { from: day, to: day, placedBy: "TABLET" }));
+    expect(filtered.summary.map((x) => [x.source, x.count])).toEqual([["TABLET", 1]]);
   });
 });

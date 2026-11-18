@@ -302,8 +302,8 @@ const periodWhere = (f: OrderFilter): SQL | undefined =>
     gte(orders.businessDay, f.fromDay),
     lte(orders.businessDay, f.toDay),
     f.tableId ? eq(orders.tableId, f.tableId) : undefined,
-    f.placedBy === "QR"
-      ? eq(orders.source, "QR")
+    f.placedBy === "QR" || f.placedBy === "TABLET"
+      ? eq(orders.source, f.placedBy)
       : f.placedBy
         ? and(eq(orders.source, "STAFF"), eq(orders.placedBy, f.placedBy))
         : undefined,
@@ -563,10 +563,11 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         }
         groups.set(key, g);
       }
-      // QR code primeiro; depois a equipe pelo nome.
+      // QR code primeiro, depois o tablet da mesa (016) e a equipe pelo nome.
+      const rank = { QR: 0, TABLET: 1, STAFF: 2 } as const;
       return [...groups.values()].sort(
         (a, b) =>
-          (a.source === "QR" ? 0 : 1) - (b.source === "QR" ? 0 : 1) ||
+          rank[a.source] - rank[b.source] ||
           (a.name ?? "").localeCompare(b.name ?? "", "pt-BR"),
       );
     },
