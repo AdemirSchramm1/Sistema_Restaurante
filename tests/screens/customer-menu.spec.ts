@@ -78,6 +78,29 @@ for (const screen of CUSTOMER_SCREENS) {
         await expectNoSideScroll(page);
       });
 
+      if (screen.layout === "list" && screen.height >= 800)
+        test("SC-001: pelo menos 4 pratos inteiros na tela depois do topo (spec 016)", async ({
+          asCustomer: page,
+        }) => {
+          const main = page.locator("main");
+          const first = main.getByRole("heading", { level: 2, name: "Entradas" });
+          await expect(first).toBeVisible();
+          // Rola até o topo sair da tela: a primeira seção fica logo abaixo da barra de seções.
+          await first.evaluate((el) => el.scrollIntoView({ block: "start" }));
+          const height = page.viewportSize()!.height;
+          const whole = await main
+            .locator("li[data-place]")
+            .evaluateAll(
+              (cards, h) =>
+                cards.filter((c) => {
+                  const r = c.getBoundingClientRect();
+                  return r.top >= 0 && r.bottom <= h;
+                }).length,
+              height,
+            );
+          expect(whole).toBeGreaterThanOrEqual(4);
+        });
+
       test("cardápio: é o da imagem de referência", async ({ asCustomer: page, seeded }) => {
         const main = page.locator("main");
         await expect(main.getByRole("heading", { level: 2, name: "Entradas" })).toBeVisible();

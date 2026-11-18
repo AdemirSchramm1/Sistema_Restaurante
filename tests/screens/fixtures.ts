@@ -12,9 +12,11 @@ type WorkerFixtures = {
   seeded: Seeded;
   /** Arquivo com a sessão do gerente já logado. */
   staffSession: string;
+  /** Arquivo com o cookie do tablet da mesa 12, ligado uma vez por processo (spec 016). */
+  tabletSession: string;
 };
 
-export const test = base.extend<{ asStaff: Page; asCustomer: Page }, WorkerFixtures>({
+export const test = base.extend<{ asStaff: Page; asCustomer: Page; asTablet: Page }, WorkerFixtures>({
   scenario: ["board", { scope: "worker", option: true }],
   seeded: [
     async ({ scenario }, provide) => {
@@ -34,6 +36,39 @@ export const test = base.extend<{ asStaff: Page; asCustomer: Page }, WorkerFixtu
     },
     { scope: "worker" },
   ],
+  tabletSession: [
+    async ({ browser, seeded }, provide, info) => {
+      if (!seeded.tabletPath) throw new Error("o cenário não tem o link do tablet");
+      const context = await browser.newContext({ baseURL: info.project.use.baseURL });
+      const page = await context.newPage();
+      await page.goto(seeded.tabletPath);
+      await page.getByRole("region", { name: "Boas-vindas" }).waitFor();
+      const file = info.project.outputDir + `/tablet-${info.workerIndex}-${info.project.name}.json`;
+      await context.storageState({ path: file });
+      await context.close();
+      await provide(file);
+    },
+    { scope: "worker" },
+  ],
+  /**
+   * O tablet da mesa 12 nas boas-vindas, no tamanho e no modo de cor do teste, com o relógio da
+   * página falso para os 3 minutos parados (spec 016).
+   */
+  asTablet: async ({ browser, tabletSession, viewport, colorScheme }, provide, info) => {
+    const context = await browser.newContext({
+      baseURL: info.project.use.baseURL,
+      storageState: tabletSession,
+      viewport,
+      colorScheme,
+      locale: "pt-BR",
+    });
+    const page = await context.newPage();
+    await page.clock.install();
+    await page.goto("/cardapio");
+    await page.getByRole("region", { name: "Boas-vindas" }).waitFor();
+    await provide(page);
+    await context.close();
+  },
   /** Página já logada como gerente, no tamanho e no modo de cor do teste. */
   asStaff: async ({ browser, staffSession, viewport, colorScheme }, provide, info) => {
     const context = await browser.newContext({

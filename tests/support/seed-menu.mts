@@ -7,7 +7,8 @@
  *
  * Cenários (specs/013-editar-cardapio/contracts/screens.md, "Dados fixos"):
  *   plain      produtos sem seção, sem foto (ponto de partida dos testes de ponta a ponta)
- *   board      Entradas, Lanches, Bebidas e Outros, com e sem foto, nome de 70 e descrição de 300
+ *   board      Entradas, Lanches, Bebidas e Outros, com e sem foto, nome de 70 e descrição de 300,
+ *              logo e capa (016) e o link do tablet da mesa 12
  *   sections8  8 seções, para a barra de seções que rola
  *   weight40   40 produtos com foto, para o teste de peso
  */
@@ -27,6 +28,8 @@ import { setProductCustomization } from "../../src/application/ordering/customiz
 import { setProductSoldOut } from "../../src/application/ordering/kitchen";
 import { createTable, tableQrCodes } from "../../src/application/ordering/tables";
 import { createSection } from "../../src/application/menu/sections";
+import { setAppearanceImage } from "../../src/application/menu/appearance";
+import { createTabletLink } from "../../src/application/ordering/tablets";
 import type { RequestContext } from "../../src/application/context";
 import type { Role } from "../../src/domain/access/permissions";
 import { d } from "../../src/domain/shared/decimal";
@@ -265,6 +268,26 @@ const table = unwrap(await createTable(deps, m, { name: "12" }));
 const qr = unwrap(await tableQrCodes(deps, m, { ids: [table.id] }));
 const qrPath = new URL(qr.tables[0]!.url).pathname;
 
+// Cardápio com a cara do restaurante e tablet da mesa 12 (spec 016).
+let tabletPath: string | null = null;
+if (scenario === "board") {
+  for (const [kind, file] of [
+    ["LOGO", "logo.png"],
+    ["COVER", "capa.jpg"],
+  ] as const)
+    unwrap(
+      await setAppearanceImage(deps, m, {
+        kind,
+        bytes: new Uint8Array(await readFile(`tests/screens/photos/${file}`)),
+      }),
+    );
+  unwrap(await createTabletLink(deps, m, { tableId: table.id, version: 1 }));
+  const token = unwrap(
+    await deps.tenant(m.restaurantId, async (repos) => ok((await repos.tables.get(table.id))!.tabletToken)),
+  );
+  tabletPath = `/t/${token}`;
+}
+
 console.log(
   JSON.stringify({
     restaurant,
@@ -273,6 +296,7 @@ console.log(
     chef,
     stockkeeper,
     qrPath,
+    tabletPath,
     sections,
     products,
   }),

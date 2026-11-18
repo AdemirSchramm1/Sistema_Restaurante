@@ -339,7 +339,7 @@ test("boas-vindas e cardápio do tablet, Ainda está aí?, Tablet da mesa e Apar
 
   await page.goto("/pedidos/mesas");
   const box = page.getByRole("region", { name: "Tablet da Mesa 12" });
-  await box.getByRole("button", { name: "Criar link do tablet" }).click();
+  // O cenário "board" já tem o link do tablet da mesa 12.
   await expect(box.locator("code")).toHaveText(/\/t\//);
   expect(await seriousViolations(page), "Tablet da mesa").toEqual([]);
   const link = new URL((await box.locator("code").textContent())!).pathname;
