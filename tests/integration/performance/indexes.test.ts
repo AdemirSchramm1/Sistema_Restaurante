@@ -19,7 +19,9 @@ import { listRecipes } from "../../../src/application/inventory/recipes";
 import { getShellInfo } from "../../../src/application/shell";
 import { listSuppliers } from "../../../src/application/suppliers/suppliers";
 import { cashScenario } from "../cash/fixtures";
-import { unwrap } from "../ordering/fixtures";
+import { tablet, tableWithQr, unwrap } from "../ordering/fixtures";
+import { tabletStatus } from "../../../src/application/ordering/menu-access";
+import { listTabletStatus } from "../../../src/application/ordering/tablets";
 import { getCurrentCashSession } from "../../../src/application/cash/sessions";
 import { getCashClosing } from "../../../src/application/cash/closing";
 import { getCashSessionReport, listCashSessions } from "../../../src/application/cash/reports";
@@ -78,6 +80,29 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
       expect(r.ok, screen).toBe(true);
       expect(planCount(), `${screen}: nenhum plano capturado`).toBeGreaterThan(0);
       problems.push(...fullScans().map((s) => `${screen}: ${s}`));
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it("tablet da mesa: checagem, cardápio, pedidos da conta e a tela Mesas por índice (spec 016)", async () => {
+    const b = await billingScenario(env);
+    for (let i = 1; i <= 5; i++) await tableWithQr(env, b.m, `T${i}`);
+    const cookie = await tablet(env, b.m, b.s.table.tableId);
+    await b.s.place([b.s.juice()]);
+    const { deps, fullScans, planCount } = explaining;
+    const screens: Record<string, () => Promise<unknown>> = {
+      "checagem do tablet": async () => ({ ok: (await tabletStatus(deps, cookie)) !== null }),
+      "cardápio do tablet": () => getMenu(deps, { qr: null, tablet: cookie }),
+      "pedidos enviados do tablet": () => listAccessOrders(deps, { qr: null, tablet: cookie }),
+      "tablets da tela Mesas": () => listTabletStatus(deps, b.m),
+    };
+    const problems: string[] = [];
+    for (const [screen, load] of Object.entries(screens)) {
+      fullScans();
+      const r = (await load()) as { ok: boolean };
+      expect(r.ok, screen).toBe(true);
+      expect(planCount(), `${screen}: nenhum plano capturado`).toBeGreaterThan(0);
+      problems.push(...fullScans().map((x) => `${screen}: ${x}`));
     }
     expect(problems).toEqual([]);
   });
