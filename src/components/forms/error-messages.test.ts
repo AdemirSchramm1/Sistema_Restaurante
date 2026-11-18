@@ -224,3 +224,25 @@ describe("garçom lança o pedido (spec 015, contracts/use-cases.md)", () => {
     );
   });
 });
+
+describe("mensagens do tablet e da aparência (spec 016, contracts/use-cases.md)", () => {
+  it("link do tablet: inválido, já ligado em outro aparelho, desligado pelo gerente", () => {
+    expect(messageFor({ code: "TABLET_LINK_INVALID" })).toBe("Link inválido. Chame um garçom.");
+    expect(messageFor({ code: "TABLET_LINK_IN_USE" })).toBe(
+      "Este link já está ligado em outro tablet. Peça ao gerente para liberar.",
+    );
+    expect(messageFor({ code: "TABLET_RELEASED" })).toBe("Este tablet foi desligado. Peça ao gerente.");
+  });
+
+  it("foto pequena diz o mínimo do logo e da capa; a do prato continua igual", () => {
+    expect(messageFor({ code: "PHOTO_TOO_SMALL", details: { kind: "LOGO" } })).toBe(
+      "O logo precisa ter pelo menos 200 px no lado menor.",
+    );
+    expect(messageFor({ code: "PHOTO_TOO_SMALL", details: { kind: "COVER" } })).toBe(
+      "A foto de capa precisa ter pelo menos 1200 px de largura.",
+    );
+    expect(messageFor({ code: "PHOTO_TOO_SMALL" })).toBe(
+      "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
+    );
+  });
+});

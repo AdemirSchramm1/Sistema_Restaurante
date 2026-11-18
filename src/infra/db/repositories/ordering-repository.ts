@@ -130,6 +130,7 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
   const cols = {
     id: menuAccesses.id,
     tableId: menuAccesses.tableId,
+    kind: menuAccesses.kind,
     openedAt: menuAccesses.openedAt,
     expiresAt: menuAccesses.expiresAt,
     endedAt: menuAccesses.endedAt,
@@ -143,6 +144,7 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
         createdAt: a.openedAt,
         tableId: a.tableId,
         tokenHash: a.tokenHash,
+        kind: a.kind,
         openedAt: a.openedAt,
         expiresAt: a.expiresAt,
         endedAt: a.endedAt,

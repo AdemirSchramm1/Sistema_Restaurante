@@ -5,7 +5,7 @@ import type { ComponentRef, RecipeLineData } from "@/domain/inventory/recipe";
 import type { CancelReason, OrderSource, OrderStatus } from "@/domain/ordering/order";
 import type { CatalogProduct, PricedLine } from "@/domain/ordering/checkout";
 import type { MenuProductRow } from "@/domain/ordering/menu";
-import type { MenuAccessEndReason } from "@/domain/ordering/menu-access";
+import type { MenuAccessEndReason, MenuAccessKind } from "@/domain/ordering/menu-access";
 import type { Audit } from "../access/ports";
 
 /** Repositórios dos pedidos pelo QR code (spec 009) e dos adicionais (spec 010). */
@@ -35,8 +35,11 @@ export interface DiningTableRepo {
 export type MenuAccessRecord = {
   id: string;
   tableId: string;
+  /** QR code (20 minutos) ou tablet fixo na mesa (sem prazo, spec 016). */
+  kind: MenuAccessKind;
   openedAt: Date;
-  expiresAt: Date;
+  /** Nulo só no tablet. */
+  expiresAt: Date | null;
   endedAt: Date | null;
   endReason: MenuAccessEndReason | null;
 };

@@ -30,7 +30,8 @@ export type MenuView = {
   restaurantName: string;
   tableName: string;
   serverNow: string;
-  expiresAt: string;
+  /** Nulo no tablet da mesa (spec 016): sem prazo. */
+  expiresAt: string | null;
   ordersLeft: number;
 } & CustomerMenu<MenuProduct>;
 
@@ -100,7 +101,7 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
       restaurantName: settings.restaurantName,
       tableName: table.name,
       serverNow: now.toISOString(),
-      expiresAt: access.expiresAt.toISOString(),
+      expiresAt: access.expiresAt?.toISOString() ?? null,
       ...menu,
       ordersLeft: Math.max(0, MAX_ORDERS_PER_ACCESS - sent),
     });

@@ -115,7 +115,7 @@ describe("isolamento dos pedidos entre restaurantes (spec 009)", () => {
     const byHash = await testDb().$client.query("select * from app_menu_access_by_token_hash($1)", [
       seeded.hash,
     ]);
-    expect(byHash.fields.map((f) => f.name)).toEqual(["restaurant_id", "menu_access_id"]);
+    expect(byHash.fields.map((f) => f.name)).toEqual(["restaurant_id", "menu_access_id", "kind"]);
 
     await expect(env.deps.global.tableByQrToken(seeded.token)).resolves.toEqual({
       restaurantId: b.restaurantId,

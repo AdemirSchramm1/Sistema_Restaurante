@@ -150,13 +150,15 @@ export function MenuApp(
             {live.menu.restaurantName}
           </span>
           <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {live.menu.tableName}</h1>
-          <AccessTimer
-            key={live.menu.serverNow}
-            serverNow={live.menu.serverNow}
-            expiresAt={live.menu.expiresAt}
-            unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
-            onExpire={() => setExpired(true)}
-          />
+          {live.menu.expiresAt ? (
+            <AccessTimer
+              key={live.menu.serverNow}
+              serverNow={live.menu.serverNow}
+              expiresAt={live.menu.expiresAt}
+              unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
+              onExpire={() => setExpired(true)}
+            />
+          ) : null}
         </header>
       ) : (
         <header className="grid grid-cols-1 gap-2">

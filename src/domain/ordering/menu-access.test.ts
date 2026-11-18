@@ -5,8 +5,10 @@ import {
   accessExpiresAt,
   canSubmitWith,
   isAccessOpen,
+  ordersLimit,
   secondsLeft,
   shouldWarn,
+  type MenuAccessTimes,
 } from "./menu-access";
 
 const opened = new Date("2026-11-08T20:00:00Z");
@@ -14,7 +16,8 @@ const at = (mmss: string) => {
   const [m, s] = mmss.split(":").map(Number);
   return new Date(opened.getTime() + (m! * 60 + s!) * 1000);
 };
-const access = (over: { endedAt?: Date | null } = {}) => ({
+const access = (over: { endedAt?: Date | null } = {}): MenuAccessTimes => ({
+  kind: "QR",
   openedAt: opened,
   expiresAt: accessExpiresAt(opened),
   endedAt: over.endedAt ?? null,
@@ -58,5 +61,36 @@ describe("acesso ao cardápio: 20 minutos desde a leitura do QR code (spec 009, 
     expect(shouldWarn(access(), at("17:59"), true)).toBe(false);
     expect(shouldWarn(access(), at("18:30"), false)).toBe(false);
     expect(shouldWarn(access(), at("20:00"), true)).toBe(false);
+  });
+});
+
+describe("tablet fixo na mesa: acesso sem prazo (spec 016, FR-005, R1)", () => {
+  const tablet = (endedAt: Date | null = null): MenuAccessTimes => ({
+    kind: "TABLET",
+    openedAt: opened,
+    expiresAt: null,
+    endedAt,
+  });
+  const later = (hours: number) => new Date(opened.getTime() + hours * 3_600_000);
+
+  it("aberto 12 horas e 400 dias depois, até ser encerrado", () => {
+    expect(isAccessOpen(tablet(), later(12))).toBe(true);
+    expect(isAccessOpen(tablet(), later(400 * 24))).toBe(true);
+    expect(isAccessOpen(tablet(later(1)), later(2))).toBe(false);
+  });
+
+  it("envia enquanto aberto, sem tolerância a calcular", () => {
+    expect(canSubmitWith(tablet(), later(400 * 24))).toBe(true);
+    expect(canSubmitWith(tablet(later(1)), later(2))).toBe(false);
+  });
+
+  it("sem contagem nem aviso de tempo", () => {
+    expect(secondsLeft(tablet(), later(1))).toBeNull();
+    expect(shouldWarn(tablet(), later(1), true)).toBe(false);
+  });
+
+  it("limite de pedidos: 10 no QR code, nenhum no tablet", () => {
+    expect(ordersLimit("QR")).toBe(10);
+    expect(ordersLimit("TABLET")).toBeNull();
   });
 });

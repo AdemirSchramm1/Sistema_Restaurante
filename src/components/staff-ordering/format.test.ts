@@ -15,5 +15,6 @@ describe("textos da tela do garçom (spec 015)", () => {
     expect(placedByText({ source: "QR", placedByName: null })).toBe("QR code");
     expect(placedByText({ source: "STAFF", placedByName: "João" })).toBe("João");
     expect(placedByText({ source: "STAFF", placedByName: null })).toBe("Equipe");
+    expect(placedByText({ source: "TABLET", placedByName: null })).toBe("Tablet da mesa");
   });
 });

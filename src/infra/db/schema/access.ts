@@ -5,6 +5,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -41,11 +42,26 @@ export const restaurants = pgTable(
     /** Taxa de serviço em % (spec 011, FR-014); nula = desligada. */
     serviceChargeRate: numeric("service_charge_rate", { precision: 5, scale: 2 }).default("10.00"),
     nextGroupCode: integer("next_group_code").notNull(),
+    /** Logo e capa do cardápio (spec 016): base do endereço e larguras gravadas, como a foto do prato. */
+    logoBase: text("logo_base"),
+    logoWidths: smallint("logo_widths").array(),
+    coverBase: text("cover_base"),
+    coverWidths: smallint("cover_widths").array(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     createdBy: uuid("created_by"),
     ...editable,
   },
-  () => [check("restaurants_service_charge_rate", sql`service_charge_rate between 0 and 20`)],
+  () => [
+    check("restaurants_service_charge_rate", sql`service_charge_rate between 0 and 20`),
+    check(
+      "restaurants_logo_pair",
+      sql`(logo_base is null) = (logo_widths is null) and (logo_widths is null or cardinality(logo_widths) >= 1)`,
+    ),
+    check(
+      "restaurants_cover_pair",
+      sql`(cover_base is null) = (cover_widths is null) and (cover_widths is null or cardinality(cover_widths) >= 1)`,
+    ),
+  ],
 );
 
 export const memberships = pgTable("memberships", {

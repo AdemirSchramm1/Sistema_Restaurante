@@ -93,7 +93,7 @@ describe("banco dos pedidos (spec 009, data-model.md)", () => {
       const q = `insert into menu_accesses (id, restaurant_id, created_at, table_id, token_hash, opened_at, expires_at)
         values ($1, $2, $3, $4, $5, $3, $3::timestamptz + interval '30 minutes')`;
       expect(await fails(c, q, [ID(30), r.restaurantId, NOW, ID(1), "h2"])).toBe(
-        "menu_accesses_twenty_minutes",
+        "menu_accesses_expiry_by_kind",
       );
     });
   });

@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@/domain/ordering/order";
+import type { OrderSource, OrderStatus } from "@/domain/ordering/order";
 import type { BadgeTone } from "@/components/ui/badge";
 
 /** "há 35 min", "há 1 h 05 min" (grade de mesas, US1-1). */
@@ -12,9 +12,9 @@ export function sinceText(from: string, now: string): string {
 /** "3 itens", "1 item". */
 export const itemsText = (n: number) => (n === 1 ? "1 item" : `${n} itens`);
 
-/** "QR code" ou o nome de quem lançou (FR-017: nunca "origem EQUIPE"). */
-export const placedByText = (o: { source: "QR" | "STAFF"; placedByName: string | null }) =>
-  o.source === "QR" ? "QR code" : (o.placedByName ?? "Equipe");
+/** "QR code", "Tablet da mesa" (016) ou o nome de quem lançou (FR-017: nunca "origem EQUIPE"). */
+export const placedByText = (o: { source: OrderSource; placedByName: string | null }) =>
+  o.source === "QR" ? "QR code" : o.source === "TABLET" ? "Tablet da mesa" : (o.placedByName ?? "Equipe");
 
 export const STATUS_TONES: Record<OrderStatus, BadgeTone> = {
   RECEIVED: "info",

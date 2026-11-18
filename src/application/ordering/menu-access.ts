@@ -42,6 +42,7 @@ export async function openMenuAccess(
       id: deps.ids.next(),
       tableId: table.tableId,
       tokenHash: hash,
+      kind: "QR",
       openedAt: now,
       expiresAt,
       endedAt: null,
