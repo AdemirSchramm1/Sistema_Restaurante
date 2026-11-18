@@ -7,6 +7,7 @@ import type { CatalogProduct, PricedLine } from "@/domain/ordering/checkout";
 import type { MenuProductRow } from "@/domain/ordering/menu";
 import type { MenuAccessEndReason, MenuAccessKind } from "@/domain/ordering/menu-access";
 import type { Audit } from "../access/ports";
+import type { Appearance } from "../menu/ports";
 
 /** Repositórios dos pedidos pelo QR code (spec 009) e dos adicionais (spec 010). */
 
@@ -96,6 +97,8 @@ export type OrderingSettings = {
   timezone: string;
   acceptingQrOrders: boolean;
   version: number;
+  /** Logo e capa (spec 016), lidos junto para o cardápio não ir ao banco de novo. */
+  appearance: Appearance;
 };
 
 export interface OrderingSettingsRepo {

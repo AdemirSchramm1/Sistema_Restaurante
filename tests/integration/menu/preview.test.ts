@@ -24,7 +24,13 @@ describe("pré-visualização do cardápio (spec 013, US5)", () => {
     const { token } = await tableWithQr(env, s.m, "7");
     const customer = unwrap(await getMenu(env.deps, await scan(env, token)));
     const preview = unwrap(await getMenuPreview(env.deps, s.chef));
-    expect(preview).toEqual({ showSectionTitles: customer.showSectionTitles, sections: customer.sections });
+    expect(preview).toEqual({
+      showSectionTitles: customer.showSectionTitles,
+      sections: customer.sections,
+      restaurantName: customer.restaurantName,
+      // Spec 016: o topo com o logo e a capa, como o cliente vê.
+      appearance: customer.appearance,
+    });
     // Só o que dá para pedir: o Suco está esgotado hoje e a Batata frita não tem preço.
     expect(preview.sections.map((x) => [x.name, x.products.map((p) => p.name)])).toEqual([
       ["Lanches", ["X-Burger", "X-Salada"]],

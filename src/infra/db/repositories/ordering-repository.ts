@@ -266,11 +266,21 @@ export function orderingSettingsRepository(tx: Tx, restaurantId: string): Orderi
           timezone: restaurants.timezone,
           acceptingQrOrders: restaurants.acceptingQrOrders,
           version: restaurants.version,
+          logoBase: restaurants.logoBase,
+          logoWidths: restaurants.logoWidths,
+          coverBase: restaurants.coverBase,
+          coverWidths: restaurants.coverWidths,
         })
         .from(restaurants)
         .where(eq(restaurants.id, restaurantId));
       if (!r) throw new Error("restaurante não encontrado");
-      return r;
+      const { logoBase, logoWidths, coverBase, coverWidths, ...settings } = r;
+      const photo = (base: string | null, widths: number[] | null) =>
+        base && widths ? { base, widths } : null;
+      return {
+        ...settings,
+        appearance: { logo: photo(logoBase, logoWidths), cover: photo(coverBase, coverWidths) },
+      };
     },
     async setAcceptingQrOrders(accepting, version, audit) {
       const r = await tx

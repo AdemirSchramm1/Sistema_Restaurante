@@ -94,3 +94,25 @@ describe("uploadPhoto", () => {
     expect(opened).toEqual(["POST", "/api/cardapio/foto"]);
   });
 });
+
+describe("logo e capa (spec 016)", () => {
+  it("manda o formato no lugar do produto", async () => {
+    let sent: FormData | null = null;
+    const xhr = {
+      status: 200,
+      responseText: JSON.stringify({ photo: { base: "/c", widths: [600] } }),
+      upload: { onprogress: null },
+      onload: null as (() => void) | null,
+      onerror: null,
+      open: () => {},
+      send(body: FormData) {
+        sent = body;
+        this.onload?.();
+      },
+    };
+    const r = await uploadPhoto({ kind: "COVER", file: new Blob(["x"]), onProgress: () => {} }, () => xhr);
+    expect(r).toEqual({ ok: true, value: { base: "/c", widths: [600] } });
+    expect(sent!.get("kind")).toBe("COVER");
+    expect(sent!.get("recipeId")).toBeNull();
+  });
+});

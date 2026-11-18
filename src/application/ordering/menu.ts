@@ -10,6 +10,7 @@ import {
   type CustomerMenuRow,
 } from "@/domain/menu/customer-menu";
 import type { Photo } from "@/domain/menu/photo";
+import type { Appearance } from "../menu/ports";
 import type { OrderStatus } from "@/domain/ordering/order";
 import { err, ok, type Result } from "@/domain/shared/result";
 
@@ -26,7 +27,12 @@ export type MenuProduct = {
   removables: { kind: "ITEM" | "RECIPE"; id: string; label: string }[];
 };
 
+/** O cardápio do cliente pelo QR code ou pelo tablet fixo na mesa (spec 016). */
+export type MenuMode = "QR" | "TABLET";
+
 export type MenuView = {
+  mode: MenuMode;
+  appearance: Appearance;
   restaurantName: string;
   tableName: string;
   serverNow: string;
@@ -98,6 +104,8 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
     const menu = await customerMenu(repos, businessDay(now, settings.timezone));
     const sent = await repos.orders.countForAccess(access.id);
     return ok({
+      mode: access.kind,
+      appearance: settings.appearance,
       restaurantName: settings.restaurantName,
       tableName: table.name,
       serverNow: now.toISOString(),

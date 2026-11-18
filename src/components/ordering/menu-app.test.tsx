@@ -12,6 +12,8 @@ afterEach(() => {
 });
 
 const menu: MenuView = {
+  mode: "QR",
+  appearance: { logo: null, cover: null },
   restaurantName: "Cantina da Nona",
   tableName: "5",
   serverNow: new Date().toISOString(),
@@ -434,5 +436,36 @@ describe("mais pratos por tela e carrinho sempre à vista (spec 016, US2 e US3)"
     expect(screen.queryByTestId("cart-bar")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Pôr Suco no carrinho" }));
     expect(screen.getByRole("button", { name: "Ver pedido · 1 item · R$ 9,00" })).toBeTruthy();
+  });
+});
+
+describe("topo com logo e capa (spec 016, US1)", () => {
+  it("o cardápio de verdade mostra a capa, o logo, o nome e a mesa", () => {
+    const appearance = {
+      logo: { base: "/l", widths: [96] },
+      cover: { base: "/c", widths: [600] },
+    };
+    render(<MenuApp menu={{ ...menu, appearance }} orders={[]} submit={vi.fn()} />);
+    const banner = screen.getByRole("banner");
+    expect(banner.querySelector("img[data-cover]")).toBeTruthy();
+    expect(within(banner).getByRole("img", { name: "Logo de Cantina da Nona" })).toBeTruthy();
+    expect(within(banner).getByRole("heading", { level: 1 }).textContent).toBe("Mesa 5");
+  });
+
+  it("a pré-visualização mostra o mesmo topo, com Cardápio no lugar da mesa", () => {
+    render(
+      <MenuApp
+        preview
+        menu={{
+          showSectionTitles: false,
+          sections: menu.sections,
+          restaurantName: "Cantina da Nona",
+          appearance: { logo: null, cover: { base: "/c", widths: [600] } },
+        }}
+      />,
+    );
+    const banner = screen.getByRole("banner");
+    expect(within(banner).getByRole("heading", { level: 1 }).textContent).toBe("Cardápio");
+    expect(within(banner).getByText("Cantina da Nona")).toBeTruthy();
   });
 });

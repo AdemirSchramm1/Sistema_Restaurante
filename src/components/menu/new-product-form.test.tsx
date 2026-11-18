@@ -55,7 +55,7 @@ function setup({ answer = created, check = ok(reduced) as Result<Blob> } = {}) {
       }}
       reduce={async () => check}
       upload={(input) => {
-        uploads.push({ recipeId: input.recipeId, file: input.file });
+        uploads.push({ recipeId: input.recipeId!, file: input.file });
         progress = input.onProgress;
         return sending.promise;
       }}

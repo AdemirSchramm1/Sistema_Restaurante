@@ -12,6 +12,8 @@ import { CartPanel } from "./cart-panel";
 import { addToCart, cartTotal, choiceKey, type CartLine, type CartLineData } from "./cart-state";
 import { brl } from "./format";
 import { quickAdd } from "@/domain/ordering/quick-add";
+import type { Appearance } from "@/application/menu/ports";
+import { MenuHeader } from "./menu-header";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
 import { ProductCard } from "./product-card";
@@ -114,10 +116,17 @@ export function MenuApp(
   props:
     | { menu: MenuView; orders: AccessOrderView[]; submit: SubmitFn; preview?: false }
     /** Pré-visualização da equipe (spec 013, US5): o mesmo cardápio, sem mesa, sem tempo e sem envio. */
-    | { menu: CustomerMenu<MenuProduct>; preview: true },
+    | {
+        menu: CustomerMenu<MenuProduct> & { restaurantName?: string; appearance?: Appearance };
+        preview: true;
+      },
 ) {
   const { menu } = props;
   const live = props.preview ? null : props;
+  const previewTop =
+    props.preview && props.menu.appearance && props.menu.restaurantName
+      ? { restaurantName: props.menu.restaurantName, appearance: props.menu.appearance }
+      : null;
   const [lines, setLines] = useState<CartLine[]>([]);
   const [open, setOpen] = useState<MenuProduct | null>(null);
   const [q, setQ] = useState("");
@@ -173,11 +182,11 @@ export function MenuApp(
   return (
     <div className="grid grid-cols-1 gap-5">
       {live ? (
-        <header className="grid grid-cols-1 gap-1">
-          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary [overflow-wrap:anywhere]">
-            {live.menu.restaurantName}
-          </span>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {live.menu.tableName}</h1>
+        <MenuHeader
+          restaurantName={live.menu.restaurantName}
+          title={`Mesa ${live.menu.tableName}`}
+          appearance={live.menu.appearance}
+        >
           {live.menu.expiresAt ? (
             <AccessTimer
               key={live.menu.serverNow}
@@ -187,17 +196,25 @@ export function MenuApp(
               onExpire={() => setExpired(true)}
             />
           ) : null}
-        </header>
+        </MenuHeader>
       ) : (
-        <header className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <p
             role="status"
             className="rounded-lg bg-warning-soft px-3 py-2 text-center text-sm font-medium text-warning-soft-foreground"
           >
             Pré-visualização: pedidos não são enviados
           </p>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Cardápio</h1>
-        </header>
+          {previewTop ? (
+            <MenuHeader
+              restaurantName={previewTop.restaurantName}
+              title="Cardápio"
+              appearance={previewTop.appearance}
+            />
+          ) : (
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Cardápio</h1>
+          )}
+        </div>
       )}
 
       {live && !expired && <AutoRefresh seconds={10} />}

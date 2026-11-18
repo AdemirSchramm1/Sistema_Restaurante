@@ -126,3 +126,37 @@ describe("browserPhotoTools", () => {
     expect(browserPhotoTools.canvas()).toBeInstanceOf(HTMLCanvasElement);
   });
 });
+
+describe("logo e capa (spec 016, US1-6)", () => {
+  const tools = (width: number, height: number, drawn: number[] = []) => ({
+    decode: async () => ({ width, height, close: () => {} }),
+    canvas: () => {
+      const c = {
+        width: 0,
+        height: 0,
+        getContext: () => ({ drawImage: () => drawn.push(c.width) }),
+        toBlob: (done: (b: Blob | null) => void) => done(new Blob(["x"])),
+      };
+      return c;
+    },
+  });
+  const file = new File(["x"], "logo.png", { type: "image/png" });
+
+  it("logo pequeno e capa estreita não vão: a mensagem diz o mínimo do formato", async () => {
+    expect(await reducePhoto(file, tools(150, 150), "LOGO")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "LOGO" } },
+    });
+    expect(await reducePhoto(file, tools(1000, 400), "COVER")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "COVER" } },
+    });
+  });
+
+  it("a capa vai com 1920 px de largura (a maior variante), o logo com até 800", async () => {
+    const drawn: number[] = [];
+    expect((await reducePhoto(file, tools(4000, 1333, drawn), "COVER")).ok).toBe(true);
+    expect((await reducePhoto(file, tools(2000, 2000, drawn), "LOGO")).ok).toBe(true);
+    expect(drawn).toEqual([1920, 800]);
+  });
+});
