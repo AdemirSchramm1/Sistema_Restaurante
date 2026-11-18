@@ -276,7 +276,7 @@ export function MenuApp(
           {live && <MyOrders orders={live.orders} />}
         </div>
         {!expired &&
-          (!live || live.menu.ordersLeft > 0 ? (
+          (!live || live.menu.ordersLeft === null || live.menu.ordersLeft > 0 ? (
             <CartPanel
               lines={lines}
               onChange={setLines}

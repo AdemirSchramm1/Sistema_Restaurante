@@ -1,7 +1,6 @@
 import type { Deps, Repos } from "../ports";
-import { accessFromCookie, loadAccess } from "./menu-access";
-import { isAccessOpen } from "@/domain/ordering/menu-access";
-import { MAX_ORDERS_PER_ACCESS } from "@/domain/ordering/order-lines";
+import { accessFromCookie, closedAccessError, loadAccess, type MenuCookies } from "./menu-access";
+import { isAccessOpen, ordersLimit } from "@/domain/ordering/menu-access";
 import { businessDay } from "@/domain/ordering/business-day";
 import {
   buildCustomerMenu,
@@ -38,7 +37,8 @@ export type MenuView = {
   serverNow: string;
   /** Nulo no tablet da mesa (spec 016): sem prazo. */
   expiresAt: string | null;
-  ordersLeft: number;
+  /** Nulo no tablet da mesa (spec 016): sem limite de pedidos. */
+  ordersLeft: number | null;
 } & CustomerMenu<MenuProduct>;
 
 export type AccessOrderView = {
@@ -88,7 +88,7 @@ export async function customerMenu(repos: Repos, today: string): Promise<Custome
   return { showSectionTitles: sections.some((s) => s.id !== null), sections };
 }
 
-export async function getMenu(deps: Deps, cookie: string | null): Promise<Result<MenuView>> {
+export async function getMenu(deps: Deps, cookie: MenuCookies): Promise<Result<MenuView>> {
   const found = await accessFromCookie(deps, cookie);
   if (!found.ok) return found;
   return deps.tenant(found.value.restaurantId, async (repos) => {
@@ -96,13 +96,14 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
     if (!loaded.ok) return loaded;
     const { access, table, settings } = loaded.value;
     const now = deps.clock.now();
-    if (access.endReason === "TAB_CLOSED") return err("TABLE_TAB_CLOSED");
-    if (!isAccessOpen(access, now)) return err("ACCESS_EXPIRED");
+    const closed = closedAccessError(access, now);
+    if (closed) return err(closed);
     if (!table.active) return err("TABLE_INACTIVE");
     if (!settings.acceptingQrOrders) return err("ORDERING_PAUSED");
 
     const menu = await customerMenu(repos, businessDay(now, settings.timezone));
-    const sent = await repos.orders.countForAccess(access.id);
+    const limit = ordersLimit(access.kind);
+    const sent = limit === null ? 0 : await repos.orders.countForAccess(access.id);
     return ok({
       mode: access.kind,
       appearance: settings.appearance,
@@ -111,7 +112,7 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
       serverNow: now.toISOString(),
       expiresAt: access.expiresAt?.toISOString() ?? null,
       ...menu,
-      ordersLeft: Math.max(0, MAX_ORDERS_PER_ACCESS - sent),
+      ordersLeft: limit === null ? null : Math.max(0, limit - sent),
     });
   });
 }
@@ -119,7 +120,7 @@ export async function getMenu(deps: Deps, cookie: string | null): Promise<Result
 /** Pedidos deste celular (deste acesso), mais novo primeiro. Nunca de outro celular da mesa. */
 export async function listAccessOrders(
   deps: Deps,
-  cookie: string | null,
+  cookie: MenuCookies,
 ): Promise<Result<AccessOrderView[]>> {
   const found = await accessFromCookie(deps, cookie);
   if (!found.ok) return found;

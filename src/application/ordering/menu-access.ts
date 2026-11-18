@@ -1,5 +1,11 @@
 import type { Deps, Repos } from "../ports";
-import { accessExpiresAt } from "@/domain/ordering/menu-access";
+import {
+  accessExpiresAt,
+  isAccessOpen,
+  type MenuAccessEndReason,
+  type MenuAccessKind,
+  type MenuAccessTimes,
+} from "@/domain/ordering/menu-access";
 import { err, ok, type Result } from "@/domain/shared/result";
 import { recordTablet } from "./tablets";
 
@@ -55,14 +61,40 @@ export async function openMenuAccess(
   });
 }
 
-/** Restaurante e acesso do cookie, ou `ACCESS_EXPIRED`. */
+/**
+ * Cookies do cardápio: o do celular (QR code) e o do tablet da mesa (spec 016). Um texto só é o
+ * cookie do QR code, como antes da 016.
+ */
+export type MenuCookies = string | null | { qr: string | null; tablet: string | null };
+
+/** Com os dois cookies vale o do tablet (spec 016, R2): ler um QR code no tablet não o tira da mesa. */
+export const pickMenuCookie = (c: MenuCookies): string | null =>
+  c === null || typeof c === "string" ? c : (c.tablet ?? c.qr);
+
+/** Restaurante, acesso e tipo do cookie, ou `ACCESS_EXPIRED`. */
 export async function accessFromCookie(
   deps: Deps,
-  cookie: string | null,
-): Promise<Result<{ restaurantId: string; menuAccessId: string }>> {
+  cookies: MenuCookies,
+): Promise<Result<{ restaurantId: string; menuAccessId: string; kind: MenuAccessKind }>> {
+  const cookie = pickMenuCookie(cookies);
   if (!cookie) return err("ACCESS_EXPIRED");
   const found = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
   return found ? ok(found) : err("ACCESS_EXPIRED");
+}
+
+/**
+ * Por que este acesso não abre mais o cardápio, na ordem da spec 016: tablet liberado ou com link
+ * trocado; celular de conta fechada; prazo do QR code.
+ */
+export function closedAccessError(
+  access: { kind: MenuAccessKind; endReason: MenuAccessEndReason | null } & MenuAccessTimes,
+  now: Date,
+) {
+  if (access.endReason === "RELEASED") return "TABLET_RELEASED" as const;
+  if (access.endReason === "LINK_ROTATED") return "TABLET_LINK_INVALID" as const;
+  if (access.endReason === "TAB_CLOSED") return "TABLE_TAB_CLOSED" as const;
+  if (!isAccessOpen(access, now)) return "ACCESS_EXPIRED" as const;
+  return null;
 }
 
 /** Dentro da transação do restaurante: acesso, mesa e chave, na ordem das conferências. */

@@ -157,7 +157,7 @@ export type NewOrder = {
   tableId: string;
   tabId: string;
   /** QR code: o acesso do celular. Equipe: quem lançou (spec 015, R1). */
-  origin: { source: "QR"; menuAccessId: string } | { source: "STAFF"; placedBy: string };
+  origin: { source: "QR" | "TABLET"; menuAccessId: string } | { source: "STAFF"; placedBy: string };
   clientRequestId: string;
   businessDay: string;
   total: Decimal;

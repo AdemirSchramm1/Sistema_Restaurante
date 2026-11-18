@@ -426,7 +426,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       tabId: o.tabId,
       source: o.origin.source,
       placedBy,
-      menuAccessId: o.origin.source === "QR" ? o.origin.menuAccessId : null,
+      menuAccessId: o.origin.source === "STAFF" ? null : o.origin.menuAccessId,
       clientRequestId: o.clientRequestId,
       businessDay: o.businessDay,
       number,

@@ -139,3 +139,27 @@ export async function orderingScenario(env: TestEnv, m: RequestContext) {
   };
   return { ...k, burgerId: k.burger, cheese, table, cookie, burger, juice, place };
 }
+
+/** Cria o link do tablet da mesa e liga um aparelho: devolve o cookie do tablet (spec 016). */
+export async function tablet(env: TestEnv, ctx: RequestContext, tableId: string) {
+  const { createTabletLink } = await import("../../../src/application/ordering/tablets");
+  const { bindTablet } = await import("../../../src/application/ordering/menu-access");
+  const { ownerTestDb } = await import("../harness");
+  const { sql } = await import("drizzle-orm");
+  const row = async () =>
+    (
+      await ownerTestDb().execute<{ version: number; tablet_token: string | null }>(
+        sql`select version, tablet_token from dining_tables where id = ${tableId}`,
+      )
+    ).rows[0]!;
+  const before = await row();
+  if (!before.tablet_token)
+    unwrap(await createTabletLink(env.deps, ctx, { tableId, version: before.version }));
+  const bound = await bindTablet(env.deps, {
+    tabletToken: (await row()).tablet_token!,
+    cookie: null,
+    origin: { ip: "203.0.113.9", userAgent: "Tablet de teste" },
+  });
+  if (bound.kind !== "BOUND") throw new Error(`tablet não ligou: ${bound.kind}`);
+  return bound.cookie;
+}
