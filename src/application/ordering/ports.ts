@@ -15,7 +15,19 @@ export type DiningTableRecord = {
   name: string;
   active: boolean;
   qrToken: string;
+  /** Link do tablet fixo na mesa (spec 016); nulo até o gerente criar. */
+  tabletToken: string | null;
   version: number;
+};
+
+/** Mesa ativa com o link e o tablet ligado, para a tela Mesas (spec 016, US4-8). */
+export type TabletStatusRow = {
+  tableId: string;
+  name: string;
+  tabletToken: string | null;
+  version: number;
+  boundAt: Date | null;
+  lastSeenAt: Date | null;
 };
 
 export interface DiningTableRepo {
@@ -30,6 +42,10 @@ export interface DiningTableRepo {
   rename(id: string, name: string, normalized: string, version: number, audit: Audit): Promise<Result<void>>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   rotateQr(id: string, qrToken: string, version: number, audit: Audit): Promise<Result<void>>;
+  /** Cria ou troca o link do tablet (spec 016); soma 1 na versão. */
+  setTabletToken(id: string, tabletToken: string, version: number, audit: Audit): Promise<Result<void>>;
+  /** Mesas ativas com o tablet aberto de cada uma, em uma consulta (spec 016). */
+  tabletStatus(): Promise<TabletStatusRow[]>;
 }
 
 export type MenuAccessRecord = {
@@ -42,11 +58,22 @@ export type MenuAccessRecord = {
   expiresAt: Date | null;
   endedAt: Date | null;
   endReason: MenuAccessEndReason | null;
+  /** Sinal de vida do tablet (spec 016); sempre nulo no QR code. */
+  lastSeenAt: Date | null;
+};
+
+export type NewTabletAccess = {
+  id: string;
+  tableId: string;
+  tokenHash: string;
+  openedAt: Date;
+  ip: string | null;
+  userAgent: string | null;
 };
 
 export interface MenuAccessRepo {
   insert(
-    a: Omit<MenuAccessRecord, "endReason"> & {
+    a: Omit<MenuAccessRecord, "endReason" | "lastSeenAt"> & {
       tokenHash: string;
       ip: string | null;
       userAgent: string | null;
@@ -54,8 +81,14 @@ export interface MenuAccessRepo {
   ): Promise<void>;
   get(id: string): Promise<MenuAccessRecord | null>;
   end(id: string, at: Date, reason: MenuAccessEndReason): Promise<void>;
-  /** Encerra os acessos ainda abertos da mesa (conta fechada, spec 011). Devolve quantos. */
+  /** Encerra os acessos do QR code ainda abertos da mesa (conta fechada, spec 011; R6 da 016). */
   endOpenForTable(tableId: string, at: Date, reason: MenuAccessEndReason): Promise<number>;
+  /** Liga o tablet; `false` quando a mesa já tem um aberto (único `menu_accesses_one_tablet`). */
+  insertTablet(a: NewTabletAccess): Promise<boolean>;
+  /** O acesso do tablet aberto da mesa, ou nulo. */
+  openTablet(tableId: string): Promise<MenuAccessRecord | null>;
+  /** Grava o sinal de vida só quando o gravado tem mais de 60 s; diz se gravou. */
+  touch(id: string, now: Date): Promise<boolean>;
 }
 
 export type OrderingSettings = {
@@ -171,6 +204,11 @@ export interface OrderRepo {
   /** Mais novo primeiro. */
   listForAccess(menuAccessId: string): Promise<OrderRecord[]>;
   /** Pedidos da conta, mais antigo primeiro (spec 011). */
+  /**
+   * Conta aberta da mesa e um carimbo que muda com o nome e a situação da mesa, a aparência e a
+   * chave do restaurante, a conta e a situação dos pedidos dela (spec 016, R5). Uma ida ao banco.
+   */
+  tabletStamp(tableId: string): Promise<{ tabId: string | null; stamp: string }>;
   listForTab(tabId: string): Promise<OrderRecord[]>;
   list(filter: OrderFilter): Promise<OrderRecord[]>;
   /** Muda a situação com trava otimista e grava o evento. */

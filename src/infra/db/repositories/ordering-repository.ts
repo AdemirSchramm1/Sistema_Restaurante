@@ -22,6 +22,7 @@ import { compareTableNames } from "@/domain/ordering/table-name";
 import { describeChanges } from "@/domain/ordering/customization";
 import { isOnMenu } from "@/domain/ordering/menu";
 import { SUBMIT_GRACE_SECONDS } from "@/domain/ordering/menu-access";
+import { HEARTBEAT_SECONDS } from "@/domain/ordering/tablet-signal";
 import { err, ok, type Result } from "@/domain/shared/result";
 import type { Tx } from "../db";
 import {
@@ -60,6 +61,7 @@ export function diningTableRepository(tx: Tx, restaurantId: string): DiningTable
     name: diningTables.name,
     active: diningTables.active,
     qrToken: diningTables.qrToken,
+    tabletToken: diningTables.tabletToken,
     version: diningTables.version,
   };
 
@@ -123,6 +125,30 @@ export function diningTableRepository(tx: Tx, restaurantId: string): DiningTable
     setActive: (id, active, version, audit) => guarded(() => optimistic(id, version, { active }, audit)),
     rotateQr: (id, qrToken, version, audit) =>
       optimistic(id, version, { qrToken, qrRotatedAt: audit.at }, audit),
+    setTabletToken: (id, tabletToken, version, audit) =>
+      optimistic(id, version, { tabletToken, tabletTokenRotatedAt: audit.at }, audit),
+    async tabletStatus() {
+      const rows = await tx
+        .select({
+          tableId: diningTables.id,
+          name: diningTables.name,
+          tabletToken: diningTables.tabletToken,
+          version: diningTables.version,
+          boundAt: menuAccesses.openedAt,
+          lastSeenAt: menuAccesses.lastSeenAt,
+        })
+        .from(diningTables)
+        .leftJoin(
+          menuAccesses,
+          and(
+            eq(menuAccesses.tableId, diningTables.id),
+            eq(menuAccesses.kind, "TABLET"),
+            sql`${menuAccesses.endedAt} is null`,
+          ),
+        )
+        .where(eq(diningTables.active, true));
+      return rows.sort((a, b) => compareTableNames(a.name, b.name));
+    },
   };
 }
 
@@ -135,6 +161,7 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
     expiresAt: menuAccesses.expiresAt,
     endedAt: menuAccesses.endedAt,
     endReason: menuAccesses.endReason,
+    lastSeenAt: menuAccesses.lastSeenAt,
   };
   return {
     async insert(a) {
@@ -171,12 +198,61 @@ export function menuAccessRepository(tx: Tx, restaurantId: string): MenuAccessRe
         .where(
           and(
             eq(menuAccesses.tableId, tableId),
+            eq(menuAccesses.kind, "QR"),
             sql`${menuAccesses.endedAt} is null`,
             gt(menuAccesses.expiresAt, graceStart),
           ),
         )
         .returning({ id: menuAccesses.id });
       return r.length;
+    },
+    async insertTablet(a) {
+      const r = await tx
+        .insert(menuAccesses)
+        .values({
+          id: a.id,
+          restaurantId,
+          createdAt: a.openedAt,
+          tableId: a.tableId,
+          tokenHash: a.tokenHash,
+          kind: "TABLET",
+          openedAt: a.openedAt,
+          expiresAt: null,
+          ip: a.ip,
+          userAgent: a.userAgent,
+        })
+        .onConflictDoNothing({
+          target: menuAccesses.tableId,
+          where: sql`kind = 'TABLET' and ended_at is null`,
+        })
+        .returning({ id: menuAccesses.id });
+      return r.length === 1;
+    },
+    async openTablet(tableId) {
+      const [r] = await tx
+        .select(cols)
+        .from(menuAccesses)
+        .where(
+          and(
+            eq(menuAccesses.tableId, tableId),
+            eq(menuAccesses.kind, "TABLET"),
+            sql`${menuAccesses.endedAt} is null`,
+          ),
+        );
+      return r ?? null;
+    },
+    async touch(id, now) {
+      const r = await tx
+        .update(menuAccesses)
+        .set({ lastSeenAt: now })
+        .where(
+          and(
+            eq(menuAccesses.id, id),
+            sql`(${menuAccesses.lastSeenAt} is null or ${menuAccesses.lastSeenAt} <= ${now}::timestamptz - make_interval(secs => ${HEARTBEAT_SECONDS}))`,
+          ),
+        )
+        .returning({ id: menuAccesses.id });
+      return r.length === 1;
     },
   };
 }
@@ -538,6 +614,29 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
     listForAccess: (menuAccessId) =>
       load(eq(orders.menuAccessId, menuAccessId), [desc(orders.submittedAt), desc(orders.number)]),
     listForTab: (tabId) => load(eq(orders.tabId, tabId), [asc(orders.submittedAt), asc(orders.number)]),
+    async tabletStamp(tableId) {
+      const r = await tx.execute<{
+        rv: number;
+        tv: number;
+        tab_id: string | null;
+        changed: string | null;
+        n: number;
+      }>(
+        sql`select r.version as rv, t.version as tv, tab.id as tab_id,
+              (select max(o.status_changed_at)::text from orders o where o.tab_id = tab.id) as changed,
+              (select count(*)::int from orders o where o.tab_id = tab.id) as n
+            from restaurants r
+            join dining_tables t on t.id = ${tableId} and t.restaurant_id = r.id
+            left join table_tabs tab on tab.table_id = t.id and tab.status = 'OPEN'
+            where r.id = ${restaurantId}`,
+      );
+      const row = r.rows[0];
+      if (!row) return { tabId: null, stamp: "" };
+      return {
+        tabId: row.tab_id,
+        stamp: [row.rv, row.tv, row.tab_id ?? "-", row.changed ?? "-", row.n].join("|"),
+      };
+    },
     list: (f) =>
       load(and(periodWhere(f), f.status ? eq(orders.status, f.status) : undefined), [
         desc(orders.businessDay),

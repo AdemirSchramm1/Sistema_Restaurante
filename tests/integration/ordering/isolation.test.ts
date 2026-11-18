@@ -126,6 +126,7 @@ describe("isolamento dos pedidos entre restaurantes (spec 009)", () => {
     await expect(env.deps.global.menuAccessByTokenHash(seeded.hash)).resolves.toEqual({
       restaurantId: b.restaurantId,
       menuAccessId: seeded.access,
+      kind: "QR",
     });
     await expect(env.deps.global.menuAccessByTokenHash("nao-existe")).resolves.toBeNull();
 
