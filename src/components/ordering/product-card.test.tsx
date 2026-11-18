@@ -69,7 +69,7 @@ describe("cartão do produto", () => {
 
   it("tocar no nome ou na foto abre a tela do prato", () => {
     const { onAdd, onOpen } = setup({ name: "Suco" });
-    const open = screen.getByRole("button", { name: "Ver Suco" });
+    const open = screen.getByRole("button", { name: /^Ver Suco/ });
     expect(open.className).toContain("min-h-11");
     fireEvent.click(open);
     expect(onOpen).toHaveBeenCalledTimes(1);
@@ -103,7 +103,7 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
     expect(img.getAttribute("srcset")).toContain("300w");
     const plus = screen.getByRole("button", { name: `Pôr ${burger.name} no carrinho` });
     // O "+" fica fora do botão que abre o prato: os dois toques não se cobrem.
-    expect(screen.getByRole("button", { name: `Ver ${burger.name}` }).contains(plus)).toBe(false);
+    expect(screen.getByRole("button", { name: new RegExp(`^Ver ${burger.name}`) }).contains(plus)).toBe(false);
   });
 
   it("o preço fica no texto na linha e desce para o pé, ao lado do +, no cartão", () => {
@@ -118,5 +118,21 @@ describe("linha no celular e cartão a partir de 600 px (spec 016, US2-1)", () =
   it("o nome cortado em 2 linhas é corte de propósito (data-clamp)", () => {
     setup();
     expect(screen.getByRole("heading", { level: 3 }).hasAttribute("data-clamp")).toBe(true);
+  });
+
+  it("o nome do botão contém o texto que ele mostra: nome, descrição e preço (axe)", () => {
+    render(
+      <ul>
+        <ProductCard
+          product={{ ...burger, description: "Pão, carne\ne queijo", price: "28.00" }}
+          eager={false}
+          onQuickAdd={() => {}}
+          onOpen={() => {}}
+        />
+      </ul>,
+    );
+    expect(screen.getByRole("button", { name: /^Ver / }).getAttribute("aria-label")).toBe(
+      `Ver ${burger.name} Pão, carne e queijo R$ 28,00`,
+    );
   });
 });

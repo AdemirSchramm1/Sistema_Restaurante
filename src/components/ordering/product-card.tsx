@@ -30,6 +30,11 @@ export function ProductCard({
   onQuickAdd: () => void;
   onOpen: () => void;
 }) {
+  // O nome do botão contém o texto que ele mostra (axe label-content-name-mismatch): "Ver", o nome, a
+  // descrição e o preço. Do tablet em diante o preço sai do botão (vai para o pé), mas segue no nome.
+  const label = [`Ver ${product.name}`, product.description?.replace(/\s+/g, " ").trim(), brl(product.price)]
+    .filter(Boolean)
+    .join(" ");
   return (
     <li
       data-place
@@ -37,7 +42,7 @@ export function ProductCard({
     >
       <button
         type="button"
-        aria-label={`Ver ${product.name}`}
+        aria-label={label}
         onClick={onOpen}
         className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background tab:flex-col tab:items-stretch tab:gap-2"
       >

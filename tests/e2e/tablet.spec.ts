@@ -92,7 +92,8 @@ test("tablet da mesa: ligar, pedir sem prazo, voltar ao começo, liberar e troca
   await box.getByRole("button", { name: "Sim, liberar" }).click();
   await expect(box.getByText("Nenhum tablet ligado")).toBeVisible();
   await tab.clock.fastForward(11_000);
-  await expect(tab.getByRole("alert")).toHaveText("Este tablet foi desligado. Peça ao gerente.");
+  // A checagem atualiza a página, que já abre com o aviso.
+  await expect(tab.getByText("Este tablet foi desligado. Peça ao gerente.")).toBeVisible();
   await other.goto(link);
   await expect(other.getByRole("region", { name: "Boas-vindas" })).toBeVisible();
 

@@ -183,7 +183,7 @@ describe("cardápio do cliente por seção (spec 013, US6)", () => {
 
   it("tocar no nome abre a tela do prato com a descrição inteira, mesmo sem opções", () => {
     render(<MenuApp menu={sectioned} orders={[]} submit={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Ver X-Burger" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Ver X-Burger/ }));
     const dish = screen.getByRole("region", { name: "X-Burger" });
     expect(within(dish).getByText(/Pão, carne e queijo/).textContent).toBe(
       "Pão, carne e queijo.\nFeito na hora.",

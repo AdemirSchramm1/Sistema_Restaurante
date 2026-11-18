@@ -18,9 +18,17 @@ const burger = {
 };
 const juice = { productId: "s", name: "Suco", basePrice: "9.00", quantity: 1, addons: [], removals: [] };
 
-function Harness({ initial, highlight = null }: { initial: CartLine[]; highlight?: string | null }) {
+function Harness({
+  initial,
+  highlight = null,
+  submit = vi.fn<SubmitFn>(),
+}: {
+  initial: CartLine[];
+  highlight?: string | null;
+  submit?: SubmitFn;
+}) {
   const [lines, setLines] = useState(initial);
-  return <CartPanel lines={lines} onChange={setLines} submit={vi.fn<SubmitFn>()} highlight={highlight} />;
+  return <CartPanel lines={lines} onChange={setLines} submit={submit} highlight={highlight} />;
 }
 const start = (...l: (typeof burger | typeof juice)[]) => l.reduce<CartLine[]>((c, x) => addToCart(c, x), []);
 
@@ -87,5 +95,24 @@ describe("carrinho sempre à vista (spec 016, US3-1, FR-003)", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Ver pedido/ }));
     act(() => fireEvent.click(screen.getByRole("button", { name: "Tirar Suco do pedido" })));
     expect(screen.getByTestId("cart-panel").className).toMatch(/(^| )hidden( |$)/);
+  });
+
+  it("na tela estreita, depois de enviar, o aviso 'Pedido enviado' fica à vista até voltar ao cardápio", async () => {
+    const submit = vi.fn<SubmitFn>(async () => ({
+      ok: true,
+      data: { orderId: "o1", number: 4, total: "9.00", status: "RECEIVED" },
+      at: 1,
+    }));
+    render(<Harness initial={start(juice)} submit={submit} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Ver pedido/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    });
+    const panel = screen.getByTestId("cart-panel");
+    expect(panel.className).not.toMatch(/(^| )hidden( |$)/);
+    expect(within(panel).getByRole("status").textContent).toContain("Pedido nº 4");
+    fireEvent.click(within(panel).getByRole("button", { name: "Voltar ao cardápio" }));
+    expect(panel.className).toMatch(/(^| )hidden( |$)/);
   });
 });

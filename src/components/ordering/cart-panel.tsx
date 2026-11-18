@@ -27,9 +27,15 @@ export function CartPanel({
   highlight: string | null;
 }) {
   const [over, setOver] = useState(false);
+  /** Acabou de enviar: o aviso "Pedido enviado" fica à vista até a pessoa voltar ao cardápio. */
+  const [justSent, setJustSent] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);
   // Carrinho esvaziado com ele aberto por cima: nada a mostrar, volta ao cardápio.
-  const open = over && lines.length > 0;
+  const open = over && (lines.length > 0 || justSent);
+  const close = () => {
+    setOver(false);
+    setJustSent(false);
+  };
   useEffect(() => {
     if (open) title.current?.focus();
   }, [open]);
@@ -42,7 +48,7 @@ export function CartPanel({
         aria-modal={open ? true : undefined}
         aria-label={open ? "Seu pedido" : undefined}
         onKeyDown={(e) => {
-          if (e.key === "Escape") setOver(false);
+          if (e.key === "Escape") close();
         }}
         className={cn(
           "lg:sticky lg:top-16 lg:z-0 lg:flex lg:max-h-[calc(100dvh-5rem)] lg:flex-col lg:self-start",
@@ -56,16 +62,16 @@ export function CartPanel({
           onChange={onChange}
           submit={submit}
           onSent={() => {
-            setOver(false);
+            setJustSent(true);
             onSent?.();
           }}
           highlight={highlight}
-          onClose={() => setOver(false)}
+          onClose={close}
           titleRef={title}
         />
       </aside>
       {open && (
-        <div aria-hidden className="fixed inset-0 z-30 bg-overlay lg:hidden" onClick={() => setOver(false)} />
+        <div aria-hidden className="fixed inset-0 z-30 bg-overlay lg:hidden" onClick={close} />
       )}
       {!open && <CartBar lines={lines} onOpen={show} />}
       {lines.length > 0 && (
