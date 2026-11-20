@@ -7,7 +7,11 @@
     "src/domain/menu/**/*.ts",
     "!src/domain/menu/**/*.test.ts",
     "src/domain/cash/**/*.ts",
-    "!src/domain/cash/**/*.test.ts"
+    "!src/domain/cash/**/*.test.ts",
+    "src/domain/ordering/kitchen-note.ts",
+    "src/domain/ordering/staff-request.ts",
+    "src/domain/ordering/reorder.ts",
+    "src/domain/ordering/similar-orders.ts"
   ],
   "coverageAnalysis": "perTest",
   "thresholds": { "high": 100, "low": 100, "break": 100 },

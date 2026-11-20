@@ -100,6 +100,8 @@ jobs:
       # Spec 014 (R12): régua de 100% do caixa do dia. Roda só os testes do caixa, para não repetir
       # a suíte inteira que o `test:menu` já rodou.
       - run: pnpm test:cash
+      # Spec 015 (R19): régua de 100% do pedido lançado pela equipe.
+      - run: pnpm test:staff
 
   e2e:
     needs: changes

@@ -1,10 +1,10 @@
 import type { Deps } from "../ports";
 import { accessFromCookie, loadAccess } from "./menu-access";
 import { parseOrderInput } from "./order-input";
+import { saveOrder } from "./save-order";
 import { canSubmitWith } from "@/domain/ordering/menu-access";
 import { businessDay } from "@/domain/ordering/business-day";
 import { checkOrder } from "@/domain/ordering/checkout";
-import { orderTotal } from "@/domain/ordering/order-lines";
 import { err, ok, type Result } from "@/domain/shared/result";
 
 /** Enviar pedido pelo celular (spec 009 US2, spec 010 US3; contracts/public-routes.md). */
@@ -48,29 +48,12 @@ export async function submitOrder(
     const priced = checkOrder(input.value.lines, catalog, sent);
     if (!priced.ok) return priced;
 
-    const orderId = deps.ids.next();
-    const total = orderTotal(priced.value);
-    // Conta da mesa (spec 011, FR-001): abre no primeiro pedido, com a taxa do restaurante de agora.
-    const rate = (await repos.billingSettings.get()).serviceChargeRate;
-    const tab = await repos.tabs.openForOrder(table.id, now, rate);
-    if (tab.opened)
-      await repos.tabs.addEvent({
-        id: deps.ids.next(),
-        tabId: tab.id,
-        kind: "OPENED",
-        details: { orderId },
-        userId: null,
-        at: now,
-      });
-    const saved = await repos.orders.insert({
-      id: orderId,
+    const saved = await saveOrder(deps, repos, {
       tableId: table.id,
-      tabId: tab.id,
-      menuAccessId: access.id,
+      origin: { source: "QR", menuAccessId: access.id },
       clientRequestId: input.value.clientRequestId,
       businessDay: today,
-      total,
-      submittedAt: now,
+      now,
       lines: priced.value,
     });
     if (!saved) {
@@ -78,7 +61,7 @@ export async function submitOrder(
       const first = await repos.orders.findByClientRequest(access.id, input.value.clientRequestId);
       return first ? ok(view(first.id, first.number, first.total.toFixed(2))) : err("STALE_RECORD");
     }
-    return ok(view(orderId, saved.number, total.toFixed(2)));
+    return ok(view(saved.orderId, saved.number, saved.total.toFixed(2)));
   });
 }
 

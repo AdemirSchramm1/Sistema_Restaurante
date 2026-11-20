@@ -97,9 +97,17 @@ produto sobe; nenhuma `recipe_version` nova).
 | `total` | `> 0` |
 | `submitted_at`, `status_changed_at`, `version` | |
 | `tab_id` | Conta da mesa (011). Nulo só em pedidos de antes da 011. Índice `orders_tab` |
+| `source` | `QR` (padrão) ou `STAFF` (015) |
+| `placed_by` | Quem da equipe lançou (`users`); índice `orders_placed_by` |
+
+Check `orders_source_shape` (015): `QR` tem `menu_access_id` e não tem `placed_by`; `STAFF` tem
+`placed_by` e não tem `menu_access_id`. Envio da equipe sem duplicar: índice único parcial
+`orders_staff_client_request (restaurant_id, placed_by, client_request_id) WHERE source = 'STAFF'`.
 
 Trigger `orders_status_only`: `UPDATE` só muda situação, motivo, nota, `status_changed_at` e
-`version` (o pedido também não troca de conta); `DELETE` é recusado (`APPEND_ONLY`).
+`version` (o pedido também não troca de conta, de origem nem de quem lançou); `DELETE` é recusado
+(`APPEND_ONLY`). `order_lines.kitchen_note` (015): observação da equipe, nula ou de 1 a 140 letras
+(check `order_lines_kitchen_note`). Migração `0015_staff_orders`.
 
 ### `order_day_counters`
 

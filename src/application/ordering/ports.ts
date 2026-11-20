@@ -2,7 +2,7 @@ import type { Result } from "@/domain/shared/result";
 import type { Decimal } from "@/domain/shared/decimal";
 import type { UnitCode } from "@/domain/inventory/units";
 import type { ComponentRef, RecipeLineData } from "@/domain/inventory/recipe";
-import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
+import type { CancelReason, OrderSource, OrderStatus } from "@/domain/ordering/order";
 import type { CatalogProduct, PricedLine } from "@/domain/ordering/checkout";
 import type { MenuProductRow } from "@/domain/ordering/menu";
 import type { MenuAccessEndReason } from "@/domain/ordering/menu-access";
@@ -73,6 +73,12 @@ export type OrderLineView = {
   productName: string;
   unitPrice: Decimal;
   changes: string[];
+  /** Observação para a cozinha (spec 015, FR-018). */
+  kitchenNote: string | null;
+  /** As escolhas como foram gravadas, para Pedir de novo (spec 015, R20). */
+  recipeId: string;
+  addons: { addonId: string; times: number }[];
+  removals: ComponentRef[];
 };
 
 export type OrderRecord = {
@@ -81,9 +87,14 @@ export type OrderRecord = {
   businessDay: string;
   tableId: string;
   tableName: string;
-  menuAccessId: string;
+  /** Só no pedido pelo QR code (spec 015). */
+  menuAccessId: string | null;
   /** Conta da mesa (spec 011); nula nos pedidos de antes da 011. */
   tabId: string | null;
+  /** Origem e quem lançou (spec 015, FR-006); o nome é o de hoje. */
+  source: OrderSource;
+  placedById: string | null;
+  placedByName: string | null;
   status: OrderStatus;
   cancelReason: CancelReason | null;
   cancelNote: string | null;
@@ -106,7 +117,8 @@ export type NewOrder = {
   id: string;
   tableId: string;
   tabId: string;
-  menuAccessId: string;
+  /** QR code: o acesso do celular. Equipe: quem lançou (spec 015, R1). */
+  origin: { source: "QR"; menuAccessId: string } | { source: "STAFF"; placedBy: string };
   clientRequestId: string;
   businessDay: string;
   total: Decimal;
@@ -119,15 +131,34 @@ export type OrderFilter = {
   toDay: string;
   tableId?: string;
   status?: OrderStatus;
+  /** "QR" ou o id de quem lançou (spec 015, FR-008). */
+  placedBy?: string;
+};
+
+/** Resumo por origem no período (spec 015, US2-6). */
+export type SourceSummaryRow = {
+  source: OrderSource;
+  placedById: string | null;
+  name: string | null;
+  count: number;
+  total: Decimal;
+  cancelled: { reason: CancelReason; count: number }[];
 };
 
 export interface OrderRepo {
   findByClientRequest(menuAccessId: string, clientRequestId: string): Promise<OrderRecord | null>;
+  /** O envio da equipe já gravado (spec 015, R2). */
+  findStaffByClientRequest(placedBy: string, clientRequestId: string): Promise<OrderRecord | null>;
+  /** Por origem, no filtro (sem o filtro de situação): não cancelados e cancelados por motivo. */
+  summaryBySource(filter: OrderFilter): Promise<SourceSummaryRow[]>;
+  /** Quem já lançou pedido (para o filtro Lançado por). */
+  staffPlacers(): Promise<{ id: string; name: string }[]>;
+
   countForAccess(menuAccessId: string): Promise<number>;
   /**
    * Reserva o número do dia (upsert com trava de linha) e grava pedido, linhas, escolhas e o
-   * evento de situação. `null`: já existe pedido com este `clientRequestId` no acesso (nada fica
-   * gravado, nem o número).
+   * evento de situação. `null`: já existe pedido com este `clientRequestId` no acesso, ou da mesma
+   * pessoa da equipe (nada fica gravado, nem o número).
    */
   insert(o: NewOrder): Promise<{ number: number } | null>;
   get(id: string): Promise<OrderRecord | null>;
