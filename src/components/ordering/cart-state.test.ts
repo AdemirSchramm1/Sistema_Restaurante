@@ -5,10 +5,13 @@ import {
   applyPriceChanges,
   cartTotal,
   choiceKey,
+  itemCount,
   lineChanges,
+  quantityOf,
   removeUnavailable,
   setQuantity,
   toOrderLines,
+  toStaffOrderLines,
   type CartLine,
   type CartLineData,
 } from "./cart-state";
@@ -121,5 +124,38 @@ describe("respostas do servidor no carrinho", () => {
       ["Suco", 0],
     ]);
     expect(r.messages).toEqual(['"Sem cebola" não está mais disponível para X-Burger.']);
+  });
+});
+
+describe("observação para a cozinha no carrinho da equipe (spec 015, US1-3, FR-018)", () => {
+  it("observação diferente vira outra linha; igual soma; sem observação soma como antes", () => {
+    const c = cart(
+      { ...burger, kitchenNote: "mal passado" },
+      { ...burger, kitchenNote: "ao ponto" },
+      { ...burger, kitchenNote: "mal passado" },
+      burger,
+      { ...burger, kitchenNote: null },
+    );
+    expect(c.map((l) => [l.kitchenNote ?? null, l.quantity])).toEqual([
+      ["mal passado", 2],
+      ["ao ponto", 1],
+      [null, 2],
+    ]);
+  });
+
+  it("a observação não muda o preço; vai para o servidor só no envio da equipe", () => {
+    const line = { ...burger, kitchenNote: "mal passado" };
+    expect(cartTotal([line]).toFixed(2)).toBe(cartTotal([burger]).toFixed(2));
+    expect(toOrderLines([line])[0]).not.toHaveProperty("kitchenNote");
+    expect(toStaffOrderLines([line, juice]).map((l) => l.kitchenNote)).toEqual(["mal passado", null]);
+    expect(toStaffOrderLines([line])[0]).toMatchObject({ recipeId: "x", unitPrice: "34.00" });
+  });
+
+  it("quantos de cada produto já estão no carrinho (lista do garçom, FR-024)", () => {
+    const c = cart(burger, { ...burger, kitchenNote: "mal passado" }, juice);
+    expect(quantityOf(c, "x")).toBe(2);
+    expect(quantityOf(c, "s")).toBe(2);
+    expect(quantityOf(c, "nada")).toBe(0);
+    expect(itemCount(c)).toBe(4);
   });
 });

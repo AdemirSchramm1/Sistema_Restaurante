@@ -11,6 +11,7 @@ import {
   CookingPot,
   FolderTree,
   HandPlatter,
+  NotebookPen,
   Package,
   Receipt,
   ShoppingCart,
@@ -31,6 +32,8 @@ export type NavEntry = {
   action: Action;
   section: NavSectionId;
   icon: LucideIcon;
+  /** Só estes papéis entram por esta tela depois do login (spec 015, R15); sem a lista, todos. */
+  homeOf?: readonly Role[];
 };
 
 /**
@@ -82,6 +85,14 @@ export const NAV: readonly NavEntry[] = [
     action: "order.kitchen",
     section: "operation",
     icon: CookingPot,
+  },
+  {
+    href: "/pedidos/lancar",
+    label: "Lançar pedido",
+    action: "order.place",
+    section: "operation",
+    icon: NotebookPen,
+    homeOf: ["WAITER"],
   },
   {
     href: "/pedidos/garcom",
@@ -150,8 +161,12 @@ export function activeHref(pathname: string, hrefs: readonly string[]): string |
   return best;
 }
 
-/** Primeira tela depois do login: a primeira do menu do papel. */
-export const homeFor = (roles: readonly Role[]): string => navFor(roles)[0]?.href ?? "/sem-acesso";
+/**
+ * Primeira tela depois do login: a primeira do menu do papel. Lançar pedido é a entrada só do
+ * garçom; o caixa continua entrando no Caixa (spec 015, R15).
+ */
+export const homeFor = (roles: readonly Role[]): string =>
+  navFor(roles).find((n) => !n.homeOf || n.homeOf.some((r) => roles.includes(r)))?.href ?? "/sem-acesso";
 
 const reorderLabel = (n: number) => `${n} ${n === 1 ? "item" : "itens"} para repor`;
 

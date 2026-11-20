@@ -114,3 +114,32 @@ describe("tela do prato com foto e descrição (spec 013, US6)", () => {
     expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ productId: "b", quantity: 1 }));
   });
 });
+
+describe("observação para a cozinha, só para a equipe (spec 015, FR-018)", () => {
+  it("o cliente não tem campo de texto", () => {
+    render(<DishOptions product={burger} onAdd={vi.fn()} onClose={vi.fn()} />);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByText("Precisa de outra mudança? Chame um garçom.")).toBeTruthy();
+  });
+
+  it("a equipe escreve até 140 letras, vê o contador e a observação vai na linha", () => {
+    const onAdd = vi.fn();
+    render(<DishOptions product={burger} onAdd={onAdd} onClose={vi.fn()} staff />);
+    expect(screen.queryByText("Precisa de outra mudança? Chame um garçom.")).toBeNull();
+    const note = screen.getByLabelText("Observação para a cozinha") as HTMLTextAreaElement;
+    expect(note.maxLength).toBe(140);
+    expect(screen.getByText("0/140")).toBeTruthy();
+    fireEvent.change(note, { target: { value: "mal passado" } });
+    expect(screen.getByText("11/140")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar ao pedido" }));
+    expect(onAdd.mock.calls[0]![0]).toMatchObject({ productId: "b", kitchenNote: "mal passado" });
+  });
+
+  it("observação só com espaços não vai", () => {
+    const onAdd = vi.fn();
+    render(<DishOptions product={burger} onAdd={onAdd} onClose={vi.fn()} staff />);
+    fireEvent.change(screen.getByLabelText("Observação para a cozinha"), { target: { value: "   " } });
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar ao pedido" }));
+    expect(onAdd.mock.calls[0]![0].kitchenNote).toBeNull();
+  });
+});

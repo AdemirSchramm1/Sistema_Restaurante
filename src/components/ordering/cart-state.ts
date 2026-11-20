@@ -13,6 +13,8 @@ export type CartLineData = {
   quantity: number;
   addons: CartAddon[];
   removals: CartRemoval[];
+  /** Observação para a cozinha: só no carrinho da equipe (spec 015, FR-018). */
+  kitchenNote?: string | null;
 };
 export type CartLine = CartLineData & { key: string };
 
@@ -23,6 +25,8 @@ export const choiceKey = (l: Omit<CartLineData, "quantity" | "name" | "basePrice
     ...l.addons.map((a) => `${a.id}x${a.times}`).sort(),
     "|",
     ...l.removals.map((r) => `${r.kind}:${r.id}`).sort(),
+    // Observação diferente vira outra linha ("mal passado" e "ao ponto"; spec 015, US1-3).
+    ...(l.kitchenNote ? ["|", JSON.stringify(l.kitchenNote)] : []),
   ].join(",");
 
 export const unitPrice = (l: CartLineData): Decimal =>
@@ -62,6 +66,18 @@ export const toOrderLines = (lines: readonly CartLineData[]) =>
     addons: l.addons.map((a) => ({ addonId: a.id, times: a.times, unitPrice: d(a.price).toFixed(2) })),
     removals: l.removals.map((r) => ({ kind: r.kind, id: r.id })),
   }));
+
+/** O que vai para `placeStaffOrderAction`: o mesmo do cliente mais a observação (spec 015). */
+export const toStaffOrderLines = (lines: readonly CartLineData[]) =>
+  toOrderLines(lines).map((l, i) => ({ ...l, kitchenNote: lines[i]!.kitchenNote ?? null }));
+
+/** Quanto de um produto já está no carrinho, somando as linhas (lista do garçom, FR-024). */
+export const quantityOf = (lines: readonly CartLineData[], productId: string): number =>
+  lines.filter((l) => l.productId === productId).reduce((n, l) => n + l.quantity, 0);
+
+/** Itens no carrinho ("Carrinho · 3 itens"). */
+export const itemCount = (lines: readonly CartLineData[]): number =>
+  lines.reduce((n, l) => n + l.quantity, 0);
 
 export type PriceChanges = {
   prices?: { recipeId: string; price: string }[];
