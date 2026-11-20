@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { serverDeps } from "@/infra/server";
-import { listOrders } from "@/application/ordering/orders";
+import { listOrders, ordersBySource } from "@/application/ordering/orders";
 import { businessDay } from "@/domain/ordering/business-day";
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus } from "@/domain/ordering/order";
+import {
+  CANCEL_REASON_LABELS,
+  ORDER_SOURCE_LABELS,
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  type OrderStatus,
+} from "@/domain/ordering/order";
 import { can } from "@/domain/access/permissions";
 import { messageFor } from "@/components/forms/error-messages";
 import { brl } from "@/components/ordering/format";
@@ -15,6 +21,7 @@ import { Table, Td, Th } from "@/components/ui/table";
 import { TextLink } from "@/components/ui/text-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { firstParam } from "@/lib/search-params";
+import { placedByText } from "@/components/staff-ordering/format";
 
 export const metadata: Metadata = { title: "Pedidos" };
 export const dynamic = "force-dynamic";
@@ -37,8 +44,24 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
     ? (firstParam(sp.situacao) as OrderStatus)
     : undefined;
   const mesa = firstParam(sp.mesa)?.trim();
-  const r = await listOrders(deps, ctx, { from, to, status });
+  const placedBy = firstParam(sp.lancado)?.trim() || undefined;
+  const tableId = mesa
+    ? await deps.tenant(ctx.restaurantId, async (repos) => ({
+        ok: true as const,
+        value: (await repos.tables.list(true)).find((t) => t.name.toLowerCase() === mesa.toLowerCase())?.id,
+      }))
+    : null;
+  const [r, bySource] = await Promise.all([
+    listOrders(deps, ctx, { from, to, status, placedBy }),
+    ordersBySource(deps, ctx, {
+      from,
+      to,
+      placedBy,
+      tableId: tableId?.ok ? (tableId.value ?? "00000000-0000-0000-0000-000000000000") : undefined,
+    }),
+  ]);
   const rows = r.ok ? r.value.filter((o) => !mesa || o.tableName.toLowerCase() === mesa.toLowerCase()) : [];
+  const options = bySource.ok ? bySource.value.placedByOptions : [];
   const time = (d: Date) =>
     d.toLocaleTimeString("pt-BR", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
   const date = (s: string) => s.split("-").reverse().join("/");
@@ -73,6 +96,17 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
             ))}
           </Select>
         </div>
+        <div className="grid gap-1">
+          <Label htmlFor="lancado">Lançado por</Label>
+          <Select id="lancado" name="lancado" defaultValue={placedBy ?? ""}>
+            <option value="">Todos</option>
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </Select>
+        </div>
         <Button type="submit" variant="outline">
           Filtrar
         </Button>
@@ -88,6 +122,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
               <Th>Dia</Th>
               <Th>Hora</Th>
               <Th>Mesa</Th>
+              <Th>Lançado por</Th>
               <Th>Situação</Th>
               <Th className="text-right">Total</Th>
             </tr>
@@ -101,12 +136,46 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
                 <Td>{date(o.businessDay)}</Td>
                 <Td>{time(o.submittedAt)}</Td>
                 <Td>{o.tableName}</Td>
+                <Td>{placedByText(o)}</Td>
                 <Td>{ORDER_STATUS_LABELS[o.status]}</Td>
                 <Td className="text-right">{brl(o.total)}</Td>
               </tr>
             ))}
           </tbody>
         </Table>
+      )}
+      {bySource.ok && bySource.value.summary.length > 0 && (
+        <section aria-labelledby="por-origem" className="grid gap-2">
+          <h2 id="por-origem" className="font-display text-xl font-semibold">
+            Por quem lançou
+          </h2>
+          <Table>
+            <thead>
+              <tr>
+                <Th>Lançado por</Th>
+                <Th className="text-right">Pedidos</Th>
+                <Th className="text-right">Total</Th>
+                <Th>Cancelados</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {bySource.value.summary.map((s) => (
+                <tr key={s.placedById ?? s.source}>
+                  <Td>
+                    {s.source === "QR" ? ORDER_SOURCE_LABELS.QR : (s.name ?? ORDER_SOURCE_LABELS.STAFF)}
+                  </Td>
+                  <Td className="text-right">{s.count}</Td>
+                  <Td className="text-right">{brl(s.total)}</Td>
+                  <Td>
+                    {s.cancelled.length
+                      ? s.cancelled.map((c) => `${c.count} ${CANCEL_REASON_LABELS[c.reason]}`).join(", ")
+                      : "—"}
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </section>
       )}
     </div>
   );

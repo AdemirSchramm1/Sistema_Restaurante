@@ -17,6 +17,8 @@ export function tabDetailView(t: TabView): TabDetailView {
       cancelReason: o.cancelReason,
       cancelNote: o.cancelNote,
       total: o.total.toFixed(2),
+      source: o.source,
+      placedByName: o.placedByName,
       lines: o.lines.map((l) => ({ ...l, unitPrice: l.unitPrice.toFixed(2) })),
     })),
     subtotal: t.subtotal.toFixed(2),

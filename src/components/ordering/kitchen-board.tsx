@@ -16,7 +16,7 @@ import {
   type OrderStatus,
 } from "@/domain/ordering/order";
 import { cn } from "@/lib/utils";
-import { LineChanges } from "./line-changes";
+import { KitchenNote, LineChanges } from "./line-changes";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
@@ -28,7 +28,9 @@ export type KitchenOrderView = {
   status: OrderStatus;
   late: boolean;
   version: number;
-  lines: { quantity: number; productName: string; changes: string[] }[];
+  /** "João" ou "QR code" (spec 015, FR-017). */
+  placedBy?: string;
+  lines: { quantity: number; productName: string; changes: string[]; kitchenNote?: string | null }[];
 };
 
 type StageTone = "warning" | "primary" | "success";
@@ -162,6 +164,7 @@ export function KitchenBoard({
                     <strong className="font-display text-2xl font-semibold leading-none">
                       Mesa {o.tableName}
                     </strong>
+                    {o.placedBy && <span className="text-sm font-medium">{o.placedBy}</span>}
                     <span className="text-sm text-muted-foreground">Pedido {o.number}</span>
                     <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock aria-hidden="true" className="size-3.5" />
@@ -177,6 +180,7 @@ export function KitchenBoard({
                           {l.quantity} × {l.productName}
                         </span>
                         <LineChanges changes={l.changes} />
+                        <KitchenNote note={l.kitchenNote} />
                       </li>
                     ))}
                   </ul>

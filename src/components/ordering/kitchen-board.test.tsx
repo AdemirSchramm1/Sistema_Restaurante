@@ -34,6 +34,27 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     ).toBe(true);
   });
 
+  it("quem lançou embaixo da mesa e a observação em destaque (spec 015, US2)", () => {
+    render(
+      <KitchenBoard
+        {...props}
+        orders={[
+          order({
+            placedBy: "João",
+            lines: [{ quantity: 1, productName: "Purê", changes: [], kitchenNote: "bem quente" }],
+          }),
+          order({ id: "o2", number: 2, placedBy: "QR code" }),
+        ]}
+      />,
+    );
+    const one = screen.getByRole("article", { name: "Pedido 1, Mesa 12" });
+    expect(within(one).getByText("João")).toBeTruthy();
+    expect(within(one).getByText(/bem quente/)).toBeTruthy();
+    expect(
+      within(screen.getByRole("article", { name: "Pedido 2, Mesa 12" })).getByText("QR code"),
+    ).toBeTruthy();
+  });
+
   it("botão de cada situação", () => {
     render(
       <KitchenBoard
