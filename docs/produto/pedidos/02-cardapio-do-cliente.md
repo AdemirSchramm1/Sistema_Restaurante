@@ -33,6 +33,9 @@ O cardápio tem de ficar certo do celular pequeno ao tablet deitado (spec 013, U
 - As fotos carregam só quando chegam perto da tela, no menor tamanho que serve ao aparelho.
 - Modo claro e modo escuro.
 
+A tela **Lançar pedido** da equipe (spec 015) usa o mesmo cardápio, com os modos Fotos e Lista,
+os esgotados no fim e o campo de observação para a cozinha, que o cliente não tem.
+
 Cada item dessa lista é um teste automático que roda em 9 tamanhos de tela, nos dois modos de cor e
 em dois motores de navegador ([testes de tela](../../sistema/05-testes-de-tela.md)).
 

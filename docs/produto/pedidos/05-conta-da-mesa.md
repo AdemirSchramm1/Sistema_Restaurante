@@ -12,9 +12,11 @@ iguais ou por valor livre; a taxa de serviço é configurável (padrão ligada, 
 
 ## A conta abre sozinha
 
-- Não há botão "abrir mesa". A conta abre no primeiro pedido enviado pela mesa sem conta aberta.
+- Não há botão "abrir mesa". A conta abre no primeiro pedido enviado pela mesa sem conta aberta,
+  pelo QR code ou lançado pela equipe ([capítulo 8](08-lancar-pedido.md)); o histórico guarda quem
+  lançou esse pedido.
 - Cada mesa tem no máximo **uma conta aberta**. Todo pedido da mesa, de qualquer celular, entra
-  nela até ela fechar.
+  nela até ela fechar. A conta mostra quem lançou cada pedido e a observação para a cozinha.
 - A conta guarda a taxa de serviço do restaurante no momento em que abriu.
 
 ## Tela Caixa
@@ -152,8 +154,8 @@ lançado errado.
 | Reabrir conta | Gerente |
 | Taxa de serviço do restaurante | Gerente |
 
-O papel **Caixa** vê só "Caixa", "Contas" e "Pedidos" e entra direto no Caixa. O garçom vê o Caixa
-para levar o total à mesa, mas não recebe nem abre conta fechada. Detalhes e nomes das permissões em
+O papel **Caixa** entra direto no Caixa. O garçom vê o Caixa para levar o total à mesa (ou chega
+pela **Ver conta** da mesa, com **Voltar à Mesa 12**), mas não recebe nem abre conta fechada. Detalhes e nomes das permissões em
 [09-controles-e-permissoes](../estoque/09-controles-e-permissoes.md#conta-da-mesa-feature-011).
 Toda escrita (pagamento, pagamento tirado, taxa, fechamento, reabertura) vai para a trilha de
 auditoria com quem e quando.
