@@ -96,6 +96,8 @@ describe("conta para a tela", () => {
     });
     expect(v.orders[0]).toMatchObject({
       total: "56.00",
+      source: "STAFF",
+      placedByName: "João",
       lines: [{ unitPrice: "28.00", changes: ["SEM cebola"] }],
     });
     expect(v.payments).toEqual([

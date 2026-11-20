@@ -9,5 +9,6 @@
 - Dinheiro e quantidade sempre em decimal exato; nunca `number` de ponto flutuante.
 - Movimentações de estoque são só inserção; correção por estorno.
 - Mudou regra ou arquitetura? Atualize `docs/` no mesmo PR.
-- Antes de abrir ou atualizar um PR, leia `docs/sistema/06-ci-cd.md`: PRs pequenos (feature
-  grande vira vários PRs), checagens locais antes de enviar e o que fazer com CI vermelho.
+- Antes de abrir ou atualizar um PR, leia `docs/sistema/06-ci-cd.md`: um PR por feature (sem
+  dividir a feature), CI quebrado em muitos jobs paralelos, checagens locais antes de enviar e o
+  que fazer com CI vermelho.

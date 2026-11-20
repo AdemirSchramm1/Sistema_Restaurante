@@ -2,7 +2,7 @@ import type { ActionState } from "@/actions/_session";
 import { HandPlatter } from "lucide-react";
 import { ActionForm } from "@/components/forms/action-form";
 import { EmptyState } from "@/components/ui/empty-state";
-import { LineChanges } from "./line-changes";
+import { KitchenNote, LineChanges } from "./line-changes";
 
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
@@ -12,7 +12,9 @@ export type ReadyOrderView = {
   tableName: string;
   readyAt: string;
   version: number;
-  lines: { quantity: number; productName: string; changes: string[] }[];
+  /** "João" ou "QR code" (spec 015, FR-017). */
+  placedBy?: string;
+  lines: { quantity: number; productName: string; changes: string[]; kitchenNote?: string | null }[];
 };
 
 /** Tela do garçom (spec 009 US4): pedidos prontos com a mesa em destaque e "Entregue". */
@@ -35,6 +37,7 @@ export function ReadyList({ orders, deliver }: { orders: ReadyOrderView[]; deliv
               <h2 className="font-display text-3xl font-semibold">Mesa {o.tableName}</h2>
               <span className="text-sm text-muted-foreground">Pedido {o.number}</span>
             </div>
+            {o.placedBy && <p className="text-sm font-medium">{o.placedBy}</p>}
             <ul className="grid gap-1.5 text-base">
               {o.lines.map((l, i) => (
                 <li key={i}>
@@ -42,6 +45,7 @@ export function ReadyList({ orders, deliver }: { orders: ReadyOrderView[]; deliv
                     {l.quantity} × {l.productName}
                   </span>
                   <LineChanges changes={l.changes} />
+                  <KitchenNote note={l.kitchenNote} />
                 </li>
               ))}
             </ul>
