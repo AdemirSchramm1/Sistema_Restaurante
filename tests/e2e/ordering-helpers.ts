@@ -120,3 +120,13 @@ export async function expireMenuAccesses(restaurantName: string, tableName: stri
   }
   return true;
 }
+
+/** Abre o caixa na tela Caixa com o troco dado (spec 014: receber exige o caixa aberto). */
+export async function openCash(page: Page, float = "0,00") {
+  await page.goto("/caixa");
+  const bar = page.getByRole("region", { name: "Situação do caixa" });
+  await bar.getByRole("button", { name: "Abrir caixa" }).click();
+  await bar.getByLabel("Troco inicial (R$)").fill(float);
+  await bar.getByRole("form", { name: "Abrir o caixa" }).getByRole("button", { name: "Abrir caixa" }).click();
+  await expect(bar.getByText(/^Caixa aberto desde \d{2}:\d{2}/)).toBeVisible();
+}

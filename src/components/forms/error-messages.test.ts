@@ -104,3 +104,98 @@ describe("mensagens da edição do cardápio (spec 013, US1 e US2)", () => {
     expect(messageFor({ code: "INVALID_NAME" })).toBe("O nome precisa ter entre 3 e 120 letras.");
   });
 });
+
+describe("mensagens do caixa do dia (spec 014)", () => {
+  it("sem caixa aberto: receber, tirar pagamento e lançar na gaveta dizem o que fazer", () => {
+    expect(messageFor({ code: "CASH_SESSION_REQUIRED" })).toBe("Abra o caixa antes de receber.");
+    expect(messageFor({ code: "CASH_SESSION_REQUIRED", details: { action: "remove" } })).toBe(
+      "Abra o caixa antes de tirar um pagamento.",
+    );
+    expect(messageFor({ code: "CASH_SESSION_REQUIRED", details: { action: "entry" } })).toBe(
+      "Abra o caixa antes de lançar sangria ou reforço.",
+    );
+    expect(messageFor({ code: "CASH_SESSION_REQUIRED", details: { action: "close" } })).toBe(
+      "Não há caixa aberto para fechar.",
+    );
+  });
+
+  it("caixa já aberto ou já fechado diz por quem e a que horas, no fuso do restaurante", () => {
+    const details = {
+      openedByName: "Ana",
+      openedAt: "2026-11-17T14:02:00.000Z",
+      timezone: "America/Sao_Paulo",
+    };
+    expect(messageFor({ code: "CASH_SESSION_ALREADY_OPEN", details })).toBe(
+      "O caixa já foi aberto por Ana às 11:02.",
+    );
+    expect(messageFor({ code: "CASH_SESSION_ALREADY_OPEN" })).toBe("O caixa já está aberto.");
+    expect(
+      messageFor({
+        code: "CASH_SESSION_ALREADY_CLOSED",
+        details: { closedByName: "Ana", closedAt: "2026-11-18T02:10:00.000Z", timezone: "America/Sao_Paulo" },
+      }),
+    ).toBe("O caixa já foi fechado por Ana às 23:10.");
+    expect(messageFor({ code: "CASH_SESSION_ALREADY_CLOSED" })).toBe("O caixa já foi fechado.");
+    expect(
+      messageFor({
+        code: "CASH_SESSION_ALREADY_CLOSED",
+        details: { closedByName: null, closedAt: "2026-11-18T02:10:00.000Z", timezone: "America/Manaus" },
+      }),
+    ).toBe("O caixa já foi fechado às 22:10.");
+  });
+
+  it("turno fechado não muda", () => {
+    expect(messageFor({ code: "CASH_SESSION_CLOSED" })).toBe("Este turno já foi fechado e não muda mais.");
+  });
+
+  it("troco diferente do que ficou na gaveta diz quanto ficou", () => {
+    expect(
+      messageFor({ code: "OPENING_NOTE_REQUIRED", field: "note", details: { previousKept: "150.00" } }),
+    ).toBe("Ficaram R$ 150,00 na gaveta no último fechamento. Diga por que o troco é outro.");
+    expect(messageFor({ code: "OPENING_NOTE_REQUIRED" })).toBe("Diga por que o troco é outro.");
+  });
+
+  it("sangria acima do esperado diz quanto a gaveta deve ter", () => {
+    expect(messageFor({ code: "WITHDRAWAL_EXCEEDS_EXPECTED", details: { expected: "127.00" } })).toBe(
+      "A gaveta deve ter R$ 127,00. A sangria não pode passar disso.",
+    );
+    expect(messageFor({ code: "WITHDRAWAL_EXCEEDS_EXPECTED" })).toBe(
+      "A sangria não pode passar do dinheiro que a gaveta deve ter.",
+    );
+  });
+
+  it("tirar reforço, contagem e fechamento", () => {
+    expect(messageFor({ code: "EXPECTED_WOULD_BE_NEGATIVE" })).toBe(
+      "Sem esse reforço a gaveta ficaria negativa. Tire uma sangria antes.",
+    );
+    expect(messageFor({ code: "DENOMINATIONS_MISMATCH" })).toBe(
+      "A soma das cédulas e moedas não bate com o valor contado. Confira a contagem.",
+    );
+    expect(messageFor({ code: "COUNT_REQUIRED" })).toBe(
+      "Conte o dinheiro da gaveta antes de fechar o caixa.",
+    );
+    expect(messageFor({ code: "COUNT_OUTDATED" })).toBe(
+      "Entrou dinheiro no turno depois da contagem. Conte de novo.",
+    );
+    expect(messageFor({ code: "KEPT_ABOVE_COUNTED" })).toBe(
+      "O que fica na gaveta não pode passar do que foi contado.",
+    );
+  });
+
+  it("observação obrigatória diz por quê", () => {
+    expect(messageFor({ code: "NOTE_REQUIRED", details: { reason: "difference" } })).toBe(
+      "Com sobra ou falta, escreva uma observação.",
+    );
+    expect(messageFor({ code: "NOTE_REQUIRED", details: { reason: "other" } })).toBe(
+      'No motivo "Outro", diga na observação para que foi a sangria.',
+    );
+    expect(messageFor({ code: "NOTE_REQUIRED" })).toBe("Escreva uma observação.");
+  });
+
+  it("lançamento da gaveta já tirado tem o seu texto; o do pagamento continua", () => {
+    expect(messageFor({ code: "ALREADY_REMOVED", details: { entry: true } })).toBe(
+      "Este lançamento já foi tirado.",
+    );
+    expect(messageFor({ code: "ALREADY_REMOVED" })).toBe("Este pagamento já foi tirado.");
+  });
+});

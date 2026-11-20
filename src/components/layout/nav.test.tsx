@@ -12,8 +12,8 @@ describe("menu por permissão (spec 009, T022)", () => {
     expect(labels(["WAITER"])).toEqual(["Garçom", "Caixa", "Pedidos"]);
   });
 
-  it("caixa vê só Caixa, Contas e Pedidos e entra direto no Caixa (spec 011)", () => {
-    expect(labels(["CASHIER"])).toEqual(["Caixa", "Contas", "Pedidos"]);
+  it("caixa vê só Caixa, Contas, Turnos e Pedidos e entra direto no Caixa (specs 011 e 014)", () => {
+    expect(labels(["CASHIER"])).toEqual(["Caixa", "Contas", "Turnos", "Pedidos"]);
     expect(homeFor(["CASHIER"])).toBe("/caixa");
   });
 
@@ -77,13 +77,14 @@ describe("menu lateral por área (spec 012, US2)", () => {
         ["Itens", "Produtos", "Lançamentos", "Repor", "Gráficos", "Custos", "Fornecedores", "Grupos"],
       ],
       // "Cardápio" entrou na spec 013 (tela da equipe para editar o cardápio).
-      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Pedidos", "Cardápio"]],
+      // "Turnos" e "Vendas" entraram na spec 014 (caixa do dia).
+      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"]],
       ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
     ]);
   });
 
   it("área sem tela para o papel não aparece", () => {
-    expect(sectionsOf(["CASHIER"])).toEqual([["Operação", ["Caixa", "Contas", "Pedidos"]]]);
+    expect(sectionsOf(["CASHIER"])).toEqual([["Operação", ["Caixa", "Contas", "Turnos", "Pedidos"]]]);
     expect(sectionsOf(["WAITER"])).toEqual([["Operação", ["Garçom", "Caixa", "Pedidos"]]]);
     expect(navSections(["STOCKKEEPER"]).map((s) => s.label)).toEqual(["Estoque"]);
   });
@@ -123,7 +124,7 @@ describe("menu lateral por área (spec 012, US2)", () => {
       within(list)
         .getAllByRole("link")
         .map((a) => a.textContent),
-    ).toEqual(["Caixa", "Contas", "Pedidos"]);
+    ).toEqual(["Caixa", "Contas", "Turnos", "Pedidos"]);
     expect(screen.queryByRole("list", { name: "Estoque" })).toBeNull();
   });
 
@@ -157,5 +158,35 @@ describe("entrada Cardápio no menu (spec 013, US2)", () => {
       expect(current.map((a) => a.textContent)).toEqual(["Cardápio"]);
       cleanup();
     }
+  });
+});
+
+describe("entrada Turnos no menu (spec 014, US5)", () => {
+  it("aparece em Operação para quem vê os turnos (gerente e caixa); o garçom não vê", () => {
+    for (const role of ["MANAGER", "CASHIER"] as const) {
+      const entry = navFor([role]).find((n) => n.label === "Turnos");
+      expect(entry).toMatchObject({ href: "/caixa/turnos", action: "cash.history", section: "operation" });
+    }
+    for (const role of ["WAITER", "CHEF", "STOCKKEEPER"] as const)
+      expect(labels([role])).not.toContain("Turnos");
+  });
+
+  it("fica ativo na lista e no relatório de um turno, no lugar de Caixa", () => {
+    const hrefs = NAV.map((n) => n.href);
+    expect(activeHref("/caixa/turnos", hrefs)).toBe("/caixa/turnos");
+    expect(activeHref("/caixa/turnos/3f6c/imprimir", hrefs)).toBe("/caixa/turnos");
+    expect(activeHref("/caixa/fechar", hrefs)).toBe("/caixa");
+  });
+});
+
+describe("entrada Vendas no menu (spec 014, US6)", () => {
+  it("só o gerente vê, em Operação", () => {
+    expect(navFor(["MANAGER"]).find((n) => n.label === "Vendas")).toMatchObject({
+      href: "/vendas",
+      action: "sales.report",
+      section: "operation",
+    });
+    for (const role of ["CASHIER", "WAITER", "CHEF", "STOCKKEEPER"] as const)
+      expect(labels([role])).not.toContain("Vendas");
   });
 });

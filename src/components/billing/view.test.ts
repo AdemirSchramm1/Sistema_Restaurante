@@ -63,6 +63,7 @@ const tab: TabView = {
     },
   ],
   events: [{ kind: "CLOSED", reason: null, details: null, userName: "Ana", at: at("2026-11-11T23:30:00Z") }],
+  cashSessionOpen: true,
   serverNow: "2026-11-11T23:31:00.000Z",
 };
 

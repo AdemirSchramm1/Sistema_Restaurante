@@ -66,7 +66,12 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
         {canPay && owing && (
           <Card className="grid gap-3">
             <CardTitle>Receber</CardTitle>
-            <PaymentPanel tabId={t.id} remaining={view.remaining} action={addPaymentAction} />
+            <PaymentPanel
+              tabId={t.id}
+              remaining={view.remaining}
+              action={addPaymentAction}
+              cashSessionOpen={t.cashSessionOpen}
+            />
           </Card>
         )}
         <Card className="grid gap-3">
@@ -76,6 +81,7 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
             payments={view.payments}
             timezone={t.timezone}
             remove={canPay ? removePaymentAction : undefined}
+            cashSessionOpen={t.cashSessionOpen}
           />
         </Card>
         {canReopen && (

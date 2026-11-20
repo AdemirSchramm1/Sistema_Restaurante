@@ -69,3 +69,16 @@ Notas:
 |---|---|
 | Abrir, sangria, reforço, tirar lançamento, contar, fechar | Linhas próprias (só inserção) + `audit_log` com `entity = cash_session` |
 | Pagamento e remoção ligados ao turno | `tab_events` e `audit_log` da 011, agora com `cashSessionId` nos detalhes |
+
+## Ajustes da implementação (2026-11-17)
+
+- `countCash` e `closeCashSession` recebem `sessionId` (o turno que a tela mostrou), não leem "o
+  turno aberto": se outro turno abriu no meio, a tela não conta nem fecha o turno errado.
+- `addCashEntry` não recebe `version`: trava o turno e confere o esperado depois da trava.
+- `openCashSession` recebe `clientRequestId` (coluna `cash_sessions.client_request_id`): o toque
+  duplo devolve o mesmo turno.
+- `salesReport` lê numa transação só; o limite de "5 idas ao banco" virou "o mesmo número de idas
+  com 10 e com 500 pedidos" (o contador inclui `begin`, `set_config` e `commit`).
+- Banco: gatilho `app_cash_session_must_be_open` recusa pagamento, remoção, lançamento e contagem
+  em turno fechado; o índice `cash_entries (cash_session_id)` saiu, porque o único
+  `(cash_session_id, client_request_id)` já serve.

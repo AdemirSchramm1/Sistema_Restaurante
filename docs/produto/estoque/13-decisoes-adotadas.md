@@ -80,7 +80,8 @@ Decisões da feature 011 (Conta da mesa e baixa do estoque), 2026-11-11:
 | Fechar a conta | Só com falta R$ 0,00 e todos os pedidos entregues ou cancelados; libera a mesa e fecha os cardápios abertos nela |
 | Reabrir a conta | Só o gerente, com motivo; recusada se a mesa já abriu outra conta |
 | Papel Caixa | Novo: vê só Caixa, Contas e Pedidos. O garçom vê a conta aberta para levar o total, sem receber nem ver contas fechadas |
-| Fiscal, maquininha, abertura e fechamento de caixa | Fora do escopo |
+| Fiscal e maquininha | Fora do escopo |
+| Caixa do dia (014) | Receber exige caixa aberto; um caixa aberto por restaurante; o caixa conta antes de ver o esperado e todas as contagens ficam; conta de mesa aberta não segura o fechamento; turno fechado não reabre; Vendas só para o gerente |
 | CMV teórico do período | Agora que as vendas existem, fica para uma feature de indicadores |
 
 Os documentos de regras sanitárias, fiscal e rotinas foram retirados. O manual original continua em

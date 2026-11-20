@@ -32,6 +32,10 @@ Antes de otimizar, meça (abaixo).
    consultas das telas com `enable_seqscan = off` e `auto_explain`, e falha se aparecer leitura da
    tabela inteira numa tabela do restaurante. Tela nova com consulta nova: inclua no teste; se ficar
    vermelho, crie o índice na migração.
+8. **Relatório não cresce com o volume.** Vendas (014) lê turnos, somas por forma, produtos,
+   adicionais, taxa e pendentes com um número fixo de consultas numa transação;
+   `tests/integration/performance/sales-report.test.ts` compara 10 e 500 pedidos (mesmas idas ao
+   banco, menos de 2 s).
 
 ## Como medir
 

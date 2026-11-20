@@ -22,6 +22,27 @@ const menuCoverage = {
   reportsDirectory: "coverage/menu",
 };
 
+/**
+ * Régua da spec 014 (R12), usada por `pnpm test:cash` (`--mode cash`): o código do caixa do dia
+ * tem 100% de linhas, desvios e funções cobertos, somando unidade e integração.
+ */
+const cashCoverage = {
+  provider: "v8" as const,
+  include: [
+    "src/domain/cash/**/*.ts",
+    "src/application/cash/**/*.ts",
+    "src/components/cash/**/*.{ts,tsx}",
+    "src/components/sales/**/*.{ts,tsx}",
+    "src/infra/db/repositories/cash-repository.ts",
+    "src/infra/db/repositories/sales-repository.ts",
+  ],
+  exclude: ["**/*.test.{ts,tsx}"],
+  thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
+  reportsDirectory: "coverage/cash",
+};
+
+const focused = { menu: menuCoverage, cash: cashCoverage } as const;
+
 export default defineConfig(({ mode }) => ({
   resolve: { alias },
   test: {
@@ -51,8 +72,8 @@ export default defineConfig(({ mode }) => ({
     // Régua por pasta (spec 012, FR-012). Os casos de uso são cobertos pelos testes de integração;
     // aqui entram o domínio, os componentes de tela e os leitores de formulário.
     coverage:
-      mode === "menu"
-        ? menuCoverage
+      mode in focused
+        ? focused[mode as keyof typeof focused]
         : {
             provider: "v8" as const,
             include: ["src/domain/**/*.ts", "src/components/**/*.{ts,tsx}", "src/application/**/*-input.ts"],

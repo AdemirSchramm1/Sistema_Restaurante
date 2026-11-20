@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { ActionState } from "@/actions/_session";
 import type { CloseBlocker } from "@/domain/billing/tab";
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type PaymentMethod } from "@/domain/billing/payment";
@@ -32,11 +32,14 @@ export function PaymentForm({
   remaining,
   action,
   fill = null,
+  blockedBy,
 }: {
   tabId: string;
   remaining: string;
   action: Action;
   fill?: { amount: string; at: number } | null;
+  /** Id do aviso que explica por que não dá para lançar (caixa fechado, spec 014). */
+  blockedBy?: string;
 }) {
   const { state, pending, formProps } = useFormAction(action);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
@@ -111,7 +114,7 @@ export function PaymentForm({
             />
           </label>
         )}
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || Boolean(blockedBy)} aria-describedby={blockedBy}>
           Lançar pagamento
         </Button>
       </div>
@@ -195,16 +198,26 @@ export function PaymentList({
   payments,
   timezone,
   remove,
+  cashSessionOpen = true,
 }: {
   tabId: string;
   payments: PaymentRow[];
   timezone: string;
   remove?: Action;
+  /** Tirar pagamento também exige o caixa aberto (spec 014, FR-002). */
+  cashSessionOpen?: boolean;
 }) {
   const [confirming, setConfirming] = useState<string | null>(null);
+  const reasonId = useId();
   if (!payments.length) return <p className="text-sm text-muted-foreground">Nenhum pagamento lançado.</p>;
+  const blocked = Boolean(remove) && !cashSessionOpen;
   return (
     <ul className="grid gap-2">
+      {blocked && (
+        <li id={reasonId} className="text-sm text-muted-foreground">
+          Abra o caixa antes de tirar um pagamento.
+        </li>
+      )}
       {payments.map((p) => {
         const removed = p.removedAt !== null;
         const value = brl(d(p.amount));
@@ -232,6 +245,8 @@ export function PaymentList({
                 variant="ghost"
                 className="justify-self-start"
                 aria-label={`Tirar pagamento de ${value} (${label})`}
+                aria-describedby={blocked ? reasonId : undefined}
+                disabled={blocked}
                 onClick={() => setConfirming(p.id)}
               >
                 Tirar

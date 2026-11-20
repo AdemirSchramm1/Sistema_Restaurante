@@ -38,6 +38,12 @@ const PAYMENT = ID(10);
 
 /** Mesa 12 com uma conta aberta, um pedido nela, um item de estoque e um pagamento em Pix. */
 async function scenario(c: PoolClient, restaurantId: string, userId: string) {
+  // Spec 014: pagamento e remoção novos pertencem a um turno do caixa.
+  await c.query(
+    `insert into cash_sessions (id, restaurant_id, created_at, created_by, updated_at, business_day, opened_at, opened_by, opening_float, client_request_id)
+     values (gen_random_uuid(), $1, $2, $3, $2, '2026-11-11', $2, $3, 0, gen_random_uuid())`,
+    [restaurantId, NOW, userId],
+  );
   await c.query(
     `insert into dining_tables (id, restaurant_id, created_at, updated_at, name, name_normalized, qr_token, qr_rotated_at)
      values ($1, $2, $3, $3, '12', '12', 'tok-011', $3)`,
@@ -68,8 +74,8 @@ async function scenario(c: PoolClient, restaurantId: string, userId: string) {
     [ITEM, restaurantId, NOW, sub.rows[0].id, kg.rows[0].id],
   );
   await c.query(
-    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id)
-     values ($1, $2, $3, $4, $5, 'PIX', 40, $1)`,
+    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id, cash_session_id)
+     values ($1, $2, $3, $4, $5, 'PIX', 40, $1, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`,
     [PAYMENT, restaurantId, NOW, userId, TAB],
   );
 }
@@ -170,8 +176,8 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
     const r = await newRestaurant(env);
     await inTx(async (c) => {
       await scenario(c, r.restaurantId, r.userId);
-      const q = `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, received, change, client_request_id)
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`;
+      const q = `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, received, change, client_request_id, cash_session_id)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`;
       const base = [r.restaurantId, NOW, r.userId, TAB];
       expect(await fails(c, q, [ID(30), ...base, "PIX", 0, null, null, ID(30)])).toBe("tab_payments_amount");
       expect(await fails(c, q, [ID(31), ...base, "PIX", 10, 20, 10, ID(31)])).toBe("tab_payments_cash");
@@ -194,7 +200,8 @@ describe("banco da conta da mesa (spec 011, data-model.md)", () => {
     const r = await newRestaurant(env);
     await inTx(async (c) => {
       await scenario(c, r.restaurantId, r.userId);
-      const removal = `insert into tab_payment_removals (id, restaurant_id, created_at, created_by, payment_id) values ($1, $2, $3, $4, $5)`;
+      const removal = `insert into tab_payment_removals (id, restaurant_id, created_at, created_by, payment_id, cash_session_id)
+       values ($1, $2, $3, $4, $5, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`;
       expect(await fails(c, removal, [ID(40), r.restaurantId, NOW, r.userId, PAYMENT])).toBe("OK");
       expect(await fails(c, removal, [ID(41), r.restaurantId, NOW, r.userId, PAYMENT])).toBe(
         "tab_payment_removals_payment",

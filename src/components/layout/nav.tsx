@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeftRight,
   BookOpenText,
+  CalendarClock,
   Armchair,
   ChartColumn,
   CircleDollarSign,
@@ -91,6 +92,14 @@ export const NAV: readonly NavEntry[] = [
   },
   { href: "/caixa", label: "Caixa", action: "tab.read", section: "operation", icon: Wallet },
   { href: "/caixa/contas", label: "Contas", action: "tab.history", section: "operation", icon: Receipt },
+  {
+    href: "/caixa/turnos",
+    label: "Turnos",
+    action: "cash.history",
+    section: "operation",
+    icon: CalendarClock,
+  },
+  { href: "/vendas", label: "Vendas", action: "sales.report", section: "operation", icon: ChartColumn },
   { href: "/pedidos", label: "Pedidos", action: "order.read", section: "operation", icon: ClipboardList },
   {
     href: "/pedidos/cardapio",

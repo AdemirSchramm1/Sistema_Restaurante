@@ -59,7 +59,9 @@ export function explainingEnv(env: TestEnv) {
 
   /** Índices usados desde a última leitura de `fullScans` (não zera a lista). */
   function usedIndexes(): string[] {
-    return [...new Set(plans.flatMap((plan) => [...plan.matchAll(/using (\w+) on/g)].map((m) => m[1]!)))];
+    // "Index Scan using x on t" e "Bitmap Index Scan on x".
+    const used = /using (\w+) on|Bitmap Index Scan on (\w+)/g;
+    return [...new Set(plans.flatMap((plan) => [...plan.matchAll(used)].map((m) => (m[1] ?? m[2])!)))];
   }
 
   /** Papel efetivo da sessão (deve ser `app_user`, para o RLS valer como na aplicação). */

@@ -65,7 +65,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:unit
-      # Spec 013 (TDD-008): todo mutante do domínio do cardápio morto.
+      # Specs 013 (TDD-008) e 014 (R12): todo mutante do domínio do cardápio e do caixa morto.
       - run: pnpm test:mutation
 
   # Unidade e integração juntas, com a régua de 100% do cardápio (spec 013, TDD-008). É aqui que
@@ -97,6 +97,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:menu
+      # Spec 014 (R12): régua de 100% do caixa do dia. Roda só os testes do caixa, para não repetir
+      # a suíte inteira que o `test:menu` já rodou.
+      - run: pnpm test:cash
 
   e2e:
     needs: changes

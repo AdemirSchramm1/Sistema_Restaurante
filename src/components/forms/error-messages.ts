@@ -105,13 +105,58 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PHOTO_TOO_SMALL: "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
   PHOTO_STORAGE_FAILED: "Não foi possível enviar a foto. Tente de novo.",
   PHOTO_PREPARE_FAILED: "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB.",
+  CASH_SESSION_REQUIRED: "Abra o caixa antes de receber.",
+  CASH_SESSION_ALREADY_OPEN: "O caixa já está aberto.",
+  CASH_SESSION_ALREADY_CLOSED: "O caixa já foi fechado.",
+  CASH_SESSION_CLOSED: "Este turno já foi fechado e não muda mais.",
+  OPENING_NOTE_REQUIRED: "Diga por que o troco é outro.",
+  WITHDRAWAL_EXCEEDS_EXPECTED: "A sangria não pode passar do dinheiro que a gaveta deve ter.",
+  EXPECTED_WOULD_BE_NEGATIVE: "Sem esse reforço a gaveta ficaria negativa. Tire uma sangria antes.",
+  DENOMINATIONS_MISMATCH: "A soma das cédulas e moedas não bate com o valor contado. Confira a contagem.",
+  COUNT_REQUIRED: "Conte o dinheiro da gaveta antes de fechar o caixa.",
+  COUNT_OUTDATED: "Entrou dinheiro no turno depois da contagem. Conte de novo.",
+  KEPT_ABOVE_COUNTED: "O que fica na gaveta não pode passar do que foi contado.",
+  NOTE_REQUIRED: "Escreva uma observação.",
 };
+
+/** Caixa do dia (spec 014): o mesmo código com o detalhe de qual ação pediu o caixa aberto. */
+const CASH_REQUIRED: Record<string, string> = {
+  remove: "Abra o caixa antes de tirar um pagamento.",
+  entry: "Abra o caixa antes de lançar sangria ou reforço.",
+  close: "Não há caixa aberto para fechar.",
+};
+const NOTE_REQUIRED: Record<string, string> = {
+  difference: "Com sobra ou falta, escreva uma observação.",
+  other: 'No motivo "Outro", diga na observação para que foi a sangria.',
+};
+
+/** "por Ana às 11:02" (ou só "às 11:02"), no fuso do restaurante que veio nos detalhes. */
+function byAt(name: unknown, at: unknown, timeZone: unknown): string {
+  const time = new Date(String(at)).toLocaleTimeString("pt-BR", {
+    timeZone: String(timeZone),
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return name ? `por ${String(name)} às ${time}` : `às ${time}`;
+}
 
 /** "R$ 1.234,50" a partir da string decimal dos detalhes do erro. */
 const money = (v: unknown) => formatBrl(d(String(v)));
 
 export function messageFor(error: DomainError): string {
   const base = ERROR_MESSAGES[error.code] ?? "Algo deu errado.";
+  const details = error.details;
+  if (error.code === "CASH_SESSION_REQUIRED") return CASH_REQUIRED[String(details?.action)] ?? base;
+  if (error.code === "NOTE_REQUIRED") return NOTE_REQUIRED[String(details?.reason)] ?? base;
+  if (error.code === "CASH_SESSION_ALREADY_OPEN" && details?.openedAt)
+    return `O caixa já foi aberto ${byAt(details.openedByName, details.openedAt, details.timezone)}.`;
+  if (error.code === "CASH_SESSION_ALREADY_CLOSED" && details?.closedAt)
+    return `O caixa já foi fechado ${byAt(details.closedByName, details.closedAt, details.timezone)}.`;
+  if (error.code === "OPENING_NOTE_REQUIRED" && details?.previousKept !== undefined)
+    return `Ficaram ${money(details.previousKept)} na gaveta no último fechamento. Diga por que o troco é outro.`;
+  if (error.code === "WITHDRAWAL_EXCEEDS_EXPECTED" && details?.expected !== undefined)
+    return `A gaveta deve ter ${money(details.expected)}. A sangria não pode passar disso.`;
+  if (error.code === "ALREADY_REMOVED" && details?.entry) return "Este lançamento já foi tirado.";
   // Cardápio (spec 013): o mesmo código já existia para outros cadastros; o detalhe diz qual é.
   if (error.code === "INVALID_DESCRIPTION" && error.details?.max !== undefined)
     return `A descrição pode ter até ${String(error.details.max)} caracteres.`;

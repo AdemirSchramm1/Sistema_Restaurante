@@ -76,7 +76,8 @@ antes e depois; foto aparece no histórico como "Foto" trocada, sem o endereço 
 
 ### Conta da mesa (feature 011)
 
-Entra o papel **Caixa**: vê só "Caixa", "Contas" e "Pedidos" e entra direto no Caixa. Ver
+Entra o papel **Caixa**: vê só "Caixa", "Contas" e "Pedidos" (e "Turnos", desde a 014) e entra
+direto no Caixa. Ver
 [05 — Conta da mesa e caixa](../pedidos/05-conta-da-mesa.md).
 
 | Ação | Permissão | Quem pode |
@@ -97,6 +98,28 @@ estorno e perda do cancelamento) vai para a trilha de auditoria com quem e quand
 Controles do manual que a 011 atende: tirar pagamento e tirar a taxa da conta ficam registrados com
 quem e quando (o pagamento tirado continua visível, riscado); reabrir conta é só do gerente e exige
 motivo; a perda de pedido cancelado fica separada da venda.
+
+### Caixa do dia (feature 014)
+
+O caixa passa a ver também "Turnos"; o gerente ganha "Vendas". Ver
+[07 — Caixa do dia](../pedidos/07-caixa-do-dia.md).
+
+| Ação | Permissão | Quem pode |
+|---|---|---|
+| Abrir o caixa, sangria, reforço, tirar sangria ou reforço, contar e fechar o próprio turno | `cash.operate` | Gerente, caixa |
+| Contar e fechar o turno aberto por outra pessoa | `cash.close_any` | Gerente |
+| Ver o dinheiro esperado do turno aberto | `cash.expected` | Gerente |
+| Turnos e o relatório de cada turno | `cash.history` | Gerente, caixa |
+| Vendas por forma de pagamento e por produto; planilha | `sales.report` | Gerente |
+
+Lançar e tirar pagamento (`tab.pay`) passam a exigir o caixa aberto. Abrir, sangria, reforço,
+tirar lançamento, contar e fechar vão para a trilha de auditoria com quem e quando, além das linhas
+próprias, que só recebem inserção.
+
+Controles do manual que a 014 atende: a sangria fica registrada com motivo e comprovante para
+assinar; o caixa conta antes de ver o esperado e todas as contagens ficam guardadas; turno fechado
+não muda; troco diferente do que ficou na gaveta exige explicação; só o gerente vê o esperado do
+turno aberto e fecha o turno de outra pessoa.
 
 ## Operação pequena
 

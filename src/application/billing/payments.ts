@@ -7,7 +7,14 @@ import { checkPayment, type PaymentMethod } from "@/domain/billing/payment";
 import type { Decimal } from "@/domain/shared/decimal";
 import { err, ok, type Result } from "@/domain/shared/result";
 
-/** Pagamentos da conta da mesa (spec 011, US2 e FR-003): só inserção; tirar é outra linha. */
+/**
+ * Pagamentos da conta da mesa (spec 011, US2 e FR-003): só inserção; tirar é outra linha.
+ *
+ * Caixa do dia (spec 014, FR-002): pagamento e remoção só com o caixa aberto, e ligados ao turno.
+ * A ordem das travas é sempre conta → turno; quem mexe só no turno (sangria, contagem, fechamento)
+ * nunca trava uma conta, então não há impasse. Se o caixa fecha enquanto o pagamento espera a
+ * trava, o turno aberto deixa de existir e o pagamento é recusado.
+ */
 
 export type AddPaymentInput = {
   tabId: string;
@@ -40,6 +47,8 @@ export async function addPayment(
     const same = await repos.tabs.paymentByClientRequest(tab.id, input.clientRequestId);
     if (same) return ok({ paymentId: same.id, change: same.change });
     if (tab.status !== "OPEN") return err("TAB_CLOSED");
+    const session = await repos.cashSessions.lockOpen();
+    if (!session) return err("CASH_SESSION_REQUIRED");
 
     const { totals } = await currentTotals(repos, tab);
     const checked = checkPayment(
@@ -51,15 +60,23 @@ export async function addPayment(
     const audit = auditStamp(deps, ctx);
     const paymentId = deps.ids.next();
     await repos.tabs.insertPayment(
-      { id: paymentId, tabId: tab.id, ...p, clientRequestId: input.clientRequestId },
+      {
+        id: paymentId,
+        tabId: tab.id,
+        ...p,
+        clientRequestId: input.clientRequestId,
+        cashSessionId: session.id,
+      },
       audit,
     );
+    await repos.cashSessions.bumpVersion(session.id, audit);
     const details = {
       paymentId,
       method: p.method,
       amount: money(p.amount),
       received: money(p.received),
       change: money(p.change),
+      cashSessionId: session.id,
     };
     await repos.tabs.addEvent({
       id: deps.ids.next(),
@@ -98,10 +115,18 @@ export async function removePayment(
     const payment = await repos.tabs.getPayment(tab.id, input.paymentId);
     if (!payment) return err("NOT_FOUND");
     if (payment.removedAt) return err("ALREADY_REMOVED");
+    const session = await repos.cashSessions.lockOpen();
+    if (!session) return err("CASH_SESSION_REQUIRED", undefined, { action: "remove" });
     const audit = auditStamp(deps, ctx);
-    const removed = await repos.tabs.removePayment(payment.id, deps.ids.next(), audit);
+    const removed = await repos.tabs.removePayment(payment.id, deps.ids.next(), session.id, audit);
     if (!removed.ok) return removed;
-    const details = { paymentId: payment.id, method: payment.method, amount: money(payment.amount) };
+    await repos.cashSessions.bumpVersion(session.id, audit);
+    const details = {
+      paymentId: payment.id,
+      method: payment.method,
+      amount: money(payment.amount),
+      cashSessionId: session.id,
+    };
     await repos.tabs.addEvent({
       id: deps.ids.next(),
       tabId: tab.id,

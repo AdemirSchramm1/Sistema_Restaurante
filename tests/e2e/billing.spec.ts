@@ -1,6 +1,6 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { lastMailTo, PASSWORD, signUp, uniqueEmail } from "./helpers";
-import { createTables, customize, newAddon, newDish, newItem, qrPath } from "./ordering-helpers";
+import { createTables, customize, newAddon, newDish, newItem, openCash, qrPath } from "./ordering-helpers";
 
 const phone = devices["Pixel 7"];
 
@@ -82,8 +82,10 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   // Caixa convidado: entra direto no Caixa e só vê Caixa, Contas e Pedidos.
   const { cashier, context: cashierContext } = await inviteCashier(page, browser);
   const nav = cashier.getByRole("navigation", { name: "Menu principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Caixa", "Contas", "Pedidos"]);
+  await expect(nav.getByRole("link")).toHaveText(["Caixa", "Contas", "Turnos", "Pedidos"]);
   await expect(cashier.getByText("Nenhuma mesa com conta aberta.")).toBeVisible();
+  // Spec 014: receber exige o caixa aberto.
+  await openCash(cashier);
 
   // Celular: 2 × X-Burger com + 2 Fatia de queijo e sem cebola.
   const phoneContext = await browser.newContext({ ...phone, locale: "pt-BR" });

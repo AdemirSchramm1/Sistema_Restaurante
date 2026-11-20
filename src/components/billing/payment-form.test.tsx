@@ -187,6 +187,22 @@ describe("pagamentos lançados (spec 011, US2-4 e US2-5)", () => {
     expect(s.calls).toEqual([{ tabId: "t12", paymentId: "p1" }]);
   });
 
+  it("com o caixa fechado, Tirar fica desligado com o motivo (spec 014, FR-002)", () => {
+    render(
+      <PaymentList
+        tabId="t12"
+        payments={payments}
+        timezone="America/Sao_Paulo"
+        remove={spy().action}
+        cashSessionOpen={false}
+      />,
+    );
+    const remove = screen.getByRole("button", { name: "Tirar pagamento de R$ 20,00 (Dinheiro)" });
+    expect((remove as HTMLButtonElement).disabled).toBe(true);
+    const reason = screen.getByText("Abra o caixa antes de tirar um pagamento.");
+    expect(remove.getAttribute("aria-describedby")).toBe(reason.id);
+  });
+
   it("sem pagamentos diz isso", () => {
     render(<PaymentList tabId="t12" payments={[]} timezone="America/Sao_Paulo" />);
     expect(screen.getByText("Nenhum pagamento lançado.")).toBeTruthy();

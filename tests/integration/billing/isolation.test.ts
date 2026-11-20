@@ -11,6 +11,12 @@ async function seedTab(restaurantId: string, userId: string, tag: string) {
   const db = ownerTestDb().$client;
   const id = () => crypto.randomUUID();
   const [table, tab, payment] = [id(), id(), id()];
+  // Spec 014: pagamento e remoção novos pertencem a um turno do caixa.
+  await db.query(
+    `insert into cash_sessions (id, restaurant_id, created_at, created_by, updated_at, business_day, opened_at, opened_by, opening_float, client_request_id)
+     values (gen_random_uuid(), $1, $2, $3, $2, '2026-11-11', $2, $3, 0, gen_random_uuid())`,
+    [restaurantId, NOW, userId],
+  );
   await db.query(
     `insert into dining_tables (id, restaurant_id, created_at, updated_at, name, name_normalized, qr_token, qr_rotated_at)
      values ($1, $2, $3, $3, '12', '12', $4, $3)`,
@@ -22,12 +28,13 @@ async function seedTab(restaurantId: string, userId: string, tag: string) {
     [tab, restaurantId, NOW, table],
   );
   await db.query(
-    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id)
-     values ($1, $2, $3, $4, $5, 'PIX', 40, $1)`,
+    `insert into tab_payments (id, restaurant_id, created_at, created_by, tab_id, method, amount, client_request_id, cash_session_id)
+     values ($1, $2, $3, $4, $5, 'PIX', 40, $1, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`,
     [payment, restaurantId, NOW, userId, tab],
   );
   await db.query(
-    `insert into tab_payment_removals (id, restaurant_id, created_at, created_by, payment_id) values ($1, $2, $3, $4, $5)`,
+    `insert into tab_payment_removals (id, restaurant_id, created_at, created_by, payment_id, cash_session_id)
+     values ($1, $2, $3, $4, $5, (select id from cash_sessions where restaurant_id = $2 and status = 'OPEN'))`,
     [id(), restaurantId, NOW, userId, payment],
   );
   await db.query(

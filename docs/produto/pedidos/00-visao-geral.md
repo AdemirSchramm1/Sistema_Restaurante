@@ -27,6 +27,7 @@ Gerente cria as mesas ──► imprime os QR codes ──► cliente escaneia
 | [04 — Adicionar e tirar](04-adicionar-e-tirar.md) | Adicionais com preço, retiradas por produto, consumo |
 | [05 — Conta da mesa e caixa](05-conta-da-mesa.md) | Conta da mesa, taxa de serviço, pagamento, divisão, fechar, imprimir, contas fechadas, reabrir |
 | [06 — Editar o cardápio](06-editar-o-cardapio.md) | Tela Cardápio: seções, ordem, foto, descrição, preço, produto novo, Ver como o cliente |
+| [07 — Caixa do dia](07-caixa-do-dia.md) | Abrir com troco, sangria e reforço, contar sem ver o esperado, fechar, Turnos e Vendas |
 
 Telas da equipe, no menu: **Cozinha**, **Garçom**, **Caixa**, **Contas**, **Pedidos**, **Mesas**,
 **Adicionais** e **Cardápio** (013) (cada uma só para quem tem a permissão; ver
