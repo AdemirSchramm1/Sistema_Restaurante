@@ -8,34 +8,36 @@ O foco é o software funcionar, não o teste passar. TDD continua obrigatório
 (`01-tdd.md`), mas valores fixos e testes pragmáticos são bem-vindos quando deixam o teste mais
 rápido e mais estável.
 
-## 1. PRs pequenos
+## 1. Um PR por feature; quem se divide é o CI
 
-PR grande demora mais no CI e na revisão. Por isso:
+O dono do projeto quer **a feature inteira num PR só**. Quem deixa o PR rápido é o CI quebrado em
+muitos jobs paralelos, não o PR quebrado em pedaços (decisão de 2026-11-20).
 
-- **Uma feature por PR**, nunca duas features no mesmo PR.
-- **Feature grande vira vários PRs**, um por fatia que funciona sozinha, na ordem do `tasks.md`:
-  1. base: domínio, migração, permissões e repositórios, com os testes deles;
-  2. uma história de usuário (ou um grupo pequeno delas) por PR, com telas e testes;
-  3. por último, ponta a ponta, imagens de referência e documentação que fecham a feature.
-- Referência de tamanho: até uns **40 arquivos ou 3.000 linhas** por PR, sem contar imagens de
-  referência e `meta/*_snapshot.json`. Passou disso, divida.
-- Cada PR precisa deixar a `main` verde e utilizável sozinho. Tela nova sem caminho no menu pode
-  entrar antes; regra que quebra tela antiga entra junto com o ajuste dessa tela.
+- **Uma feature por PR**, com tudo dela: migração, domínio, telas, testes, imagens de referência,
+  `docs/` e `tasks.md`. Não divida a feature em vários PRs.
+- **Nunca duas features no mesmo PR.** Correção fora da feature vai em PR próprio.
 - Feature que depende de outra ainda aberta espera o merge dela; não empilhe PR em cima de PR
   aberto.
+- **PR lento no CI se resolve no CI:** ache o job mais demorado e quebre em mais partes paralelas
+  (veja a seção 2). A meta é nenhum job passar de uns 5 minutos.
 
 ## 2. Como o CI roda (`.github/workflows/ci.yml`)
 
 - Todos os jobs rodam **em paralelo**: `estatico` (formato, lint, tipos), `unidade`,
   `integracao` (cobertura do cardápio, do caixa e do garçom), `e2e` e `telas` (Chromium e WebKit,
   cada um em 3 partes).
+- **Quebrar em mais partes:** job que passou de uns 5 minutos vira uma `matrix` com mais partes,
+  cada uma com o seu banco. Divida por arquivo ou por `--grep` quando um arquivo sozinho domina o
+  tempo (foi o que se fez com o cardápio do cliente em `telas`), e por `--shard` quando o tempo
+  está bem espalhado. Cada parte tem de rodar sozinha, sem depender da ordem das outras.
+- Novo portão de cobertura (como `test:cash`) entra no job `integracao` ou numa parte nova dele;
+  nunca crie job em série (`needs` entre jobs de teste).
 - **Filtro de caminho:** PR só de documentação (`*.md`, `docs/`, `specs/`, `.specify/`) roda só o
   `estatico`, em cerca de 1 minuto.
 - **Commit novo cancela a rodada anterior** do mesmo PR (`concurrency`).
 - Dependências vêm do cache do pnpm; fila e instalação levam segundos. Se um job ficar lento,
-  abra o log, veja qual passo come o tempo e corrija ali (dividir o job, cortar trabalho repetido),
+  abra o log, veja qual passo come o tempo e corrija ali (quebrar o job, cortar trabalho repetido),
   em vez de cortar teste.
-- Novo portão de cobertura (como `test:cash`) entra no job `integracao`; não crie job em série.
 
 ## 3. Antes de enviar
 
@@ -60,4 +62,4 @@ Rode localmente o que o PR mexeu, do mais rápido para o mais lento:
 ## 5. Descrição do PR
 
 Diga o que muda para quem usa o sistema, a migração e a ordem dela, a lista do que foi
-verificado (com números) e, se a feature foi dividida, qual parte é esta e o que vem depois.
+verificado (com números) e o tempo de cada job do CI, para ver qual precisa ser quebrado.
