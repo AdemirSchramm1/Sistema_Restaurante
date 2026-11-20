@@ -4,7 +4,7 @@ import { authorize, auditStamp } from "../shared";
 import { isId } from "../form-input";
 import type { ClosedTabRow, TabEventRecord, TabPaymentRecord, TabRecord, TabStatus } from "./ports";
 import type { OrderLineView } from "../ordering/ports";
-import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
+import type { CancelReason, OrderSource, OrderStatus } from "@/domain/ordering/order";
 import {
   checkClose,
   checkReopenReason,
@@ -43,6 +43,9 @@ export type TabOrderView = {
   cancelNote: string | null;
   total: Decimal;
   submittedAt: Date;
+  /** Quem lançou (spec 015): o QR code ou a pessoa da equipe. */
+  source: OrderSource;
+  placedByName: string | null;
   lines: OrderLineView[];
 };
 
@@ -137,6 +140,8 @@ export async function loadTab(deps: Deps, repos: Repos, id: string): Promise<Res
       cancelNote: o.cancelNote,
       total: o.total,
       submittedAt: o.submittedAt,
+      source: o.source,
+      placedByName: o.placedByName,
       lines: o.lines,
     })),
     ...totals,

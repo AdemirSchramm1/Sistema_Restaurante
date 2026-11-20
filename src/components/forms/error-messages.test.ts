@@ -199,3 +199,28 @@ describe("mensagens do caixa do dia (spec 014)", () => {
     expect(messageFor({ code: "ALREADY_REMOVED" })).toBe("Este pagamento já foi tirado.");
   });
 });
+
+describe("garçom lança o pedido (spec 015, contracts/use-cases.md)", () => {
+  it("textos novos", () => {
+    expect(messageFor({ code: "STAFF_TABLE_INACTIVE", details: { tableName: "12" } })).toBe(
+      "A Mesa 12 foi inativada. Fale com o gerente.",
+    );
+    expect(messageFor({ code: "STAFF_TABLE_INACTIVE" })).toBe("Esta mesa foi inativada. Fale com o gerente.");
+    expect(messageFor({ code: "KITCHEN_STARTED" })).toBe(
+      "A cozinha já começou. Peça ao chef ou ao gerente para cancelar.",
+    );
+    expect(messageFor({ code: "REQUEST_REUSED" })).toBe(
+      "Este envio já foi usado para outro pedido. Confira em Pedidos da mesa.",
+    );
+    expect(messageFor({ code: "NOTE_TOO_LONG", field: "lines.0.kitchenNote" })).toBe(
+      "A observação passa de 140 letras.",
+    );
+    expect(messageFor({ code: "NOTE_TOO_LONG" })).toBe("Use até 140 letras.");
+  });
+
+  it("a mensagem da mesa inativa do cliente continua mandando chamar o garçom", () => {
+    expect(messageFor({ code: "TABLE_INACTIVE" })).toBe(
+      "Esta mesa não está recebendo pedidos. Chame um garçom.",
+    );
+  });
+});

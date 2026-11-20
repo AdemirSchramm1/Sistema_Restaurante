@@ -64,6 +64,20 @@ export function explainingEnv(env: TestEnv) {
     return [...new Set(plans.flatMap((plan) => [...plan.matchAll(used)].map((m) => (m[1] ?? m[2])!)))];
   }
 
+  /**
+   * Estatísticas em dia para as tabelas da consulta, como o autovacuum mantém em produção. Sem isto,
+   * com as tabelas recém-escritas por outros testes em paralelo, o planejador estima às cegas e pode
+   * trocar um índice certeiro por outro que também serve (spec 012, R2).
+   */
+  async function analyze(...tables: string[]): Promise<void> {
+    const owner = new Pool({ connectionString: inject("ownerUrl"), max: 1 });
+    try {
+      await owner.query(`analyze ${tables.map((t) => `"${t}"`).join(", ")}`);
+    } finally {
+      await owner.end();
+    }
+  }
+
   /** Papel efetivo da sessão (deve ser `app_user`, para o RLS valer como na aplicação). */
   async function currentRole(): Promise<string> {
     const r = await pool.query<{ u: string }>("select current_user as u");
@@ -76,6 +90,7 @@ export function explainingEnv(env: TestEnv) {
     fullScans,
     usedIndexes,
     currentRole,
+    analyze,
     planCount: () => plans.length,
     close: () => pool.end(),
   };

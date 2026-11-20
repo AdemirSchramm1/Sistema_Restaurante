@@ -100,6 +100,15 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
     const first = await c.specShift();
     unwrap(await c.closeTabOf(first.tabId));
     unwrap(await c.closeSession(first.sessionId, "127.00", { kept: "100.00" }));
+    const CASH_TABLES = [
+      "cash_sessions",
+      "cash_entries",
+      "cash_counts",
+      "table_tabs",
+      "tab_payments",
+      "tab_payment_removals",
+    ];
+    await explaining.analyze(...CASH_TABLES);
     const { deps, fullScans, planCount, usedIndexes } = explaining;
     const day = "2026-10-31";
 
@@ -123,21 +132,27 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
 
     const second = await c.openSession("100.00");
     unwrap(await c.count(second, "100.00"));
+    await explaining.analyze(...CASH_TABLES);
     await check({
       "caixa aberto": () => getCurrentCashSession(deps, c.m),
       "fechar caixa": () => getCashClosing(deps, c.ana),
       "relatório do turno aberto": () => getCashSessionReport(deps, c.m, second),
     });
     expect(problems).toEqual([]);
-    for (const index of [
+    const expected = [
       "cash_sessions_one_open",
       "cash_sessions_day",
       "cash_entries_client_request",
       "cash_counts_session",
       "tab_payments_cash_session",
-      "tab_payment_removals_cash_session",
+      // Pagamento tirado é raro: com estatísticas reais o PostgreSQL parte dos pagamentos do turno e
+      // acha o tirado pelo índice do pagamento (o índice do turno serve quando há muitos tirados).
+      "tab_payment_removals_payment",
       "table_tabs_cash_session",
-    ])
-      expect([...indexes].sort().join(","), index).toContain(index);
+    ];
+    expect(
+      expected.filter((i) => !indexes.has(i)),
+      `índices usados: ${[...indexes].sort().join(", ")}`,
+    ).toEqual([]);
   });
 });

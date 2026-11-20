@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, gt, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import type {
   DiningTableRecord,
   DiningTableRepo,
@@ -9,7 +10,10 @@ import type {
   OrderRecord,
   OrderRepo,
   NewOrder,
+  OrderFilter,
+  SourceSummaryRow,
 } from "@/application/ordering/ports";
+import type { CancelReason } from "@/domain/ordering/order";
 import type { Audit } from "@/application/access/ports";
 import type { CatalogProduct } from "@/domain/ordering/checkout";
 import type { ComponentRef } from "@/domain/inventory/recipe";
@@ -201,6 +205,22 @@ export function orderingSettingsRepository(tx: Tx, restaurantId: string): Orderi
   };
 }
 
+/** Quem lançou o pedido (spec 015): o nome é o de hoje, pela junção. */
+const placer = alias(users, "placer");
+
+/** Filtro da consulta (sem a situação, que o resumo por origem não usa). */
+const periodWhere = (f: OrderFilter): SQL | undefined =>
+  and(
+    gte(orders.businessDay, f.fromDay),
+    lte(orders.businessDay, f.toDay),
+    f.tableId ? eq(orders.tableId, f.tableId) : undefined,
+    f.placedBy === "QR"
+      ? eq(orders.source, "QR")
+      : f.placedBy
+        ? and(eq(orders.source, "STAFF"), eq(orders.placedBy, f.placedBy))
+        : undefined,
+  );
+
 export function orderRepository(tx: Tx, restaurantId: string, ids: () => string): OrderRepo {
   async function load(where: SQL | undefined, order: SQL[]): Promise<OrderRecord[]> {
     const rows = await tx
@@ -212,6 +232,9 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         tableName: diningTables.name,
         menuAccessId: orders.menuAccessId,
         tabId: orders.tabId,
+        source: orders.source,
+        placedById: orders.placedBy,
+        placedByName: placer.name,
         status: orders.status,
         cancelReason: orders.cancelReason,
         cancelNote: orders.cancelNote,
@@ -222,6 +245,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       })
       .from(orders)
       .innerJoin(diningTables, eq(diningTables.id, orders.tableId))
+      .leftJoin(placer, eq(placer.id, orders.placedBy))
       .where(where)
       .orderBy(...order);
     if (!rows.length) return [];
@@ -231,6 +255,8 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         orderId: orderLines.orderId,
         quantity: orderLines.quantity,
         unitPrice: orderLines.unitPrice,
+        kitchenNote: orderLines.kitchenNote,
+        recipeId: orderLines.recipeId,
         productName: recipes.name,
       })
       .from(orderLines)
@@ -247,6 +273,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       ? await tx
           .select({
             lineId: orderLineAddons.orderLineId,
+            addonId: orderLineAddons.addonId,
             name: orderLineAddons.name,
             times: orderLineAddons.times,
           })
@@ -256,7 +283,12 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       : [];
     const removals = lineIds.length
       ? await tx
-          .select({ lineId: orderLineRemovals.orderLineId, label: orderLineRemovals.label })
+          .select({
+            lineId: orderLineRemovals.orderLineId,
+            label: orderLineRemovals.label,
+            itemId: orderLineRemovals.itemId,
+            subRecipeId: orderLineRemovals.subRecipeId,
+          })
           .from(orderLineRemovals)
           .where(inArray(orderLineRemovals.orderLineId, lineIds))
           .orderBy(asc(orderLineRemovals.createdAt), asc(orderLineRemovals.id))
@@ -275,6 +307,10 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
           addonsByLine.get(l.id) ?? [],
           (removalsByLine.get(l.id) ?? []).map((x) => x.label),
         ),
+        kitchenNote: l.kitchenNote,
+        recipeId: l.recipeId,
+        addons: (addonsByLine.get(l.id) ?? []).map((a) => ({ addonId: a.addonId, times: a.times })),
+        removals: (removalsByLine.get(l.id) ?? []).map((x) => ref(x.itemId, x.subRecipeId)),
       })),
     }));
   }
@@ -292,13 +328,17 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
   }
 
   async function insertOrder(o: NewOrder, number: number) {
+    const placedBy = o.origin.source === "STAFF" ? o.origin.placedBy : null;
     await tx.insert(orders).values({
       id: o.id,
       restaurantId,
       createdAt: o.submittedAt,
+      createdBy: placedBy,
       tableId: o.tableId,
       tabId: o.tabId,
-      menuAccessId: o.menuAccessId,
+      source: o.origin.source,
+      placedBy,
+      menuAccessId: o.origin.source === "QR" ? o.origin.menuAccessId : null,
       clientRequestId: o.clientRequestId,
       businessDay: o.businessDay,
       number,
@@ -321,6 +361,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         quantity: l.quantity,
         basePrice: l.basePrice.toFixed(2),
         unitPrice: l.unitPrice.toFixed(2),
+        kitchenNote: l.kitchenNote,
       })),
     );
     const addonIds = [...new Set(o.lines.flatMap((l) => l.addons.map((a) => a.addonId)))];
@@ -377,6 +418,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       orderId: o.id,
       fromStatus: null,
       toStatus: "RECEIVED",
+      userId: placedBy,
       at: o.submittedAt,
     });
   }
@@ -388,6 +430,65 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         [],
       );
       return r ?? null;
+    },
+    async findStaffByClientRequest(placedBy, clientRequestId) {
+      const [r] = await load(
+        and(
+          eq(orders.source, "STAFF"),
+          eq(orders.placedBy, placedBy),
+          eq(orders.clientRequestId, clientRequestId),
+        ),
+        [],
+      );
+      return r ?? null;
+    },
+    async summaryBySource(f) {
+      const rows = await tx
+        .select({
+          source: orders.source,
+          placedById: orders.placedBy,
+          name: placer.name,
+          cancelReason: orders.cancelReason,
+          count: sql<number>`count(*)::int`,
+          total: sql<string>`sum(${orders.total})`,
+        })
+        .from(orders)
+        .leftJoin(placer, eq(placer.id, orders.placedBy))
+        .where(periodWhere(f))
+        .groupBy(orders.source, orders.placedBy, placer.name, orders.cancelReason);
+      const groups = new Map<string, SourceSummaryRow>();
+      for (const r of rows) {
+        const key = `${r.source}:${r.placedById ?? ""}`;
+        const g = groups.get(key) ?? {
+          source: r.source,
+          placedById: r.placedById,
+          name: r.name,
+          count: 0,
+          total: dec("0")!,
+          cancelled: [],
+        };
+        if (r.cancelReason)
+          g.cancelled.push({ reason: r.cancelReason as CancelReason, count: Number(r.count) });
+        else {
+          g.count += Number(r.count);
+          g.total = g.total.plus(dec(r.total)!);
+        }
+        groups.set(key, g);
+      }
+      // QR code primeiro; depois a equipe pelo nome.
+      return [...groups.values()].sort(
+        (a, b) =>
+          (a.source === "QR" ? 0 : 1) - (b.source === "QR" ? 0 : 1) ||
+          (a.name ?? "").localeCompare(b.name ?? "", "pt-BR"),
+      );
+    },
+    async staffPlacers() {
+      return tx
+        .selectDistinct({ id: placer.id, name: placer.name })
+        .from(orders)
+        .innerJoin(placer, eq(placer.id, orders.placedBy))
+        .where(eq(orders.source, "STAFF"))
+        .orderBy(asc(placer.name));
     },
     async countForAccess(menuAccessId) {
       const [r] = await tx
@@ -404,7 +505,11 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
           return { number };
         });
       } catch (e) {
-        if (isUniqueViolation(e, "orders_client_request")) return null;
+        if (
+          isUniqueViolation(e, "orders_client_request") ||
+          isUniqueViolation(e, "orders_staff_client_request")
+        )
+          return null;
         throw e;
       }
     },
@@ -432,15 +537,10 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       load(eq(orders.menuAccessId, menuAccessId), [desc(orders.submittedAt), desc(orders.number)]),
     listForTab: (tabId) => load(eq(orders.tabId, tabId), [asc(orders.submittedAt), asc(orders.number)]),
     list: (f) =>
-      load(
-        and(
-          gte(orders.businessDay, f.fromDay),
-          lte(orders.businessDay, f.toDay),
-          f.tableId ? eq(orders.tableId, f.tableId) : undefined,
-          f.status ? eq(orders.status, f.status) : undefined,
-        ),
-        [desc(orders.businessDay), desc(orders.number)],
-      ),
+      load(and(periodWhere(f), f.status ? eq(orders.status, f.status) : undefined), [
+        desc(orders.businessDay),
+        desc(orders.number),
+      ]),
     async changeStatus(id, change, version, audit) {
       const r = await tx
         .update(orders)

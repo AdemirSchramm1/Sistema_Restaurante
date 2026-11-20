@@ -168,3 +168,24 @@ fecha (`REMAINING_NOT_ZERO`) até tirar o pagamento a mais.
 - `salesReport` (`sales.report`): turnos (`sessionRows`), vendas (`sales.ofPeriod`, duas consultas)
   e fuso numa transação só; o número de idas ao banco não cresce com os pedidos.
 - Auditoria (`entity = 'cash_session'`): `opened`, `entryAdded`, `entryRemoved`, `counted`, `closed`.
+
+## Pedido pelo garçom (015) — `src/domain/ordering/` e `src/application/ordering/staff-orders.ts`
+
+- `cancelScope(pedido, quem)`: `FINAL` (Entregue ou Cancelado), `ANY` (`order.cancel`), `OWN`
+  (`order.cancel_own`, pedido da equipe lançado pela pessoa, ainda Recebido), `KITCHEN_STARTED` (o
+  próprio, já em preparo ou pronto) e `FORBIDDEN`. `FORBIDDEN` vai para a auditoria como `DENIED`.
+- `checkKitchenNote`: apara, vazio vira nulo, mais de 140 letras é `NOTE_TOO_LONG`.
+- `placeStaffOrder` (`order.place`): mesmo `(quem, clientRequestId)` já gravado devolve o mesmo
+  pedido se o conteúdo é igual (`sameRequest`, sem ordem) e `REQUEST_REUSED` se é outro. Mesa ativa
+  (`STAFF_TABLE_INACTIVE`), mas sem acesso de 20 minutos, sem limite de 10 pedidos e sem a chave do
+  QR code. Depois, `checkOrder` e `saveOrder` (o mesmo do QR code, com `origin`); o `OPENED` da conta
+  leva quem lançou. `previousTabClosed` quando a conta vista ao abrir a mesa não é a que recebeu.
+- `reorderLines` (Pedir de novo): refaz as linhas com o cardápio de hoje; esgotado, fora do cardápio
+  ou com escolha que não existe mais fica de fora com o aviso.
+- `similarRecentOrders`: pedidos da conta nos últimos 5 minutos, de outra pessoa ou do QR code, com
+  produto que está no carrinho.
+- Carrinho do garçom no `localStorage` (`garcom:v1:{restaurante}:{usuário}:{mesa}`, até 12 horas):
+  travado (`uncertain`) quando a resposta do envio não volta; **Enviar de novo** repete o mesmo
+  `clientRequestId`. Sair apaga todos; abrir Lançar pedido apaga os de outra pessoa.
+- `ordersBySource` (`order.read`): resumo da consulta por origem, com cancelados por motivo. Filtro
+  com lixo no endereço vira lista vazia, não erro do banco.

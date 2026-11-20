@@ -119,3 +119,16 @@ describe("conferência no envio (spec 009 R9 + spec 010 R5)", () => {
     expect(checkOrder([line(), plain], catalog(xBurger)).ok).toBe(true);
   });
 });
+
+describe("observação para a cozinha na conferência (spec 015, FR-018)", () => {
+  it("passa para a linha conferida sem mudar o preço", () => {
+    const r = checkOrder(
+      [line({ kitchenNote: "mal passado" }), line({ kitchenNote: "ao ponto" }), sucoLine],
+      catalog(xBurger, suco),
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.map((l) => l.kitchenNote)).toEqual(["mal passado", "ao ponto", null]);
+    expect(r.value.map((l) => l.unitPrice.toFixed(2))).toEqual(["34.00", "34.00", "9.00"]);
+  });
+});

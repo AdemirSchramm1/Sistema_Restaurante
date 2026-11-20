@@ -12,13 +12,20 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: "Cancelado",
 };
 
-export const CANCEL_REASONS = ["CUSTOMER_GAVE_UP", "OUT_OF_PRODUCT", "IMPROPER_ORDER", "OTHER"] as const;
+export const CANCEL_REASONS = [
+  "CUSTOMER_GAVE_UP",
+  "OUT_OF_PRODUCT",
+  "IMPROPER_ORDER",
+  "ENTERED_BY_MISTAKE",
+  "OTHER",
+] as const;
 export type CancelReason = (typeof CANCEL_REASONS)[number];
 
 export const CANCEL_REASON_LABELS: Record<CancelReason, string> = {
   CUSTOMER_GAVE_UP: "Cliente desistiu",
   OUT_OF_PRODUCT: "Produto acabou",
   IMPROPER_ORDER: "Pedido indevido",
+  ENTERED_BY_MISTAKE: "Lançado errado",
   OTHER: "Outro",
 };
 
@@ -68,4 +75,28 @@ export const leftTheShelf = (s: OrderStatus): boolean => s === "PREPARING" || s 
 export function isLate(status: OrderStatus, submittedAt: Date, now: Date): boolean {
   if (status !== "RECEIVED" && status !== "PREPARING") return false;
   return now.getTime() - submittedAt.getTime() > LATE_MINUTES * 60_000;
+}
+
+/** De onde veio o pedido (spec 015, FR-006): o cliente pelo QR code ou alguém da equipe. */
+export const ORDER_SOURCES = ["QR", "STAFF"] as const;
+export type OrderSource = (typeof ORDER_SOURCES)[number];
+/** Na tela do garçom, a equipe aparece pelo nome de quem lançou; "Equipe" é só o rótulo do filtro. */
+export const ORDER_SOURCE_LABELS: Record<OrderSource, string> = { QR: "QR code", STAFF: "Equipe" };
+
+/**
+ * Quem pode cancelar este pedido (spec 015, R6). `ANY`: gerente e chef (`order.cancel`). `OWN`: quem
+ * lançou, só em Recebido (`order.cancel_own`). `KITCHEN_STARTED`: o próprio, mas a cozinha já
+ * começou. `FORBIDDEN`: pedido de outra pessoa ou do QR code. `FINAL`: Entregue ou Cancelado.
+ */
+export type CancelScope = "ANY" | "OWN" | "KITCHEN_STARTED" | "FORBIDDEN" | "FINAL";
+
+export function cancelScope(
+  order: { status: OrderStatus; source: OrderSource; placedById: string | null },
+  who: { userId: string; canCancel: boolean; canCancelOwn: boolean },
+): CancelScope {
+  if (isFinal(order.status)) return "FINAL";
+  if (who.canCancel) return "ANY";
+  const own = who.canCancelOwn && order.source === "STAFF" && order.placedById === who.userId;
+  if (!own) return "FORBIDDEN";
+  return order.status === "RECEIVED" ? "OWN" : "KITCHEN_STARTED";
 }

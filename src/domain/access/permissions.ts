@@ -42,6 +42,8 @@ export const ACTIONS = [
   "order.cancel",
   "order.deliver",
   "order.read",
+  "order.place",
+  "order.cancel_own",
   "product.sold_out",
   "addon.read",
   "addon.write",
@@ -79,8 +81,17 @@ const MATRIX: Record<Role, readonly Action[]> = {
   STOCKKEEPER: ["catalog.read", "movement.purchase", "movement.loss", "adjustment.request"],
   BUYER: ["catalog.read", "item.reorder", "movement.purchase", "adjustment.request", "supplier.write"],
   ADMINISTRATIVE: ["catalog.read"],
-  WAITER: ["order.deliver", "order.read", "tab.read"],
-  CASHIER: ["order.read", "tab.read", "tab.pay", "tab.history", "cash.operate", "cash.history"],
+  WAITER: ["order.deliver", "order.read", "order.place", "order.cancel_own", "tab.read"],
+  CASHIER: [
+    "order.read",
+    "order.place",
+    "order.cancel_own",
+    "tab.read",
+    "tab.pay",
+    "tab.history",
+    "cash.operate",
+    "cash.history",
+  ],
 };
 
 export function can(roles: readonly Role[], action: Action): boolean {

@@ -23,6 +23,8 @@ export type RequestedLine = {
   unitPrice: Decimal;
   addons: { addonId: string; times: number; unitPrice: Decimal }[];
   removals: ComponentRef[];
+  /** Observação para a cozinha; só a equipe manda (spec 015, FR-018). */
+  kitchenNote?: string | null;
 };
 
 export type PricedLine = {
@@ -33,6 +35,7 @@ export type PricedLine = {
   unitPrice: Decimal;
   addons: { addonId: string; name: string; times: number; unitPrice: Decimal }[];
   removals: { component: ComponentRef; label: string }[];
+  kitchenNote: string | null;
 };
 
 /**
@@ -100,6 +103,7 @@ export function checkOrder(
         return { addonId: a.addonId, name: o.name, times: a.times, unitPrice: o.price };
       }),
       removals: l.removals.map((r) => ({ component: r, label: removable.get(refKey(r))!.label })),
+      kitchenNote: l.kitchenNote ?? null,
     });
   }
   if (prices.size || addonPrices.size)

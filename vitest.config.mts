@@ -41,7 +41,30 @@ const cashCoverage = {
   reportsDirectory: "coverage/cash",
 };
 
-const focused = { menu: menuCoverage, cash: cashCoverage } as const;
+/**
+ * Régua da spec 015 (R19), usada por `pnpm test:staff` (`--mode staff`): o código novo do pedido
+ * lançado pela equipe tem 100% de linhas, desvios e funções cobertos, somando unidade e integração.
+ */
+const staffCoverage = {
+  provider: "v8" as const,
+  include: [
+    "src/domain/ordering/kitchen-note.ts",
+    "src/domain/ordering/staff-request.ts",
+    "src/domain/ordering/reorder.ts",
+    "src/domain/ordering/similar-orders.ts",
+    "src/domain/menu/staff-menu.ts",
+    "src/domain/menu/search.ts",
+    "src/application/ordering/staff-orders.ts",
+    "src/application/ordering/staff-order-input.ts",
+    "src/application/ordering/save-order.ts",
+    "src/components/staff-ordering/**/*.{ts,tsx}",
+  ],
+  exclude: ["**/*.test.{ts,tsx}"],
+  thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
+  reportsDirectory: "coverage/staff",
+};
+
+const focused = { menu: menuCoverage, cash: cashCoverage, staff: staffCoverage } as const;
 
 export default defineConfig(({ mode }) => ({
   resolve: { alias },
