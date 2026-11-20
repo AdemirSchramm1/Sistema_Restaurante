@@ -43,6 +43,7 @@ E se liga ao fluxo **Spec Kit**:
 - [02 — Convenções de código](sistema/02-convencoes.md)
 - [03 — Padrões do front (cores, fontes, componentes)](sistema/03-padroes-do-front.md)
 - [04 — Desempenho (regras e como medir)](sistema/04-desempenho.md)
+- [06 — CI/CD e pull requests (PRs pequenos, checagens antes de enviar)](sistema/06-ci-cd.md)
 - [Glossário PT → código](sistema/glossario.md)
 - [ADRs (decisões de arquitetura)](sistema/adr/)
 - Módulo de Estoque
