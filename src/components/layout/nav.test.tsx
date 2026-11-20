@@ -8,12 +8,12 @@ afterEach(cleanup);
 const labels = (roles: Parameters<typeof navFor>[0]) => navFor(roles).map((n) => n.label);
 
 describe("menu por permissão (spec 009, T022)", () => {
-  it("garçom vê Garçom, Caixa (só para ver a conta, spec 011) e Pedidos", () => {
-    expect(labels(["WAITER"])).toEqual(["Garçom", "Caixa", "Pedidos"]);
+  it("garçom vê Lançar pedido (spec 015), Garçom, Caixa (só para ver a conta, spec 011) e Pedidos", () => {
+    expect(labels(["WAITER"])).toEqual(["Lançar pedido", "Garçom", "Caixa", "Pedidos"]);
   });
 
   it("caixa vê só Caixa, Contas, Turnos e Pedidos e entra direto no Caixa (specs 011 e 014)", () => {
-    expect(labels(["CASHIER"])).toEqual(["Caixa", "Contas", "Turnos", "Pedidos"]);
+    expect(labels(["CASHIER"])).toEqual(["Lançar pedido", "Caixa", "Contas", "Turnos", "Pedidos"]);
     expect(homeFor(["CASHIER"])).toBe("/caixa");
   });
 
@@ -50,7 +50,9 @@ describe("menu por permissão (spec 009, T022)", () => {
   });
 
   it("primeira tela depende do papel", () => {
-    expect(homeFor(["WAITER"])).toBe("/pedidos/garcom");
+    // Spec 015, R15: o garçom entra no Lançar pedido; caixa, chef e gerente continuam onde estavam.
+    expect(homeFor(["WAITER"])).toBe("/pedidos/lancar");
+    expect(homeFor(["CHEF"])).toBe("/estoque/itens");
     expect(homeFor(["STOCKKEEPER"])).toBe("/estoque/itens");
     expect(homeFor(["MANAGER"])).toBe("/estoque/itens");
   });
@@ -77,15 +79,20 @@ describe("menu lateral por área (spec 012, US2)", () => {
         ["Itens", "Produtos", "Lançamentos", "Repor", "Gráficos", "Custos", "Fornecedores", "Grupos"],
       ],
       // "Cardápio" entrou na spec 013 (tela da equipe para editar o cardápio).
-      // "Turnos" e "Vendas" entraram na spec 014 (caixa do dia).
-      ["Operação", ["Cozinha", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"]],
+      // "Turnos" e "Vendas" entraram na spec 014 (caixa do dia); "Lançar pedido", na 015.
+      [
+        "Operação",
+        ["Cozinha", "Lançar pedido", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"],
+      ],
       ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
     ]);
   });
 
   it("área sem tela para o papel não aparece", () => {
-    expect(sectionsOf(["CASHIER"])).toEqual([["Operação", ["Caixa", "Contas", "Turnos", "Pedidos"]]]);
-    expect(sectionsOf(["WAITER"])).toEqual([["Operação", ["Garçom", "Caixa", "Pedidos"]]]);
+    expect(sectionsOf(["CASHIER"])).toEqual([
+      ["Operação", ["Lançar pedido", "Caixa", "Contas", "Turnos", "Pedidos"]],
+    ]);
+    expect(sectionsOf(["WAITER"])).toEqual([["Operação", ["Lançar pedido", "Garçom", "Caixa", "Pedidos"]]]);
     expect(navSections(["STOCKKEEPER"]).map((s) => s.label)).toEqual(["Estoque"]);
   });
 
@@ -102,6 +109,7 @@ describe("menu lateral por área (spec 012, US2)", () => {
     expect(activeHref("/caixa", hrefs)).toBe("/caixa");
     expect(activeHref("/caixa/3f6c", hrefs)).toBe("/caixa");
     expect(activeHref("/pedidos/cozinha", hrefs)).toBe("/pedidos/cozinha");
+    expect(activeHref("/pedidos/lancar/m12", hrefs)).toBe("/pedidos/lancar");
     expect(activeHref("/pedidos/42", hrefs)).toBe("/pedidos");
     expect(activeHref("/estoque/itens/123", hrefs)).toBe("/estoque/itens");
     expect(activeHref("/estoque/itensx", hrefs)).toBeNull();
@@ -124,7 +132,7 @@ describe("menu lateral por área (spec 012, US2)", () => {
       within(list)
         .getAllByRole("link")
         .map((a) => a.textContent),
-    ).toEqual(["Caixa", "Contas", "Turnos", "Pedidos"]);
+    ).toEqual(["Lançar pedido", "Caixa", "Contas", "Turnos", "Pedidos"]);
     expect(screen.queryByRole("list", { name: "Estoque" })).toBeNull();
   });
 

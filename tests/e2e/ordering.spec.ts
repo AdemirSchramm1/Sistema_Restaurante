@@ -209,7 +209,7 @@ test("do QR code da mesa à entrega, com adicionar e tirar por botão (specs 009
   await phoneContext.close();
 });
 
-test("garçom vê Garçom, Caixa (só para ver a conta) e Pedidos; QR code de outro restaurante abre só o cardápio dele (specs 009 e 011)", async ({
+test("garçom vê Lançar pedido, Garçom, Caixa (só para ver a conta) e Pedidos; QR code de outro restaurante abre só o cardápio dele (specs 009 e 011)", async ({
   page,
   browser,
 }) => {
@@ -237,9 +237,9 @@ test("garçom vê Garçom, Caixa (só para ver a conta) e Pedidos; QR code de ou
   await waiter.getByLabel("Seu nome").fill("Garçom Rui");
   await waiter.getByLabel("Senha").fill(PASSWORD);
   await waiter.getByRole("button", { name: "Aceitar convite" }).click();
-  await expect(waiter).toHaveURL(/\/pedidos\/garcom$/);
+  await expect(waiter).toHaveURL(/\/pedidos\/lancar$/);
   const nav = waiter.getByRole("navigation", { name: "Menu principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Garçom", "Caixa", "Pedidos"]);
+  await expect(nav.getByRole("link")).toHaveText(["Lançar pedido", "Garçom", "Caixa", "Pedidos"]);
   await waiter.goto("/estoque/itens");
   await expect(waiter.getByRole("heading", { name: "Sem acesso" })).toBeVisible();
   // Spec 011: o garçom vê a conta para levar o total à mesa, mas não recebe nem vê as contas fechadas.

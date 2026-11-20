@@ -51,6 +51,7 @@ test("caixa do dia: abrir com troco, sangria, reforço, contar sem ver o esperad
   const bar = ana.getByRole("region", { name: "Situação do caixa" });
   await expect(bar.getByText("Caixa fechado")).toBeVisible();
   await expect(ana.getByRole("navigation", { name: "Menu principal" }).getByRole("link")).toHaveText([
+    "Lançar pedido",
     "Caixa",
     "Contas",
     "Turnos",

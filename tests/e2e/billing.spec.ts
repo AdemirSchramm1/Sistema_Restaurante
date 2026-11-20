@@ -82,7 +82,7 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   // Caixa convidado: entra direto no Caixa e só vê Caixa, Contas e Pedidos.
   const { cashier, context: cashierContext } = await inviteCashier(page, browser);
   const nav = cashier.getByRole("navigation", { name: "Menu principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Caixa", "Contas", "Turnos", "Pedidos"]);
+  await expect(nav.getByRole("link")).toHaveText(["Lançar pedido", "Caixa", "Contas", "Turnos", "Pedidos"]);
   await expect(cashier.getByText("Nenhuma mesa com conta aberta.")).toBeVisible();
   // Spec 014: receber exige o caixa aberto.
   await openCash(cashier);
