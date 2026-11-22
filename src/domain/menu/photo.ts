@@ -17,23 +17,54 @@ export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 export const MIN_PHOTO_SIDE = 600;
 export const PHOTO_WIDTHS = [300, 600, 900, 1200] as const;
 
-/** JPG, PNG ou WebP, até o limite de bytes, com o lado menor de pelo menos 600 px (US1.3). */
-export function checkPhotoFile(file: PhotoFile, maxBytes = MAX_PHOTO_BYTES): Result<true> {
+/**
+ * Formatos (spec 016, R8): a foto do prato (013), o logo e a capa do restaurante. Recorte no centro
+ * na proporção dada e as larguras gravadas.
+ */
+export type PhotoShape = "PRODUCT" | "LOGO" | "COVER";
+export const PHOTO_SHAPES: Record<PhotoShape, { ratio: [number, number]; widths: readonly number[] }> = {
+  PRODUCT: { ratio: [4, 3], widths: PHOTO_WIDTHS },
+  LOGO: { ratio: [1, 1], widths: [96, 192, 384] },
+  COVER: { ratio: [3, 1], widths: [600, 1200, 1920] },
+};
+/** Logo: 200 px no lado menor. Capa: 1200 px de largura. */
+export const MIN_LOGO_SIDE = 200;
+export const MIN_COVER_WIDTH = 1200;
+
+const bigEnough = (f: PhotoFile, shape: PhotoShape) =>
+  shape === "LOGO"
+    ? Math.min(f.width, f.height) >= MIN_LOGO_SIDE
+    : shape === "COVER"
+      ? f.width >= MIN_COVER_WIDTH
+      : Math.min(f.width, f.height) >= MIN_PHOTO_SIDE;
+
+/** JPG, PNG ou WebP, até o limite de bytes, grande o bastante para o formato (US1.3; 016 US1-6). */
+export function checkPhotoFile(
+  file: PhotoFile,
+  maxBytes = MAX_PHOTO_BYTES,
+  shape: PhotoShape = "PRODUCT",
+): Result<true> {
   if (!PHOTO_TYPES.includes(file.type)) return err("PHOTO_TYPE");
   if (file.bytes > maxBytes) return err("PHOTO_TOO_BIG");
-  if (Math.min(file.width, file.height) < MIN_PHOTO_SIDE) return err("PHOTO_TOO_SMALL");
+  if (!bigEnough(file, shape))
+    return shape === "PRODUCT" ? err("PHOTO_TOO_SMALL") : err("PHOTO_TOO_SMALL", undefined, { kind: shape });
   return ok(true);
 }
 
-/** Maior recorte 4:3 que cabe na foto, em pixels inteiros. */
-export function croppedSize(width: number, height: number): { width: number; height: number } {
-  const unit = Math.min(Math.floor(width / 4), Math.floor(height / 3));
-  return { width: unit * 4, height: unit * 3 };
+/** Maior recorte na proporção do formato que cabe na foto, em pixels inteiros. */
+export function croppedSize(
+  width: number,
+  height: number,
+  shape: PhotoShape = "PRODUCT",
+): { width: number; height: number } {
+  const [w, h] = PHOTO_SHAPES[shape].ratio;
+  const unit = Math.min(Math.floor(width / w), Math.floor(height / h));
+  return { width: unit * w, height: unit * h };
 }
 
-/** Larguras gravadas: as de `PHOTO_WIDTHS` que não passam da foto recortada (nunca amplia). */
-export function variantWidths(croppedWidth: number): number[] {
-  return PHOTO_WIDTHS.filter((w) => w <= croppedWidth);
+/** Larguras gravadas: as do formato que não passam da foto recortada (nunca amplia). */
+export function variantWidths(croppedWidth: number, shape: PhotoShape = "PRODUCT"): number[] {
+  return PHOTO_SHAPES[shape].widths.filter((w) => w <= croppedWidth);
 }
 
 export const photoUrl = (photo: Photo, width: number): string => `${photo.base}/${width}.webp`;

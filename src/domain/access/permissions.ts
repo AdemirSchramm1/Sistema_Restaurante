@@ -53,6 +53,7 @@ export const ACTIONS = [
   "tab.reopen",
   "tab.settings",
   "menu.write",
+  "menu.appearance",
   "cash.operate",
   "cash.close_any",
   "cash.expected",

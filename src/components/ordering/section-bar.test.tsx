@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { SectionBar, sectionAnchor } from "./section-bar";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 /** Barra de seções do cardápio do cliente (spec 013, US6.1). */
 const sections = [
@@ -38,6 +41,20 @@ describe("barra de seções", () => {
     render(<SectionBar sections={sections} current="s2" />);
     const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "true");
     expect(current.map((a) => a.textContent)).toEqual(["Lanches"]);
+    // Troca de cor na hora, sem transição: nunca fica um instante com contraste baixo.
+    expect(current[0]!.className).not.toContain("transition");
+  });
+
+  it("tocar numa seção avisa qual foi (e funciona sem quem escute)", () => {
+    const onPick = vi.fn();
+    const { unmount } = render(<SectionBar sections={sections} current={null} onPick={onPick} />);
+    fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
+    expect(onPick).toHaveBeenCalledWith("s2");
+    fireEvent.click(screen.getByRole("link", { name: "Outros" }));
+    expect(onPick).toHaveBeenLastCalledWith("outros");
+    unmount();
+    render(<SectionBar sections={sections} current={null} />);
+    fireEvent.click(screen.getByRole("link", { name: "Lanches" }));
   });
 
   it("Outros também pode ser a atual", () => {
@@ -47,5 +64,76 @@ describe("barra de seções", () => {
 
   it("âncora da seção: o id dela, ou outros", () => {
     expect([sectionAnchor("s1"), sectionAnchor(null)]).toEqual(["secao-s1", "secao-outros"]);
+  });
+});
+
+/** ResizeObserver falso: o teste diz quando a barra mudou de tamanho. */
+function fakeResize() {
+  let fire = () => {};
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      constructor(cb: () => void) {
+        fire = cb;
+      }
+      observe() {}
+      disconnect() {}
+    },
+  );
+  return () => act(() => fire());
+}
+/** Põe cada aba numa linha: `perRow` abas por linha. */
+const rows = (perRow: number) =>
+  screen
+    .getAllByRole("listitem")
+    .forEach((li, i) =>
+      Object.defineProperty(li, "offsetTop", { configurable: true, value: Math.floor(i / perRow) * 52 }),
+    );
+
+describe("abas em até 2 linhas a partir de 600 px (spec 016, US2-5)", () => {
+  const many = Array.from({ length: 9 }, (_, i) => ({ id: `s${i}`, name: `Seção ${i}` }));
+
+  it("quebra em linhas no tablet; no celular, uma linha que rola", () => {
+    fakeResize();
+    render(<SectionBar sections={many} current={null} />);
+    const ul = screen.getByRole("navigation").querySelector("ul")!;
+    expect(ul.dataset.wrap).toBe("true");
+    expect(ul.className).toContain("tab:flex-wrap");
+    expect(ul.className).toContain("overflow-x-auto");
+  });
+
+  it("com 2 linhas continua quebrando; passando de 2, vira uma linha que rola sem cortar nome", () => {
+    const resize = fakeResize();
+    render(<SectionBar sections={many} current={null} />);
+    const ul = screen.getByRole("navigation").querySelector("ul")!;
+    rows(5);
+    resize();
+    expect(ul.dataset.wrap).toBe("true");
+    rows(4);
+    resize();
+    expect(ul.dataset.wrap).toBe("false");
+    expect(ul.className).not.toContain("tab:flex-wrap");
+    for (const a of screen.getAllByRole("link")) expect(a.className).toContain("whitespace-nowrap");
+  });
+
+  it("virou uma linha: não volta a quebrar enquanto a largura for a mesma (sem pisca-pisca); girou, tenta de novo", () => {
+    const resize = fakeResize();
+    render(<SectionBar sections={many} current={null} />);
+    const ul = screen.getByRole("navigation").querySelector("ul")!;
+    rows(4);
+    resize();
+    expect(ul.dataset.wrap).toBe("false");
+    rows(9);
+    resize();
+    expect(ul.dataset.wrap).toBe("false");
+    Object.defineProperty(ul, "clientWidth", { configurable: true, value: 1024 });
+    resize();
+    expect(ul.dataset.wrap).toBe("true");
+  });
+
+  it("sem ResizeObserver (navegador antigo) fica quebrando", () => {
+    vi.stubGlobal("ResizeObserver", undefined);
+    render(<SectionBar sections={many} current={null} />);
+    expect(screen.getByRole("navigation").querySelector("ul")!.dataset.wrap).toBe("true");
   });
 });

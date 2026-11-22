@@ -6,13 +6,13 @@ import { messageFor } from "@/components/forms/error-messages";
 /** Cookie do acesso ao cardápio (research R2). Só vale nas páginas do cardápio. */
 export const MENU_ACCESS_COOKIE = "menu_access";
 
-const NO_STORE = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
+export const NO_STORE = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
 
 const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /** Página mínima com a mensagem para o cliente (sem menu, sem nada do restaurante). */
-function messagePage(message: string, status: number): Response {
+export function messagePage(message: string, status: number): Response {
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cardápio</title></head><body style="font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px;text-align:center"><main><p style="font-size:1.25rem;max-width:28rem">${escape(message)}</p></main></body></html>`;
   return new Response(html, { status, headers: { ...NO_STORE, "Content-Type": "text/html; charset=utf-8" } });
 }

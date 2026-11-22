@@ -75,13 +75,31 @@ produto sobe; nenhuma `recipe_version` nova).
 |---|---|
 | `table_id` | Mesa lida |
 | `token_hash` | SHA-256 do token do cookie (único). O token em si nunca vai para o banco |
-| `opened_at`, `expires_at` | Check `expires_at = opened_at + interval '20 minutes'` |
+| `kind` | `QR` (celular, padrão) ou `TABLET` (tablet fixo na mesa, 016) |
+| `opened_at`, `expires_at` | Check `menu_accesses_expiry_by_kind`: no `QR`, `expires_at = opened_at + interval '20 minutes'`; no `TABLET`, nulo (sem prazo) |
 | `ended_at` | Nova leitura no mesmo celular encerra o anterior |
-| `end_reason` | `RESCAN` (nova leitura) ou `TAB_CLOSED` (conta fechada, 011). Check: preenchido junto com `ended_at` |
+| `end_reason` | `RESCAN` (nova leitura), `TAB_CLOSED` (conta fechada, 011, só `QR`), `RELEASED` (gerente liberou o tablet) ou `LINK_ROTATED` (link do tablet trocado). Check: preenchido junto com `ended_at` |
+| `last_seen_at` | Sinal de vida do tablet (016), gravado no máximo uma vez por minuto |
 | `ip`, `user_agent` | Origem, para investigar abuso |
 
 `created_by` nulo (não há usuário). Índices `(restaurant_id, expires_at)` e
-`(restaurant_id, table_id, expires_at)` (fechar a conta encerra os acessos abertos da mesa).
+`(restaurant_id, table_id, expires_at)` (fechar a conta encerra os acessos abertos da mesa). Índice
+único parcial `menu_accesses_one_tablet` em `(table_id) where kind = 'TABLET' and ended_at is null`:
+um tablet ligado por mesa, mesmo com dois aparelhos abrindo o link ao mesmo tempo. Trigger
+`menu_accesses_frozen` (016): o acesso só muda em `ended_at`, `end_reason` e `last_seen_at`.
+
+### Tablet da mesa (016) em `dining_tables` e `restaurants`
+
+| Coluna | Regra |
+|---|---|
+| `dining_tables.tablet_token` | Código do link `/t/{token}` (43 caracteres, único, diferente do QR code). Nulo até **Criar link do tablet** |
+| `dining_tables.tablet_token_rotated_at` | Quando o link foi criado ou trocado. Check: preenchido junto com o token |
+| `restaurants.logo_base`, `logo_widths` | Logo do cardápio: prefixo na loja de fotos e larguras prontas (96, 192, 384). Check: os dois juntos |
+| `restaurants.cover_base`, `cover_widths` | Foto de capa: prefixo e larguras (600, 1200, 1920). Check: os dois juntos |
+
+`orders.source` ganha `TABLET` (check `orders_source_shape`: `QR` e `TABLET` com `menu_access_id`,
+`STAFF` com `placed_by`). A função `app_table_by_tablet_token` (SECURITY DEFINER) acha a mesa pelo
+link sem saber o restaurante; `app_menu_access_by_token_hash` devolve também o `kind`.
 
 ## Pedido — só a situação muda
 

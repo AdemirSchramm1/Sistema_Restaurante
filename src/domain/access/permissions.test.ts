@@ -160,6 +160,13 @@ describe("editar o cardápio (spec 013, FR-001)", () => {
   it("menu.write é do gerente e do chef, e de mais ninguém", () => {
     expect(ALL.filter((r) => can([r], "menu.write"))).toEqual(["MANAGER", "CHEF"]);
   });
+
+  it("aparência (logo e capa) só do gerente; o tablet da mesa fica com table.manage (spec 016, FR-009)", () => {
+    expect(ALL.filter((r) => can([r], "menu.appearance"))).toEqual(["MANAGER"]);
+    expect(can(["CHEF"], "menu.write")).toBe(true);
+    expect(can(["CHEF"], "menu.appearance")).toBe(false);
+    expect(ALL.filter((r) => can([r], "table.manage"))).toEqual(["MANAGER"]);
+  });
 });
 
 describe("caixa do dia (spec 014, FR-008)", () => {

@@ -11,7 +11,11 @@
     "src/domain/ordering/kitchen-note.ts",
     "src/domain/ordering/staff-request.ts",
     "src/domain/ordering/reorder.ts",
-    "src/domain/ordering/similar-orders.ts"
+    "src/domain/ordering/similar-orders.ts",
+    "src/domain/ordering/menu-access.ts",
+    "src/domain/ordering/tablet-screen.ts",
+    "src/domain/ordering/tablet-signal.ts",
+    "src/domain/ordering/quick-add.ts"
   ],
   "coverageAnalysis": "perTest",
   "thresholds": { "high": 100, "low": 100, "break": 100 },

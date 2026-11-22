@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { photoSrcSet, photoUrl, type Photo } from "@/domain/menu/photo";
 
 /** Largura do cartão em cada tela: 3 colunas no tablet deitado, 2 no tablet em pé, 1 no celular. */
@@ -14,12 +15,18 @@ export function ProductPhoto({
   name,
   eager = false,
   sizes = CARD_SIZES,
+  className,
+  decorative = false,
 }: {
   photo: Photo | null;
   name: string;
   /** As primeiras fotos da tela: carregam junto com a página. */
   eager?: boolean;
   sizes?: string;
+  /** Largura na linha do celular (spec 016). */
+  className?: string;
+  /** Dentro de um botão que já mostra o nome: a foto não repete o nome para o leitor de tela. */
+  decorative?: boolean;
 }) {
   if (!photo) return null;
   return (
@@ -31,10 +38,10 @@ export function ProductPhoto({
       sizes={sizes}
       width={400}
       height={300}
-      alt={name}
+      alt={decorative ? "" : name}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
-      className="aspect-[4/3] h-auto w-full rounded-lg bg-muted object-cover"
+      className={cn("aspect-[4/3] h-auto w-full rounded-lg bg-muted object-cover", className)}
     />
   );
 }

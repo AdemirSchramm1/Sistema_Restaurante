@@ -25,7 +25,7 @@ export async function setProductPhoto(
   if (!found.ok) return found;
   const previous = found.value.photo;
 
-  const processed = await deps.photos.processor.process(input.bytes);
+  const processed = await deps.photos.processor.process(input.bytes, "PRODUCT");
   if (!processed.ok) return processed;
   const { variants } = processed.value;
   // O identificador da foto não diz de qual restaurante nem de qual produto ela é.

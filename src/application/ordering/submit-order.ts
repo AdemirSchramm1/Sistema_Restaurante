@@ -1,13 +1,16 @@
 import type { Deps } from "../ports";
-import { accessFromCookie, loadAccess } from "./menu-access";
+import { accessFromCookie, loadAccess, type MenuCookies } from "./menu-access";
 import { parseOrderInput } from "./order-input";
 import { saveOrder } from "./save-order";
-import { canSubmitWith } from "@/domain/ordering/menu-access";
+import { canSubmitWith, ordersLimit } from "@/domain/ordering/menu-access";
 import { businessDay } from "@/domain/ordering/business-day";
 import { checkOrder } from "@/domain/ordering/checkout";
 import { err, ok, type Result } from "@/domain/shared/result";
 
-/** Enviar pedido pelo celular (spec 009 US2, spec 010 US3; contracts/public-routes.md). */
+/**
+ * Enviar pedido pelo celular (spec 009 US2, spec 010 US3; contracts/public-routes.md) ou pelo tablet
+ * fixo na mesa (spec 016, US4): no tablet, sem prazo e sem o limite de pedidos.
+ */
 
 export type SubmitOrderResult = { orderId: string; number: number; total: string; status: "RECEIVED" };
 
@@ -17,7 +20,7 @@ export type SubmitOrderResult = { orderId: string; number: number; total: string
  */
 export async function submitOrder(
   deps: Deps,
-  cookie: string | null,
+  cookie: MenuCookies,
   raw: unknown,
 ): Promise<Result<SubmitOrderResult>> {
   const input = parseOrderInput(raw);
@@ -30,6 +33,9 @@ export async function submitOrder(
     if (!loaded.ok) return loaded;
     const { access, table, settings } = loaded.value;
     const now = deps.clock.now();
+    // Tablet liberado ou com link trocado (spec 016).
+    if (access.endReason === "RELEASED") return err("TABLET_RELEASED");
+    if (access.endReason === "LINK_ROTATED") return err("TABLET_LINK_INVALID");
     // Conta fechada pelo caixa (spec 011): o celular precisa ler o QR code de novo.
     if (access.endReason === "TAB_CLOSED") return err("TABLE_TAB_CLOSED");
     if (!canSubmitWith(access, now)) return err("ACCESS_EXPIRED");
@@ -40,7 +46,7 @@ export async function submitOrder(
     if (!settings.acceptingQrOrders) return err("ORDERING_PAUSED");
 
     const today = businessDay(now, settings.timezone);
-    const sent = await repos.orders.countForAccess(access.id);
+    const sent = ordersLimit(access.kind) === null ? 0 : await repos.orders.countForAccess(access.id);
     const catalog = await repos.menu.catalog(
       input.value.lines.map((l) => l.recipeId),
       today,
@@ -50,7 +56,7 @@ export async function submitOrder(
 
     const saved = await saveOrder(deps, repos, {
       tableId: table.id,
-      origin: { source: "QR", menuAccessId: access.id },
+      origin: { source: access.kind, menuAccessId: access.id },
       clientRequestId: input.value.clientRequestId,
       businessDay: today,
       now,

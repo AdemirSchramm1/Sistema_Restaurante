@@ -91,13 +91,14 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
   const phoneContext = await browser.newContext({ ...phone, locale: "pt-BR" });
   const cell = await phoneContext.newPage();
   await cell.goto(table12);
-  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
+  await cell.getByRole("button", { name: "Pôr X-Burger no carrinho" }).click();
   const dish = cell.getByRole("region", { name: "X-Burger" });
   await dish.getByRole("button", { name: "Mais Fatia de queijo" }).click();
   await dish.getByRole("button", { name: "Mais Fatia de queijo" }).click();
   await dish.getByRole("button", { name: "Sem cebola" }).click();
   await dish.getByRole("button", { name: "Mais um prato" }).click();
   await dish.getByRole("button", { name: "Adicionar ao pedido" }).click();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   const confirm = cell.getByRole("dialog", { name: "Confira o pedido" });
   await confirm.getByRole("button", { name: "Confirmar" }).click();
@@ -126,7 +127,8 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
 
   // Celular pede um suco (sem opções: entra direto no pedido); a cozinha cancela ainda recebido,
   // sem perguntar pelos ingredientes.
-  await cell.getByRole("button", { name: "Adicionar Suco" }).click();
+  await cell.getByRole("button", { name: "Pôr Suco no carrinho" }).click();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   await confirm.getByRole("button", { name: "Confirmar" }).click();
   await expect(cell.getByRole("status").filter({ hasText: "Pedido enviado para a cozinha" })).toContainText(
@@ -218,7 +220,8 @@ test("do pedido à conta fechada: divisão, troco, mesa livre, contas e baixa do
 
   // O próximo cliente escaneia e abre uma conta nova, só com o pedido dele.
   await cell.goto(table12);
-  await cell.getByRole("button", { name: "Adicionar Suco" }).click();
+  await cell.getByRole("button", { name: "Pôr Suco no carrinho" }).click();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   await confirm.getByRole("button", { name: "Confirmar" }).click();
   await expect(cell.getByRole("status").filter({ hasText: "Pedido enviado para a cozinha" })).toContainText(

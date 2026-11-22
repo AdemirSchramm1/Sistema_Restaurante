@@ -53,7 +53,7 @@ tela do seu menu.
 
 | Ação | Permissão | Quem pode |
 |---|---|---|
-| Cadastrar, renomear e inativar mesa; trocar QR code | `table.manage` | Gerente |
+| Cadastrar, renomear e inativar mesa; trocar QR code; link do tablet da mesa: criar, liberar e trocar (016) | `table.manage` | Gerente |
 | Ligar e desligar "Recebendo pedidos pelo QR code" | `ordering.toggle` | Gerente |
 | Ver a cozinha e mudar a situação (Em preparo, Pronto) | `order.kitchen` | Gerente, chef |
 | Cancelar pedido (com motivo) | `order.cancel` | Gerente, chef |
@@ -65,6 +65,7 @@ tela do seu menu.
 | Ver adicionais | `addon.read` | Gerente, chef |
 | Cadastrar e mudar adicionais e preços; quadro "Adicionar e tirar" do produto | `addon.write` | Gerente |
 | Tela Cardápio: seções, ordem, foto, descrição, preço de venda, produto novo, "Ver como o cliente" (013) | `menu.write` | Gerente, chef |
+| Aparência do cardápio: logo e foto de capa (016); o chef vê, não troca | `menu.appearance` | Gerente |
 
 O cliente não tem usuário: o pedido registra a mesa e o acesso de origem. Toda escrita da equipe
 (mesa, QR code, situação, cancelamento, esgotado, chave, adicional, quadro) vai para a trilha de

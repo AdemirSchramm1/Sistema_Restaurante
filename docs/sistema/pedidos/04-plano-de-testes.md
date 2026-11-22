@@ -69,3 +69,13 @@ O teste ponta a ponta dos 20 minutos recua `opened_at` e `expires_at` no banco (
 | E | Roteiro do quickstart: celular, cozinha, garçom e caixa; divisão por 3, troco, fechar, cardápio fechado, conta nova, contas do dia, cancelar depois do preparo, reabrir recusado, outro restaurante (`billing.spec.ts`) |
 | E | Garçom vê Caixa, mas não as contas fechadas (`ordering.spec.ts`) |
 | E | Acessibilidade (axe): Caixa, conta, conta impressa, contas fechadas, reabrir e a pergunta dos ingredientes na cozinha (`accessibility.spec.ts`) |
+
+## 016 — Cardápio com a cara do restaurante e tablet fixo na mesa
+
+| Camada | Testes |
+|---|---|
+| Domínio | `menu-layout`, `quick-add`, `photo` (formatos LOGO e COVER), `cover-overlay` (contraste), `tablet-signal`, `tablet-screen` |
+| Integração | `tablet-schema`, `tablet-repository`, `tablet-link`, `tablet-bind` (20 rodadas de dois aparelhos), `tablet-menu`, `tablet-submit` (11 pedidos, corrida com fechar a conta), `tablet-status`, `tablet-orders`, `audit/tablet-audit` (sem token), `menu/appearance`, `performance/tablet-status` (60 tablets), `performance/indexes` |
+| Componentes | `product-card`, `section-bar`, `cart-bar`, `cart-panel`, `menu-header`, `appearance-form`, `table-tablet-card`, `tablet-welcome`, `still-there`, `tablet-shell` (relógio falso), `tablet-preview`, `preview-frame` |
+| Telas | `customer-menu.spec.ts` (carrinho à vista por layout), matriz por `menuLayout` |
+| Ponta a ponta | `tests/e2e/tablet.spec.ts` (ligar, pedir, 3 min, 30 s, 12 h, liberar, trocar) e `accessibility.spec.ts` |

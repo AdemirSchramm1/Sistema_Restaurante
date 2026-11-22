@@ -1,6 +1,7 @@
 import type { Result } from "@/domain/shared/result";
 import type { FieldChanges } from "@/domain/shared/audit";
 import type { Role } from "@/domain/access/permissions";
+import type { MenuAccessKind } from "@/domain/ordering/menu-access";
 import type { Origin } from "./context";
 import type { AccessRepos } from "./access/ports";
 import type { CatalogRepos } from "./inventory/ports";
@@ -77,7 +78,13 @@ export interface GlobalLookups {
   /** Mesa pelo token do QR code (spec 009). Devolve só o mínimo. */
   tableByQrToken(token: string): Promise<{ restaurantId: string; tableId: string; active: boolean } | null>;
   /** Acesso ao cardápio pelo hash do cookie (spec 009). */
-  menuAccessByTokenHash(hash: string): Promise<{ restaurantId: string; menuAccessId: string } | null>;
+  menuAccessByTokenHash(
+    hash: string,
+  ): Promise<{ restaurantId: string; menuAccessId: string; kind: MenuAccessKind } | null>;
+  /** Restaurante e mesa pelo link do tablet (spec 016). */
+  tableByTabletToken(
+    token: string,
+  ): Promise<{ restaurantId: string; tableId: string; active: boolean } | null>;
 }
 
 export type Deps = {

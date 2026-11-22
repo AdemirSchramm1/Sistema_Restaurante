@@ -52,7 +52,7 @@ function setup({ photo = null as Photo | null, check = ok(reduced) as Result<Blo
         return check;
       }}
       upload={(input) => {
-        calls.upload.push({ recipeId: input.recipeId, file: input.file });
+        calls.upload.push({ recipeId: input.recipeId!, file: input.file });
         calls.progress = input.onProgress;
         sendings.push(deferred<Result<Photo>>());
         return sendings.at(-1)!.promise;

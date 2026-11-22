@@ -12,15 +12,22 @@ faz o papel do Safari do iPhone).
 
 | Tela | Largura × altura | Cliente | Equipe | Colunas de cartões |
 |---|---|---|---|---|
-| `celular-pequeno` | 320 × 568 | sim | sim | 1 |
-| `celular-android` | 360 × 800 | sim | sim | 1 |
-| `celular-iphone` | 390 × 844 | sim | sim | 1 |
-| `celular-grande` | 430 × 932 | sim | – | 1 |
-| `celular-deitado` | 844 × 390 | sim | – | 2 |
-| `tablet-em-pe` | 768 × 1024 | sim | sim | 2 |
-| `tablet-grande-em-pe` | 820 × 1180 | sim | – | 2 |
-| `tablet-deitado` | 1024 × 768 | sim | sim | 3 |
-| `computador` | 1280 × 800 | sim | sim | 3 |
+| `celular-pequeno` | 320 × 568 | sim | sim | 1 (`list`, linhas) |
+| `celular-android` | 360 × 800 | sim | sim | 1 (`list`, linhas) |
+| `celular-iphone` | 390 × 844 | sim | sim | 1 (`list`, linhas) |
+| `celular-grande` | 430 × 932 | sim | – | 1 (`list`, linhas) |
+| `celular-deitado` | 844 × 390 | sim | – | 3 (`grid3`) |
+| `tablet-em-pe` | 768 × 1024 | sim | sim | 3 (`grid3`) |
+| `tablet-grande-em-pe` | 820 × 1180 | sim | – | 3 (`grid3`) |
+| `tablet-deitado` | 1024 × 768 | sim | sim | 3, carrinho ao lado (`grid3side`) |
+| `computador` | 1280 × 800 | sim | sim | 4, carrinho ao lado (`grid4side`) |
+
+Desde a 016 a coluna vem de `menuLayout(largura)` (`src/domain/menu/menu-layout.ts`): linhas abaixo
+de 600 px (breakpoint `tab`), 3 cartões de 600 px, o carrinho ao lado de 1024 px (`lg`) e 4 cartões
+de 1280 px (`xl`). O layout é só CSS: um cartão e um carrinho, posicionados por classe, sem medir a
+tela em JavaScript (nada pula ao carregar). `customer-menu.spec.ts` confere que o total e **Enviar
+pedido** ficam à vista sem rolar na tela larga e que a barra do pé não cobre o último cartão na
+estreita.
 
 Apareceu um aparelho com problema? A linha dele entra na matriz **antes** da correção, o teste fica
 vermelho e só então vem a classe que resolve.

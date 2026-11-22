@@ -202,3 +202,27 @@ describe("cardápio do celular (spec 009 US2 + spec 010 US3)", () => {
     expect(few.queries).toBe(QUERIES_BEFORE + 1);
   });
 });
+
+describe("topo do cardápio com a cara do restaurante (spec 016, US1)", () => {
+  it("getMenu devolve o modo do acesso e o logo e a capa", async () => {
+    const { setAppearanceImage } = await import("../../../src/application/menu/appearance");
+    const env = testEnv();
+    const m = await newRestaurant(env, "Cantina da Nona");
+    await orderingKitchen(env, m);
+    const table = await tableWithQr(env, m, "12");
+    const cookie = await scan(env, table.token);
+    const before = unwrap(await getMenu(env.deps, cookie));
+    expect(before.mode).toBe("QR");
+    expect(before.appearance).toEqual({ logo: null, cover: null });
+    const photo = async (name: string) => new Uint8Array(await readFile(`tests/screens/photos/${name}`));
+    const logo = unwrap(
+      await setAppearanceImage(env.deps, m, { kind: "LOGO", bytes: await photo("logo.png") }),
+    );
+    const cover = unwrap(
+      await setAppearanceImage(env.deps, m, { kind: "COVER", bytes: await photo("capa.jpg") }),
+    );
+    // O número de idas ao banco fica conferido no teste de desempenho acima (QUERIES_BEFORE + 1).
+    const after = unwrap(await getMenu(env.deps, cookie));
+    expect(after.appearance).toEqual({ logo: logo.photo, cover: cover.photo });
+  });
+});

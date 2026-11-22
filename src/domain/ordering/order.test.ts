@@ -4,6 +4,7 @@ import {
   CANCEL_REASON_LABELS,
   ORDER_SOURCES,
   ORDER_SOURCE_LABELS,
+  tableWithSource,
   ORDER_STATUS_LABELS,
   cancelScope,
   type OrderStatus,
@@ -139,8 +140,8 @@ describe("origem e cancelar o próprio (spec 015, FR-006 e FR-010)", () => {
   const chef = { userId: MARIA, canCancel: true, canCancelOwn: false };
 
   it("origens QR code e Equipe; motivo novo Lançado errado", () => {
-    expect(ORDER_SOURCES).toEqual(["QR", "STAFF"]);
-    expect(ORDER_SOURCE_LABELS).toEqual({ QR: "QR code", STAFF: "Equipe" });
+    expect(ORDER_SOURCES).toEqual(["QR", "STAFF", "TABLET"]);
+    expect(ORDER_SOURCE_LABELS).toEqual({ QR: "QR code", STAFF: "Equipe", TABLET: "tablet" });
     expect(CANCEL_REASONS).toContain("ENTERED_BY_MISTAKE");
     expect(CANCEL_REASON_LABELS.ENTERED_BY_MISTAKE).toBe("Lançado errado");
     expect(checkCancel("RECEIVED", "ENTERED_BY_MISTAKE", null).ok).toBe(true);
@@ -166,5 +167,13 @@ describe("origem e cancelar o próprio (spec 015, FR-006 e FR-010)", () => {
     );
     expect(cancelScope(staff("DELIVERED"), chef)).toBe("FINAL");
     expect(cancelScope(staff("CANCELLED"), waiter)).toBe("FINAL");
+  });
+});
+
+describe("pedido do tablet na tela da equipe (spec 016, FR-008)", () => {
+  it('a mesa leva "· tablet"; QR code e equipe mostram só a mesa', () => {
+    expect(tableWithSource("Mesa 12", "TABLET")).toBe("Mesa 12 · tablet");
+    expect(tableWithSource("Mesa 12", "QR")).toBe("Mesa 12");
+    expect(tableWithSource("Mesa 12", "STAFF")).toBe("Mesa 12");
   });
 });

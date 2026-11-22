@@ -9,6 +9,8 @@ export type Seeded = {
   stockkeeper: string;
   /** Caminho do QR code da mesa 12 (o que a câmera do celular abre). */
   qrPath: string;
+  /** Link do tablet da mesa 12 (só no cenário "board", spec 016). */
+  tabletPath: string | null;
   sections: Record<string, string>;
   products: Record<string, string>;
 };

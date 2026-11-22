@@ -29,7 +29,8 @@ export default async function Page() {
         orders={r.value.orders.map((o) => ({
           ...o,
           submittedAt: o.submittedAt.toISOString(),
-          placedBy: placedByText(o),
+          // O tablet já aparece em "Mesa 12 · tablet" (spec 016).
+          placedBy: o.source === "TABLET" ? undefined : placedByText(o),
         }))}
         advance={advanceOrderStatusAction}
         cancel={cancelOrderAction}

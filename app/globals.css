@@ -64,6 +64,8 @@
   --chart-3: oklch(0.58 0.12 150);
   --chart-4: oklch(0.58 0.1 250);
   --overlay: oklch(0.2 0.02 50 / 0.55);
+  /* Texto sobre a capa escurecida do cardápio (spec 016, R9): branco nos dois modos. */
+  --on-photo: oklch(1 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -116,7 +118,13 @@
     --chart-3: oklch(0.72 0.12 150);
     --chart-4: oklch(0.72 0.1 250);
     --overlay: oklch(0.1 0.01 50 / 0.65);
+    --on-photo: oklch(1 0 0);
   }
+}
+
+/* Cardápio do cliente (spec 016, R10): 3 colunas a partir de 600 px; lg e xl são os do Tailwind. */
+@theme {
+  --breakpoint-tab: 37.5rem;
 }
 
 @theme inline {
@@ -160,6 +168,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-overlay: var(--overlay);
+  --color-on-photo: var(--on-photo);
 
   /* Fontes servidas pelo next/font (app/layout.tsx), com reserva do sistema. */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;

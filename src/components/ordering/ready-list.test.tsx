@@ -50,6 +50,27 @@ describe("tela do garçom (spec 009 US4)", () => {
     expect(within(card).getByText(/bem quente/)).toBeTruthy();
   });
 
+  it("pedido do tablet: 'Mesa 12 · tablet' (spec 016, FR-008)", () => {
+    render(
+      <ReadyList
+        deliver={async () => null}
+        orders={[
+          {
+            id: "o1",
+            number: 4,
+            tableName: "12",
+            source: "TABLET",
+            readyAt: "2026-11-08T20:00:00.000Z",
+            version: 3,
+            lines: [{ quantity: 1, productName: "X-Burger", changes: [] }],
+          },
+        ]}
+      />,
+    );
+    const card = screen.getByRole("article", { name: "Mesa 12 · tablet, pedido 4" });
+    expect(within(card).getByRole("heading", { name: "Mesa 12 · tablet" })).toBeTruthy();
+  });
+
   it("sem pedidos prontos diz que não há nada para levar", () => {
     render(<ReadyList deliver={async () => null} orders={[]} />);
     expect(screen.getByText("Nenhum pedido pronto para levar.")).toBeTruthy();

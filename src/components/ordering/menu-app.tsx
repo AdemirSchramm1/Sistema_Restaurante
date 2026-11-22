@@ -1,37 +1,74 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccessOrderView, MenuProduct, MenuView } from "@/application/ordering/menu";
 import type { CustomerMenu } from "@/domain/menu/customer-menu";
 import { normalizeDescription } from "@/domain/inventory/description";
 import { Input } from "@/components/ui/input";
 import { AccessTimer } from "./access-timer";
 import { AutoRefresh } from "./auto-refresh";
-import { Cart, type SubmitFn } from "./cart";
-import { addToCart, type CartLine } from "./cart-state";
+import type { SubmitFn } from "./cart";
+import { CartPanel } from "./cart-panel";
+import { addToCart, cartTotal, choiceKey, type CartLine, type CartLineData } from "./cart-state";
+import { brl } from "./format";
+import { quickAdd } from "@/domain/ordering/quick-add";
+import type { Appearance } from "@/application/menu/ports";
+import { MenuHeader } from "./menu-header";
 import { DishOptions } from "./dish-options";
 import { MyOrders } from "./my-orders";
 import { ProductCard } from "./product-card";
 import { SectionBar, sectionAnchor } from "./section-bar";
 
-/** Cartões por linha: 1 no celular, 2 a partir de 640 px, 3 a partir de 1024 px (contracts/screens.md). */
-const CARDS = "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3";
+/**
+ * Cartões por linha (spec 016, R10): linhas no celular, 3 colunas a partir de 600 px (e ao lado do
+ * carrinho a partir de 1024 px) e 4 a partir de 1280 px.
+ */
+const CARDS = "grid grid-cols-1 gap-3 tab:grid-cols-3 xl:grid-cols-4";
+/** Quanto tempo a linha que mudou fica destacada no carrinho (US3-3). */
+const HIGHLIGHT_MS = 600;
 /** Quantas fotos carregam junto com a página; as outras, só quando chegam perto da tela (US6.10). */
 const EAGER_PHOTOS = 2;
 
 /**
  * Seção que está na tela, para marcar na barra. Vale a última que cruzou a faixa logo abaixo da
- * barra; sair da faixa não desmarca, para a barra nunca ficar sem seção no meio da rolagem.
+ * barra; sair da faixa não desmarca, para a barra nunca ficar sem seção no meio da rolagem. A seção
+ * tocada na barra fica marcada até a pessoa rolar de novo, mesmo que a página não chegue até ela.
  */
-function useCurrentSection(anchors: readonly string[]): string | null {
+function useCurrentSection(anchors: readonly string[]) {
   const [current, setCurrent] = useState<string | null>(null);
+  const pinned = useRef(false);
   const key = anchors.join(" ");
+  const pick = useCallback((id: string) => {
+    pinned.current = true;
+    setCurrent(id);
+  }, []);
+  // A pessoa voltou a rolar: a posição da página manda de novo.
+  useEffect(() => {
+    const unpin = () => {
+      pinned.current = false;
+    };
+    const events = ["wheel", "touchstart", "keydown"] as const;
+    for (const e of events) window.addEventListener(e, unpin, { passive: true });
+    return () => {
+      for (const e of events) window.removeEventListener(e, unpin);
+    };
+  }, []);
+  // No fim da página a última seção pode não chegar à faixa (cardápio curto, spec 016): ela vale.
+  useEffect(() => {
+    if (!key) return;
+    const last = key.split(" ").at(-1)!.slice("secao-".length);
+    const onScroll = () => {
+      if (!pinned.current && window.scrollY > 0 && atBottom()) setCurrent(last);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [key]);
   useEffect(() => {
     if (!key || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
       (entries) => {
         const seen = entries.find((e) => e.isIntersecting);
-        if (seen) setCurrent(seen.target.id.slice("secao-".length));
+        if (seen && !pinned.current) setCurrent(seen.target.id.slice("secao-".length));
       },
       { rootMargin: "-64px 0px -60% 0px" },
     );
@@ -41,8 +78,11 @@ function useCurrentSection(anchors: readonly string[]): string | null {
     }
     return () => observer.disconnect();
   }, [key]);
-  return current;
+  return { current, pick };
 }
+
+/** A página está rolada até o fim (com 2 px de folga). */
+const atBottom = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
 
 /** Abaixo desta linha (a barra de seções) começa o que o cliente está vendo. */
 const TOP_LINE = 64;
@@ -56,8 +96,11 @@ const TOP_LINE = 64;
 function useKeepPlaceOnRotate(): void {
   useEffect(() => {
     let place: Element | null = null;
+    let bottom = false;
     let width = window.innerWidth;
     const onScroll = () => {
+      // No fim da página, o que está à vista é o fim: ao girar, volta ao fim (spec 016).
+      bottom = window.scrollY > 0 && atBottom();
       place =
         window.scrollY > 0
           ? ([...document.querySelectorAll("[data-place]")].find(
@@ -68,7 +111,10 @@ function useKeepPlaceOnRotate(): void {
     const onResize = () => {
       if (window.innerWidth === width) return;
       width = window.innerWidth;
-      place?.scrollIntoView({ block: "start" });
+      // O que estava no topo volta ao topo; se a página não rolar até lá, ela para no fim, com ele à
+      // vista. Sem nada marcado no fim da página (cardápio curto), volta ao fim (spec 016).
+      if (place) place.scrollIntoView({ block: "start" });
+      else if (bottom) window.scrollTo(0, document.documentElement.scrollHeight);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
@@ -87,13 +133,31 @@ function useKeepPlaceOnRotate(): void {
  */
 export function MenuApp(
   props:
-    | { menu: MenuView; orders: AccessOrderView[]; submit: SubmitFn; preview?: false }
+    | {
+        menu: MenuView;
+        orders: AccessOrderView[];
+        submit: SubmitFn;
+        preview?: false;
+        /** Tablet da mesa (spec 016, US5): avisos para a tela do tablet. */
+        onSent?: () => void;
+        onCartChange?: (items: number) => void;
+      }
     /** Pré-visualização da equipe (spec 013, US5): o mesmo cardápio, sem mesa, sem tempo e sem envio. */
-    | { menu: CustomerMenu<MenuProduct>; preview: true },
+    | {
+        menu: CustomerMenu<MenuProduct> & { restaurantName?: string; appearance?: Appearance };
+        preview: true;
+      },
 ) {
   const { menu } = props;
   const live = props.preview ? null : props;
+  const previewTop =
+    props.preview && props.menu.appearance && props.menu.restaurantName
+      ? { restaurantName: props.menu.restaurantName, appearance: props.menu.appearance }
+      : null;
   const [lines, setLines] = useState<CartLine[]>([]);
+  const tablet = live?.menu.mode === "TABLET";
+  const onCartChange = live?.onCartChange;
+  useEffect(() => onCartChange?.(lines.length), [lines.length, onCartChange]);
   const [open, setOpen] = useState<MenuProduct | null>(null);
   const [q, setQ] = useState("");
   const search = useRef<HTMLInputElement>(null);
@@ -103,13 +167,25 @@ export function MenuApp(
     if (typed) setQ(typed);
   }, []);
   const [expired, setExpired] = useState(false);
+  const [announce, setAnnounce] = useState("");
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const highlightTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  /** Põe no carrinho, anuncia o total para o leitor de tela e destaca a linha (US3-3). */
+  const put = (data: CartLineData) => {
+    const next = addToCart(lines, data);
+    setLines(next);
+    setAnnounce(`${data.name} no carrinho. Total ${brl(cartTotal(next).toFixed(2))}`);
+    setHighlight(choiceKey(data));
+    clearTimeout(highlightTimer.current);
+    highlightTimer.current = setTimeout(() => setHighlight(null), HIGHLIGHT_MS);
+  };
 
   const query = normalizeDescription(q);
   const all = menu.sections.flatMap((s) => s.products);
   const shown = query ? all.filter((p) => normalizeDescription(p.name).includes(query)) : all;
   const titled = menu.showSectionTitles && !query && !open && !expired;
   useKeepPlaceOnRotate();
-  const current = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
+  const { current, pick } = useCurrentSection(titled ? menu.sections.map((s) => sectionAnchor(s.id)) : []);
   /** As primeiras fotos na ordem da tela. */
   const eager = new Set(
     shown
@@ -123,111 +199,131 @@ export function MenuApp(
         key={p.id}
         product={p}
         eager={eager.has(p.id)}
-        onAdd={() => add(p)}
+        onQuickAdd={() => add(p)}
         onOpen={() => setOpen(p)}
       />
     ));
   const add = (p: MenuProduct) => {
-    if (p.addons.length === 0 && p.removables.length === 0)
-      setLines((c) =>
-        addToCart(c, {
-          productId: p.id,
-          name: p.name,
-          basePrice: p.price,
-          quantity: 1,
-          addons: [],
-          removals: [],
-        }),
-      );
+    const r = quickAdd(p);
+    if (r.kind === "ADD") put(r.line);
     else setOpen(p);
   };
 
   return (
     <div className="grid grid-cols-1 gap-5">
       {live ? (
-        <header className="grid grid-cols-1 gap-1">
-          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-primary [overflow-wrap:anywhere]">
-            {live.menu.restaurantName}
-          </span>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Mesa {live.menu.tableName}</h1>
-          <AccessTimer
-            key={live.menu.serverNow}
-            serverNow={live.menu.serverNow}
-            expiresAt={live.menu.expiresAt}
-            unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
-            onExpire={() => setExpired(true)}
-          />
-        </header>
+        <MenuHeader
+          restaurantName={live.menu.restaurantName}
+          title={`Mesa ${live.menu.tableName}`}
+          appearance={live.menu.appearance}
+        >
+          {live.menu.expiresAt ? (
+            <AccessTimer
+              key={live.menu.serverNow}
+              serverNow={live.menu.serverNow}
+              expiresAt={live.menu.expiresAt}
+              unsent={lines.map((l) => ({ name: l.name, quantity: l.quantity }))}
+              onExpire={() => setExpired(true)}
+            />
+          ) : null}
+        </MenuHeader>
       ) : (
-        <header className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <p
             role="status"
             className="rounded-lg bg-warning-soft px-3 py-2 text-center text-sm font-medium text-warning-soft-foreground"
           >
             Pré-visualização: pedidos não são enviados
           </p>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Cardápio</h1>
-        </header>
+          {previewTop ? (
+            <MenuHeader
+              restaurantName={previewTop.restaurantName}
+              title="Cardápio"
+              appearance={previewTop.appearance}
+            />
+          ) : (
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Cardápio</h1>
+          )}
+        </div>
       )}
 
-      {live && !expired && <AutoRefresh seconds={10} />}
+      {/* O tablet se atualiza pelo sinal dele (spec 016, R5), não pela página inteira. */}
+      {live && !expired && !tablet && <AutoRefresh seconds={10} />}
 
-      {!expired &&
-        (open ? (
-          <DishOptions
-            product={open}
-            onClose={() => setOpen(null)}
-            onAdd={(line) => {
-              setLines((c) => addToCart(c, line));
-              setOpen(null);
-            }}
-          />
-        ) : (
-          <>
-            <Input
-              type="search"
-              ref={search}
-              aria-label="Buscar no cardápio"
-              placeholder="Buscar no cardápio"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="h-11 text-base"
-            />
-            {titled ? (
+      <div
+        data-testid="menu-layout"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6"
+      >
+        <div className="grid min-w-0 grid-cols-1 gap-5">
+          {!expired &&
+            (open ? (
+              <DishOptions
+                product={open}
+                onClose={() => setOpen(null)}
+                onAdd={(line) => {
+                  put(line);
+                  setOpen(null);
+                }}
+              />
+            ) : (
               <>
-                <SectionBar sections={menu.sections} current={current} />
-                {menu.sections.map((section) => (
-                  <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
-                    <h2
-                      id={sectionAnchor(section.id)}
-                      data-place
-                      className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
-                    >
-                      {section.name}
-                    </h2>
-                    <ul className={CARDS} aria-label={section.name}>
-                      {cards(section.products)}
-                    </ul>
-                  </section>
-                ))}
+                <Input
+                  type="search"
+                  ref={search}
+                  aria-label="Buscar no cardápio"
+                  placeholder="Buscar no cardápio"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="h-11 text-base"
+                />
+                {titled ? (
+                  <>
+                    <SectionBar sections={menu.sections} current={current} onPick={pick} />
+                    {menu.sections.map((section) => (
+                      <section key={section.id ?? "outros"} className="grid grid-cols-1 gap-3">
+                        <h2
+                          id={sectionAnchor(section.id)}
+                          data-place
+                          className="scroll-mt-20 font-display text-2xl font-semibold tracking-tight"
+                        >
+                          {section.name}
+                        </h2>
+                        <ul className={CARDS} aria-label={section.name}>
+                          {cards(section.products)}
+                        </ul>
+                      </section>
+                    ))}
+                  </>
+                ) : (
+                  <ul className={CARDS} aria-label="Cardápio">
+                    {cards(shown)}
+                    {shown.length === 0 && (
+                      <li className="text-sm text-muted-foreground">Nada com esse nome.</li>
+                    )}
+                  </ul>
+                )}
               </>
-            ) : (
-              <ul className={CARDS} aria-label="Cardápio">
-                {cards(shown)}
-                {shown.length === 0 && <li className="text-sm text-muted-foreground">Nada com esse nome.</li>}
-              </ul>
-            )}
-            {!live || live.menu.ordersLeft > 0 ? (
-              <Cart lines={lines} onChange={setLines} submit={live?.submit ?? null} />
-            ) : (
-              <p role="status" className="rounded-xl bg-muted p-4 text-center">
-                Chame um garçom para continuar pedindo.
-              </p>
-            )}
-          </>
-        ))}
-
-      {live && <MyOrders orders={live.orders} />}
+            ))}
+          {live && <MyOrders orders={live.orders} title={tablet ? "Pedidos enviados" : "Meus pedidos"} />}
+        </div>
+        {!expired &&
+          (!live || live.menu.ordersLeft === null || live.menu.ordersLeft > 0 ? (
+            <CartPanel
+              lines={lines}
+              onChange={setLines}
+              submit={live?.submit ?? null}
+              onSent={live?.onSent}
+              highlight={highlight}
+            />
+          ) : (
+            <p role="status" className="rounded-xl bg-muted p-4 text-center">
+              Chame um garçom para continuar pedindo.
+            </p>
+          ))}
+      </div>
+      <p role="status" aria-label="Carrinho" className="sr-only">
+        {announce}
+      </p>
     </div>
   );
 }

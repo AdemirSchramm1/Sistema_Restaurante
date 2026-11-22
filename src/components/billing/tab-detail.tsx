@@ -1,4 +1,4 @@
-import type { CancelReason, OrderStatus } from "@/domain/ordering/order";
+import type { CancelReason, OrderSource, OrderStatus } from "@/domain/ordering/order";
 import { CANCEL_REASON_LABELS, ORDER_STATUS_LABELS } from "@/domain/ordering/order";
 import type { CloseBlocker } from "@/domain/billing/tab";
 import { PAYMENT_METHOD_LABELS, isPaymentMethod, type PaymentMethod } from "@/domain/billing/payment";
@@ -27,7 +27,7 @@ export type TabDetailView = {
     cancelNote: string | null;
     total: string;
     /** Quem lançou (spec 015): sem a origem, a tela não diz. */
-    source?: "QR" | "STAFF";
+    source?: OrderSource;
     placedByName?: string | null;
     lines: {
       quantity: number;

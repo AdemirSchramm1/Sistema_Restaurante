@@ -30,7 +30,16 @@ export const orderStatusEnum = pgEnum("order_status", [
   "CANCELLED",
 ]);
 /** Por que o acesso ao cardápio acabou antes dos 20 minutos (spec 011). */
-export const menuAccessEndReasonEnum = pgEnum("menu_access_end_reason", ["RESCAN", "TAB_CLOSED"]);
+export const menuAccessEndReasonEnum = pgEnum("menu_access_end_reason", [
+  "RESCAN",
+  "TAB_CLOSED",
+  /** O gerente liberou o tablet da mesa (spec 016). */
+  "RELEASED",
+  /** O gerente trocou o link do tablet (spec 016). */
+  "LINK_ROTATED",
+]);
+/** Acesso pelo QR code (20 minutos) ou pelo tablet fixo na mesa (spec 016, sem prazo). */
+export const menuAccessKindEnum = pgEnum("menu_access_kind", ["QR", "TABLET"]);
 export const orderCancelReasonEnum = pgEnum("order_cancel_reason", [
   "CUSTOMER_GAVE_UP",
   "OUT_OF_PRODUCT",
@@ -38,8 +47,8 @@ export const orderCancelReasonEnum = pgEnum("order_cancel_reason", [
   "ENTERED_BY_MISTAKE",
   "OTHER",
 ]);
-/** De onde veio o pedido (spec 015): o cliente pelo QR code ou alguém da equipe. */
-export const orderSourceEnum = pgEnum("order_source", ["QR", "STAFF"]);
+/** De onde veio o pedido: QR code, alguém da equipe (spec 015) ou o tablet da mesa (spec 016). */
+export const orderSourceEnum = pgEnum("order_source", ["QR", "STAFF", "TABLET"]);
 
 /** Mesa. O token do link fica em texto: está impresso na mesa (research R1). */
 export const diningTables = pgTable(
@@ -52,6 +61,9 @@ export const diningTables = pgTable(
     active: boolean("active").notNull().default(true),
     qrToken: text("qr_token").notNull().unique(),
     qrRotatedAt: timestamp("qr_rotated_at", { withTimezone: true }).notNull(),
+    /** Link do tablet fixo na mesa (spec 016); nulo até o gerente criar. */
+    tabletToken: text("tablet_token").unique("dining_tables_tablet_token_unique"),
+    tabletTokenRotatedAt: timestamp("tablet_token_rotated_at", { withTimezone: true }),
   },
   (t) => [
     uniqueIndex("dining_tables_active_name")
@@ -60,10 +72,15 @@ export const diningTables = pgTable(
     // Lista de mesas com as inativas (spec 012, R2).
     index("dining_tables_restaurant").on(t.restaurantId, t.nameNormalized),
     check("dining_tables_name_length", sql`char_length(name) between 1 and 30`),
+    check("dining_tables_tablet_token_pair", sql`(tablet_token is null) = (tablet_token_rotated_at is null)`),
   ],
 );
 
-/** Acesso ao cardápio: 20 minutos desde a leitura do QR code (research R2). */
+/**
+ * Acesso ao cardápio: 20 minutos desde a leitura do QR code (research R2) ou, no tablet fixo na
+ * mesa, sem prazo até o gerente liberar (spec 016). Só `ended_at`, `end_reason` e `last_seen_at`
+ * mudam depois de ligar (gatilho `menu_accesses_frozen` na migração 0016).
+ */
 export const menuAccesses = pgTable(
   "menu_accesses",
   {
@@ -73,16 +90,26 @@ export const menuAccesses = pgTable(
       .references(() => diningTables.id),
     tokenHash: text("token_hash").notNull().unique(),
     openedAt: timestamp("opened_at", { withTimezone: true }).notNull(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     endReason: menuAccessEndReasonEnum("end_reason"),
     ip: text("ip"),
     userAgent: text("user_agent"),
+    kind: menuAccessKindEnum("kind").notNull().default("QR"),
+    /** Sinal de vida do tablet, no máximo uma vez por minuto (spec 016, R5). */
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   },
   (t) => [
     index("menu_accesses_open").on(t.restaurantId, t.expiresAt),
     index("menu_accesses_table").on(t.restaurantId, t.tableId, t.expiresAt),
-    check("menu_accesses_twenty_minutes", sql`expires_at = opened_at + interval '20 minutes'`),
+    uniqueIndex("menu_accesses_one_tablet")
+      .on(t.tableId)
+      .where(sql`kind = 'TABLET' and ended_at is null`),
+    check(
+      "menu_accesses_expiry_by_kind",
+      sql`(kind = 'QR' and expires_at is not null and expires_at = opened_at + interval '20 minutes') or (kind = 'TABLET' and expires_at is null)`,
+    ),
+    check("menu_accesses_last_seen", sql`kind = 'TABLET' or last_seen_at is null`),
     check("menu_accesses_end_reason", sql`(ended_at is null) = (end_reason is null)`),
   ],
 );
@@ -122,7 +149,7 @@ export const orders = pgTable(
       .where(sql`source = 'STAFF'`),
     check(
       "orders_source_shape",
-      sql`(source = 'QR' and menu_access_id is not null and placed_by is null) or (source = 'STAFF' and menu_access_id is null and placed_by is not null)`,
+      sql`(source::text in ('QR', 'TABLET') and menu_access_id is not null and placed_by is null) or (source = 'STAFF' and menu_access_id is null and placed_by is not null)`,
     ),
     index("orders_tab").on(t.tabId),
     uniqueIndex("orders_day_number").on(t.restaurantId, t.businessDay, t.number),

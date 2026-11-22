@@ -5,7 +5,7 @@ import { listOrders, ordersBySource } from "@/application/ordering/orders";
 import { businessDay } from "@/domain/ordering/business-day";
 import {
   CANCEL_REASON_LABELS,
-  ORDER_SOURCE_LABELS,
+  tableWithSource,
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
   type OrderStatus,
@@ -135,7 +135,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
                 </Td>
                 <Td>{date(o.businessDay)}</Td>
                 <Td>{time(o.submittedAt)}</Td>
-                <Td>{o.tableName}</Td>
+                <Td>{tableWithSource(o.tableName, o.source)}</Td>
                 <Td>{placedByText(o)}</Td>
                 <Td>{ORDER_STATUS_LABELS[o.status]}</Td>
                 <Td className="text-right">{brl(o.total)}</Td>
@@ -161,9 +161,7 @@ export default async function Page({ searchParams }: PageProps<"/pedidos">) {
             <tbody>
               {bySource.value.summary.map((s) => (
                 <tr key={s.placedById ?? s.source}>
-                  <Td>
-                    {s.source === "QR" ? ORDER_SOURCE_LABELS.QR : (s.name ?? ORDER_SOURCE_LABELS.STAFF)}
-                  </Td>
+                  <Td>{placedByText({ source: s.source, placedByName: s.name })}</Td>
                   <Td className="text-right">{s.count}</Td>
                   <Td className="text-right">{brl(s.total)}</Td>
                   <Td>

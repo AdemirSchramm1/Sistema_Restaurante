@@ -192,7 +192,7 @@ test("chef cria produto pela tela Cardápio e muda o preço com um carrinho aber
   const phone = await browser.newContext();
   const cell = await phone.newPage();
   await cell.goto(s.qrPath);
-  await cell.getByRole("button", { name: "Adicionar Limonada suíça" }).click();
+  await cell.getByRole("button", { name: "Pôr Limonada suíça no carrinho" }).click();
   await expect(cell.getByTestId("cart-total")).toHaveText("R$ 9,00");
 
   await page.goto("/pedidos/cardapio");
@@ -205,7 +205,6 @@ test("chef cria produto pela tela Cardápio e muda o preço com um carrinho aber
   const details = page.getByRole("form", { name: "Descrição e seção" });
   await details.getByRole("button", { name: "Salvar descrição e seção" }).click();
   await expect(details.getByRole("status")).toHaveText("Salvo");
-
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   const confirm = cell.getByRole("dialog", { name: "Confira o pedido" });
   await confirm.getByRole("button", { name: "Confirmar" }).click();
@@ -251,7 +250,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   await expect(page.getByRole("heading", { level: 1, name: "Ver como o cliente" })).toBeVisible();
 
   const frame = page.frameLocator('iframe[title="Cardápio como o cliente vê"]');
-  await expect(frame.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  await expect(frame.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+    "Pré-visualização: pedidos não são enviados",
+  );
   const cards = frame.getByRole("list", { name: "Lanches" }).getByRole("listitem");
   const columns = () =>
     cards.evaluateAll((els) => {
@@ -261,8 +262,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
     });
   await expect(cards).toHaveCount(4);
   expect(await columns()).toBe(1);
+  // A partir de 600 px, 3 colunas (spec 016, R10); deitado, 3 ao lado do carrinho.
   await page.getByRole("button", { name: "Tablet em pé" }).click();
-  await expect.poll(columns).toBe(2);
+  await expect.poll(columns).toBe(3);
   await page.getByRole("button", { name: "Tablet deitado" }).click();
   await expect.poll(columns).toBe(3);
   await expect(page.getByRole("button", { name: "Tablet deitado" })).toHaveAttribute("aria-pressed", "true");
@@ -272,7 +274,7 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   for (const hidden of ["Café", "Sorvete", "Brownie"])
     await expect(frame.getByRole("heading", { level: 3, name: hidden })).toHaveCount(0);
   // Dá para montar o pedido para ver como fica, mas não para enviar.
-  await frame.getByRole("button", { name: "Adicionar Água" }).click();
+  await frame.getByRole("button", { name: "Pôr Água no carrinho" }).click();
   await expect(frame.getByTestId("cart-total")).toHaveText("R$ 5,00");
   await expect(frame.getByRole("button", { name: "Enviar pedido" })).toHaveCount(0);
   await expect(frame.getByText(/Faltam \d+ min/)).toHaveCount(0);
@@ -287,7 +289,9 @@ test("Ver como o cliente mostra o cardápio em celular e tablet (spec 013, US5)"
   expect(box.width).toBeGreaterThan(300);
   expect(box.width).toBeLessThanOrEqual(390);
   await cell.getByRole("link", { name: "Abrir em tela cheia" }).click();
-  await expect(cell.getByRole("status")).toHaveText("Pré-visualização: pedidos não são enviados");
+  await expect(cell.getByRole("status").filter({ hasText: "Pré-visualização" })).toHaveText(
+    "Pré-visualização: pedidos não são enviados",
+  );
   await expect(cell.getByRole("navigation", { name: "Seções do cardápio" })).toBeVisible();
   await phone.close();
 

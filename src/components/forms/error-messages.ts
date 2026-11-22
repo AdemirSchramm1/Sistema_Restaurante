@@ -105,6 +105,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PHOTO_TOO_SMALL: "Essa foto é pequena e vai ficar borrada no cardápio. Use uma foto de pelo menos 600 px.",
   PHOTO_STORAGE_FAILED: "Não foi possível enviar a foto. Tente de novo.",
   PHOTO_PREPARE_FAILED: "Não foi possível preparar a foto neste aparelho. Use uma foto menor que 4 MB.",
+  TABLET_LINK_INVALID: "Link inválido. Chame um garçom.",
+  TABLET_LINK_IN_USE: "Este link já está ligado em outro tablet. Peça ao gerente para liberar.",
+  TABLET_RELEASED: "Este tablet foi desligado. Peça ao gerente.",
   CASH_SESSION_REQUIRED: "Abra o caixa antes de receber.",
   CASH_SESSION_ALREADY_OPEN: "O caixa já está aberto.",
   CASH_SESSION_ALREADY_CLOSED: "O caixa já foi fechado.",
@@ -154,6 +157,11 @@ export function messageFor(error: DomainError): string {
     return `A Mesa ${String(details.tableName)} foi inativada. Fale com o gerente.`;
   if (error.code === "NOTE_TOO_LONG" && error.field?.endsWith("kitchenNote"))
     return "A observação passa de 140 letras.";
+  // Aparência do cardápio (spec 016): logo e capa têm mínimos próprios.
+  if (error.code === "PHOTO_TOO_SMALL" && details?.kind === "LOGO")
+    return "O logo precisa ter pelo menos 200 px no lado menor.";
+  if (error.code === "PHOTO_TOO_SMALL" && details?.kind === "COVER")
+    return "A foto de capa precisa ter pelo menos 1200 px de largura.";
   if (error.code === "CASH_SESSION_REQUIRED") return CASH_REQUIRED[String(details?.action)] ?? base;
   if (error.code === "NOTE_REQUIRED") return NOTE_REQUIRED[String(details?.reason)] ?? base;
   if (error.code === "CASH_SESSION_ALREADY_OPEN" && details?.openedAt)

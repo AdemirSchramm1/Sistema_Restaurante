@@ -143,3 +143,34 @@ describe("POST /api/cardapio/foto", () => {
     }
   });
 });
+
+describe("POST /api/cardapio/foto com kind: logo e capa (spec 016, US1)", () => {
+  const upload = async (kind: string, fileName: string) => {
+    const form = new FormData();
+    form.set("kind", kind);
+    form.set(
+      "photo",
+      new Blob([new Uint8Array(await readFile(`tests/screens/photos/${fileName}`))]),
+      fileName,
+    );
+    return new Request("http://localhost/api/cardapio/foto", { method: "POST", body: form });
+  };
+
+  it("o gerente envia a capa: 200 com a foto 3:1", async () => {
+    const env = testEnv();
+    const k = await menuKitchen(env);
+    const res = await uploadPhotoResponse(env.deps, k.m, await upload("COVER", "capa.jpg"));
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { photo: { widths: number[] } }).photo.widths).toEqual([600, 1200, 1920]);
+  });
+
+  it("logo pequeno: 400 com o código e o formato; chef: 403; formato desconhecido: 400", async () => {
+    const env = testEnv();
+    const k = await menuKitchen(env);
+    const small = await uploadPhotoResponse(env.deps, k.m, await upload("LOGO", "logo-pequeno.png"));
+    expect(small.status).toBe(400);
+    expect(await small.json()).toEqual({ code: "PHOTO_TOO_SMALL", details: { kind: "LOGO" } });
+    expect((await uploadPhotoResponse(env.deps, k.chef, await upload("LOGO", "logo.png"))).status).toBe(403);
+    expect((await uploadPhotoResponse(env.deps, k.m, await upload("ICON", "logo.png"))).status).toBe(400);
+  });
+});

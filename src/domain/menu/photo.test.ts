@@ -7,6 +7,7 @@ import {
   photoSrcSet,
   photoUrl,
   variantWidths,
+  PHOTO_SHAPES,
   type PhotoFile,
 } from "./photo";
 
@@ -118,5 +119,55 @@ describe("endereços da foto (spec 013, US6.3 e US6.10)", () => {
 
   it("produto sem foto não tem srcset", () => {
     expect(photoSrcSet(null)).toBeNull();
+  });
+});
+
+describe("formatos da foto: prato, logo e capa (spec 016, FR-001, R8)", () => {
+  it("cada formato com o seu recorte, mínimo e larguras", () => {
+    expect(PHOTO_SHAPES).toEqual({
+      PRODUCT: { ratio: [4, 3], widths: [300, 600, 900, 1200] },
+      LOGO: { ratio: [1, 1], widths: [96, 192, 384] },
+      COVER: { ratio: [3, 1], widths: [600, 1200, 1920] },
+    });
+  });
+
+  it("logo: pelo menos 200 px no lado menor; a mensagem diz que é o logo", () => {
+    expect(checkPhotoFile(file({ width: 150, height: 150 }), MAX_PHOTO_BYTES, "LOGO")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "LOGO" } },
+    });
+    expect(code(checkPhotoFile(file({ width: 200, height: 199 }), MAX_PHOTO_BYTES, "LOGO"))).toBe(
+      "PHOTO_TOO_SMALL",
+    );
+    expect(code(checkPhotoFile(file({ width: 200, height: 200 }), MAX_PHOTO_BYTES, "LOGO"))).toBe("OK");
+  });
+
+  it("capa: pelo menos 1200 px de largura, qualquer altura", () => {
+    expect(checkPhotoFile(file({ width: 1199, height: 2000 }), MAX_PHOTO_BYTES, "COVER")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL", details: { kind: "COVER" } },
+    });
+    expect(code(checkPhotoFile(file({ width: 1200, height: 400 }), MAX_PHOTO_BYTES, "COVER"))).toBe("OK");
+    expect(code(checkPhotoFile(file({ width: 1000, height: 400 }), MAX_PHOTO_BYTES, "COVER"))).toBe(
+      "PHOTO_TOO_SMALL",
+    );
+  });
+
+  it("prato continua com 600 no lado menor e sem detalhe na mensagem", () => {
+    expect(checkPhotoFile(file({ width: 599, height: 900 }), MAX_PHOTO_BYTES, "PRODUCT")).toEqual({
+      ok: false,
+      error: { code: "PHOTO_TOO_SMALL" },
+    });
+  });
+
+  it("recorte e larguras pelo formato", () => {
+    expect(croppedSize(1920, 640, "COVER")).toEqual({ width: 1920, height: 640 });
+    expect(croppedSize(2000, 1000, "COVER")).toEqual({ width: 1998, height: 666 });
+    expect(croppedSize(400, 300, "LOGO")).toEqual({ width: 300, height: 300 });
+    expect(croppedSize(1600, 900, "PRODUCT")).toEqual({ width: 1200, height: 900 });
+    expect(variantWidths(384, "LOGO")).toEqual([96, 192, 384]);
+    expect(variantWidths(200, "LOGO")).toEqual([96, 192]);
+    expect(variantWidths(1500, "COVER")).toEqual([600, 1200]);
+    expect(variantWidths(1200, "PRODUCT")).toEqual([300, 600, 900, 1200]);
   });
 });

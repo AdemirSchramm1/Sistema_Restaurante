@@ -163,7 +163,11 @@ export async function expectTapTargets(scope: Locator): Promise<void> {
   fail([...small, ...overlaps(targets)]);
 }
 
-/** US6.3: toda foto de produto (`img[data-photo]`) aparece em 4:3, sem deformar, com texto alternativo. */
+/**
+ * US6.3: toda foto de produto (`img[data-photo]`) aparece em 4:3, sem deformar, com texto alternativo.
+ * Dentro de um botão ou link que já mostra o nome (o cartão do prato, spec 016), a foto é decorativa:
+ * `alt=""` de propósito, para o leitor de tela não ler o nome duas vezes.
+ */
 export async function expectPhotoRatio(scope: Locator): Promise<void> {
   fail(
     await scope.evaluate((root) => {
@@ -173,7 +177,8 @@ export async function expectPhotoRatio(scope: Locator): Promise<void> {
       for (const img of photos) {
         const r = img.getBoundingClientRect();
         const name = img.alt.trim() || img.currentSrc || "(sem nome)";
-        if (!img.alt.trim()) issues.push(`foto sem texto alternativo: ${name}`);
+        const decorative = img.getAttribute("alt") === "" && !!img.closest("button, a")?.textContent?.trim();
+        if (!img.alt.trim() && !decorative) issues.push(`foto sem texto alternativo: ${name}`);
         if (Math.abs(r.width * 3 - r.height * 4) > 6)
           issues.push(
             `foto fora da proporção 4:3: ${name} (${Math.round(r.width)} × ${Math.round(r.height)})`,
@@ -265,6 +270,9 @@ export async function expectSurvivesRotation(
   // O que conta como "à vista" é o que está no topo da tela: é o que o aparelho mantém ao girar.
   await anchor.evaluate((el) => el.scrollIntoView({ block: "start" }));
   await settle(page);
+  const start = await anchor.boundingBox();
+  if (!start || start.y > size.height / 2)
+    throw new Error("o ponto escolhido não chega ao topo da tela (fim da página): escolha um mais acima");
   const before = await state();
   try {
     await page.setViewportSize({ width: size.height, height: size.width });

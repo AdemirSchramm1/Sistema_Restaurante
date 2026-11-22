@@ -13,6 +13,8 @@ import {
   CANCEL_REASON_LABELS,
   ORDER_STATUS_LABELS,
   leftTheShelf,
+  tableWithSource,
+  type OrderSource,
   type OrderStatus,
 } from "@/domain/ordering/order";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ export type KitchenOrderView = {
   version: number;
   /** "João" ou "QR code" (spec 015, FR-017). */
   placedBy?: string;
+  /** O pedido do tablet mostra "Mesa 12 · tablet" (spec 016, FR-008). */
+  source?: OrderSource;
   lines: { quantity: number; productName: string; changes: string[]; kitchenNote?: string | null }[];
 };
 
@@ -153,7 +157,7 @@ export function KitchenBoard({
               return (
                 <article
                   key={o.id}
-                  aria-label={`Pedido ${o.number}, Mesa ${o.tableName}`}
+                  aria-label={`Pedido ${o.number}, Mesa ${tableWithSource(o.tableName, o.source ?? "QR")}`}
                   className={cn(
                     "grid gap-3 rounded-xl border border-l-4 border-border bg-card p-4 shadow-xs",
                     STAGE[col.tone].card,
@@ -162,7 +166,7 @@ export function KitchenBoard({
                 >
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <strong className="font-display text-2xl font-semibold leading-none">
-                      Mesa {o.tableName}
+                      Mesa {tableWithSource(o.tableName, o.source ?? "QR")}
                     </strong>
                     {o.placedBy && <span className="text-sm font-medium">{o.placedBy}</span>}
                     <span className="text-sm text-muted-foreground">Pedido {o.number}</span>

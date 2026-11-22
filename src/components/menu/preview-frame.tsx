@@ -15,12 +15,38 @@ const SIZES = [
 /**
  * "Ver como o cliente" (spec 013, US5): o cardápio do cliente dentro de uma moldura do tamanho
  * escolhido. A moldura é uma página de verdade, então as colunas e a barra de seções se comportam
- * como no aparelho. Maior que a tela, ela rola dentro da própria caixa.
+ * como no aparelho. Maior que a tela, ela rola dentro da própria caixa. Mostra o celular pelo QR code
+ * ou o tablet da mesa, com as boas-vindas (spec 016).
  */
-export function PreviewFrame({ src }: { src: string }) {
+export function PreviewFrame({ src: base }: { src: string }) {
   const [size, setSize] = useState<(typeof SIZES)[number]>(SIZES[0]);
+  const [tablet, setTablet] = useState(false);
+  const src = tablet ? `${base}?modo=tablet` : base;
+  const pickMode = (next: boolean) => {
+    setTablet(next);
+    // O tablet da mesa fica deitado; o celular, em pé (spec 016).
+    setSize(next ? SIZES[2] : SIZES[0]);
+  };
   return (
     <div className="grid gap-4">
+      <div role="group" aria-label="Como o cliente vê" className="flex flex-wrap gap-2">
+        {[
+          { label: "Celular pelo QR code", value: false },
+          { label: "Tablet da mesa", value: true },
+        ].map((m) => (
+          <Button
+            key={m.label}
+            type="button"
+            size="lg"
+            variant={m.value === tablet ? "default" : "outline"}
+            aria-pressed={m.value === tablet}
+            className={WRAPPING_BUTTON}
+            onClick={() => pickMode(m.value)}
+          >
+            {m.label}
+          </Button>
+        ))}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         {/* No celular não há o que escolher: a moldura ocupa a largura da tela. */}
         <div role="group" aria-label="Tamanho da tela" className="flex flex-wrap gap-2 max-sm:hidden">
@@ -49,6 +75,7 @@ export function PreviewFrame({ src }: { src: string }) {
         className="overflow-x-auto rounded-xl border border-border bg-muted p-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <iframe
+          key={src}
           title="Cardápio como o cliente vê"
           src={src}
           style={{ width: `${size.width}px`, height: `${size.height}px` }}

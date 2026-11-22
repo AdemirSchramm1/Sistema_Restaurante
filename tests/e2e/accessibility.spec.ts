@@ -114,15 +114,16 @@ test("cardápio do celular, tela do prato, cozinha, garçom e telas de pedidos s
   await cell.goto(table);
   await expect(cell.getByRole("heading", { name: "Mesa 1" })).toBeVisible();
   expect(await seriousViolations(cell), "cardápio").toEqual([]);
-  await cell.getByRole("button", { name: "Adicionar X-Burger" }).click();
+  await cell.getByRole("button", { name: "Pôr X-Burger no carrinho" }).click();
   expect(await seriousViolations(cell), "tela do prato").toEqual([]);
   await cell.getByRole("button", { name: "Mais Fatia de queijo" }).click();
   await cell.getByRole("button", { name: "Sem cebola" }).click();
   await cell.getByRole("button", { name: "Adicionar ao pedido" }).click();
+  await cell.getByRole("button", { name: /^Ver pedido/ }).click();
   await cell.getByRole("button", { name: "Enviar pedido" }).click();
   expect(await seriousViolations(cell), "resumo do pedido").toEqual([]);
   await cell.getByRole("button", { name: "Confirmar" }).click();
-  await expect(cell.getByText("Pedido enviado para a cozinha")).toBeVisible();
+  await expect(cell.getByText("Pedido enviado para a cozinha").filter({ visible: true })).toBeVisible();
   expect(await seriousViolations(cell), "cardápio com pedido enviado").toEqual([]);
   await phoneContext.close();
 
@@ -189,7 +190,8 @@ test("caixa, conta da mesa, conta impressa, contas fechadas e cancelar depois do
   const cell = await phoneContext.newPage();
   await cell.goto(table);
   for (const n of [1, 2]) {
-    await cell.getByRole("button", { name: "Adicionar Suco" }).click();
+    await cell.getByRole("button", { name: "Pôr Suco no carrinho" }).click();
+    await cell.getByRole("button", { name: /^Ver pedido/ }).click();
     await cell.getByRole("button", { name: "Enviar pedido" }).click();
     await cell
       .getByRole("dialog", { name: "Confira o pedido" })
@@ -301,7 +303,7 @@ test("cardápio com seções e fotos, tela do prato e tela Cardápio sem falhas 
     await expect(cell.getByRole("navigation", { name: "Seções do cardápio" })).toBeVisible();
     await expect(cell.locator("main img[data-photo]").first()).toBeVisible();
     expect(await seriousViolations(cell), `cardápio com seções e fotos (${device})`).toEqual([]);
-    await cell.getByRole("button", { name: "Adicionar X-Burger", exact: true }).click();
+    await cell.getByRole("button", { name: "Pôr X-Burger no carrinho", exact: true }).click();
     await expect(cell.getByRole("region", { name: "X-Burger", exact: true })).toBeVisible();
     expect(await seriousViolations(cell), `tela do prato com foto (${device})`).toEqual([]);
     await cell.getByRole("button", { name: "Voltar ao cardápio" }).click();
@@ -322,4 +324,37 @@ test("cardápio com seções e fotos, tela do prato e tela Cardápio sem falhas 
     await page.goto(path);
     expect(await seriousViolations(page), path).toEqual([]);
   }
+});
+
+test("boas-vindas e cardápio do tablet, Ainda está aí?, Tablet da mesa e Aparência sem falhas graves (spec 016)", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  const s = seedMenu("board");
+  await login(page, s.manager, s.password);
+  await page.goto("/pedidos/cardapio");
+  await expect(page.getByRole("region", { name: "Aparência" })).toBeVisible();
+  expect(await seriousViolations(page), "quadro Aparência").toEqual([]);
+
+  await page.goto("/pedidos/mesas");
+  const box = page.getByRole("region", { name: "Tablet da Mesa 12" });
+  // O cenário "board" já tem o link do tablet da mesa 12.
+  await expect(box.locator("code")).toHaveText(/\/t\//);
+  expect(await seriousViolations(page), "Tablet da mesa").toEqual([]);
+  const link = new URL((await box.locator("code").textContent())!).pathname;
+
+  const context = await browser.newContext({ ...devices["Galaxy Tab S4 landscape"], locale: "pt-BR" });
+  const tab = await context.newPage();
+  await tab.clock.install();
+  await tab.goto(link);
+  await expect(tab.getByRole("region", { name: "Boas-vindas" })).toBeVisible();
+  expect(await seriousViolations(tab), "boas-vindas do tablet").toEqual([]);
+  await tab.getByRole("button", { name: "Ver o cardápio" }).click();
+  await tab.locator("main").getByRole("button", { name: "Pôr Suco de laranja no carrinho" }).click();
+  expect(await seriousViolations(tab), "cardápio do tablet deitado").toEqual([]);
+  await tab.clock.fastForward("03:01");
+  await expect(tab.getByRole("alertdialog", { name: "Ainda está aí?" })).toBeVisible();
+  expect(await seriousViolations(tab), "Ainda está aí?").toEqual([]);
+  await context.close();
 });

@@ -15,7 +15,7 @@ export default async function Page() {
     <div className="grid gap-6">
       <PageHeader
         title="Ver como o cliente"
-        description="O cardápio como aparece agora para quem lê o QR code da mesa. Só entram produtos ativos, com preço e não esgotados hoje."
+        description="O cardápio como aparece agora no celular de quem lê o QR code da mesa ou no tablet da mesa. Só entram produtos ativos, com preço e não esgotados hoje."
         back={{ href: "/pedidos/cardapio", label: "Voltar para o Cardápio" }}
       />
       <PreviewFrame src="/pedidos/cardapio/ver/cliente" />

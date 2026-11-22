@@ -14,6 +14,10 @@ const menuCoverage = {
     "src/application/menu/**/*.ts",
     "src/components/menu/**/*.{ts,tsx}",
     "src/components/ordering/{section-bar,product-card,product-photo}.tsx",
+    // Spec 016: cardápio por largura, aparência e tablet da mesa.
+    "src/domain/ordering/{menu-access,tablet-screen,tablet-signal,quick-add}.ts",
+    "src/application/ordering/{tablets,menu-access,menu}.ts",
+    "src/components/ordering/{menu-header,product-card,quick-add-button,section-bar,cart-panel,cart-bar,tablet-shell,tablet-welcome,still-there,table-tablet-card}.tsx",
     "src/infra/photos/**/*.ts",
     "src/infra/db/repositories/menu-repository.ts",
   ],

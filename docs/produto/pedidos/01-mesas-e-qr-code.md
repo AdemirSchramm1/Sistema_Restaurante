@@ -34,3 +34,12 @@ continuam na cozinha. Ligar e desligar vai para a trilha de auditoria.
 
 Criar, renomear, inativar, reativar mesa, trocar QR code e mudar a chave ficam no histórico com
 quem e quando. O código do QR code não aparece no histórico (só a hora da troca).
+
+## Tablet da mesa (spec 016)
+
+Cada cartão da tela **Mesas** tem o quadro **Tablet da mesa** (só o gerente): **Criar link do
+tablet**, o link para copiar, um QR code do link para abrir no tablet sem digitar, a situação
+("Nenhum tablet ligado", "Tablet ligado desde 16/11 20:05 · visto há 2 min", ou "Sem sinal há 25
+min" em destaque depois de 10 minutos) e **Liberar** / **Trocar link**, com confirmação. No topo da
+tela, "4 mesas com tablet ligado". O link do tablet é diferente do QR code: trocar um não mexe no
+outro, e a mesa pode ter os dois. Detalhes em [09 — Tablet da mesa](09-tablet-da-mesa.md).

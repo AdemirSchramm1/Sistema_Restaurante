@@ -469,6 +469,7 @@ describe("quem lançou cada pedido (spec 015, US2, FR-008)", () => {
     ]);
     expect(summary.placedByOptions).toEqual([
       { value: "QR", label: "QR code" },
+      { value: "TABLET", label: "Tablet da mesa" },
       { value: t.joao.userId, label: "João" },
       { value: t.maria.userId, label: "Maria" },
     ]);

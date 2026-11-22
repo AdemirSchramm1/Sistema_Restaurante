@@ -1,6 +1,7 @@
 import type { Deps } from "@/application/ports";
 import type { RequestContext } from "@/application/context";
 import { setProductPhoto } from "@/application/menu/photo";
+import { setAppearanceImage } from "@/application/menu/appearance";
 import { parseTarget } from "@/application/menu/section-input";
 import { MAX_UPLOAD_BYTES } from "@/domain/menu/photo";
 import type { ChosenPhotoStorage } from "@/infra/photos/from-env";
@@ -32,7 +33,8 @@ const json = (status: number, body: unknown) =>
 const FORM_OVERHEAD_BYTES = 4096;
 
 /**
- * `POST /api/cardapio/foto`: recebe a foto já reduzida pelo navegador (até 4 MB) e liga ao produto.
+ * `POST /api/cardapio/foto`: recebe a foto já reduzida pelo navegador (até 4 MB) e liga ao produto
+ * (`recipeId`) ou vira o logo ou a capa do restaurante (`kind` = `LOGO` ou `COVER`, spec 016).
  * Rota em vez de Server Action para a tela poder mostrar o progresso do envio (research R2).
  */
 export async function uploadPhotoResponse(
@@ -45,13 +47,26 @@ export async function uploadPhotoResponse(
   if (declared > MAX_UPLOAD_BYTES + FORM_OVERHEAD_BYTES) return json(413, { code: "PHOTO_TOO_BIG" });
 
   const form = await request.formData().catch(() => null);
+  const kind = form?.get("kind");
   const target = parseTarget({ id: form?.get("recipeId") });
   const file = form?.get("photo");
-  if (!target.ok || !(file instanceof Blob)) return json(400, { code: "VALIDATION" });
+  const appearance = kind === "LOGO" || kind === "COVER" ? kind : null;
+  if (
+    (kind !== null && kind !== undefined && !appearance) ||
+    (!appearance && !target.ok) ||
+    !(file instanceof Blob)
+  )
+    return json(400, { code: "VALIDATION" });
   if (file.size > MAX_UPLOAD_BYTES) return json(413, { code: "PHOTO_TOO_BIG" });
 
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const saved = await setProductPhoto(deps, ctx, { id: target.value.id, bytes });
+  const saved = appearance
+    ? await setAppearanceImage(deps, ctx, { kind: appearance, bytes })
+    : await setProductPhoto(deps, ctx, { id: target.ok ? target.value.id : "", bytes });
   if (saved.ok) return json(200, saved.value);
-  return json(saved.error.code === "FORBIDDEN" ? 403 : 400, { code: saved.error.code });
+  const { code, details } = saved.error;
+  return json(
+    code === "FORBIDDEN" ? 403 : 400,
+    code === "PHOTO_TOO_SMALL" && details ? { code, details } : { code },
+  );
 }

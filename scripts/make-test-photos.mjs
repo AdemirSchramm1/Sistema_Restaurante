@@ -1,4 +1,4 @@
-// Gera as fotos de teste da spec 013 em tests/screens/photos/. Rodar só se precisar refazer:
+// Gera as fotos de teste das specs 013 e 016 em tests/screens/photos/. Rodar só se precisar refazer:
 //   node scripts/make-test-photos.mjs
 import sharp from "sharp";
 import { writeFile } from "node:fs/promises";
@@ -52,3 +52,26 @@ await writeFile(
   `${dir}/documento.pdf`,
   "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
 );
+
+// Spec 016: logo 1:1 e capa 3:1 do restaurante (e as pequenas demais para os dois).
+const logo = (size) =>
+  svg(
+    size,
+    size,
+    rect(0, 0, size, size, "#b8430f") +
+      `<circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.32}" fill="#fff4e0"/>` +
+      rect(size * 0.3, size * 0.46, size * 0.4, size * 0.08, "#b8430f"),
+  );
+await sharp(logo(400)).png().toFile(`${dir}/logo.png`);
+await sharp(logo(150)).png().toFile(`${dir}/logo-pequeno.png`);
+const cover = (w, h) =>
+  jpeg(
+    w,
+    h,
+    rect(0, 0, w, h, "#e8d2a8") +
+      rect(0, h * 0.62, w, h * 0.38, "#6b3f1f") +
+      `<circle cx="${w * 0.25}" cy="${h * 0.5}" r="${h * 0.28}" fill="#f2b33d"/>` +
+      `<circle cx="${w * 0.7}" cy="${h * 0.45}" r="${h * 0.22}" fill="#c0392b"/>`,
+  );
+await cover(1920, 640).toFile(`${dir}/capa.jpg`);
+await cover(1000, 400).toFile(`${dir}/capa-estreita.jpg`);

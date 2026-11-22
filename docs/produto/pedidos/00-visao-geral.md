@@ -8,8 +8,10 @@ formam a conta, que o caixa recebe e fecha, liberando a mesa. Specs:
 [011 — Fechar a conta da mesa e baixar o estoque](../../../specs/011-fechamento-conta-mesa/spec.md) e
 [013 — Editar o cardápio](../../../specs/013-editar-cardapio/spec.md),
 [014 — Caixa do dia](../../../specs/014-fechamento-caixa/spec.md) e
-[015 — Pedido pelo garçom](../../../specs/015-pedido-pelo-garcom/spec.md). Quem não usa o QR code
-pede ao garçom, que lança pelo celular com o próprio login.
+[015 — Pedido pelo garçom](../../../specs/015-pedido-pelo-garcom/spec.md) e
+[016 — Cardápio com a cara do restaurante e tablet fixo na mesa](../../../specs/016-cardapio-tablet-mesa/spec.md).
+Quem não usa o QR code pede ao garçom, que lança pelo celular com o próprio login, ou pelo tablet
+fixo na mesa, que fica com o cardápio aberto sem prazo.
 
 ```text
 Gerente cria as mesas ──► imprime os QR codes ──► cliente escaneia
@@ -32,6 +34,7 @@ Gerente cria as mesas ──► imprime os QR codes ──► cliente escaneia
 | [06 — Editar o cardápio](06-editar-o-cardapio.md) | Tela Cardápio: seções, ordem, foto, descrição, preço, produto novo, Ver como o cliente |
 | [07 — Caixa do dia](07-caixa-do-dia.md) | Abrir com troco, sangria e reforço, contar sem ver o esperado, fechar, Turnos e Vendas |
 | [08 — Lançar pedido](08-lancar-pedido.md) | Garçom lança pela mesa: carrinho no aparelho, observação para a cozinha, Pedir de novo, cancelar o próprio, quem lançou |
+| [09 — Tablet da mesa](09-tablet-da-mesa.md) | Link do tablet por mesa, ligar, liberar, trocar o link, boas-vindas, "Ainda está aí?", travar o aparelho |
 
 Telas da equipe, no menu: **Cozinha**, **Lançar pedido** (015), **Garçom**, **Caixa**, **Contas**, **Pedidos**, **Mesas**,
 **Adicionais** e **Cardápio** (013) (cada uma só para quem tem a permissão; ver

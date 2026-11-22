@@ -1,6 +1,13 @@
 import type { Deps, Repos } from "../ports";
-import { accessExpiresAt } from "@/domain/ordering/menu-access";
+import {
+  accessExpiresAt,
+  isAccessOpen,
+  type MenuAccessEndReason,
+  type MenuAccessKind,
+  type MenuAccessTimes,
+} from "@/domain/ordering/menu-access";
 import { err, ok, type Result } from "@/domain/shared/result";
+import { recordTablet } from "./tablets";
 
 /** Acesso ao cardápio de 20 minutos desde a leitura do QR code (spec 009, US3, research R2). */
 
@@ -10,7 +17,8 @@ export type AccessOrigin = { ip: string | null; userAgent: string | null };
 async function endPrevious(deps: Deps, cookie: string | null) {
   if (!cookie) return;
   const prev = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
-  if (!prev) return;
+  // O cookie do QR code nunca aponta para um tablet, mas a regra fica explícita (spec 016).
+  if (!prev || prev.kind !== "QR") return;
   await deps.tenant(prev.restaurantId, async (repos) => {
     await repos.menuAccesses.end(prev.menuAccessId, deps.clock.now(), "RESCAN");
     return ok(undefined);
@@ -42,6 +50,7 @@ export async function openMenuAccess(
       id: deps.ids.next(),
       tableId: table.tableId,
       tokenHash: hash,
+      kind: "QR",
       openedAt: now,
       expiresAt,
       endedAt: null,
@@ -52,14 +61,40 @@ export async function openMenuAccess(
   });
 }
 
-/** Restaurante e acesso do cookie, ou `ACCESS_EXPIRED`. */
+/**
+ * Cookies do cardápio: o do celular (QR code) e o do tablet da mesa (spec 016). Um texto só é o
+ * cookie do QR code, como antes da 016.
+ */
+export type MenuCookies = string | null | { qr: string | null; tablet: string | null };
+
+/** Com os dois cookies vale o do tablet (spec 016, R2): ler um QR code no tablet não o tira da mesa. */
+export const pickMenuCookie = (c: MenuCookies): string | null =>
+  c === null || typeof c === "string" ? c : (c.tablet ?? c.qr);
+
+/** Restaurante, acesso e tipo do cookie, ou `ACCESS_EXPIRED`. */
 export async function accessFromCookie(
   deps: Deps,
-  cookie: string | null,
-): Promise<Result<{ restaurantId: string; menuAccessId: string }>> {
+  cookies: MenuCookies,
+): Promise<Result<{ restaurantId: string; menuAccessId: string; kind: MenuAccessKind }>> {
+  const cookie = pickMenuCookie(cookies);
   if (!cookie) return err("ACCESS_EXPIRED");
   const found = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
   return found ? ok(found) : err("ACCESS_EXPIRED");
+}
+
+/**
+ * Por que este acesso não abre mais o cardápio, na ordem da spec 016: tablet liberado ou com link
+ * trocado; celular de conta fechada; prazo do QR code.
+ */
+export function closedAccessError(
+  access: { kind: MenuAccessKind; endReason: MenuAccessEndReason | null } & MenuAccessTimes,
+  now: Date,
+) {
+  if (access.endReason === "RELEASED") return "TABLET_RELEASED" as const;
+  if (access.endReason === "LINK_ROTATED") return "TABLET_LINK_INVALID" as const;
+  if (access.endReason === "TAB_CLOSED") return "TABLE_TAB_CLOSED" as const;
+  if (!isAccessOpen(access, now)) return "ACCESS_EXPIRED" as const;
+  return null;
 }
 
 /** Dentro da transação do restaurante: acesso, mesa e chave, na ordem das conferências. */
@@ -70,4 +105,84 @@ export async function loadAccess(repos: Repos, menuAccessId: string) {
   if (!table) return err("ACCESS_EXPIRED");
   const settings = await repos.orderingSettings.get();
   return ok({ access, table, settings });
+}
+
+export type BindTabletResult = { kind: "INVALID" } | { kind: "IN_USE" } | { kind: "BOUND"; cookie: string };
+
+/**
+ * `GET /t/{token}` (spec 016, R2, R3): liga este aparelho como o tablet da mesa. O mesmo aparelho
+ * de novo (cookie do tablet aberto desta mesa) continua com o mesmo cookie. Mesa inativa e chave
+ * desligada não impedem ligar: o tablet mostra a mensagem da mesa.
+ */
+export async function bindTablet(
+  deps: Deps,
+  input: { tabletToken: string; cookie: string | null; origin: AccessOrigin },
+): Promise<BindTabletResult> {
+  const table = input.tabletToken ? await deps.global.tableByTabletToken(input.tabletToken) : null;
+  if (!table) return { kind: "INVALID" };
+
+  if (input.cookie) {
+    const mine = await deps.global.menuAccessByTokenHash(deps.tokens.hash(input.cookie));
+    if (mine?.kind === "TABLET" && mine.restaurantId === table.restaurantId) {
+      const same = await deps.tenant(table.restaurantId, async (repos) => {
+        const a = await repos.menuAccesses.get(mine.menuAccessId);
+        return ok(a !== null && a.tableId === table.tableId && a.endedAt === null);
+      });
+      if (same.ok && same.value) return { kind: "BOUND", cookie: input.cookie };
+    }
+  }
+
+  const { token, hash } = deps.tokens.create();
+  const bound = await deps.tenant(table.restaurantId, async (repos) => {
+    const inserted = await repos.menuAccesses.insertTablet({
+      id: deps.ids.next(),
+      tableId: table.tableId,
+      tokenHash: hash,
+      openedAt: deps.clock.now(),
+      ip: input.origin.ip?.slice(0, 64) ?? null,
+      userAgent: input.origin.userAgent?.slice(0, 300) ?? null,
+    });
+    if (inserted)
+      await recordTablet(repos, table.tableId, "bound", {
+        userId: null,
+        origin: { channel: "web", ip: input.origin.ip, userAgent: input.origin.userAgent },
+      });
+    return ok(inserted);
+  });
+  return bound.ok && bound.value ? { kind: "BOUND", cookie: token } : { kind: "IN_USE" };
+}
+
+/** O que o tablet sabe pelo sinal (spec 016, R5). */
+export type TabletState = "OK" | "TABLE_INACTIVE" | "ORDERING_PAUSED" | "RELEASED" | "LINK_ROTATED";
+export type TabletStatusView = { state: TabletState; tableName: string; tabId: string | null; stamp: string };
+
+/**
+ * `GET /api/cardapio/tablet` (spec 016, R5): situação do tablet, a conta aberta da mesa e um `stamp`
+ * que muda quando algo que o tablet mostra mudou. É também o sinal de vida (`last_seen_at`, no
+ * máximo uma gravação por minuto). `null`: o cookie não é de um tablet.
+ */
+export async function tabletStatus(deps: Deps, cookie: string | null): Promise<TabletStatusView | null> {
+  if (!cookie) return null;
+  const found = await deps.global.menuAccessByTokenHash(deps.tokens.hash(cookie));
+  if (!found || found.kind !== "TABLET") return null;
+  const r = await deps.tenant(found.restaurantId, async (repos) => {
+    const loaded = await loadAccess(repos, found.menuAccessId);
+    if (!loaded.ok) return loaded;
+    const { access, table, settings } = loaded.value;
+    const now = deps.clock.now();
+    if (access.endedAt === null) await repos.menuAccesses.touch(access.id, now);
+    const { tabId, stamp } = await repos.orders.tabletStamp(table.id);
+    const state: TabletState =
+      access.endReason === "RELEASED"
+        ? "RELEASED"
+        : access.endReason === "LINK_ROTATED"
+          ? "LINK_ROTATED"
+          : !table.active
+            ? "TABLE_INACTIVE"
+            : !settings.acceptingQrOrders
+              ? "ORDERING_PAUSED"
+              : "OK";
+    return ok({ state, tableName: table.name, tabId, stamp });
+  });
+  return r.ok ? r.value : null;
 }

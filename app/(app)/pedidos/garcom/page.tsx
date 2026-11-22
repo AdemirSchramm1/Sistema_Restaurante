@@ -45,7 +45,11 @@ export default async function Page({ searchParams }: PageProps<"/pedidos/garcom"
         </Link>
       </nav>
       <ReadyList
-        orders={r.value.map((o) => ({ ...o, readyAt: o.readyAt.toISOString(), placedBy: placedByText(o) }))}
+        orders={r.value.map((o) => ({
+          ...o,
+          readyAt: o.readyAt.toISOString(),
+          placedBy: o.source === "TABLET" ? undefined : placedByText(o),
+        }))}
         deliver={markDeliveredAction}
       />
     </div>

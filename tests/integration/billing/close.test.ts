@@ -170,7 +170,7 @@ describe("mesa liberada (spec 011, US2-6 a US2-8)", () => {
     expect(old.orders).toHaveLength(2);
   });
 
-  it("os celulares da mesa fechada não pedem mais: o cardápio avisa que a conta foi fechada", async () => {
+  it("os celulares da mesa fechada (acessos QR; o tablet da mesa segue, spec 016) não pedem mais: o cardápio avisa que a conta foi fechada", async () => {
     const env = testEnv();
     const t = await setup(env);
     const other = await t.placeAt("13", [t.s.juice()]);

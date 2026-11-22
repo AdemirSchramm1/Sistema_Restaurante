@@ -1,16 +1,13 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { serverDeps } from "@/infra/server";
 import { submitOrder } from "@/application/ordering/submit-order";
-import { MENU_ACCESS_COOKIE } from "./_qr-scan";
+import { menuCookies } from "./_menu-cookies";
 import { toState, type ActionState } from "./_session";
 import type { SubmitOrderResult } from "@/application/ordering/submit-order";
 
 /** Ações do cardápio público (spec 009, contracts/public-routes.md). O acesso vem só do cookie. */
 
-const accessCookie = async () => (await cookies()).get(MENU_ACCESS_COOKIE)?.value ?? null;
-
 export async function submitOrderAction(input: unknown): Promise<ActionState<SubmitOrderResult>> {
-  return toState(await submitOrder(serverDeps(), await accessCookie(), input));
+  return toState(await submitOrder(serverDeps(), await menuCookies(), input));
 }

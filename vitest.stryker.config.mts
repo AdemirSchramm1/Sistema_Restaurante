@@ -8,7 +8,7 @@ export default defineConfig({
     include: [
       "src/domain/menu/**/*.test.ts",
       "src/domain/cash/**/*.test.ts",
-      "src/domain/ordering/{kitchen-note,staff-request,reorder,similar-orders}.test.ts",
+      "src/domain/ordering/{kitchen-note,staff-request,reorder,similar-orders,menu-access,tablet-screen,tablet-signal,quick-add}.test.ts",
     ],
     environment: "node",
   },

@@ -113,7 +113,10 @@ export type ErrorCode =
   | "NOTE_REQUIRED"
   | "STAFF_TABLE_INACTIVE"
   | "KITCHEN_STARTED"
-  | "REQUEST_REUSED";
+  | "REQUEST_REUSED"
+  | "TABLET_LINK_INVALID"
+  | "TABLET_LINK_IN_USE"
+  | "TABLET_RELEASED";
 
 export type DomainError = {
   code: ErrorCode;

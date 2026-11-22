@@ -33,13 +33,18 @@ function outcome(status: number, text: string): Result<Photo> {
 
 /** `XMLHttpRequest` em vez de `fetch` porque só ele informa o progresso do envio. */
 export function uploadPhoto(
-  input: { recipeId: string; file: Blob; onProgress: (percent: number) => void },
+  input: (
+    | { recipeId: string; kind?: undefined }
+    /** Logo ou capa do restaurante (spec 016). */
+    | { recipeId?: undefined; kind: "LOGO" | "COVER" }
+  ) & { file: Blob; onProgress: (percent: number) => void },
   create: () => UploadRequest = () => new XMLHttpRequest() as unknown as UploadRequest,
 ): Promise<Result<Photo>> {
   return new Promise((resolve) => {
     const xhr = create();
     const form = new FormData();
-    form.set("recipeId", input.recipeId);
+    if (input.kind) form.set("kind", input.kind);
+    else form.set("recipeId", input.recipeId);
     form.set("photo", input.file);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) input.onProgress(Math.round((e.loaded / e.total) * 100));
