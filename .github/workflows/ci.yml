@@ -138,12 +138,8 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm db:dev-login
       - run: pnpm exec playwright install --with-deps chromium
-      - uses: actions/cache@v4
-        with:
-          path: .next/cache
-          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-          restore-keys: |
-            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      # Sem cache do build do Next entre commits: em 2026-11-22, com o cache da main anterior à 016, a
+      # CI desenhou o cardápio em 1 coluna; com build limpo desenha certo. Build limpo leva ~1 minuto.
       - run: pnpm build
       - run: pnpm test:e2e
         env:
@@ -205,12 +201,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm db:dev-login
-      - uses: actions/cache@v4
-        with:
-          path: .next/cache
-          key: next-telas-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-          restore-keys: |
-            next-telas-${{ hashFiles('pnpm-lock.yaml') }}-
+      # Build limpo, sem o cache do Next de outro commit (veja o job e2e).
       - run: pnpm build
       - run: scripts/screens.sh ${{ matrix.args }}
       - uses: actions/upload-artifact@v4

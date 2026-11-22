@@ -35,7 +35,8 @@ muitos jobs paralelos, não o PR quebrado em pedaços (decisão de 2026-11-20).
 - **Filtro de caminho:** PR só de documentação (`*.md`, `docs/`, `specs/`, `.specify/`) roda só o
   `estatico`, em cerca de 1 minuto.
 - **Commit novo cancela a rodada anterior** do mesmo PR (`concurrency`).
-- Dependências vêm do cache do pnpm; fila e instalação levam segundos. Se um job ficar lento,
+- Dependências vêm do cache do pnpm; fila e instalação levam segundos. O build do Next **não** usa
+  cache de outro commit: o cache velho já fez a CI testar telas com CSS antigo. Se um job ficar lento,
   abra o log, veja qual passo come o tempo e corrija ali (quebrar o job, cortar trabalho repetido),
   em vez de cortar teste.
 
