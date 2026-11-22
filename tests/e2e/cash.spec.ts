@@ -5,6 +5,10 @@ import { createTables, newDish, newItem, openCash, qrPath } from "./ordering-hel
 
 /** Violações sérias de acessibilidade (WCAG 2.1 AA), como em accessibility.spec.ts. */
 async function seriousViolations(page: Page) {
+  // No CI o axe às vezes pega a página num instante sem <title> logo depois de uma atualização
+  // ("document-title" em telas diferentes, também na main). Espera o título estar lá: tela sem
+  // título de verdade continua falhando aqui.
+  await expect(page).toHaveTitle(/\S/);
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   return r.violations
     .filter((v) => v.impact === "serious" || v.impact === "critical")

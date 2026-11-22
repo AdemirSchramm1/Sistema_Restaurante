@@ -112,6 +112,45 @@ describe("tablet da mesa (spec 016, US5)", () => {
     expect(total()).toBe("R$ 9,00");
   });
 
+  it("o toque em Ver o cardápio só troca de tela no clique: o clique não cai no cardápio por baixo", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    const button = screen.getByRole("button", { name: "Ver o cardápio" });
+    fireEvent.pointerDown(button);
+    // Ainda nas boas-vindas: se saísse aqui, o clique do mesmo toque iria para o que está por baixo.
+    expect(welcome()).not.toBeNull();
+    fireEvent.click(button);
+    expect(welcome()).toBeNull();
+  });
+
+  it("tocar em qualquer lugar das boas-vindas abre o cardápio", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    fireEvent.click(welcome()!);
+    expect(welcome()).toBeNull();
+  });
+
+  it("Ainda está aí?: o toque só continua no clique, sem clicar no cardápio por baixo", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    start();
+    addJuice();
+    await advance(181_000);
+    const dialog = screen.getByRole("alertdialog", { name: "Ainda está aí?" });
+    fireEvent.pointerDown(dialog);
+    expect(screen.queryByRole("alertdialog")).not.toBeNull();
+    fireEvent.click(dialog);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(total()).toBe("R$ 9,00");
+  });
+
+  it("no cardápio, encostar o dedo (pointerdown) já conta como uso", async () => {
+    render(<TabletShell menu={menu} orders={[]} submit={submit} />);
+    start();
+    addJuice();
+    await advance(170_000);
+    fireEvent.pointerDown(window);
+    await advance(20_000);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
   it("parado 3 min com carrinho vazio volta direto às boas-vindas", async () => {
     render(<TabletShell menu={menu} orders={[]} submit={submit} />);
     start();
