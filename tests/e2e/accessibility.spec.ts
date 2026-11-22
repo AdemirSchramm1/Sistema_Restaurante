@@ -3,6 +3,7 @@ import { devices, expect, test, type Page } from "@playwright/test";
 import { signUp } from "./helpers";
 import { createTables, customize, newAddon, newDish, newItem, openCash, qrPath } from "./ordering-helpers";
 import { login, seedMenu } from "../support/seed";
+import { openTabletMenu } from "../support/tablet";
 
 /** Falhas graves de acessibilidade (WCAG 2.1 A e AA) numa página. */
 async function seriousViolations(page: Page) {
@@ -350,7 +351,7 @@ test("boas-vindas e cardápio do tablet, Ainda está aí?, Tablet da mesa e Apar
   await tab.goto(link);
   await expect(tab.getByRole("region", { name: "Boas-vindas" })).toBeVisible();
   expect(await seriousViolations(tab), "boas-vindas do tablet").toEqual([]);
-  await tab.getByRole("button", { name: "Ver o cardápio" }).click();
+  await openTabletMenu(tab);
   await tab.locator("main").getByRole("button", { name: "Pôr Suco de laranja no carrinho" }).click();
   expect(await seriousViolations(tab), "cardápio do tablet deitado").toEqual([]);
   await tab.clock.fastForward("03:01");

@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, seriousViolations, test } from "./fixtures";
 import { expectNoClippedText, expectNoSideScroll, expectTapTargets } from "./layout";
 import { COLOR_MODES, screen, STAFF_SCREENS } from "./matrix";
+import { openTabletMenu } from "../support/tablet";
 
 /**
  * Tablet da mesa (spec 016, US4 e US5; SC-006): boas-vindas, cardápio com o carrinho, "Ainda está
@@ -16,19 +17,6 @@ async function checkLayout(page: Page, where: Locator) {
   await expectNoClippedText(where);
   await expectTapTargets(where);
   expect(await seriousViolations(page)).toEqual([]);
-}
-
-/**
- * Sai das boas-vindas pelo botão. Qualquer toque já leva ao cardápio (o toque é ouvido na janela),
- * então o botão pode sumir no meio do clique: o teste espera as boas-vindas saírem, não o clique.
- */
-async function openMenu(page: Page) {
-  const welcome = page.getByRole("region", { name: "Boas-vindas" });
-  await expect(async () => {
-    const button = welcome.getByRole("button", { name: "Ver o cardápio" });
-    if (await button.isVisible()) await button.click({ timeout: 2_000 }).catch(() => undefined);
-    await expect(welcome).toHaveCount(0, { timeout: 2_000 });
-  }).toPass({ timeout: 20_000 });
 }
 
 for (const size of TABLET_SCREENS) {
@@ -49,7 +37,7 @@ for (const size of TABLET_SCREENS) {
       test("cardápio do tablet: sem prazo, carrinho à vista e Pedidos enviados", async ({
         asTablet: page,
       }) => {
-        await openMenu(page);
+        await openTabletMenu(page);
         const main = page.locator("main");
         await expect(main.getByRole("heading", { level: 1, name: "Mesa 12" })).toBeVisible();
         await expect(main.getByText(/Faltam \d+ min/)).toHaveCount(0);
@@ -61,7 +49,7 @@ for (const size of TABLET_SCREENS) {
       });
 
       test("Ainda está aí? depois de 3 minutos parado com algo no carrinho", async ({ asTablet: page }) => {
-        await openMenu(page);
+        await openTabletMenu(page);
         await page.locator("main").getByRole("button", { name: "Pôr Água no carrinho" }).click();
         await page.clock.fastForward("03:01");
         const dialog = page.getByRole("alertdialog", { name: "Ainda está aí?" });
@@ -71,7 +59,7 @@ for (const size of TABLET_SCREENS) {
       });
 
       test("Sem conexão com o restaurante, por cima do cardápio", async ({ asTablet: page }) => {
-        await openMenu(page);
+        await openTabletMenu(page);
         await page.context().setOffline(true);
         await page.evaluate(() => window.dispatchEvent(new Event("offline")));
         const alert = page.getByRole("alert").filter({ hasText: "Sem conexão com o restaurante" });
