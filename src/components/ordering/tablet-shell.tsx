@@ -39,6 +39,9 @@ const STATE_MESSAGE: Partial<Record<TabletStatusView["state"] | "UNKNOWN", strin
 
 const noSubscribe = () => () => {};
 
+/** Telas que cobrem o cardápio inteiro: saem com o clique, não com o pointerdown. */
+const COVERING: ReadonlySet<TabletScreen["screen"]> = new Set(["WELCOME", "STILL_THERE"]);
+
 type WakeLockSentinelLike = { release(): Promise<void> | void };
 const release = (lock: WakeLockSentinelLike) => {
   try {
@@ -103,11 +106,18 @@ export function TabletShell({
       dispatch({ kind: "tick", at, cartEmpty: cartItems.current === 0 });
     }, 1000);
     const touch = () => dispatch({ kind: "touch", at: Date.now() });
-    window.addEventListener("pointerdown", touch, { capture: true });
+    // Nas telas que cobrem o cardápio, encostar o dedo não troca de tela: só o clique troca. Se a
+    // tela saísse no pointerdown, o clique do mesmo toque cairia no prato que estava por baixo.
+    const press = () => {
+      if (!COVERING.has(current.current.screen)) touch();
+    };
+    window.addEventListener("pointerdown", press, { capture: true });
+    window.addEventListener("click", touch, { capture: true });
     window.addEventListener("keydown", touch, { capture: true });
     return () => {
       clearInterval(timer);
-      window.removeEventListener("pointerdown", touch, { capture: true });
+      window.removeEventListener("pointerdown", press, { capture: true });
+      window.removeEventListener("click", touch, { capture: true });
       window.removeEventListener("keydown", touch, { capture: true });
     };
   }, [dispatch]);
