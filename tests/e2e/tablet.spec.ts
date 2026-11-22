@@ -1,5 +1,6 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { login, seedMenu } from "../support/seed";
+import { openTabletMenu } from "../support/tablet";
 
 /**
  * Roteiro do quickstart da spec 016: o gerente cria o link do tablet da Mesa 12, o tablet liga, pede
@@ -39,7 +40,7 @@ test("tablet da mesa: ligar, pedir sem prazo, voltar ao começo, liberar e troca
   await expect(tab).toHaveURL(/\/cardapio$/);
   const welcome = tab.getByRole("region", { name: "Boas-vindas" });
   await expect(welcome.getByRole("heading", { name: "Mesa 12" })).toBeVisible();
-  await welcome.getByRole("button", { name: "Ver o cardápio" }).click();
+  await openTabletMenu(tab);
   await expect(tab.getByRole("heading", { level: 1, name: "Mesa 12" })).toBeVisible();
   expect(Date.now() - started).toBeLessThan(60_000);
   await expect(tab.getByText(/Faltam \d+ min/)).toHaveCount(0);
@@ -78,12 +79,12 @@ test("tablet da mesa: ligar, pedir sem prazo, voltar ao começo, liberar e troca
   await expect(tab.getByRole("alertdialog", { name: "Ainda está aí?" })).toBeVisible();
   await tab.clock.fastForward(31_000);
   await expect(welcome).toBeVisible();
-  await welcome.getByRole("button", { name: "Ver o cardápio" }).click();
+  await openTabletMenu(tab);
   await expect(main.getByTestId("cart-total")).toHaveText("R$ 0,00");
 
   // SC-004: 12 horas depois (em passos de 10 min, com a checagem rodando), o pedido ainda entra.
   for (let i = 0; i < 72; i++) await tab.clock.fastForward("10:00");
-  await welcome.getByRole("button", { name: "Ver o cardápio" }).click();
+  await openTabletMenu(tab);
   await main.getByRole("button", { name: "Pôr Água no carrinho" }).click();
   await main.getByRole("button", { name: "Enviar pedido" }).click();
   await tab
