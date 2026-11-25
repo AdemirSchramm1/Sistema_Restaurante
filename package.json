@@ -23,7 +23,8 @@
     "db:up": "docker compose up -d --wait db",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.mts",
-    "db:dev-login": "tsx scripts/db-dev-login.mts"
+    "db:dev-login": "tsx scripts/db-dev-login.mts",
+    "db:seed": "tsx scripts/db-seed.mts"
   },
   "dependencies": {
     "@vercel/blob": "^2.9.0",

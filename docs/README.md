@@ -44,6 +44,7 @@ E se liga ao fluxo **Spec Kit**:
 - [03 — Padrões do front (cores, fontes, componentes)](sistema/03-padroes-do-front.md)
 - [04 — Desempenho (regras e como medir)](sistema/04-desempenho.md)
 - [06 — CI/CD e pull requests (um PR por feature, CI em jobs paralelos)](sistema/06-ci-cd.md)
+- [07 — Dados de exemplo (`pnpm db:seed`)](sistema/07-dados-de-exemplo.md)
 - [Glossário PT → código](sistema/glossario.md)
 - [ADRs (decisões de arquitetura)](sistema/adr/)
 - Módulo de Estoque

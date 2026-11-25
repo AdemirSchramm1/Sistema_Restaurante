@@ -68,6 +68,18 @@ pnpm db:dev-login
 pnpm dev
 ```
 
+### Dados de exemplo
+
+Para ver o sistema cheio, como um restaurante em uso há algumas semanas:
+
+```bash
+pnpm db:seed                    # cria o Restaurante Sabor da Serra (login dono@sabordaserra.com.br, senha sabor12345)
+pnpm db:seed teste@teste.com    # ou povoa o restaurante de uma conta que você criou pela tela
+```
+
+Equipe, fornecedores, estoque, fichas técnicas, cardápio com fotos, mesas e 28 dias de pedidos,
+compras e caixa. Detalhes em [dados de exemplo](docs/sistema/07-dados-de-exemplo.md).
+
 Testes: `pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:e2e`.
 O passo a passo completo, com o roteiro manual, está no
 [quickstart da feature 001](specs/001-cadastros-base/quickstart.md). Regras para contribuir:

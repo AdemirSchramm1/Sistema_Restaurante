@@ -74,23 +74,25 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
     expect(roles.rows).toContainEqual({ email: DEMO_OWNER.email, role: "MANAGER" });
 
     // Estoque: itens com aviso de reposição, fornecedores com preço de cada item, saldo nunca negativo.
-    expect(await count("select count(*) n from items where restaurant_id = $1 and reorder_point is not null", [rid])).toBe(
-      String(DEMO_ITEMS.length),
-    );
+    expect(
+      await count("select count(*) n from items where restaurant_id = $1 and reorder_point is not null", [
+        rid,
+      ]),
+    ).toBe(String(DEMO_ITEMS.length));
     expect(await count("select count(*) n from suppliers where restaurant_id = $1", [rid])).toBe(
       String(DEMO_SUPPLIERS.length),
     );
     expect(await count("select count(*) n from supplier_items where restaurant_id = $1", [rid])).toBe(
       String(DEMO_ITEMS.length),
     );
-    expect(await count("select count(*) n from stock_balances where restaurant_id = $1 and quantity < 0", [rid])).toBe(
-      "0",
-    );
+    expect(
+      await count("select count(*) n from stock_balances where restaurant_id = $1 and quantity < 0", [rid]),
+    ).toBe("0");
     const movementTypes = await db().query<{ type: string }>(
-      "select distinct type from stock_movements where restaurant_id = $1 order by type",
+      "select distinct type::text as type from stock_movements where restaurant_id = $1 order by 1",
       [rid],
     );
-    expect(movementTypes.rows.map((m) => m.type)).toEqual(expect.arrayContaining(["LOSS", "PURCHASE", "SALE"]));
+    expect(movementTypes.rows.map((m) => m.type)).toEqual(["ADJUSTMENT", "LOSS", "PURCHASE", "SALE_RECIPE"]);
 
     // Cardápio: todo produto com preço, seção, descrição e foto; logo e capa.
     const dishes = await db().query<{ n: string; priced: string; placed: string; photos: string }>(
@@ -101,11 +103,14 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
     const all = String(DEMO_DISHES.length);
     expect(dishes.rows[0]).toEqual({ n: all, priced: all, placed: all, photos: all });
     expect(
-      await count("select count(*) n from restaurants where id = $1 and logo_base is not null and cover_base is not null", [rid]),
+      await count(
+        "select count(*) n from restaurants where id = $1 and logo_base is not null and cover_base is not null",
+        [rid],
+      ),
     ).toBe("1");
-    expect(await count("select count(*) n from dining_tables where restaurant_id = $1 and active", [rid])).toBe(
-      String(DEMO_TABLES),
-    );
+    expect(
+      await count("select count(*) n from dining_tables where restaurant_id = $1 and active", [rid]),
+    ).toBe(String(DEMO_TABLES));
 
     // Movimento: domingo e terça com caixa fechado; segunda fechado; hoje com caixa aberto.
     const sessions = await db().query<{ business_day: string; closed: boolean }>(
@@ -118,7 +123,13 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
       { business_day: "2026-11-24", closed: true },
       { business_day: "2026-11-25", closed: false },
     ]);
-    expect(Number(await count("select count(*) n from table_tabs where restaurant_id = $1 and status = 'CLOSED'", [rid]))).toBeGreaterThan(30);
+    expect(
+      Number(
+        await count("select count(*) n from table_tabs where restaurant_id = $1 and status = 'CLOSED'", [
+          rid,
+        ]),
+      ),
+    ).toBeGreaterThan(30);
     expect(
       await count(
         `select count(*) n from orders where restaurant_id = $1 and status not in ('DELIVERED', 'CANCELLED')
@@ -127,13 +138,22 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
       ),
     ).toBe("0");
     // Agora: mesas ocupadas, com pedido ainda na cozinha.
-    expect(Number(await count("select count(*) n from table_tabs where restaurant_id = $1 and status = 'OPEN'", [rid]))).toBeGreaterThanOrEqual(2);
     expect(
-      Number(await count("select count(*) n from orders where restaurant_id = $1 and status in ('RECEIVED', 'PREPARING', 'READY')", [rid])),
+      Number(
+        await count("select count(*) n from table_tabs where restaurant_id = $1 and status = 'OPEN'", [rid]),
+      ),
     ).toBeGreaterThanOrEqual(2);
-    expect(await count("select count(*) n from orders where restaurant_id = $1 and submitted_at > $2", [rid, NOW])).toBe(
-      "0",
-    );
+    expect(
+      Number(
+        await count(
+          "select count(*) n from orders where restaurant_id = $1 and status in ('RECEIVED', 'PREPARING', 'READY')",
+          [rid],
+        ),
+      ),
+    ).toBeGreaterThanOrEqual(2);
+    expect(
+      await count("select count(*) n from orders where restaurant_id = $1 and submitted_at > $2", [rid, NOW]),
+    ).toBe("0");
   });
 
   it("rodar de novo não duplica nada", async () => {
@@ -151,7 +171,12 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
     const env = testEnv();
     const signed = await signUpRestaurant(
       env.deps,
-      { restaurantName: "Meu Restaurante", userName: "Teste", email: "teste@teste.com", password: "12345678" },
+      {
+        restaurantName: "Meu Restaurante",
+        userName: "Teste",
+        email: "teste@teste.com",
+        password: "12345678",
+      },
       { channel: "test" },
     );
     expect(signed.ok).toBe(true);
@@ -168,7 +193,9 @@ describe("povoamento com restaurante de exemplo (spec 017)", () => {
     if (r.status !== "CREATED") return;
     expect(r.staff.map((s) => s.email)).toContain("garcom@teste.com");
     expect(await count("select count(*) n from restaurants")).toBe("1");
-    expect(await count("select count(*) n from recipes where kind = 'DISH'")).toBe(String(DEMO_DISHES.length));
+    expect(await count("select count(*) n from recipes where kind = 'DISH'")).toBe(
+      String(DEMO_DISHES.length),
+    );
   });
 
   it("conta que não existe, ou restaurante já em uso, não recebe nada", async () => {

@@ -9,7 +9,7 @@ import type { UnitCode } from "@/domain/inventory/units";
  */
 
 export const DEMO_RESTAURANT_NAME = "Restaurante Sabor da Serra";
-export const DEMO_OWNER = { name: "Ademir Souza", email: "dono@sabordaserra.com.br" };
+export const DEMO_OWNER = { name: "Paulo Mendes", email: "dono@sabordaserra.com.br" };
 /** Senha de todos os logins criados pelo povoamento (só desenvolvimento). */
 export const DEMO_PASSWORD = "sabor12345";
 
@@ -180,24 +180,42 @@ export const DEMO_ITEMS: DemoItem[] = [
   item("contrafile", "Contrafilé", I, ["02", "01"], "kg", null, "49.90", "meat", ["8", "25"]),
   item("moida", "Carne moída de patinho", I, ["02", "01"], "kg", null, "39.90", "meat", ["6", "20"]),
   item("costela", "Costelinha suína", I, ["02", "02"], "kg", null, "27.90", "meat", ["5", "15"]),
-  item("frango", "Filé de peito de frango", I, ["02", "03"], "kg", ["Caixa", "5"], "19.90", "meat", ["8", "30"]),
+  item("frango", "Filé de peito de frango", I, ["02", "03"], "kg", ["Caixa", "5"], "19.90", "meat", [
+    "8",
+    "30",
+  ]),
   item("bacon", "Bacon em cubos", I, ["02", "04"], "kg", ["Pacote", "1"], "34.90", "meat", ["3", "10"]),
   item("linguica", "Linguiça toscana", I, ["02", "04"], "kg", ["Pacote", "5"], "22.90", "meat", ["4", "15"]),
   // Pescados
   item("tilapia", "Filé de tilápia", I, ["03", "01"], "kg", ["Caixa", "5"], "42.90", "fish", ["5", "20"]),
   // Laticínios, frios e ovos
   item("mussarela", "Queijo mussarela", I, ["04", "01"], "kg", ["Peça", "4"], "38.90", "dairy", ["4", "16"]),
-  item("parmesao", "Queijo parmesão ralado", I, ["04", "01"], "kg", ["Pacote", "1"], "89.90", "dairy", ["1", "4"]),
+  item("parmesao", "Queijo parmesão ralado", I, ["04", "01"], "kg", ["Pacote", "1"], "89.90", "dairy", [
+    "1",
+    "4",
+  ]),
   item("manteiga", "Manteiga sem sal", I, ["04", "02"], "kg", ["Pote", "0.5"], "52.00", "dairy", ["1", "4"]),
   item("leite", "Leite integral", I, ["04", "02"], "l", ["Caixa", "12"], "5.20", "dairy", ["6", "24"]),
   item("ovos", "Ovos brancos", I, ["04", "04"], "un", ["Bandeja", "30"], "0.75", "dairy", ["60", "240"]),
   // Congelados
-  item("fritas", "Batata pré-frita congelada", I, ["05", "02"], "kg", ["Pacote", "2.5"], "19.90", "dry", ["15", "50"]),
-  item("polpaMaracuja", "Polpa de maracujá", I, ["05", "03"], "kg", ["Pacote", "1"], "21.90", "dry", ["2", "8"]),
-  item("polpaMorango", "Polpa de morango", I, ["05", "03"], "kg", ["Pacote", "1"], "23.90", "dry", ["1", "5"]),
+  item("fritas", "Batata pré-frita congelada", I, ["05", "02"], "kg", ["Pacote", "2.5"], "19.90", "dry", [
+    "15",
+    "50",
+  ]),
+  item("polpaMaracuja", "Polpa de maracujá", I, ["05", "03"], "kg", ["Pacote", "1"], "21.90", "dry", [
+    "2",
+    "8",
+  ]),
+  item("polpaMorango", "Polpa de morango", I, ["05", "03"], "kg", ["Pacote", "1"], "23.90", "dry", [
+    "1",
+    "5",
+  ]),
   item("sorvete", "Sorvete de creme", I, ["05", "04"], "l", ["Pote", "5"], "13.90", "dairy", ["5", "20"]),
   // Secos e mercearia
-  item("arroz", "Arroz agulhinha tipo 1", I, ["06", "01"], "kg", ["Fardo", "30"], "6.20", "dry", ["15", "60"]),
+  item("arroz", "Arroz agulhinha tipo 1", I, ["06", "01"], "kg", ["Fardo", "30"], "6.20", "dry", [
+    "15",
+    "60",
+  ]),
   item("feijao", "Feijão carioca", I, ["06", "01"], "kg", ["Fardo", "10"], "8.90", "dry", ["8", "30"]),
   item("trigo", "Farinha de trigo", I, ["06", "02"], "kg", ["Pacote", "5"], "5.40", "dry", ["4", "15"]),
   item("mandioca", "Farinha de mandioca", I, ["06", "02"], "kg", ["Pacote", "1"], "9.90", "dry", ["2", "8"]),
@@ -210,22 +228,53 @@ export const DEMO_ITEMS: DemoItem[] = [
   item("azeite", "Azeite extravirgem", I, ["06", "06"], "l", ["Lata", "3"], "54.90", "dry", ["1", "6"]),
   item("sal", "Sal refinado", I, ["06", "07"], "kg", ["Fardo", "10"], "2.40", "dry", ["2", "10"]),
   // Padaria
-  item("pao", "Pão de hambúrguer brioche", I, ["07", "01"], "un", ["Pacote", "12"], "1.60", "dry", ["24", "96"]),
+  item("pao", "Pão de hambúrguer brioche", I, ["07", "01"], "un", ["Pacote", "12"], "1.60", "dry", [
+    "24",
+    "96",
+  ]),
   // Bebidas
-  item("coca", "Refrigerante cola lata 350 ml", R, ["08", "01"], "un", ["Fardo", "12"], "3.20", "drinks", ["36", "144"]),
-  item("guarana", "Guaraná lata 350 ml", R, ["08", "01"], "un", ["Fardo", "12"], "2.90", "drinks", ["24", "96"]),
+  item("coca", "Refrigerante cola lata 350 ml", R, ["08", "01"], "un", ["Fardo", "12"], "3.20", "drinks", [
+    "36",
+    "144",
+  ]),
+  item("guarana", "Guaraná lata 350 ml", R, ["08", "01"], "un", ["Fardo", "12"], "2.90", "drinks", [
+    "24",
+    "96",
+  ]),
   item("agua", "Água mineral 500 ml", R, ["08", "01"], "un", ["Fardo", "12"], "1.20", "drinks", ["24", "96"]),
-  item("aguaGas", "Água com gás 500 ml", R, ["08", "01"], "un", ["Fardo", "12"], "1.50", "drinks", ["12", "48"]),
-  item("longneck", "Cerveja pilsen long neck 355 ml", R, ["08", "02"], "un", ["Caixa", "24"], "5.20", "drinks", ["48", "192"]),
+  item("aguaGas", "Água com gás 500 ml", R, ["08", "01"], "un", ["Fardo", "12"], "1.50", "drinks", [
+    "12",
+    "48",
+  ]),
+  item(
+    "longneck",
+    "Cerveja pilsen long neck 355 ml",
+    R,
+    ["08", "02"],
+    "un",
+    ["Caixa", "24"],
+    "5.20",
+    "drinks",
+    ["48", "192"],
+  ),
   item("chope", "Chope pilsen", I, ["08", "03"], "l", ["Barril", "30"], "13.50", "drinks", ["30", "90"]),
-  item("vinho", "Vinho tinto seco 750 ml", R, ["08", "04"], "un", ["Caixa", "6"], "38.00", "drinks", ["6", "24"]),
+  item("vinho", "Vinho tinto seco 750 ml", R, ["08", "04"], "un", ["Caixa", "6"], "38.00", "drinks", [
+    "6",
+    "24",
+  ]),
   item("cachaca", "Cachaça artesanal", I, ["08", "05"], "l", ["Garrafa", "1"], "45.00", "drinks", ["2", "6"]),
   item("gelo", "Gelo em cubos", I, ["08", "06"], "kg", ["Saco", "10"], "1.50", "drinks", ["20", "80"]),
   // Descartáveis e limpeza (não entram no CMV)
   item("luva", "Luva descartável", C, ["11", "02"], "un", ["Caixa", "100"], "0.18", "clean", ["100", "500"]),
-  item("aluminio", "Papel-alumínio 45 cm", C, ["11", "01"], "un", ["Rolo", "1"], "24.90", "clean", ["2", "6"]),
+  item("aluminio", "Papel-alumínio 45 cm", C, ["11", "01"], "un", ["Rolo", "1"], "24.90", "clean", [
+    "2",
+    "6",
+  ]),
   item("detergente", "Detergente neutro", C, ["12", "02"], "l", ["Galão", "5"], "4.50", "clean", ["5", "20"]),
-  item("sanitizante", "Sanitizante clorado", C, ["12", "01"], "l", ["Galão", "5"], "9.20", "clean", ["5", "15"]),
+  item("sanitizante", "Sanitizante clorado", C, ["12", "01"], "l", ["Galão", "5"], "9.20", "clean", [
+    "5",
+    "15",
+  ]),
 ];
 
 /** Linha de ficha técnica: item (`chave`) ou preparo (`@chave`), quantidade e medida. */
@@ -317,7 +366,7 @@ export type DemoArt =
   | { kind: "plate"; foods: string[] }
   | { kind: "bowl"; foods: string[] }
   | { kind: "burger" }
-  | { kind: "glass"; liquid: string; garnish?: string }
+  | { kind: "glass"; liquid: string; garnish?: string; foam?: boolean }
   | { kind: "can"; color: string }
   | { kind: "bottle"; color: string };
 
@@ -365,7 +414,7 @@ export const DEMO_DISHES: DemoDish[] = [
     ],
     art: { kind: "plate", foods: [BEEF, RICE, BEANS, FRIES, GREEN] },
     lunch: 2.6,
-    dinner: 0.4,
+    dinner: 0,
     role: "main",
   },
   {
@@ -386,7 +435,7 @@ export const DEMO_DISHES: DemoDish[] = [
     ],
     art: { kind: "plate", foods: [CHICKEN, RICE, BEANS, FRIES, GREEN] },
     lunch: 2.2,
-    dinner: 0.3,
+    dinner: 0,
     role: "main",
   },
   {
@@ -407,7 +456,7 @@ export const DEMO_DISHES: DemoDish[] = [
     ],
     art: { kind: "plate", foods: [FISH, RICE, BEANS, GREEN, "#f2e24a"] },
     lunch: 1.1,
-    dinner: 0.2,
+    dinner: 0,
     role: "main",
   },
   {
@@ -760,7 +809,7 @@ export const DEMO_DISHES: DemoDish[] = [
     price: "11.90",
     description: "Chope pilsen tirado na hora.",
     lines: [["chope", "300", "ml"]],
-    art: { kind: "glass", liquid: "#f0b429", garnish: "#fffaf0" },
+    art: { kind: "glass", liquid: "#f0b429", foam: true },
     lunch: 0.3,
     dinner: 2.6,
     role: "drink",
@@ -797,12 +846,18 @@ export const DEMO_DISHES: DemoDish[] = [
 ];
 
 /** Adicionais e retiradas dos lanches (spec 010). */
-export const DEMO_ADDONS: { key: string; name: string; component: string; quantity: string; unit: UnitCode; price: string }[] =
-  [
-    { key: "bacon", name: "Bacon extra", component: "bacon", quantity: "40", unit: "g", price: "6.00" },
-    { key: "queijo", name: "Queijo extra", component: "mussarela", quantity: "40", unit: "g", price: "5.00" },
-    { key: "ovo", name: "Ovo", component: "ovos", quantity: "1", unit: "un", price: "3.00" },
-  ];
+export const DEMO_ADDONS: {
+  key: string;
+  name: string;
+  component: string;
+  quantity: string;
+  unit: UnitCode;
+  price: string;
+}[] = [
+  { key: "bacon", name: "Bacon extra", component: "bacon", quantity: "40", unit: "g", price: "6.00" },
+  { key: "queijo", name: "Queijo extra", component: "mussarela", quantity: "40", unit: "g", price: "5.00" },
+  { key: "ovo", name: "Ovo", component: "ovos", quantity: "1", unit: "un", price: "3.00" },
+];
 
 export const DEMO_CUSTOMIZATION: { dish: string; addons: string[]; removables: string[] }[] = [
   { dish: "xburger", addons: ["bacon", "queijo", "ovo"], removables: ["alface", "tomate"] },
