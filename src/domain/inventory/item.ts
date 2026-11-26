@@ -89,7 +89,7 @@ export function describePurchase(
   data: Pick<ItemData, "purchaseUnitLabel" | "purchaseFactor" | "stockUnit">,
 ): string | null {
   if (blank(data.purchaseUnitLabel) || !data.purchaseFactor || data.purchaseFactor.lte(0)) return null;
-  return `1 ${data.purchaseUnitLabel!.trim()} = ${formatBrDecimal(data.purchaseFactor, { maxPlaces: 4 })} ${data.stockUnit}`;
+  return `1 ${data.purchaseUnitLabel!.trim()} = ${formatBrDecimal(data.purchaseFactor)} ${data.stockUnit}`;
 }
 
 /** A medida não muda depois da 1ª movimentação. */
