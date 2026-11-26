@@ -19,7 +19,8 @@ export function parseMovementDate(value: string, now: Date): Date | null {
   if (!t || t === movementToday(now)) return now;
   if (!DATE.test(t)) return null;
   const at = new Date(`${t}T12:00:00${OFFSET}`);
-  return Number.isNaN(at.getTime()) ? null : at;
+  // "2026-02-30" vira 2 de março no Date: só vale o dia que volta igual.
+  return !Number.isNaN(at.getTime()) && movementToday(at) === t ? at : null;
 }
 
 function decimal(v: unknown, field: string, code: ErrorCode = "INVALID_NUMBER"): Result<Decimal> {

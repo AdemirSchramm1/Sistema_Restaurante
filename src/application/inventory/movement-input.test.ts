@@ -195,6 +195,8 @@ describe("formulário de lançamento: campos vazios e inválidos (spec 018, US2 
 
   it("dia que não existe no calendário é recusado", () => {
     expect(parseMovementDate("2026-02-30", NOW)).toBeNull();
+    expect(parseMovementDate("2026-13-01", NOW)).toBeNull();
+    expect(parseMovementDate("2026-02-28", NOW)?.toISOString()).toBe("2026-02-28T15:00:00.000Z");
     expect(fail(purchase({ occurredAt: "2026-02-30" }))).toBe("VALIDATION@occurredAt");
   });
 
