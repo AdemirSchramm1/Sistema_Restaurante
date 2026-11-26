@@ -80,6 +80,16 @@ describe("pagamento da conta (spec 011, US2 e FR-003)", () => {
     if (!r.ok) expect(r.error.field).toBe("received");
   });
 
+  it("cada recusa diz o campo da tela onde aparece o aviso (spec 018, R4)", () => {
+    const fail = (r: ReturnType<typeof checkPayment>) => (r.ok ? "OK" : `${r.error.code} ${r.error.field}`);
+    expect(fail(checkPayment(pay("CHEQUE" as PaymentMethod, "10.00"), d("77.00")))).toBe("VALIDATION method");
+    expect(fail(checkPayment(pay("PIX", "0.00"), d("77.00")))).toBe("INVALID_AMOUNT amount");
+    expect(fail(checkPayment(pay("PIX", "10.00", "20.00"), d("77.00")))).toBe("VALIDATION received");
+    expect(fail(checkPayment(pay("PIX", "80.00"), d("77.00")))).toBe("PAYMENT_EXCEEDS_REMAINING amount");
+    expect(fail(checkPayment(pay("CASH", "10.00", "0.00"), d("77.00")))).toBe("INVALID_AMOUNT received");
+    expect(fail(checkPayment(pay("CASH", "10.00", "5.00"), d("77.00")))).toBe("RECEIVED_TOO_LOW received");
+  });
+
   it("forma fora da lista é recusada", () => {
     expect(code(checkPayment(pay("CHEQUE" as PaymentMethod, "10.00"), d("77.00")))).toBe("VALIDATION");
   });

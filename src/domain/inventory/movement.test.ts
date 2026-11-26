@@ -403,3 +403,119 @@ describe("pedido cancelado depois do preparo (spec 011, US5 e FR-008)", () => {
     expect(code(r)).toBe("INSUFFICIENT_STOCK");
   });
 });
+
+describe("limites e recusas de cada lançamento (spec 018, US2 e R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code} ${r.error!.field ?? "-"}`;
+  const buy = { quantity: d(1), unit: "kg" as const, totalPaid: d(1), occurredAt: NOW };
+  const lose = { quantity: d(1), unit: "kg" as const, reason: loss, occurredAt: NOW };
+  const tomorrow = new Date("2026-11-03T12:00:00Z");
+
+  it("nomes dos tipos na tela", () => {
+    expect(MOVEMENT_TYPE_LABELS).toEqual({
+      PURCHASE: "Entrada (compra)",
+      LOSS: "Perda",
+      ADJUSTMENT: "Acerto",
+      REVERSAL: "Estorno",
+      SALE_RECIPE: "Venda",
+    });
+  });
+
+  it("quantidade aceita até 4 casas, a precisão do livro; 5 casas é recusada", () => {
+    expect(fail(planPurchase(tomato(), { ...buy, quantity: d("0.0001") }, NOW))).toBe("OK");
+    expect(fail(planPurchase(tomato(), { ...buy, quantity: d("0.00001") }, NOW))).toBe(
+      "INVALID_QUANTITY quantity",
+    );
+    expect(fail(planLoss(tomato(), { ...lose, quantity: d("1.0001") }, NOW))).toBe("OK");
+    expect(fail(planLoss(tomato(), { ...lose, quantity: d("1.00001") }, NOW))).toBe(
+      "INVALID_QUANTITY quantity",
+    );
+  });
+
+  it("compra: valor com até 2 casas; cada recusa aponta o campo", () => {
+    expect(fail(planPurchase(tomato(), { ...buy, totalPaid: d("10.25") }, NOW))).toBe("OK");
+    expect(fail(planPurchase(tomato(), { ...buy, totalPaid: d("10.255") }, NOW))).toBe(
+      "INVALID_AMOUNT totalPaid",
+    );
+    expect(fail(planPurchase(tomato({ active: false }), buy, NOW))).toBe("ITEM_INACTIVE itemId");
+    expect(fail(planPurchase(tomato(), { ...buy, occurredAt: tomorrow }, NOW))).toBe(
+      "FUTURE_DATE occurredAt",
+    );
+    expect(fail(planPurchase(tomato(), { ...buy, unit: "un" }, NOW))).toBe("UNIT_DIMENSION_MISMATCH unit");
+    expect(fail(planPurchase(tomato({ purchaseFactor: null }), { ...buy, unit: "PACKAGE" }, NOW))).toBe(
+      "UNKNOWN_UNIT unit",
+    );
+    expect(fail(planPurchase(tomato(), { ...buy, unit: "cx" as "kg" }, NOW))).toBe("UNKNOWN_UNIT unit");
+    expect(fail(planPurchase(tomato({ purchaseFactor: d(0) }), { ...buy, unit: "PACKAGE" }, NOW))).toBe(
+      "INVALID_FACTOR unit",
+    );
+    const supplierBox = { packageLabel: "Caixa do fornecedor", packageQuantity: d(0) };
+    expect(fail(planPurchase(tomato(), { ...buy, unit: supplierBox }, NOW))).toBe("INVALID_FACTOR unit");
+  });
+
+  it("compra na medida digitada guarda a medida digitada, não o nome da embalagem", () => {
+    const r = planPurchase(tomato(), { ...buy, quantity: d(500), unit: "g" }, NOW);
+    expect(r.ok && r.value.enteredUnit).toBe("g");
+  });
+
+  it("perda: item inativo, quantidade, data e medida recusados com o campo", () => {
+    expect(fail(planLoss(tomato({ active: false }), lose, NOW))).toBe("ITEM_INACTIVE itemId");
+    expect(fail(planLoss(tomato(), { ...lose, quantity: d(0) }, NOW))).toBe("INVALID_QUANTITY quantity");
+    expect(fail(planLoss(tomato(), { ...lose, occurredAt: tomorrow }, NOW))).toBe("FUTURE_DATE occurredAt");
+    expect(fail(planLoss(tomato(), { ...lose, unit: "un" }, NOW))).toBe("UNIT_DIMENSION_MISMATCH unit");
+    expect(fail(planLoss(tomato(), { ...lose, quantity: d(11) }, NOW))).toBe("INSUFFICIENT_STOCK quantity");
+  });
+
+  it("pedido de acerto: item inativo, até 4 casas, medida certa", () => {
+    const ask = { countedQuantity: d(8), unit: "kg" as const, reason: adjust };
+    expect(fail(planAdjustmentRequest(tomato({ active: false }), ask))).toBe("ITEM_INACTIVE itemId");
+    expect(fail(planAdjustmentRequest(tomato(), { ...ask, countedQuantity: d("8.0001") }))).toBe("OK");
+    expect(fail(planAdjustmentRequest(tomato(), { ...ask, countedQuantity: d("8.00001") }))).toBe(
+      "INVALID_QUANTITY countedQuantity",
+    );
+    expect(fail(planAdjustmentRequest(tomato(), { ...ask, unit: "un" }))).toBe(
+      "UNIT_DIMENSION_MISMATCH unit",
+    );
+    expect(fail(planAdjustmentRequest(tomato(), { ...ask, countedQuantity: d(10) }))).toBe(
+      "NO_CHANGE countedQuantity",
+    );
+  });
+
+  it("acerto para mais é aprovado mesmo com o saldo negativo pelas vendas", () => {
+    const r = planAdjustmentApproval(tomato({ balance: d(-5) }), d(3));
+    expect(r.ok && [r.value.quantity.toString(), r.value.totalCost.toString()]).toEqual(["3", "9"]);
+  });
+
+  it("estorno que deixaria saldo negativo diz o campo quantidade", () => {
+    const purchase = {
+      type: "PURCHASE" as const,
+      quantity: d(20),
+      unitCost: d(3),
+      totalCost: d(60),
+      reversed: false,
+    };
+    expect(fail(planReversal(purchase, tomato(), reversal))).toBe("INSUFFICIENT_STOCK quantity");
+  });
+
+  it("venda: quantidade que arredonda para zero aponta o campo", () => {
+    expect(fail(planSale(tomato(), d("0.00001")))).toBe("INVALID_QUANTITY quantity");
+  });
+
+  it("cancelamento sem usar os ingredientes não precisa do motivo de perda", () => {
+    const sale = {
+      type: "SALE_RECIPE" as const,
+      quantity: d("-1"),
+      unitCost: d(3),
+      totalCost: d(-3),
+      reversed: false,
+    };
+    const r = planCancelledSale(sale, tomato(), false, {
+      reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
+      loss: undefined,
+    });
+    expect(fail(r)).toBe("OK");
+    expect(
+      fail(planCancelledSale({ ...sale, type: "LOSS" }, tomato(), false, { reversal, loss: undefined })),
+    ).toBe("VALIDATION movementId");
+  });
+});

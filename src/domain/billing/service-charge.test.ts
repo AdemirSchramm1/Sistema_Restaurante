@@ -30,5 +30,8 @@ describe("taxa de serviço (spec 011, FR-002 e FR-014)", () => {
     expect(code(checkServiceRate(null))).toBe("OK");
     for (const bad of ["20.01", "-1", "10.005", "100"])
       expect(code(checkServiceRate(d(bad))), bad).toBe("INVALID_RATE");
+    const r = checkServiceRate(d("21"));
+    if (!r.ok) expect(r.error.field).toBe("serviceChargeRate");
+    expect(r.ok).toBe(false);
   });
 });
