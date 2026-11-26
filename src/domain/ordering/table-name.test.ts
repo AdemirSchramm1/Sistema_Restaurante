@@ -45,3 +45,17 @@ describe("ordem das mesas", () => {
     expect(["10", "2", "Varanda 1", "1"].sort(compareTableNames)).toEqual(["1", "2", "10", "Varanda 1"]);
   });
 });
+
+describe("limites da faixa e campo do nome (spec 018)", () => {
+  it("o fim passa de 999 é recusado mesmo com menos de 200 mesas; início igual ao fim cria uma", () => {
+    expect(tableRange(900, 1000).ok).toBe(false);
+    const one = tableRange(5, 5);
+    expect(one.ok && one.value).toEqual(["5"]);
+  });
+
+  it("nome de 1 caractere vale; vazio aponta o campo", () => {
+    expect(validateTableName("1").ok).toBe(true);
+    const r = validateTableName(" ");
+    expect(r.ok ? null : r.error.field).toBe("name");
+  });
+});

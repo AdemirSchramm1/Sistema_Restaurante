@@ -71,3 +71,19 @@ describe("consumo da linha do pedido (spec 010, US5, FR-009)", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe("erro no adicional (spec 018)", () => {
+  it("adicional com item desconhecido não baixa nada e diz o item", () => {
+    const r = lineConsumption(
+      {
+        versionLines: XBURGER,
+        removed: [],
+        addons: [{ line: itemLine("nada", "20", "g"), times: 1 }],
+        quantity: 1,
+      },
+      graph,
+      items,
+    );
+    expect(r.ok ? null : r.error).toMatchObject({ code: "NOT_FOUND", details: { itemId: "nada" } });
+  });
+});

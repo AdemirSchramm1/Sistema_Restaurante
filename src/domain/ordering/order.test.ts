@@ -177,3 +177,40 @@ describe("pedido do tablet na tela da equipe (spec 016, FR-008)", () => {
     expect(tableWithSource("Mesa 12", "STAFF")).toBe("Mesa 12");
   });
 });
+
+describe("textos e campos do pedido (spec 018, R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string; details?: unknown } }) =>
+    r.ok ? "OK" : `${r.error!.code} ${r.error!.field ?? "-"} ${JSON.stringify(r.error!.details ?? null)}`;
+
+  it("nomes dos motivos de cancelamento na tela", () => {
+    expect(CANCEL_REASON_LABELS).toEqual({
+      CUSTOMER_GAVE_UP: "Cliente desistiu",
+      OUT_OF_PRODUCT: "Produto acabou",
+      IMPROPER_ORDER: "Pedido indevido",
+      ENTERED_BY_MISTAKE: "Lançado errado",
+      OTHER: "Outro",
+    });
+  });
+
+  it("transição recusada diz de onde e para onde", () => {
+    expect(fail(checkTransition("RECEIVED", "READY"))).toBe(
+      'INVALID_ORDER_TRANSITION - {"from":"RECEIVED","to":"READY"}',
+    );
+  });
+
+  it("cancelamento: cada recusa aponta o campo", () => {
+    expect(fail(checkCancel("RECEIVED", "NADA" as never, null))).toBe("VALIDATION reason null");
+    expect(fail(checkCancel("DELIVERED", "OTHER", "x"))).toBe(
+      'INVALID_ORDER_TRANSITION - {"from":"DELIVERED","to":"CANCELLED"}',
+    );
+    expect(fail(checkCancel("RECEIVED", "OTHER", "x".repeat(140)))).toBe("OK");
+    expect(fail(checkCancel("RECEIVED", "OTHER", "x".repeat(141)))).toBe("NOTE_TOO_LONG note null");
+    expect(fail(checkCancel("RECEIVED", "OTHER", "  "))).toBe("CANCEL_NOTE_REQUIRED note null");
+  });
+
+  it("pedido do QR code ou do tablet nunca é 'o próprio' do garçom, mesmo com o mesmo id", () => {
+    const who = { userId: "joao", canCancel: false, canCancelOwn: true };
+    for (const source of ["QR", "TABLET"] as const)
+      expect(cancelScope({ status: "RECEIVED", source, placedById: "joao" }, who), source).toBe("FORBIDDEN");
+  });
+});

@@ -36,3 +36,10 @@ describe("linhas do pedido (spec 009, casos-limite)", () => {
     expect(orderTotal([{ unitPrice: d("0.1"), quantity: 3 }]).toString()).toBe("0.3");
   });
 });
+
+describe("campo da quantidade (spec 018)", () => {
+  it("quantidade inválida aponta o campo", () => {
+    const r = validateLineQuantity(0);
+    expect(r.ok ? null : r.error.field).toBe("quantity");
+  });
+});

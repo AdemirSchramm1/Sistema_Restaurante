@@ -189,3 +189,100 @@ describe('quadro "Adicionar e tirar" do produto (spec 010, US2, FR-002)', () => 
     );
   });
 });
+
+describe("limites e campos de adicionar e tirar (spec 018, R4)", () => {
+  const inProduct = new Set(["ITEM:cebola", "ITEM:picles"]);
+  const addon = (id: string, maxTimes = 1, active = true) => ({ addonId: id, maxTimes, active });
+  const cebola = { component: { kind: "ITEM" as const, id: "cebola" }, label: null, name: "Cebola" };
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code} ${r.error!.field ?? "-"}`;
+
+  it("pode pedir o adicional até o máximo do prato, e a recusa diz qual adicional", () => {
+    expect(fail(validateChoice(OPTIONS, { addons: [{ addonId: "queijo", times: 3 }], removals: [] }))).toBe(
+      "OK",
+    );
+    expect(fail(validateChoice(OPTIONS, { addons: [{ addonId: "queijo", times: 1 }], removals: [] }))).toBe(
+      "OK",
+    );
+    const r = validateChoice(OPTIONS, { addons: [{ addonId: "queijo", times: 4 }], removals: [] });
+    expect(r.ok ? null : r.error.details).toEqual({ addonId: "queijo" });
+  });
+
+  it("retirada que sumiu diz qual", () => {
+    const r = validateChoice(OPTIONS, { addons: [], removals: [{ kind: "ITEM", id: "alface" }] });
+    expect(r.ok ? null : r.error.details).toEqual({ removals: [{ kind: "ITEM", id: "alface" }] });
+  });
+
+  it('texto da cozinha: só tira o "sem" do começo, com quantos espaços vierem', () => {
+    expect(describeChanges([], [" Sem  cebola ", "Pão sem glúten"])).toEqual([
+      "SEM cebola",
+      "SEM Pão sem glúten",
+    ]);
+    expect(defaultRemovalLabel("  Cebola ")).toBe("Sem cebola");
+  });
+
+  it("até 10 adicionais e até 10 retiradas", () => {
+    const ten = Array.from({ length: 10 }, (_, i) => addon(`a${i}`));
+    expect(fail(validateCustomizationConfig({ addons: ten, removables: [] }, inProduct))).toBe("OK");
+    const tenR = Array.from({ length: 10 }, (_, i) => ({
+      ...cebola,
+      component: { kind: "ITEM" as const, id: `r${i}` },
+    }));
+    expect(
+      fail(
+        validateCustomizationConfig(
+          { addons: [], removables: tenR },
+          new Set(tenR.map((r) => `ITEM:${r.component.id}`)),
+        ),
+      ),
+    ).toBe("OK");
+    const elevenR = Array.from({ length: 11 }, () => cebola);
+    expect(fail(validateCustomizationConfig({ addons: [], removables: elevenR }, inProduct))).toBe(
+      "TOO_MANY_OPTIONS -",
+    );
+  });
+
+  it("cada recusa do quadro aponta a linha", () => {
+    expect(
+      fail(validateCustomizationConfig({ addons: [addon("a"), addon("a")], removables: [] }, inProduct)),
+    ).toBe("DUPLICATE_OPTION addons.1");
+    expect(
+      fail(
+        validateCustomizationConfig(
+          { addons: [addon("a"), addon("b", 1, false)], removables: [] },
+          inProduct,
+        ),
+      ),
+    ).toBe("ADDON_INACTIVE addons.1");
+    expect(
+      fail(validateCustomizationConfig({ addons: [addon("a"), addon("b", 6)], removables: [] }, inProduct)),
+    ).toBe("INVALID_MAX_TIMES addons.1.maxTimes");
+    expect(fail(validateCustomizationConfig({ addons: [addon("a", 5)], removables: [] }, inProduct))).toBe(
+      "OK",
+    );
+    expect(fail(validateCustomizationConfig({ addons: [], removables: [cebola, cebola] }, inProduct))).toBe(
+      "DUPLICATE_OPTION removables.1",
+    );
+    const tomate = { component: { kind: "ITEM" as const, id: "tomate" }, label: null, name: "Tomate" };
+    expect(fail(validateCustomizationConfig({ addons: [], removables: [cebola, tomate] }, inProduct))).toBe(
+      "NOT_IN_PRODUCT removables.1",
+    );
+    const long = { ...cebola, component: { kind: "ITEM" as const, id: "picles" }, label: "S".repeat(41) };
+    expect(fail(validateCustomizationConfig({ addons: [], removables: [cebola, long] }, inProduct))).toBe(
+      "INVALID_LABEL removables.1.label",
+    );
+    expect(
+      fail(
+        validateCustomizationConfig(
+          { addons: [], removables: [{ ...cebola, label: "S".repeat(40) }] },
+          inProduct,
+        ),
+      ),
+    ).toBe("OK");
+  });
+
+  it("grava só o adicional e o máximo", () => {
+    const r = validateCustomizationConfig({ addons: [addon("queijo", 3)], removables: [] }, inProduct);
+    expect(r.ok && r.value.addons).toEqual([{ addonId: "queijo", maxTimes: 3 }]);
+  });
+});
