@@ -104,13 +104,15 @@ de tela do cardápio, para nada cortar, sobrepor ou rolar para o lado.
 passam pelo teste de layout geral.
 
 **Teste independente**: rodar os testes de tela e ver Cozinha, Garçom, Conta da mesa e Lançamentos
-em todos os tamanhos da matriz, claro e escuro, nos dois navegadores, sem erro.
+nos tamanhos dos aparelhos que as usam, claro e escuro, nos dois navegadores, sem erro.
 
 **Cenários**
 
-1. Cozinha, Garçom (prontos para entregar), Conta da mesa (com pagamentos, divisão e taxa) e
-   Lançamentos passam nos 9 tamanhos da matriz, claro e escuro: nada rola para o lado, nenhum texto
-   cortado, todo alvo de toque com pelo menos 44 px, contraste ok, imagem de referência igual.
+1. Cozinha (tablet e computador), Garçom (celulares e tablet), Conta da mesa (celulares, tablet e
+   computador; com pagamentos, divisão e taxa) e Lançamentos (celulares, tablet e computador)
+   passam claro e escuro: nada rola para o lado, nenhum texto cortado, todo alvo de toque com pelo
+   menos 44 px e sem problema sério de acessibilidade. Como no caixa (014), telas que mostram
+   horário não têm imagem de referência.
 2. As telas com menos de 80% dos desvios cobertos (nível do aviso de reposição do item, montar o
    prato, relatório de contas fechadas, preço de venda, formulário do fornecedor, moldura do app,
    rótulos do histórico) passam a ter 100% de linhas, desvios e funções.
@@ -154,8 +156,9 @@ sobreviventes, se era erro do sistema (corrigido, com o teste que o reproduz) ou
   integração, para o código da conta da mesa (US1), do estoque (US2) e do pedido, adicionais,
   mesas e fornecedores (US3), do mesmo jeito que `test:menu`, `test:cash` e `test:staff`.
 - **FR-003** As telas da US4, cenário 2, MUST chegar a 100% de linhas, desvios e funções.
-- **FR-004** Cozinha, Garçom, Conta da mesa e Lançamentos MUST entrar nos testes de tela (9
-  tamanhos, claro e escuro, dois navegadores), com imagens de referência tiradas na imagem oficial.
+- **FR-004** Cozinha, Garçom, Conta da mesa e Lançamentos MUST entrar nos testes de tela, nos
+  tamanhos dos aparelhos que as usam (US4), claro e escuro, nos dois navegadores, com as mesmas
+  checagens de layout das telas do caixa.
 - **FR-005** Nenhum teste existente MUST ser apagado, pulado ou afrouxado; nenhum arquivo MUST sair
   de régua existente. Mudança no que um teste confere só quando o teste estava errado em relação a
   `docs/produto/`, e isso fica escrito no PR.
@@ -184,7 +187,7 @@ Nenhuma entidade nova de negócio. Artefatos novos:
   2026-11-26), com zero mutantes sem teste.
 - **SC-002** Cobertura de 100% (linhas, desvios, funções) na conta da mesa, no estoque e no pedido,
   medida como as réguas atuais.
-- **SC-003** 4 telas novas nos testes de tela, cada uma em 9 tamanhos × claro e escuro × 2
+- **SC-003** 4 telas novas nos testes de tela, cada uma nos tamanhos da US4 × claro e escuro × 2
   navegadores, sem falha.
 - **SC-004** 100% das regras do inventário (FR-007) com teste nomeado.
 - **SC-005** Todos os testes que existiam antes continuam no projeto e verdes; o número de testes
