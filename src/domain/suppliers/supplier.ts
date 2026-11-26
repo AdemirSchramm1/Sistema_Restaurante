@@ -111,6 +111,6 @@ export function cheapestOffer(
 ): string | null {
   if (offers.length < 2) return null;
   let best = offers[0]!;
-  for (const o of offers.slice(1)) if (pricePerUnit(o).lt(pricePerUnit(best))) best = o;
+  for (const o of offers) if (pricePerUnit(o).lt(pricePerUnit(best))) best = o;
   return best.id;
 }

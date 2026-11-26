@@ -48,3 +48,12 @@ describe("validateRoles", () => {
     expect(validateRoles(["CHEF", "CHEF"])).toMatchObject({ ok: true, value: ["CHEF"] });
   });
 });
+
+describe("validateRoles: recusa no campo certo (spec 018, R4)", () => {
+  it("lista vazia e papel desconhecido são VALIDATION no campo roles", () => {
+    for (const roles of [[], ["MANAGER", "DONO"]]) {
+      const r = validateRoles(roles);
+      expect(r.ok ? null : [r.error.code, r.error.field]).toEqual(["VALIDATION", "roles"]);
+    }
+  });
+});

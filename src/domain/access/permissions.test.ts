@@ -204,3 +204,23 @@ describe("garçom lança o pedido da mesa (spec 015, FR-001 e FR-010)", () => {
     expect(who("order.cancel")).toEqual(["MANAGER", "CHEF"]);
   });
 });
+
+describe("nomes dos papéis e recusa (spec 018, R4)", () => {
+  it("cada papel tem o nome que a pessoa vê", () => {
+    expect(ROLE_LABELS).toEqual({
+      MANAGER: "Gerente",
+      CHEF: "Chef",
+      STOCKKEEPER: "Estoquista",
+      BUYER: "Comprador",
+      ADMINISTRATIVE: "Administrativo",
+      WAITER: "Garçom",
+      CASHIER: "Caixa",
+    });
+  });
+
+  it("assertCan devolve true quando pode e diz qual ação foi negada quando não pode", () => {
+    expect(assertCan(["CHEF"], "recipe.write")).toEqual({ ok: true, value: true });
+    const r = assertCan(["WAITER"], "tab.pay");
+    expect(r.ok ? null : [r.error.code, r.error.details]).toEqual(["FORBIDDEN", { action: "tab.pay" }]);
+  });
+});
