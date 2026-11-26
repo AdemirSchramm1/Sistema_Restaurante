@@ -71,4 +71,10 @@ describe("dividir a conta (spec 011, US3)", () => {
     expect(parts()).toEqual([]);
     expect(screen.getByText("Ou digite qualquer valor no pagamento.")).toBeTruthy();
   });
+
+  it("falta que não é dinheiro válido (mais de 2 casas) não oferece partes (spec 018)", () => {
+    setup("10.005");
+    people("3");
+    expect(parts()).toEqual([]);
+  });
 });

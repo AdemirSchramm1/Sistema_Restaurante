@@ -118,8 +118,7 @@ export async function removePayment(
     const session = await repos.cashSessions.lockOpen();
     if (!session) return err("CASH_SESSION_REQUIRED", undefined, { action: "remove" });
     const audit = auditStamp(deps, ctx);
-    const removed = await repos.tabs.removePayment(payment.id, deps.ids.next(), session.id, audit);
-    if (!removed.ok) return removed;
+    await repos.tabs.removePayment(payment.id, deps.ids.next(), session.id, audit);
     await repos.cashSessions.bumpVersion(session.id, audit);
     const details = {
       paymentId: payment.id,

@@ -95,10 +95,13 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
 
   return {
     async openForOrder(tableId, at, serviceRate) {
-      const inserted = await tx
+      // Um comando só: abre a conta ou, se a mesa já tem uma aberta, trava e soma 1 na versão dela.
+      // Assim nenhum fechamento entra entre achar a conta e mexer nela.
+      const id = ids();
+      const [row] = await tx
         .insert(tableTabs)
         .values({
-          id: ids(),
+          id,
           restaurantId,
           createdAt: at,
           updatedAt: at,
@@ -107,17 +110,13 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
           openedAt: at,
           serviceRate: str(serviceRate),
         })
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+          target: [tableTabs.restaurantId, tableTabs.tableId],
+          targetWhere: sql`status = 'OPEN'`,
+          set: { version: sql`${tableTabs.version} + 1`, updatedAt: at, updatedBy: null },
+        })
         .returning({ id: tableTabs.id });
-      if (inserted[0]) return { id: inserted[0].id, opened: true };
-      const [open] = await tx
-        .select({ id: tableTabs.id })
-        .from(tableTabs)
-        .where(and(eq(tableTabs.tableId, tableId), eq(tableTabs.status, "OPEN")))
-        .for("update");
-      if (!open) throw new Error("conta aberta da mesa sumiu");
-      await bump(open.id, at, null);
-      return { id: open.id, opened: false };
+      return { id: row!.id, opened: row!.id === id };
     },
 
     async get(id) {
@@ -126,13 +125,7 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
     },
 
     async lock(id) {
-      const [locked] = await tx
-        .select({ id: tableTabs.id })
-        .from(tableTabs)
-        .where(eq(tableTabs.id, id))
-        .for("update");
-      if (!locked) return null;
-      const [r] = await tabSelect().where(eq(tableTabs.id, id));
+      const [r] = await tabSelect().where(eq(tableTabs.id, id)).for("update", { of: tableTabs });
       return r ? toTab(r) : null;
     },
 
@@ -233,22 +226,16 @@ export function tabRepository(tx: Tx, restaurantId: string, ids: () => string): 
     },
 
     async removePayment(paymentId, id, cashSessionId, audit) {
-      try {
-        await withSavepoint(tx, () =>
-          tx.insert(tabPaymentRemovals).values({
-            id,
-            restaurantId,
-            createdAt: audit.at,
-            createdBy: audit.by,
-            paymentId,
-            cashSessionId,
-          }),
-        );
-        return ok(undefined);
-      } catch (e) {
-        if (isUniqueViolation(e, "tab_payment_removals_payment")) return err("ALREADY_REMOVED");
-        throw e;
-      }
+      // A conta está travada e o caso de uso já viu que o pagamento não foi tirado; o índice
+      // único tab_payment_removals_payment continua de guarda.
+      await tx.insert(tabPaymentRemovals).values({
+        id,
+        restaurantId,
+        createdAt: audit.at,
+        createdBy: audit.by,
+        paymentId,
+        cashSessionId,
+      });
     },
 
     async addEvent(e) {

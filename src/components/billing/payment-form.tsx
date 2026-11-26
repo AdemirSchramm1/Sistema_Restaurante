@@ -231,11 +231,11 @@ export function PaymentList({
               <span className="font-medium">{label}</span>
               {removed ? <del>{value}</del> : <strong>{value}</strong>}
             </div>
-            {p.received && p.change && (
-              <span>{`Recebido ${brl(d(p.received))}, troco ${brl(d(p.change))}`}</span>
+            {p.received && (
+              <span>{`Recebido ${brl(d(p.received))}, troco ${brl(d(p.received).minus(d(p.amount)))}`}</span>
             )}
             <span className="text-muted-foreground">{`${timeIn(p.at, timezone)} · ${p.byName ?? ""}`}</span>
-            {removed && p.removedAt && (
+            {p.removedAt && (
               <span>{`Tirado às ${timeIn(p.removedAt, timezone)} por ${p.removedByName ?? ""}`}</span>
             )}
             {remove && !removed && confirming !== p.id && (
