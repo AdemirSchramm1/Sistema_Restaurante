@@ -50,7 +50,6 @@ export function rankOutflow(rows: readonly OutflowRow[], limit = CHART_LIMIT) {
 /** Largura de cada barra em % do maior valor (inteiro, meio para cima); valor > 0 tem no mínimo 2%. */
 export function barPercents(values: readonly Decimal[]): number[] {
   const top = values.reduce((m, v) => (v.gt(m) ? v : m), d(0));
-  if (top.lte(0)) return values.map(() => 0);
   return values.map((v) => {
     if (v.lte(0)) return 0;
     const pct = v.div(top).mul(100).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();

@@ -85,7 +85,7 @@ export function rankProductCosts(rows: readonly ProductCost[]): ProductCost[] {
   return [...rows].sort(
     (a, b) =>
       group(a) - group(b) ||
-      (a.share && b.share ? b.share.cmp(a.share) : 0) ||
+      (group(a) === 0 ? b.share!.cmp(a.share!) : 0) ||
       a.name.localeCompare(b.name, "pt-BR"),
   );
 }

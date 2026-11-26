@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  COST_BAND_LABELS,
   costBand,
   costBarPercent,
   costShare,
@@ -150,6 +151,11 @@ describe("ordem e resumo do painel (spec 008, US2)", () => {
 });
 
 describe("preço de venda (spec 008, FR-001)", () => {
+  it("nomes das faixas na tela e preço com exatamente 2 casas (spec 018)", () => {
+    expect(COST_BAND_LABELS).toEqual({ OK: "dentro da faixa", WARN: "atenção", HIGH: "alto" });
+    expect(validateSalePrice(d("12.34")).ok).toBe(true);
+  });
+
   it("em branco pode (produto sem preço)", () => {
     expect(validateSalePrice(null).ok).toBe(true);
   });
