@@ -10,8 +10,7 @@ export function d(value: string | Decimal | bigint | number): Decimal {
   if (typeof value === "number" && !Number.isInteger(value)) {
     throw new TypeError(`Use texto para valores fracionários: d("${value}")`);
   }
-  if (typeof value === "bigint") return new Decimal(value.toString());
-  return new Decimal(value);
+  return new Decimal(String(value));
 }
 
 export const isDecimal = (v: unknown): v is Decimal => DecimalJs.isDecimal(v);
@@ -31,19 +30,15 @@ export function formatBrDecimal(
   opts: { minPlaces?: number; maxPlaces?: number } = {},
 ): string {
   const max = opts.maxPlaces ?? 4;
-  const min = opts.minPlaces ?? 0;
-  let s = value.toDecimalPlaces(max, Decimal.ROUND_HALF_UP).toFixed(max);
-  if (max > min) {
-    const [int, frac = ""] = s.split(".");
-    let f = frac.replace(/0+$/, "");
-    if (f.length < min) f = f.padEnd(min, "0");
-    s = f ? `${int}.${f}` : int!;
-  }
+  const min = Math.min(opts.minPlaces ?? 0, max);
+  const [int, frac = ""] = value.toDecimalPlaces(max, Decimal.ROUND_HALF_UP).toFixed(max).split(".");
+  const f = frac.replace(/0+$/, "").padEnd(min, "0");
+  const s = f ? `${int}.${f}` : int!;
   const negative = s.startsWith("-");
   const [intPart, fracPart] = s.replace("-", "").split(".");
   const grouped = intPart!.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   const out = fracPart ? `${grouped},${fracPart}` : grouped;
-  return negative && !/^[0.,]+$/.test(out) ? `-${out}` : out;
+  return negative ? `-${out}` : out;
 }
 
 /** "R$ 1.234,50": 2 casas (até `maxPlaces` quando pedido), meio para cima. */

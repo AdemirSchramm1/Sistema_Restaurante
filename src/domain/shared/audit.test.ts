@@ -31,3 +31,18 @@ describe("diferença de campos para a trilha de auditoria (FR-004)", () => {
     expect(diffFields(null, { a: 1, b: null })).toEqual({ a: [null, 1] });
   });
 });
+
+describe("o que o histórico grava (spec 018)", () => {
+  it("datas e listas de decimais viram texto; vazio dentro da lista vira null", () => {
+    const at = new Date("2026-11-02T12:00:00Z");
+    expect(diffFields({ at: null, list: [] }, { at, list: [d("1.50"), undefined] })).toEqual({
+      at: [null, "2026-11-02T12:00:00.000Z"],
+      list: [[], ["1.5", null]],
+    });
+  });
+
+  it("decimal com zeros à direita é o mesmo valor; decimal para vazio é mudança", () => {
+    expect(diffFields({ price: d("1.0") }, { price: d("1") })).toEqual({});
+    expect(diffFields({ price: d("1") }, { price: null })).toEqual({ price: ["1", null] });
+  });
+});
