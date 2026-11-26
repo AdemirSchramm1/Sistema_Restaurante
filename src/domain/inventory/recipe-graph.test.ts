@@ -121,3 +121,82 @@ describe("produtos em que o item entra (spec 008, US3)", () => {
     expect(usesItem(lines, "queijo", graphOf(MOLHO))).toBe(false);
   });
 });
+
+describe("caminhos de erro e grafos com ciclo (spec 018, US2)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; details?: unknown } }) =>
+    r.ok ? "OK" : r.error!.code;
+  const prep = (id: string, lines: ReturnType<typeof prepLine>[]) =>
+    node(id, prepData({ name: id, yieldQuantity: d(1), yieldUnit: "kg", lines }));
+
+  it("produto novo não consulta o mapa dos preparos", () => {
+    const untouchable = new Map<string, RecipeNode>();
+    untouchable.get = () => {
+      throw new Error("não devia consultar");
+    };
+    expect(findCycle(null, [prepLine("molho", "1", "kg")], untouchable)).toBeNull();
+  });
+
+  it("ciclo entre outros preparos (B ↔ C) não trava e não é ciclo do produto", () => {
+    const g = graphOf(prep("b", [prepLine("c", "1", "kg")]), prep("c", [prepLine("b", "1", "kg")]));
+    expect(findCycle("a", [prepLine("b", "1", "kg")], g)).toBeNull();
+    expect(usesItem([prepLine("b", "1", "kg")], "tomate", g)).toBe(false);
+  });
+
+  it("preparo fora do mapa não é ciclo", () => {
+    expect(findCycle("a", [prepLine("sumiu", "1", "kg")], graphOf())).toBeNull();
+  });
+
+  it("item com o mesmo id do produto não é ciclo, em nenhum nível", () => {
+    const b = prep("b", [itemLine("a", "1", "kg")]);
+    expect(findCycle("a", [itemLine("a", "1", "kg"), prepLine("b", "1", "kg")], graphOf(b))).toBeNull();
+  });
+
+  it("acha o ciclo na segunda linha e no segundo preparo de dentro", () => {
+    const b = prep("b", [prepLine("molho", "1", "kg"), prepLine("a", "1", "kg")]);
+    expect(
+      findCycle("a", [prepLine("molho", "1", "kg"), prepLine("b", "1", "kg")], graphOf(MOLHO, b)),
+    ).toEqual(["a", "b", "a"]);
+  });
+
+  it("item que não existe, medida errada e preparo sem rendimento dizem o que falta", () => {
+    const missing = explode([itemLine("nada", "1", "kg")], d(1), graphOf(), items);
+    expect(missing.ok ? null : missing.error).toMatchObject({
+      code: "NOT_FOUND",
+      details: { itemId: "nada" },
+    });
+    expect(fail(explode([itemLine("carne", "1", "un")], d(1), graphOf(), items))).toBe(
+      "UNIT_DIMENSION_MISMATCH",
+    );
+    expect(fail(explode([itemLine("carne", "1", "cx" as never)], d(1), graphOf(), items))).toBe(
+      "UNKNOWN_UNIT",
+    );
+    const noYield = node("sem", prepData({ yieldQuantity: null }));
+    const r = explode([prepLine("sem", "1", "kg")], d(1), graphOf(noYield), items);
+    expect(r.ok ? null : r.error).toMatchObject({ code: "NOT_FOUND", details: { recipeId: "sem" } });
+    expect(fail(explode([prepLine("molho", "1", "un")], d(1), graphOf(MOLHO), items))).toBe(
+      "UNIT_DIMENSION_MISMATCH",
+    );
+    const broken = prep("quebrado", [itemLine("nada", "1", "kg")]);
+    expect(fail(explode([prepLine("quebrado", "1", "kg")], d(1), graphOf(broken), items))).toBe("NOT_FOUND");
+  });
+
+  it("preparo dentro de preparo até 32 níveis; mais que isso, ou um ciclo gravado, para com RECIPE_CYCLE", () => {
+    const chain = (n: number) => {
+      const nodes = [prep("p0", [itemLine("tomate", "1", "kg")])];
+      for (let i = 1; i < n; i++) nodes.push(prep(`p${i}`, [prepLine(`p${i - 1}`, "1", "kg")]));
+      return [prepLine(`p${n - 1}`, "1", "kg"), graphOf(...nodes)] as const;
+    };
+    const [ok32, g32] = chain(32);
+    expect(fail(explode([ok32], d(1), g32, items))).toBe("OK");
+    const [deep, g33] = chain(33);
+    expect(fail(explode([deep], d(1), g33, items))).toBe("RECIPE_CYCLE");
+    const loop = graphOf(prep("b", [prepLine("c", "1", "kg")]), prep("c", [prepLine("b", "1", "kg")]));
+    expect(fail(explode([prepLine("b", "1", "kg")], d(1), loop, items))).toBe("RECIPE_CYCLE");
+  });
+
+  it("linha que não dá para explodir fica sem custo e sem item faltando", () => {
+    const c = recipeCost([itemLine("nada", "1", "kg"), itemLine("carne", "1", "kg")], graphOf(), items);
+    expect(c.lines[0]).toEqual({ cost: null, missingItemIds: [] });
+    expect(c.total).toBeNull();
+  });
+});
