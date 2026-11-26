@@ -152,7 +152,8 @@ export async function setGroupActive(
     if (g.isSystem && !active) return err("SYSTEM_RECORD");
     if (!active) {
       const tree = await repos.groups.tree(true);
-      const subs = tree.find((x) => x.id === id)?.subgroups ?? [];
+      // A árvore com inativos sempre tem o grupo que acabou de ser achado.
+      const subs = tree.find((x) => x.id === id)!.subgroups;
       if (subs.some((s) => s.activeItems > 0)) return err("SUBGROUP_HAS_ACTIVE_ITEMS");
     }
     const r = await repos.groups.setGroupActive(id, active, version, auditStamp(deps, ctx));

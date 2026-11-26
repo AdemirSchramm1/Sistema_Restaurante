@@ -235,8 +235,8 @@ export async function decideAdjustment(
     const at = deps.clock.now();
     let movementId: string | null = null;
     if (approve) {
-      const item = await repos.movements.lockItem(req.itemId);
-      if (!item) return err("NOT_FOUND");
+      // O pedido de acerto aponta para um item que existe (chave estrangeira).
+      const item = (await repos.movements.lockItem(req.itemId))!;
       const plan = planAdjustmentApproval(item, req.difference);
       if (!plan.ok) return plan;
       const id = deps.ids.next();
@@ -318,8 +318,8 @@ export async function reverseMovement(
     if (again) return ok({ movementId: again });
     const original = await repos.movements.get(movementId);
     if (!original) return err("NOT_FOUND");
-    const item = await repos.movements.lockItem(original.itemId);
-    if (!item) return err("NOT_FOUND");
+    // A movimentação aponta para um item que existe (chave estrangeira).
+    const item = (await repos.movements.lockItem(original.itemId))!;
     // Relê depois de travar o item: outro estorno pode ter acabado de entrar.
     const fresh = (await repos.movements.get(movementId))!;
     const plan = planReversal(
@@ -375,7 +375,7 @@ export async function listMovements(
     ok(
       (await repos.movements.list(filter)).map((m) => ({
         ...m,
-        reasonLabel: m.reasonId ? (reasonById(m.reasonId)?.label ?? null) : null,
+        reasonLabel: m.reasonId ? reasonById(m.reasonId)!.label : null,
       })),
     ),
   );
@@ -394,7 +394,7 @@ export async function listAdjustmentRequests(
     ok(
       (await repos.movements.listRequests(filter.status)).map((r) => ({
         ...r,
-        reasonLabel: reasonById(r.reasonId)?.label ?? "",
+        reasonLabel: reasonById(r.reasonId)!.label,
       })),
     ),
   );

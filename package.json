@@ -20,7 +20,7 @@
     "test:cash": "vitest run --mode cash --coverage /cash/ /sales/",
     "test:staff": "vitest run --mode staff --coverage staff kitchen-note reorder similar-orders search submit-order",
     "test:billing": "vitest run --mode billing --coverage billing",
-    "test:stock": "vitest run --mode stock --coverage inventory items groups movements recipes costs reorder reports audit",
+    "test:stock": "vitest run --mode stock --coverage inventory items groups movements recipes costs reorder reports audit billing/sale billing/cancel-stock",
     "test:orders": "vitest run --mode orders --coverage ordering suppliers shared layout",
     "test:mutation": "stryker run",
     "db:up": "docker compose up -d --wait db",

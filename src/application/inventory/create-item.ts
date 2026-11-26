@@ -25,8 +25,6 @@ export async function createItem(
     if (!sub.active || !sub.group.active) return err("SUBGROUP_INACTIVE", "subgroupId");
 
     const normalized = normalizeDescription(data.description);
-    const existing = await repos.items.findActiveByDescription(sub.id, normalized);
-    if (existing) return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: existing.code });
 
     const seq = await repos.items.takeNextItemSeq(sub.id);
     const code = formatItemCode(sub.group.code, sub.code, seq);
@@ -37,6 +35,7 @@ export async function createItem(
       { ...data, id, code: code.value, descriptionNormalized: normalized },
       auditStamp(deps, ctx),
     );
+    // Descrição repetida entre ativos do subgrupo: o índice único recusa e tudo volta atrás.
     if (!inserted.ok) return inserted;
     await repos.audit.record({
       entity: "item",

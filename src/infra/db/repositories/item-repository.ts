@@ -34,7 +34,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
     } catch (e) {
       if (isUniqueViolation(e, "items_active_description")) {
         const existing = await repo.findActiveByDescription(subgroupId, normalized, exceptId);
-        return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: existing?.code });
+        return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: existing!.code });
       }
       throw e;
     }
@@ -51,9 +51,8 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
       .where(and(eq(items.id, id), eq(items.version, version)))
       .returning({ id: items.id });
-    if (r.length) return ok(undefined);
-    const exists = await tx.select({ id: items.id }).from(items).where(eq(items.id, id));
-    return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+    // Quem chama já achou o item: se nada mudou, a versão era velha.
+    return r.length ? ok(undefined) : err("STALE_RECORD");
   }
 
   const repo: ItemRepo = {
@@ -176,7 +175,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
         .innerJoin(itemSubgroups, eq(itemSubgroups.id, items.subgroupId))
         .where(cond);
       return {
-        total: count?.n ?? 0,
+        total: count!.n,
         rows: rows.map((r): ItemListRow => ({
           id: r.id,
           code: r.code,
@@ -236,7 +235,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
         .select({ n: sql<number>`count(*)::int` })
         .from(items)
         .where(and(eq(items.subgroupId, subgroupId), eq(items.active, true)));
-      return r?.n ?? 0;
+      return r!.n;
     },
   };
   return repo;

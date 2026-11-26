@@ -243,13 +243,9 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
     },
 
     async lockRequest(id) {
-      const [locked] = await tx
-        .select({ id: adjustmentRequests.id })
-        .from(adjustmentRequests)
+      const [r] = await requestSelect()
         .where(eq(adjustmentRequests.id, id))
-        .for("update");
-      if (!locked) return null;
-      const [r] = await requestSelect().where(eq(adjustmentRequests.id, id));
+        .for("update", { of: adjustmentRequests });
       return r ? toRequest(r) : null;
     },
 
