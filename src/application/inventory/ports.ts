@@ -154,7 +154,6 @@ export interface RecipeRepo {
   get(id: string): Promise<RecipeRecord | null>;
   versionAt(recipeId: string, at: Date): Promise<RecipeVersionRecord | null>;
   list(filter: RecipeFilter): Promise<RecipeListRow[]>;
-  findActiveByName(normalized: string, exceptId?: string): Promise<{ id: string } | null>;
   /** Versão mais nova de cada preparo do restaurante (ativos e inativos). */
   subRecipeGraph(): Promise<Map<string, RecipeNode>>;
   /** Produtos ativos (vendidos e preparos) com a versão mais nova, em ordem de nome. */

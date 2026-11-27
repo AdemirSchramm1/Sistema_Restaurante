@@ -44,14 +44,20 @@ describe("limites do convite e do e-mail (spec 018, R4)", () => {
   const code = (r: { ok: boolean; error?: { code: string } }) => (r.ok ? "OK" : r.error!.code);
 
   it("convite marcado como vencido diz que venceu, não que é inválido", () => {
-    expect(code(checkInvitationUsable({ status: "EXPIRED", expiresAt: exp }, now))).toBe("INVITATION_EXPIRED");
-    expect(code(checkInvitationUsable({ status: "REVOKED", expiresAt: exp }, now))).toBe("INVITATION_INVALID");
+    expect(code(checkInvitationUsable({ status: "EXPIRED", expiresAt: exp }, now))).toBe(
+      "INVITATION_EXPIRED",
+    );
+    expect(code(checkInvitationUsable({ status: "REVOKED", expiresAt: exp }, now))).toBe(
+      "INVITATION_INVALID",
+    );
   });
 
   it("vale até o instante exato do vencimento; um milissegundo depois, venceu", () => {
     expect(code(checkInvitationUsable({ status: "PENDING", expiresAt: exp }, exp))).toBe("OK");
     const later = new Date(exp.getTime() + 1);
-    expect(code(checkInvitationUsable({ status: "PENDING", expiresAt: exp }, later))).toBe("INVITATION_EXPIRED");
+    expect(code(checkInvitationUsable({ status: "PENDING", expiresAt: exp }, later))).toBe(
+      "INVITATION_EXPIRED",
+    );
   });
 
   it("e-mail: o texto inteiro precisa ter cara de e-mail, até 254 letras, no campo email", () => {

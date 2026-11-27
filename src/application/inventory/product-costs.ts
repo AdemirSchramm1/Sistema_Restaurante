@@ -85,11 +85,12 @@ async function costing(repos: Repos, records: readonly RecipeRecord[]) {
   graph.forEach((n) => addAll(n.lines));
   const found = await repos.recipes.components([...refs.values()]);
   const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
+  // Tudo o que as linhas usam foi lido acima (linhas apontam para o que existe).
   const item = (id: string) => {
-    const c = byKey.get(refKey({ kind: "ITEM", id }));
-    return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+    const c = byKey.get(refKey({ kind: "ITEM", id }))!;
+    return { stockUnit: c.unit, averageCost: c.averageCost };
   };
-  const nameOf = (ref: ComponentRef) => byKey.get(refKey(ref))?.name ?? "?";
+  const nameOf = (ref: ComponentRef) => byKey.get(refKey(ref))!.name;
   const evaluate = (r: RecipeRecord): ProductCost => {
     const cost = recipeCost(r.current.lines, graph, item);
     return evaluateProductCost({

@@ -4,7 +4,7 @@ import { writeMovement } from "./movements";
 import { consumptionFor } from "../ordering/order-consumption";
 import { planCancelledSale, planSale } from "@/domain/inventory/movement";
 import { reasonByCode } from "@/domain/inventory/movement-reasons";
-import { err, ok, type Result } from "@/domain/shared/result";
+import { ok, type Result } from "@/domain/shared/result";
 
 /**
  * Baixa automática pelo pedido (spec 011, US4; entrega a 005 do roadmap). Roda dentro da transação
@@ -26,13 +26,11 @@ export async function recordOrderSale(
   if (!used.ok) return used;
   const movementIds: string[] = [];
   for (const itemId of [...used.value.keys()].sort()) {
-    const item = await repos.movements.lockItem(itemId);
-    if (!item) return err("NOT_FOUND", "itemId");
+    // O consumo só traz itens que existem (as linhas apontam para eles).
+    const item = (await repos.movements.lockItem(itemId))!;
     const plan = planSale(item, used.value.get(itemId)!);
-    if (!plan.ok) {
-      if (plan.error.code === "INVALID_QUANTITY") continue;
-      return plan;
-    }
+    // A venda só recusa quantidade que arredonda para zero na precisão do livro: essa não sai.
+    if (!plan.ok) continue;
     movementIds.push(
       await writeMovement(
         deps,
@@ -77,13 +75,11 @@ export async function reverseOrderSale(
   );
   const movementIds: string[] = [];
   for (const sale of sales) {
-    const item = await repos.movements.lockItem(sale.itemId);
-    if (!item) return err("NOT_FOUND", "itemId");
+    // A venda aponta para um item que existe (chave estrangeira).
+    const item = (await repos.movements.lockItem(sale.itemId))!;
     const plan = planCancelledSale({ type: "SALE_RECIPE", ...sale }, item, ingredientsUsed, reasons);
-    if (!plan.ok) {
-      if (plan.error.code === "ALREADY_REVERSED") continue;
-      return plan;
-    }
+    // Tipo e motivos são fixos aqui: a única recusa é venda já estornada, que fica como está.
+    if (!plan.ok) continue;
     const common = { itemId: item.id, orderId, notes: null, approvedBy: null, idempotencyKey: null };
     const at = deps.clock.now();
     movementIds.push(

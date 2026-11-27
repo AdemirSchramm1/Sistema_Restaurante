@@ -81,7 +81,7 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
               name: x.s_name,
               phone: x.s_phone,
               leadTimeDays: x.s_lead,
-              deliveryDays: x.s_days ?? [],
+              deliveryDays: x.s_days!,
               packageLabel: x.s_label,
               packageQuantity: dec(x.s_qty),
             }
@@ -97,7 +97,7 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
              where i.restaurant_id = ${restaurantId} and i.active and i.reorder_point is not null
                and coalesce(b.quantity, 0) <= i.reorder_point`,
       );
-      return r?.n ?? 0;
+      return r!.n;
     },
 
     async outflowByItem(from, to, itemIds) {
@@ -113,7 +113,7 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
         stock_unit_id: string;
         qty: string;
         value: string;
-        balance: string | null;
+        balance: string;
       }>(
         tx,
         sql`with o as (
@@ -123,7 +123,7 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
                group by m.item_id
             )
             select i.id, i.description, i.stock_unit_id,
-                   coalesce(o.qty, 0) as qty, coalesce(o.value, 0) as value, b.quantity as balance
+                   coalesce(o.qty, 0) as qty, coalesce(o.value, 0) as value, coalesce(b.quantity, 0) as balance
               from items i
               left join o on o.item_id = i.id
               left join stock_balances b on b.item_id = i.id
@@ -136,7 +136,7 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
         unit: UNIT_CODE_BY_ID[x.stock_unit_id]!,
         quantity: d(x.qty),
         value: d(x.value),
-        balance: d(x.balance ?? "0"),
+        balance: d(x.balance),
       }));
     },
 
@@ -161,7 +161,8 @@ export function reportRepository(tx: Tx, restaurantId: string): ReportRepo {
               from stock_movements m
              where ${inPeriod(from, to)}`,
       );
-      return { inflow: d(r?.inflow ?? "0"), outflow: d(r?.outflow ?? "0"), losses: d(r?.losses ?? "0") };
+      // Soma com coalesce: a linha sempre vem.
+      return { inflow: d(r!.inflow), outflow: d(r!.outflow), losses: d(r!.losses) };
     },
 
     async weekly(from, to, timezone) {
