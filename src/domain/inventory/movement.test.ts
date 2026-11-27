@@ -519,3 +519,13 @@ describe("limites e recusas de cada lançamento (spec 018, US2 e R4)", () => {
     ).toBe("VALIDATION movementId");
   });
 });
+
+describe("item com saldo e sem custo médio (spec 018, US2)", () => {
+  it("perda e acerto para menos saem com custo zero", () => {
+    const noAvg = tomato({ averageCost: null });
+    const out = planLoss(noAvg, { quantity: d(1), unit: "kg", reason: loss, occurredAt: NOW }, NOW);
+    expect(out.ok && [out.value.unitCost.toString(), out.value.totalCost.toString()]).toEqual(["0", "0"]);
+    const adj = planAdjustmentApproval(noAvg, d(-2));
+    expect(adj.ok && [adj.value.unitCost.toString(), adj.value.totalCost.toString()]).toEqual(["0", "0"]);
+  });
+});

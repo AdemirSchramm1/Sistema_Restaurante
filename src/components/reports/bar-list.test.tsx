@@ -87,3 +87,10 @@ describe("gráfico de barras (spec 006, FR-007)", () => {
     expect(items[0]!.textContent).toContain("Saídas: R$ 50,00");
   });
 });
+
+describe("barras em par sem dados (spec 018)", () => {
+  it("sem semanas no período mostra o vazio", () => {
+    render(<PairedBars title="Entradas e saídas por semana" firstLabel="Entradas" secondLabel="Saídas" rows={[]} />);
+    expect(screen.queryByText("Entradas")).toBeNull();
+  });
+});

@@ -101,3 +101,33 @@ describe("entrada do preço de venda (spec 008, US1)", () => {
     expect(r.ok ? "OK" : r.error.code).toBe("VALIDATION");
   });
 });
+
+describe("formulário da ficha: casos que faltavam (spec 018, US2 e R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code}@${r.error!.field}`;
+  const prep = (over: Record<string, string>) =>
+    parseRecipeForm({ ...base, kind: "SUB_RECIPE", yieldQuantity: "2", yieldUnit: "kg", ...over });
+
+  it("rendimento inválido e medida do rendimento desconhecida", () => {
+    expect(fail(prep({}))).toBe("OK");
+    expect(fail(prep({ yieldQuantity: "dois" }))).toBe("INVALID_NUMBER@yieldQuantity");
+    expect(fail(prep({ yieldUnit: "litro" }))).toBe("UNKNOWN_UNIT@yieldUnit");
+  });
+
+  it("linhas precisam vir em sequência, sem buraco", () => {
+    const {
+      ["lines.1.component"]: _c,
+      ["lines.1.quantity"]: _q,
+      ["lines.1.unit"]: _u,
+      ...one
+    } = base as Record<string, string>;
+    const gap = { ...one, "lines.2.component": `ITEM:${ITEM}`, "lines.2.quantity": "1", "lines.2.unit": "g" };
+    expect(fail(parseRecipeForm(gap))).toBe("VALIDATION@lines.1.component");
+  });
+
+  it("preço: versão que não é número inteiro é recusada", () => {
+    expect(fail(parseSalePriceForm({ id: ITEM, version: "um", salePrice: "10,00" }))).toBe(
+      "VALIDATION@undefined",
+    );
+  });
+});

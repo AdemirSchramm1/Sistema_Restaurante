@@ -10,7 +10,7 @@ import type { ActionState } from "@/actions/_session";
 import { MOVEMENT_TYPE_LABELS, type MovementType } from "@/domain/inventory/movement";
 import { manualReasons, REASON_FAMILY_LABELS, type ReasonFamily } from "@/domain/inventory/movement-reasons";
 import { compatibleUnits } from "@/domain/inventory/recipe";
-import { convert, unitByCode, type UnitCode } from "@/domain/inventory/units";
+import { unitByCode, type UnitCode } from "@/domain/inventory/units";
 import { d, formatBrDecimal, formatBrl, parseBrDecimal, type Decimal } from "@/domain/shared/decimal";
 
 export type MovementItemOption = {
@@ -93,13 +93,10 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
     if (!item) return null;
     const q = parseBrDecimal(quantity);
     if (!q.ok) return null;
-    if (currentUnit === "PACKAGE") return item.packageFactor ? q.value.times(d(item.packageFactor)) : null;
-    if (currentUnit === "SUPPLIER_PACKAGE")
-      return supplierPackage ? q.value.times(d(supplierPackage.packageQuantity)) : null;
-    const from = unitByCode(currentUnit);
-    if (!from) return null;
-    const r = convert(q.value, from, unitByCode(item.unit)!);
-    return r.ok ? r.value : null;
+    // As medidas da lista só existem quando há embalagem e são da mesma família do item.
+    if (currentUnit === "PACKAGE") return q.value.times(d(item.packageFactor!));
+    if (currentUnit === "SUPPLIER_PACKAGE") return q.value.times(d(supplierPackage!.packageQuantity));
+    return q.value.times(unitByCode(currentUnit)!.toBase).dividedBy(unitByCode(item.unit)!.toBase);
   }, [item, quantity, currentUnit, supplierPackage]);
 
   let preview: string | null = null;

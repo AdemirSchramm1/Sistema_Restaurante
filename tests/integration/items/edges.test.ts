@@ -117,6 +117,7 @@ describe("ver e listar itens (spec 001, US3)", () => {
     expect(value(await listItems(env.deps, m, { page: Number.NaN })).page).toBe(1);
     expect(await codes({ page: 1, groupId, status: "all" })).toEqual([tomato.code, banana.code, pack.code]);
     expect(await codes({ page: 1, subgroupId: legumes })).toEqual([tomato.code]);
+    expect(await codes({ page: 1, status: "all" })).toEqual([tomato.code, banana.code, pack.code]);
     expect(await codes({ page: 1, type: "CONSUMABLE" })).toEqual([pack.code]);
     expect(await codes({ page: 1, status: "inactive" })).toEqual([banana.code]);
     expect(await codes({ page: 1, q: "tomate" })).toEqual([tomato.code]);

@@ -184,3 +184,22 @@ describe("histórico das mudanças de cardápio (spec 013, FR-009)", () => {
     expect(show("UPDATE", { event: "menu.futuro", salePrice: ["9.00", "10.00"] })).toContain("Alterou · Bia");
   });
 });
+
+describe("histórico: casos que faltavam (spec 018, R4)", () => {
+  it("ação desconhecida aparece como veio; sem autor é 'sistema'; sem mudanças não lista nada", () => {
+    render(
+      <HistoryList
+        timezone="America/Sao_Paulo"
+        entries={[{ ...entry({}), action: "ARCHIVE" as never, userName: null, changes: null as never }]}
+      />,
+    );
+    expect(screen.getByText("ARCHIVE")).toBeTruthy();
+    expect(screen.getByText(/sistema/)).toBeTruthy();
+    expect(screen.getAllByRole("list")).toHaveLength(1);
+  });
+
+  it("sem registros diz isso", () => {
+    render(<HistoryList timezone="America/Sao_Paulo" entries={[]} />);
+    expect(screen.getByText("Sem registros.")).toBeTruthy();
+  });
+});

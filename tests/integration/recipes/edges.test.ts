@@ -128,6 +128,9 @@ describe("fichas técnicas: recusas e casos (spec 003)", () => {
     const names = async (f: Parameters<typeof listRecipes>[2]) =>
       value(await listRecipes(env.deps, t.m, f)).map((r) => r.name);
     expect(await names({ kind: "SUB_RECIPE" })).toEqual(["Molho de tomate"]);
+    value(await setRecipeActive(env.deps, t.m, prep, 1, false));
+    expect(await names({ status: "all" })).toEqual(["Molho de tomate", "X-Burger"]);
+    expect(await names({ status: "inactive" })).toEqual(["Molho de tomate"]);
     expect(await names({ q: "burg" })).toEqual(["X-Burger"]);
     expect(await names({ q: "100%" })).toEqual([]);
     expect(value(await getRecipeVersionAt(env.deps, t.m, prep, new Date(0)))).toBeNull();
@@ -145,5 +148,20 @@ describe("preço de venda (spec 008)", () => {
       [t.burger],
     );
     expect(prices.rows[0].n).toBe(1);
+  });
+});
+
+describe("repositório de fichas (spec 003, data-model.md)", () => {
+  it("erro do banco que não é nome repetido sobe como erro", async () => {
+    const env = testEnv();
+    const t = await setup(env);
+    await expect(
+      env.deps.tenant(t.m.restaurantId, async (repos) =>
+        repos.recipes.insert(
+          { id: "x", name: "Z", nameNormalized: "z", kind: "DISH" },
+          { at: env.clock.now(), by: t.m.userId },
+        ),
+      ),
+    ).rejects.toThrow();
   });
 });

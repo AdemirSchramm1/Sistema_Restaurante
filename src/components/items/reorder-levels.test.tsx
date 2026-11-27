@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { ReorderLevels, type ReorderLevelsProps } from "./reorder-levels";
 
 afterEach(cleanup);
@@ -70,5 +70,54 @@ describe("quadro do aviso de reposição (spec 006, US1)", () => {
   it("sem aviso definido diz que está desligado", () => {
     render(<ReorderLevels {...base} canEdit={false} reorderPoint={null} parLevel={null} />);
     expect(screen.getByText(/Aviso desligado/)).toBeTruthy();
+  });
+});
+
+describe("aviso de reposição: digitar e salvar (spec 018)", () => {
+  const submit = async () => {
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Salvar aviso" }));
+    });
+  };
+
+  it("o que é digitado vai no envio; salvo diz que salvou", async () => {
+    const sent: Record<string, string>[] = [];
+    render(
+      <ReorderLevels
+        {...base}
+        action={async (_p, form) => {
+          sent.push(Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)])));
+          return { ok: true, data: null, at: 1 };
+        }}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Avisar quando chegar em (kg)"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("Comprar até (kg)"), { target: { value: "30" } });
+    await submit();
+    expect(sent).toEqual([{ id: "i1", version: "2", reorderPoint: "12", parLevel: "30" }]);
+    expect(await screen.findByText("Aviso salvo.")).toBeTruthy();
+  });
+
+  it("recusa do servidor aparece; entrega de mais de um dia vem no plural", async () => {
+    render(
+      <ReorderLevels
+        {...base}
+        suggestion={{
+          averageDailyUsage: "1,5",
+          reorderPoint: "5",
+          parLevel: "12",
+          leadTimeDays: 3,
+          cycleDays: "3,5",
+        }}
+        action={async () => ({
+          ok: false,
+          error: { code: "VALIDATION", message: "Comprar até menor que o ponto." },
+          at: 1,
+        })}
+      />,
+    );
+    expect(screen.getByText(/entrega em 3 dias/)).toBeTruthy();
+    await submit();
+    expect(await screen.findByText("Comprar até menor que o ponto.")).toBeTruthy();
   });
 });

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, render, screen, fireEvent } from "@testing-library/react";
+import { act, cleanup, render, screen, fireEvent } from "@testing-library/react";
 import { ItemForm } from "./item-form";
 import { emptyItemValues } from "./item-form-values";
 
@@ -89,5 +89,30 @@ describe("formulário do item depois de erro do servidor", () => {
     });
     expect((await screen.findAllByText("Diga quanto vem em cada embalagem.")).length).toBeGreaterThan(0);
     expect((screen.getByLabelText("Nome do item") as HTMLInputElement).value).toBe("Arroz branco");
+  });
+});
+
+describe("formulário do item: editar e salvar (spec 018)", () => {
+  it("edição traz os grupos, o id e a versão; sem embalagem os campos vêm vazios; salvo avisa", async () => {
+    const { container } = renderForm({
+      action: async () => ({ ok: true, data: null, at: 1 }),
+      subgroups: [{ id: "sub1", label: "Hortifrúti › Legumes" }],
+      initial: {
+        description: "Tomate",
+        subgroupId: "sub1",
+        type: "INGREDIENT",
+        stockUnit: "kg",
+        purchaseUnitLabel: "",
+        purchaseFactor: "",
+      },
+      meta: { id: "i1", version: 4 },
+    });
+    expect((screen.getByLabelText("Grupo") as HTMLSelectElement).value).toBe("sub1");
+    expect((screen.getByLabelText("Embalagem") as HTMLInputElement).value).toBe("");
+    expect((container.querySelector('input[name="version"]') as HTMLInputElement).value).toBe("4");
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form")!);
+    });
+    expect(await screen.findByText("Alterações salvas.")).toBeTruthy();
   });
 });

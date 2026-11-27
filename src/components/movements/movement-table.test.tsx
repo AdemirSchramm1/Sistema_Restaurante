@@ -91,3 +91,66 @@ describe("lançamentos com a venda pelo pedido (spec 011, US4)", () => {
     expect(options).toEqual(["Motivo…", "Lançado errado", "Lançado em dobro", "Outro"]);
   });
 });
+
+describe("lista de lançamentos: cada coluna (spec 018, US2 e R4)", () => {
+  const cells = (id: string) =>
+    within(screen.getByText(`linha ${id}`).closest("tr")!)
+      .getAllByRole("cell")
+      .map((c) => c.textContent);
+
+  it("motivo, fornecedor, medida digitada, observação, aprovação e estornado", () => {
+    render(
+      <MovementTable
+        timezone="America/Sao_Paulo"
+        canReverse
+        rows={[
+          row({
+            id: "perda",
+            type: "LOSS",
+            quantity: d("-0.5"),
+            enteredQuantity: d("500"),
+            enteredUnit: "g",
+            reasonLabel: "Queimou",
+            notes: "linha perda",
+            reversedById: "x",
+          }),
+          row({ id: "compra", supplierName: "Laticínios Sul", notes: "linha compra", recordedByName: null }),
+          row({
+            id: "acerto",
+            type: "ADJUSTMENT",
+            quantity: d("-2"),
+            enteredQuantity: d("-2"),
+            reasonLabel: "Conferi na prateleira",
+            notes: "linha acerto",
+            approvedByName: "Gerente Gil",
+          }),
+          row({ id: "solto", notes: "linha solto" }),
+        ]}
+      />,
+    );
+    expect(cells("perda")).toEqual([
+      "11/11/2026",
+      "Queijo prato",
+      "Perda estornado",
+      "-0,5 kg (500 g)",
+      "R$ 50,00",
+      "Queimoulinha perda",
+      "Chef Ana",
+      "",
+    ]);
+    expect(cells("compra").slice(5, 7)).toEqual(["De Laticínios Sullinha compra", "—"]);
+    expect(cells("acerto").slice(3, 7)).toEqual([
+      "-2 kg",
+      "R$ 50,00",
+      "Conferi na prateleiralinha acerto",
+      "Chef Anaaprovado por Gerente Gil",
+    ]);
+    expect(cells("solto")[5]).toBe("—linha solto");
+  });
+
+  it("sem lançamentos diz isso; sem a coluna do item quando a lista é de um item só", () => {
+    render(<MovementTable timezone="America/Sao_Paulo" canReverse={false} showItem={false} rows={[]} />);
+    expect(screen.getByText("Nenhum lançamento ainda.")).toBeTruthy();
+    expect(screen.queryByRole("columnheader", { name: "Item" })).toBeNull();
+  });
+});

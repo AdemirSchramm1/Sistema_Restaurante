@@ -107,3 +107,13 @@ describe("formulário de produto depois de erro do servidor", () => {
     expect((screen.getByLabelText("Quanto vai (linha 1)") as HTMLInputElement).value).toBe("1");
   });
 });
+
+describe("formulário de produto: depois de salvar (spec 018)", () => {
+  it("diz que as alterações foram salvas", async () => {
+    const { container } = renderForm({ action: async () => ({ ok: true, data: null, at: 1 }) });
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form")!);
+    });
+    expect(await screen.findByText("Alterações salvas.")).toBeTruthy();
+  });
+});

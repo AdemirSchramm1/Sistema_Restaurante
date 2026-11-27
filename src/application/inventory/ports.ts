@@ -84,11 +84,6 @@ export interface ItemRepo {
   ): Promise<Result<void>>;
   get(id: string): Promise<Item | null>;
   list(filter: ItemFilter): Promise<{ rows: ItemListRow[]; total: number }>;
-  findActiveByDescription(
-    subgroupId: string,
-    normalized: string,
-    exceptId?: string,
-  ): Promise<{ id: string; code: string } | null>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   setCogsOverride(id: string, value: boolean | null, version: number, audit: Audit): Promise<Result<void>>;
   setReorderLevels(

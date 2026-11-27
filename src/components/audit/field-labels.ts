@@ -92,7 +92,6 @@ const DECIMAL = /^-?\d+\.\d+$/;
 
 function one(field: string, v: unknown): string {
   if (typeof v === "boolean") return v ? "sim" : "não";
-  if (typeof v === "number") return String(v);
   if (typeof v !== "string") return String(v);
   if (field === "type" && v in ITEM_TYPE_LABELS) return ITEM_TYPE_LABELS[v as ItemType];
   if (field === "storageClass" && v in STORAGE_CLASS_LABELS) return STORAGE_CLASS_LABELS[v as StorageClass];

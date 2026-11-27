@@ -168,3 +168,10 @@ describe("preço de venda (spec 008, FR-001)", () => {
     }
   });
 });
+
+describe("linha mais cara sem custo nas linhas (spec 018)", () => {
+  it("custo total sem nenhuma linha com custo não aponta linha mais cara", () => {
+    const p = evaluateProductCost(xBurger({ lines: [{ name: "Pão", cost: null }] }));
+    expect(p.heaviest).toBeNull();
+  });
+});

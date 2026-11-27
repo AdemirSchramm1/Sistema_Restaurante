@@ -103,4 +103,31 @@ describe("aviso de reposição: recusas e casos (spec 006)", () => {
       atReorderPoint: false,
     });
   });
+
+  it("item sem saldo e sem consumo: vem antes de todos e o quadro não sugere nada", async () => {
+    const env = testEnv();
+    const m = await newRestaurant(env);
+    const egg = await loose(env, m, "Ovo", "1");
+    const lemon = await loose(env, m, "Limão", "3");
+    const sub = await subgroupId(env, m, "01", "02");
+    const salt = value(
+      await createItem(
+        env.deps,
+        m,
+        itemData({
+          subgroupId: sub,
+          description: "Sal",
+          stockUnit: "un",
+          purchaseUnitLabel: null,
+          purchaseFactor: null,
+        }),
+      ),
+    ).id;
+    for (const id of [egg, lemon, salt]) value(await setReorderLevels(env.deps, m, id, 1, levels("4")));
+    expect(value(await listReorderAlerts(env.deps, m)).map((a) => a.name)).toEqual(["Sal", "Ovo", "Limão"]);
+    expect(value(await getReorderView(env.deps, m, salt))).toMatchObject({
+      suggestion: null,
+      atReorderPoint: true,
+    });
+  });
 });

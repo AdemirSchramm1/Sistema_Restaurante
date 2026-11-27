@@ -86,3 +86,20 @@ describe("tabela Repor (spec 006, US2)", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
+
+describe("tabela Repor: prazo de entrega (spec 018, R4)", () => {
+  it("1 dia no singular, mais de um no plural; sem prazo não diz nada", () => {
+    render(
+      <ReorderTable
+        rows={[
+          alert({ itemId: "a", supplier: { name: "A", phone: null, leadTimeDays: 1 } }),
+          alert({ itemId: "b", supplier: { name: "B", phone: null, leadTimeDays: 3 } }),
+          alert({ itemId: "c", supplier: { name: "C", phone: null, leadTimeDays: null } }),
+        ]}
+      />,
+    );
+    expect(row("a").textContent).toContain("entrega em 1 dia");
+    expect(row("b").textContent).toContain("entrega em 3 dias");
+    expect(row("c").textContent).not.toContain("entrega em");
+  });
+});
