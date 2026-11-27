@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ActionState } from "@/actions/_session";
 import { KitchenBoard, type KitchenOrderView } from "./kitchen-board";
@@ -146,6 +146,15 @@ describe("quadro da cozinha (spec 009 US4)", () => {
     render(<KitchenBoard {...props} orders={[order({})]} />);
     fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
     expect(screen.queryByRole("group", { name: "Os ingredientes já foram usados?" })).toBeNull();
+  });
+
+  it("Voltar fecha o cancelamento sem cancelar", () => {
+    const cancel = vi.fn(noop);
+    render(<KitchenBoard {...props} cancel={cancel} orders={[order({})]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar pedido 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(screen.queryByLabelText("Motivo")).toBeNull();
+    expect(cancel).not.toHaveBeenCalled();
   });
 
   it("cada etapa tem a sua cor: Recebido açafrão, Em preparo páprica, Pronto manjericão (spec 012)", () => {

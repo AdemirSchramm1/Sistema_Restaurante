@@ -49,8 +49,6 @@ export interface SupplierRepo {
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   get(id: string): Promise<Supplier | null>;
   list(filter: SupplierFilter): Promise<SupplierListRow[]>;
-  findByCnpj(cnpj: string, exceptId?: string): Promise<{ id: string; name: string } | null>;
-  findActiveByName(normalized: string, exceptId?: string): Promise<{ id: string } | null>;
   /** Fornecedores ativos com as embalagens de cada item, para o lançamento de compra. */
   activeWithPackages(): Promise<
     {

@@ -43,15 +43,14 @@ export function ProductCustomization(props: ProductCustomizationProps) {
   const freeCandidates = props.candidates.filter((c) => !removables.some((x) => x.component === c.component));
   const edit = props.canEdit;
 
+  // "Ligar" só fica ativo com uma escolha da lista: ela sempre está nas opções.
   const addAddon = () => {
-    const a = props.available.find((x) => x.addonId === pickAddon);
-    if (!a) return;
+    const a = props.available.find((x) => x.addonId === pickAddon)!;
     setAddons((list) => [...list, { ...a, maxTimes: 1 }]);
     setPickAddon("");
   };
   const addRemoval = () => {
-    const c = props.candidates.find((x) => x.component === pickRemoval);
-    if (!c) return;
+    const c = props.candidates.find((x) => x.component === pickRemoval)!;
     setRemovables((list) => [...list, { component: c.component, name: c.name, label: "", orphan: false }]);
     setPickRemoval("");
   };

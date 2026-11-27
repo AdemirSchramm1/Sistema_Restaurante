@@ -119,6 +119,72 @@ describe("carrinho do celular (spec 009 US2, spec 010 US3)", () => {
   });
 });
 
+describe("carrinho: respostas que faltavam (spec 018, US3)", () => {
+  const fail = (code: string, details?: Record<string, unknown>) => ({
+    ok: false as const,
+    error: { code, message: "Mensagem do servidor.", details } as never,
+    at: 1,
+  });
+  const send = () => {
+    fireEvent.click(screen.getByRole("button", { name: "Enviar pedido" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  };
+
+  it("Menos um tira uma unidade", () => {
+    render(<Harness submit={vi.fn()} initial={start(burger)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Menos um X-Burger" }));
+    expect(screen.getByLabelText("Quantidade de X-Burger").textContent).toBe("1");
+  });
+
+  it("outra recusa sem detalhes mostra a mensagem; voltando, ela fica embaixo do total", async () => {
+    render(
+      <Harness submit={vi.fn<SubmitFn>().mockResolvedValue(fail("ACCESS_EXPIRED"))} initial={start(juice)} />,
+    );
+    send();
+    expect(await screen.findByText("Mensagem do servidor.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(screen.getByRole("alert").textContent).toBe("Mensagem do servidor.");
+  });
+
+  it("preço mudado sem mudança que o carrinho reconheça: mostra a mensagem do servidor", async () => {
+    render(
+      <Harness
+        submit={vi.fn<SubmitFn>().mockResolvedValue(fail("PRICE_CHANGED", { prices: [], addonPrices: [] }))}
+        initial={start(juice)}
+      />,
+    );
+    send();
+    expect(await screen.findByText("Mensagem do servidor.")).toBeTruthy();
+  });
+
+  it("opção indisponível sem retirada nomeada: mantém o produto e mostra a mensagem", async () => {
+    render(
+      <Harness
+        submit={vi
+          .fn<SubmitFn>()
+          .mockResolvedValue(fail("OPTION_UNAVAILABLE", { recipeId: "s", addonIds: [] }))}
+        initial={start(juice)}
+      />,
+    );
+    send();
+    expect(await screen.findByText("Mensagem do servidor.")).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Confira o pedido" })).toBeTruthy();
+  });
+
+  it("tudo indisponível: esvazia o carrinho e fecha a conferência", async () => {
+    render(
+      <Harness
+        submit={vi.fn<SubmitFn>().mockResolvedValue(fail("PRODUCT_UNAVAILABLE", { recipeIds: ["s"] }))}
+        initial={start(juice)}
+      />,
+    );
+    send();
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByRole("alert").textContent).toBe("Suco não está mais disponível.");
+    expect(screen.getByText("Escolha os pratos e eles aparecem aqui.")).toBeTruthy();
+  });
+});
+
 describe("a conferência do pedido é modal de verdade (spec 013, US6)", () => {
   it("enquanto está aberta, a página atrás fica inerte e a conferência fica fora dela", () => {
     render(

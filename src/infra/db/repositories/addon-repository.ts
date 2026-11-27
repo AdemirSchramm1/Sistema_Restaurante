@@ -69,9 +69,8 @@ export function addonRepository(tx: Tx, restaurantId: string): AddonRepo {
       .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
       .where(and(eq(addons.id, id), eq(addons.version, version)))
       .returning({ id: addons.id });
-    if (r.length) return ok(undefined);
-    const exists = await tx.select({ id: addons.id }).from(addons).where(eq(addons.id, id));
-    return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+    // Quem chama já achou o adicional: se nada mudou, a versão era velha.
+    return r.length ? ok(undefined) : err("STALE_RECORD");
   }
 
   return {
@@ -160,10 +159,8 @@ export function customizationRepository(tx: Tx, restaurantId: string, ids: () =>
         .set({ version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
         .where(and(eq(recipes.id, recipeId), eq(recipes.version, version)))
         .returning({ id: recipes.id });
-      if (!r.length) {
-        const exists = await tx.select({ id: recipes.id }).from(recipes).where(eq(recipes.id, recipeId));
-        return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
-      }
+      // Quem chama já achou o produto: se nada mudou, a versão era velha.
+      if (!r.length) return err("STALE_RECORD");
       await tx.delete(recipeAddons).where(eq(recipeAddons.recipeId, recipeId));
       await tx.delete(recipeRemovables).where(eq(recipeRemovables.recipeId, recipeId));
       if (config.addons.length)

@@ -72,10 +72,8 @@ function useCurrentSection(anchors: readonly string[]) {
       },
       { rootMargin: "-64px 0px -60% 0px" },
     );
-    for (const id of key.split(" ")) {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    }
+    // As âncoras só existem com os títulos na tela, então cada uma tem o seu h2.
+    for (const id of key.split(" ")) observer.observe(document.getElementById(id)!);
     return () => observer.disconnect();
   }, [key]);
   return { current, pick };

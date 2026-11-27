@@ -35,7 +35,6 @@ export interface DiningTableRepo {
   list(includeInactive: boolean): Promise<DiningTableRecord[]>;
   get(id: string): Promise<DiningTableRecord | null>;
   /** Nomes normalizados das mesas ativas. */
-  activeNames(): Promise<Set<string>>;
   insert(
     t: { id: string; name: string; normalized: string; qrToken: string },
     audit: Audit,

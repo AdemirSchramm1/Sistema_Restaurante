@@ -46,8 +46,9 @@ export async function getProductCustomization(
     if (!recipe) return err("NOT_FOUND");
     if (recipe.kind !== "DISH") return err("NOT_A_DISH");
     const current = await repos.customization.get(recipeId);
+    // Toda versão tem pelo menos uma linha (RECIPE_EMPTY), e cada linha aponta para algo que existe.
     const refs = recipe.current.lines.map((l) => l.component);
-    const found = refs.length ? await repos.recipes.components(refs) : [];
+    const found = await repos.recipes.components(refs);
     const nameOf = new Map(found.map((c) => [refKey(c.ref), c.name]));
     const inLatest = new Set(refs.map(refKey));
     const available = (await repos.addons.list(false)).map((a) => ({
@@ -64,7 +65,7 @@ export async function getProductCustomization(
         maxTimes,
       })),
       removables: current.removables.map((r) => ({ ...r, orphan: !inLatest.has(refKey(r.component)) })),
-      candidates: refs.map((component) => ({ component, name: nameOf.get(refKey(component)) ?? "?" })),
+      candidates: refs.map((component) => ({ component, name: nameOf.get(refKey(component))! })),
       available,
     });
   });
@@ -91,7 +92,7 @@ export async function setProductCustomization(
       (await repos.addons.getMany(input.addons.map((a) => a.addonId))).map((a) => [a.id, a]),
     );
     const refs = recipe.current.lines.map((l) => l.component);
-    const found = refs.length ? await repos.recipes.components(refs) : [];
+    const found = await repos.recipes.components(refs);
     const nameOf = new Map(found.map((c) => [refKey(c.ref), c.name]));
     const valid = validateCustomizationConfig(
       {

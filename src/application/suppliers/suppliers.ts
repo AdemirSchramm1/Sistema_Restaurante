@@ -52,15 +52,6 @@ function offerText(
   return `${itemName}: ${per}${o.preferred ? " (preferido)" : ""}`;
 }
 
-async function checkUnique(repos: Repos, data: SupplierData, normalized: string, exceptId?: string) {
-  if (data.cnpj) {
-    const other = await repos.suppliers.findByCnpj(data.cnpj, exceptId);
-    if (other) return err("CNPJ_IN_USE", "cnpj", { existingName: other.name });
-  }
-  if (await repos.suppliers.findActiveByName(normalized, exceptId)) return err("NAME_IN_USE", "name");
-  return ok(undefined);
-}
-
 export async function createSupplier(
   deps: Deps,
   ctx: RequestContext,
@@ -74,8 +65,6 @@ export async function createSupplier(
 
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const normalized = normalizeDescription(data.name);
-    const unique = await checkUnique(repos, data, normalized);
-    if (!unique.ok) return unique;
     const id = deps.ids.next();
     const inserted = await repos.suppliers.insert(
       { ...data, id, nameNormalized: normalized },
@@ -110,11 +99,8 @@ export async function updateSupplier(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.suppliers.get(id);
     if (!current) return err("NOT_FOUND");
-    if (current.version !== version) return err("STALE_RECORD");
+    // Nome repetido só conta entre os ativos: o índice único decide (spec 007).
     const normalized = normalizeDescription(data.name);
-    const unique = await checkUnique(repos, data, normalized, id);
-    if (!unique.ok && (unique.error.code === "CNPJ_IN_USE" || current.active)) return unique;
-
     const updated = await repos.suppliers.update(
       id,
       { ...data, nameNormalized: normalized },
@@ -149,10 +135,6 @@ export async function setSupplierActive(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.suppliers.get(id);
     if (!current) return err("NOT_FOUND");
-    if (active && !current.active) {
-      const same = await repos.suppliers.findActiveByName(normalizeDescription(current.name), id);
-      if (same) return err("NAME_IN_USE", "name");
-    }
     const r = await repos.suppliers.setActive(id, active, version, auditStamp(deps, ctx));
     if (!r.ok) return r;
     await repos.audit.record({
@@ -255,8 +237,6 @@ export async function addSupplierItem(
     const item = await repos.items.get(data.itemId);
     if (!item) return err("NOT_FOUND", "itemId");
     if (!item.active) return err("ITEM_INACTIVE", "itemId");
-    if (await repos.suppliers.findOffer(supplierId, data.itemId))
-      return err("SUPPLIER_ITEM_DUPLICATE", "itemId");
 
     const id = deps.ids.next();
     const stamp = auditStamp(deps, ctx);
@@ -287,7 +267,6 @@ export async function updateSupplierItem(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.suppliers.getItem(id);
     if (!current) return err("NOT_FOUND");
-    if (current.version !== version) return err("STALE_RECORD");
     const valid = validateSupplierItem({ ...input, itemId: current.itemId });
     if (!valid.ok) return valid;
     const { itemId: _i, ...data } = valid.value;

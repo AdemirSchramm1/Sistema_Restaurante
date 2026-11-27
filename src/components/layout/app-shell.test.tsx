@@ -84,4 +84,32 @@ describe("casco da tela (spec 012, US2)", () => {
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(button);
   });
+
+  it("outra tecla, ou Esc com o menu fechado, não mexe no menu", () => {
+    shell();
+    const button = screen.getByRole("button", { name: "Menu" });
+    const link = screen.getByRole("link", { name: "Itens" });
+    fireEvent.keyDown(link, { key: "Escape" });
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).not.toBe(button);
+    fireEvent.click(button);
+    fireEvent.keyDown(link, { key: "Enter" });
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("sem restaurante ainda, a marca é só o nome do produto", () => {
+    render(
+      <AppShell
+        restaurantName={null}
+        userName={null}
+        roles={["MANAGER"]}
+        reorderCount={0}
+        signOut={async () => {}}
+      >
+        <h1>Início</h1>
+      </AppShell>,
+    );
+    const brand = screen.getByRole("complementary");
+    expect(within(brand).getAllByText("Sistema Restaurante")).toHaveLength(1);
+  });
 });

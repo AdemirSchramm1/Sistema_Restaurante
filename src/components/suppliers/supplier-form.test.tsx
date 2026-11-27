@@ -69,4 +69,37 @@ describe("formulário do fornecedor (spec 007, US1)", () => {
     expect((screen.getByLabelText("Nome do fornecedor") as HTMLInputElement).value).toBe("Açougue Boi Bom");
     expect((screen.getByLabelText("CNPJ (opcional)") as HTMLInputElement).value).toBe("11.222.333/0001-80");
   });
+
+  it("edição leva o id e a versão; dia de entrega recusado aparece no grupo; salvo avisa", async () => {
+    let calls = 0;
+    const action = async () => {
+      calls++;
+      return calls === 1
+        ? {
+            ok: false as const,
+            error: { code: "VALIDATION" as const, field: "deliveryDays", message: "Dia inválido." },
+            at: 1,
+          }
+        : { ok: true as const, data: null, at: 2 };
+    };
+    const { container } = render(
+      <SupplierForm
+        action={action}
+        initial={emptySupplierValues}
+        meta={{ id: "s1", version: 3 }}
+        submitLabel="Salvar"
+      />,
+    );
+    expect((container.querySelector("input[name=id]") as HTMLInputElement).value).toBe("s1");
+    expect((container.querySelector("input[name=version]") as HTMLInputElement).value).toBe("3");
+    const form = screen.getByRole("form", { name: "Cadastro do fornecedor" });
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect((await screen.findAllByText("Dia inválido.")).length).toBeGreaterThan(0);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect(await screen.findByText("Alterações salvas.")).toBeTruthy();
+  });
 });

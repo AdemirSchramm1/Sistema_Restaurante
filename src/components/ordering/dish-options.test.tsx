@@ -52,6 +52,9 @@ describe("tela do prato com botões (spec 010, US3)", () => {
     expect(screen.getByTestId("dish-total").textContent).toBe("R$ 34,00");
     fireEvent.click(screen.getByRole("button", { name: "Mais um prato" }));
     expect(screen.getByTestId("dish-total").textContent).toBe("R$ 68,00");
+    fireEvent.click(screen.getByRole("button", { name: "Menos um prato" }));
+    expect(screen.getByTestId("dish-total").textContent).toBe("R$ 34,00");
+    expect(screen.getByRole("button", { name: "Menos um prato" }).matches(":disabled")).toBe(true);
   });
 
   it("não tem campo de texto e manda chamar o garçom para outra mudança", () => {

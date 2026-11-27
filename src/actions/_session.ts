@@ -50,7 +50,10 @@ export async function requireContext(): Promise<RequestContext> {
   return ctx;
 }
 
-export function toState<T>(r: Result<T>): ActionState<T> {
+/** Resposta de uma Server Action que já rodou: nunca o `null` do estado inicial do formulário. */
+export type ActionResult<T = unknown> = NonNullable<ActionState<T>>;
+
+export function toState<T>(r: Result<T>): ActionResult<T> {
   return r.ok
     ? { ok: true, data: r.value, at: Date.now() }
     : { ok: false, error: { ...r.error, message: messageFor(r.error) }, at: Date.now() };

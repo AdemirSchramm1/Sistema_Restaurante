@@ -21,6 +21,11 @@ describe("formulário do quadro 'Adicionar e tirar' (spec 010, US2)", () => {
     });
   });
 
+  it("adicional sem o máximo vem como NaN para a regra do domínio recusar", () => {
+    const r = parseCustomizationForm({ "addons.0.addonId": A });
+    expect(r.ok && Number.isNaN(r.value.addons[0]!.maxTimes)).toBe(true);
+  });
+
   it("recusa chave desconhecida e id inválido", () => {
     expect(parseCustomizationForm({ note: "x" }).ok).toBe(false);
     expect(parseCustomizationForm({ "addons.0.addonId": "1", "addons.0.maxTimes": "1" }).ok).toBe(false);

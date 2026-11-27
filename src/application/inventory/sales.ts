@@ -65,7 +65,7 @@ export async function reverseOrderSale(
   repos: Repos,
   orderId: string,
   ingredientsUsed: boolean,
-): Promise<Result<{ movementIds: string[] }>> {
+): Promise<string[]> {
   const reasons = {
     reversal: reasonByCode("REVERSAL", "ORDER_CANCELLED"),
     loss: reasonByCode("LOSS", "ORDER_CANCELLED"),
@@ -102,5 +102,5 @@ export async function reverseOrderSale(
         ),
       );
   }
-  return ok({ movementIds });
+  return movementIds;
 }

@@ -89,6 +89,16 @@ describe("formulário do item do fornecedor (spec 007, US2)", () => {
     expect(field(parseSupplierItemForm({ itemId: "", price: "1" }))).toBe("itemId");
   });
 
+  it("quantidade da embalagem inválida é INVALID_FACTOR no campo packageQuantity", () => {
+    const r = parseSupplierItemForm({
+      itemId: ITEM,
+      price: "1",
+      packageLabel: "Caixa",
+      packageQuantity: "x",
+    });
+    expect([code(r), field(r)]).toEqual(["INVALID_FACTOR", "packageQuantity"]);
+  });
+
   it("na edição o item não vem no formulário", () => {
     const r = parseSupplierItemForm({ price: "1" }, { requireItem: false });
     expect(code(r)).toBe("OK");

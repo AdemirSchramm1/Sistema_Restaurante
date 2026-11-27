@@ -97,13 +97,6 @@ export function diningTableRepository(tx: Tx, restaurantId: string): DiningTable
       const [r] = await tx.select(cols).from(diningTables).where(eq(diningTables.id, id));
       return r ?? null;
     },
-    async activeNames() {
-      const rows = await tx
-        .select({ n: diningTables.nameNormalized })
-        .from(diningTables)
-        .where(eq(diningTables.active, true));
-      return new Set(rows.map((r) => r.n));
-    },
     insert: (t, audit) =>
       guarded(async () => {
         await tx.insert(diningTables).values({
@@ -273,8 +266,8 @@ export function orderingSettingsRepository(tx: Tx, restaurantId: string): Orderi
         })
         .from(restaurants)
         .where(eq(restaurants.id, restaurantId));
-      if (!r) throw new Error("restaurante não encontrado");
-      const { logoBase, logoWidths, coverBase, coverWidths, ...settings } = r;
+      // Dentro da transação do restaurante, ele existe.
+      const { logoBase, logoWidths, coverBase, coverWidths, ...settings } = r!;
       const photo = (base: string | null, widths: number[] | null) =>
         base && widths ? { base, widths } : null;
       return {
@@ -356,38 +349,36 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         ),
       )
       .orderBy(asc(orderLines.position));
+    // Há pedidos, e todo pedido tem pelo menos uma linha.
     const lineIds = lines.map((l) => l.id);
-    const chosenAddons = lineIds.length
-      ? await tx
-          .select({
-            lineId: orderLineAddons.orderLineId,
-            addonId: orderLineAddons.addonId,
-            name: orderLineAddons.name,
-            times: orderLineAddons.times,
-          })
-          .from(orderLineAddons)
-          .where(inArray(orderLineAddons.orderLineId, lineIds))
-          .orderBy(asc(orderLineAddons.createdAt), asc(orderLineAddons.id))
-      : [];
-    const removals = lineIds.length
-      ? await tx
-          .select({
-            lineId: orderLineRemovals.orderLineId,
-            label: orderLineRemovals.label,
-            itemId: orderLineRemovals.itemId,
-            subRecipeId: orderLineRemovals.subRecipeId,
-          })
-          .from(orderLineRemovals)
-          .where(inArray(orderLineRemovals.orderLineId, lineIds))
-          .orderBy(asc(orderLineRemovals.createdAt), asc(orderLineRemovals.id))
-      : [];
+    const chosenAddons = await tx
+      .select({
+        lineId: orderLineAddons.orderLineId,
+        addonId: orderLineAddons.addonId,
+        name: orderLineAddons.name,
+        times: orderLineAddons.times,
+      })
+      .from(orderLineAddons)
+      .where(inArray(orderLineAddons.orderLineId, lineIds))
+      .orderBy(asc(orderLineAddons.createdAt), asc(orderLineAddons.id));
+    const removals = await tx
+      .select({
+        lineId: orderLineRemovals.orderLineId,
+        label: orderLineRemovals.label,
+        itemId: orderLineRemovals.itemId,
+        subRecipeId: orderLineRemovals.subRecipeId,
+      })
+      .from(orderLineRemovals)
+      .where(inArray(orderLineRemovals.orderLineId, lineIds))
+      .orderBy(asc(orderLineRemovals.createdAt), asc(orderLineRemovals.id));
     const linesByOrder = groupBy(lines, (l) => l.orderId);
     const addonsByLine = groupBy(chosenAddons, (a) => a.lineId);
     const removalsByLine = groupBy(removals, (x) => x.lineId);
     return rows.map((r) => ({
       ...r,
       total: dec(r.total)!,
-      lines: (linesByOrder.get(r.id) ?? []).map((l) => ({
+      // Todo pedido tem pelo menos uma linha.
+      lines: linesByOrder.get(r.id)!.map((l) => ({
         quantity: l.quantity,
         productName: l.productName,
         unitPrice: dec(l.unitPrice)!,
@@ -566,7 +557,8 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
       // QR code primeiro, depois o tablet da mesa (016) e a equipe pelo nome.
       const rank = { QR: 0, TABLET: 1, STAFF: 2 } as const;
       return [...groups.values()].sort(
-        (a, b) => rank[a.source] - rank[b.source] || (a.name ?? "").localeCompare(b.name ?? "", "pt-BR"),
+        // Só os grupos da equipe empatam na origem, e eles sempre têm o nome de quem lançou.
+        (a, b) => rank[a.source] - rank[b.source] || a.name!.localeCompare(b.name!, "pt-BR"),
       );
     },
     async staffPlacers() {
@@ -582,7 +574,7 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         .select({ n: sql<number>`count(*)::int` })
         .from(orders)
         .where(eq(orders.menuAccessId, menuAccessId));
-      return Number(r?.n ?? 0);
+      return r!.n;
     },
     async insert(o) {
       try {
@@ -640,8 +632,8 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
             left join table_tabs tab on tab.table_id = t.id and tab.status = 'OPEN'
             where r.id = ${restaurantId}`,
       );
-      const row = r.rows[0];
-      if (!row) return { tabId: null, stamp: "" };
+      // A mesa vem do acesso do tablet: existe no restaurante.
+      const row = r.rows[0]!;
       return {
         tabId: row.tab_id,
         stamp: [row.rv, row.tv, row.tab_id ?? "-", row.changed ?? "-", row.n].join("|"),
@@ -664,10 +656,8 @@ export function orderRepository(tx: Tx, restaurantId: string, ids: () => string)
         })
         .where(and(eq(orders.id, id), eq(orders.version, version), eq(orders.status, change.from)))
         .returning({ id: orders.id });
-      if (!r.length) {
-        const exists = await tx.select({ id: orders.id }).from(orders).where(eq(orders.id, id));
-        return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
-      }
+      // Quem chama já achou o pedido: se nada mudou, a versão (ou a situação) era velha.
+      if (!r.length) return err("STALE_RECORD");
       await tx.insert(orderStatusEvents).values({
         id: ids(),
         restaurantId,
@@ -719,22 +709,21 @@ export function menuRepository(tx: Tx): MenuRepo {
         .from(recipeVersions)
         .where(inArray(recipeVersions.recipeId, found))
         .orderBy(recipeVersions.recipeId, desc(recipeVersions.number));
+      // Todo produto tem versão, e toda versão tem pelo menos uma linha (RECIPE_EMPTY).
       const versionOf = new Map(versions.map((v) => [v.recipeId, v.id]));
-      const lines = versions.length
-        ? await tx
-            .select({
-              versionId: recipeLines.recipeVersionId,
-              itemId: recipeLines.itemId,
-              subRecipeId: recipeLines.subRecipeId,
-            })
-            .from(recipeLines)
-            .where(
-              inArray(
-                recipeLines.recipeVersionId,
-                versions.map((v) => v.id),
-              ),
-            )
-        : [];
+      const lines = await tx
+        .select({
+          versionId: recipeLines.recipeVersionId,
+          itemId: recipeLines.itemId,
+          subRecipeId: recipeLines.subRecipeId,
+        })
+        .from(recipeLines)
+        .where(
+          inArray(
+            recipeLines.recipeVersionId,
+            versions.map((v) => v.id),
+          ),
+        );
       const offered = await tx
         .select({
           recipeId: recipeAddons.recipeId,
@@ -768,10 +757,9 @@ export function menuRepository(tx: Tx): MenuRepo {
       const offeredByRecipe = groupBy(offered, (a) => a.recipeId);
       const removablesByRecipe = groupBy(removables, (x) => x.recipeId);
       for (const r of rows) {
-        const versionId = versionOf.get(r.id);
-        if (!versionId) continue;
+        const versionId = versionOf.get(r.id)!;
         const inVersion = new Set(
-          (linesByVersion.get(versionId) ?? []).map((l) => refKey(ref(l.itemId, l.subRecipeId))),
+          linesByVersion.get(versionId)!.map((l) => refKey(ref(l.itemId, l.subRecipeId))),
         );
         out.set(r.id, {
           id: r.id,
@@ -795,7 +783,8 @@ export function menuRepository(tx: Tx): MenuRepo {
               name: a.name,
               price: dec(a.price)!,
               maxTimes: a.maxTimes,
-              available: a.active && (a.itemActive ?? a.subRecipeActive ?? false) === true,
+              // O adicional aponta para um item ou para um preparo (restrição do banco).
+              available: a.active && (a.itemActive ?? a.subRecipeActive)!,
             })),
             removables: (removablesByRecipe.get(r.id) ?? []).map((x) => {
               const component = ref(x.itemId, x.subRecipeId);
@@ -831,8 +820,8 @@ export function orderChoicesRepository(tx: Tx): OrderChoicesRepo {
         .from(orderLines)
         .where(eq(orderLines.orderId, orderId))
         .orderBy(asc(orderLines.position));
+      // Todo pedido tem pelo menos uma linha.
       const lineIds = lines.map((l) => l.id);
-      if (!lineIds.length) return [];
       const chosen = await tx
         .select()
         .from(orderLineAddons)
@@ -857,7 +846,7 @@ export function orderChoicesRepository(tx: Tx): OrderChoicesRepo {
       return lines.map((l) => ({
         recipeId: l.recipeId,
         recipeVersionId: l.recipeVersionId,
-        versionLines: (versionLinesByVersion.get(l.recipeVersionId) ?? []).map((v) => ({
+        versionLines: versionLinesByVersion.get(l.recipeVersionId)!.map((v) => ({
           component: ref(v.itemId, v.subRecipeId),
           quantity: dec(v.quantity)!,
           unit: UNIT_CODE_BY_ID[v.unitId]!,

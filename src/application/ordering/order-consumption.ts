@@ -29,11 +29,12 @@ export async function consumptionFor(repos: Repos, orderId: string): Promise<Res
     l.addons.forEach((a) => add(a.component));
   });
   graph.forEach((n) => n.lines.forEach((l) => add(l.component)));
-  const found = refs.size ? await repos.recipes.components([...refs.values()]) : [];
+  // Toda linha do pedido tem a versão do produto, e as linhas apontam para itens que existem.
+  const found = await repos.recipes.components([...refs.values()]);
   const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
   const items = (id: string) => {
-    const c = byKey.get(refKey({ kind: "ITEM", id }));
-    return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+    const c = byKey.get(refKey({ kind: "ITEM", id }))!;
+    return { stockUnit: c.unit, averageCost: c.averageCost };
   };
 
   const total = new Map<string, Decimal>();

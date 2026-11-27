@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { SupplierItems, type SupplierItemRow } from "./supplier-items";
 
 afterEach(cleanup);
@@ -84,5 +84,87 @@ describe("itens que o fornecedor vende (spec 007, US2)", () => {
     renderList(false);
     expect(screen.queryByRole("form", { name: "Adicionar item ao fornecedor" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Tirar/ })).toBeNull();
+  });
+
+  it("sem itens: avisa nos dois modos, com a coluna de mudar só para quem cadastra", () => {
+    for (const canWrite of [true, false]) {
+      render(
+        <SupplierItems
+          supplierId="s1"
+          rows={[]}
+          items={ITEMS}
+          canWrite={canWrite}
+          addAction={noop}
+          updateAction={noop}
+          removeAction={noop}
+        />,
+      );
+      const cell = screen.getByText("Nenhum item ainda.") as HTMLTableCellElement;
+      expect(cell.colSpan).toBe(canWrite ? 6 : 5);
+      cleanup();
+    }
+  });
+
+  const fail = (field?: string) => ({
+    ok: false as const,
+    error: { code: "VALIDATION" as const, field, message: field ? `Erro em ${field}.` : "Erro geral." },
+    at: 1,
+  });
+
+  async function submitAdd(action: () => Promise<unknown>) {
+    render(
+      <SupplierItems
+        supplierId="s1"
+        rows={ROWS}
+        items={ITEMS}
+        canWrite
+        addAction={action as never}
+        updateAction={noop}
+        removeAction={noop}
+      />,
+    );
+    const form = screen.getByRole("form", { name: "Adicionar item ao fornecedor" });
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    return form;
+  }
+
+  it("adicionar: erro geral em cima, erro de campo embaixo, e sucesso limpa os campos", async () => {
+    let form = await submitAdd(async () => fail());
+    expect(within(form).getAllByText("Erro geral.").length).toBeGreaterThan(0);
+    cleanup();
+
+    form = await submitAdd(async () => fail("price"));
+    expect(within(form).getAllByText("Erro em price.").length).toBeGreaterThan(0);
+    cleanup();
+
+    form = await submitAdd(async () => ({ ok: true, data: null, at: 7 }));
+    expect((within(form).getByLabelText("Preço (R$)") as HTMLInputElement).value).toBe("");
+    expect(within(form).queryByRole("alert")).toBeNull();
+  });
+
+  it("editar: salvo avisa; recusa mostra a mensagem", async () => {
+    const results = [fail("price"), { ok: true as const, data: null, at: 2 }];
+    render(
+      <SupplierItems
+        supplierId="s1"
+        rows={ROWS}
+        items={ITEMS}
+        canWrite
+        addAction={noop}
+        updateAction={async () => results.shift()!}
+        removeAction={noop}
+      />,
+    );
+    const form = screen.getByRole("form", { name: "Editar Cebola" });
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect(within(form).getAllByText("Erro em price.").length).toBeGreaterThan(0);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect(within(form).getByRole("status").textContent).toBe("Salvo.");
   });
 });

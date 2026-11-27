@@ -64,6 +64,39 @@ describe("cardápio do celular (spec 009 US2, spec 010 US3)", () => {
     expect(screen.getByTestId("cart-total").textContent).toBe("R$ 9,00");
   });
 
+  it("Voltar ao cardápio fecha a tela do prato sem pôr nada no pedido", () => {
+    render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" }));
+    const dish = screen.getByRole("region", { name: "X-Burger" });
+    fireEvent.click(within(dish).getByRole("button", { name: "Voltar ao cardápio" }));
+    expect(screen.queryByRole("region", { name: "X-Burger" })).toBeNull();
+    expect(screen.getByTestId("cart-total").textContent).toBe("R$ 0,00");
+  });
+
+  it("quando o tempo do QR code acaba, some o cardápio e o carrinho", () => {
+    vi.useFakeTimers();
+    try {
+      const now = Date.now();
+      render(
+        <MenuApp
+          menu={{
+            ...menu,
+            serverNow: new Date(now).toISOString(),
+            expiresAt: new Date(now + 60_000).toISOString(),
+          }}
+          orders={[]}
+          submit={vi.fn()}
+        />,
+      );
+      act(() => vi.advanceTimersByTime(2 * 60_000));
+      expect(screen.getByText(/Seu tempo acabou/)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Pôr Suco no carrinho" })).toBeNull();
+      expect(screen.queryByTestId("cart-total")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("produto com opções abre a tela do prato", () => {
     render(<MenuApp menu={menu} orders={[]} submit={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Pôr X-Burger no carrinho" }));

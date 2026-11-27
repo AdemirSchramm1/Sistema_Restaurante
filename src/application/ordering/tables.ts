@@ -63,27 +63,25 @@ export async function createTablesInRange(
   const names = tableRange(input.from, input.to);
   if (!names.ok) return names;
   return deps.tenant(ctx.restaurantId, async (repos) => {
-    const existing = await repos.tables.activeNames();
     const skipped: string[] = [];
     let created = 0;
-    for (const raw of names.value) {
-      const v = validateTableName(raw);
-      if (!v.ok) return v;
-      if (existing.has(v.value.normalized)) {
-        skipped.push(v.value.name);
-        continue;
-      }
+    // Números de 1 a 999: sempre nome válido, e o normalizado é o próprio número.
+    for (const name of names.value) {
       const id = deps.ids.next();
       const inserted = await repos.tables.insert(
-        { id, name: v.value.name, normalized: v.value.normalized, qrToken: deps.tokens.create().token },
+        { id, name, normalized: name, qrToken: deps.tokens.create().token },
         auditStamp(deps, ctx),
       );
-      if (!inserted.ok) return inserted;
+      // Já existe mesa ativa com esse nome (o índice único decide): fica como está.
+      if (!inserted.ok) {
+        skipped.push(name);
+        continue;
+      }
       await repos.audit.record({
         entity: ENTITY,
         entityId: id,
         action: "CREATE",
-        changes: diffFields(null, { name: v.value.name, active: true }),
+        changes: diffFields(null, { name, active: true }),
         userId: ctx.userId,
         origin: ctx.origin,
       });

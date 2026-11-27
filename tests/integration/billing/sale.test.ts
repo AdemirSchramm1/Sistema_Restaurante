@@ -227,9 +227,9 @@ describe("baixa e estorno da venda: casos que faltavam (spec 018, US2)", () => {
       env.deps.tenant(m.restaurantId, async (repos) => ({ ok: true as const, value: await fn(repos) }));
     const missing = unwrap(await inTx((repos) => recordOrderSale(env.deps, m, repos, crypto.randomUUID())));
     expect(code(missing)).toBe("NOT_FOUND");
-    const first = unwrap(unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false))));
-    const again = unwrap(unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false))));
-    expect([first.movementIds.length, again.movementIds]).toEqual([3, []]);
+    const first = unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false)));
+    const again = unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false)));
+    expect([first.length, again]).toEqual([3, []]);
   });
 
   it("o relatório do estoque mostra a venda como 'Venda'; garçom não vê o relatório", async () => {

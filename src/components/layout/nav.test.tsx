@@ -55,6 +55,12 @@ describe("menu por permissão (spec 009, T022)", () => {
     expect(homeFor(["CHEF"])).toBe("/estoque/itens");
     expect(homeFor(["STOCKKEEPER"])).toBe("/estoque/itens");
     expect(homeFor(["MANAGER"])).toBe("/estoque/itens");
+    expect(homeFor([])).toBe("/sem-acesso");
+  });
+
+  it("um item para repor fica no singular", () => {
+    render(<MainNav roles={["CHEF"]} reorderCount={1} />);
+    expect(screen.getByLabelText("1 item para repor")).toBeTruthy();
   });
 
   it("mostra os links do papel e a contagem do Repor", () => {

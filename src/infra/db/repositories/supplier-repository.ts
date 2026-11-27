@@ -31,19 +31,27 @@ function toRow(s: SupplierData & { nameNormalized: string }) {
 
 const escapeLike = (s: string) => s.replace(/[%_\\]/g, "\\$&");
 
-/** Violação de unicidade → erro de domínio. */
-async function guarded(tx: Tx, fn: () => Promise<Result<void>>): Promise<Result<void>> {
-  try {
-    return await withSavepoint(tx, fn);
-  } catch (e) {
-    if (isUniqueViolation(e, "suppliers_cnpj")) return err("CNPJ_IN_USE", "cnpj");
-    if (isUniqueViolation(e, "suppliers_active_name")) return err("NAME_IN_USE", "name");
-    if (isUniqueViolation(e, "supplier_items_supplier_item")) return err("SUPPLIER_ITEM_DUPLICATE", "itemId");
-    throw e;
-  }
-}
-
 export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
+  /** Violação de unicidade → erro de domínio. CNPJ repetido mostra o nome do outro fornecedor. */
+  async function guarded(fn: () => Promise<Result<void>>, cnpj?: string | null): Promise<Result<void>> {
+    try {
+      return await withSavepoint(tx, fn);
+    } catch (e) {
+      if (isUniqueViolation(e, "suppliers_cnpj")) {
+        // Depois de voltar ao savepoint, o único com esse CNPJ é o outro fornecedor.
+        const [other] = await tx
+          .select({ name: suppliers.name })
+          .from(suppliers)
+          .where(eq(suppliers.cnpj, cnpj!));
+        return err("CNPJ_IN_USE", "cnpj", { existingName: other!.name });
+      }
+      if (isUniqueViolation(e, "suppliers_active_name")) return err("NAME_IN_USE", "name");
+      if (isUniqueViolation(e, "supplier_items_supplier_item"))
+        return err("SUPPLIER_ITEM_DUPLICATE", "itemId");
+      throw e;
+    }
+  }
+
   async function optimistic(
     table: typeof suppliers | typeof supplierItems,
     id: string,
@@ -56,9 +64,8 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
       .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
       .where(and(eq(table.id, id), eq(table.version, version)))
       .returning({ id: table.id });
-    if (r.length) return ok(undefined);
-    const exists = await tx.select({ id: table.id }).from(table).where(eq(table.id, id));
-    return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+    // Quem chama já achou o registro: se nada mudou, a versão era velha.
+    return r.length ? ok(undefined) : err("STALE_RECORD");
   }
 
   /** Última compra não estornada deste fornecedor para este item. */
@@ -107,7 +114,7 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
 
   return {
     insert: (s, audit) =>
-      guarded(tx, async () => {
+      guarded(async () => {
         await tx.insert(suppliers).values({
           id: s.id,
           restaurantId,
@@ -118,12 +125,13 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
           updatedBy: audit.by,
         });
         return ok(undefined);
-      }),
+      }, s.cnpj),
 
-    update: (id, s, version, audit) => guarded(tx, () => optimistic(suppliers, id, version, toRow(s), audit)),
+    update: (id, s, version, audit) =>
+      guarded(() => optimistic(suppliers, id, version, toRow(s), audit), s.cnpj),
 
     setActive: (id, active, version, audit) =>
-      guarded(tx, () => optimistic(suppliers, id, version, { active }, audit)),
+      guarded(() => optimistic(suppliers, id, version, { active }, audit)),
 
     async get(id) {
       const [s] = await tx.select().from(suppliers).where(eq(suppliers.id, id));
@@ -172,28 +180,6 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
         .where(where.length ? and(...where) : undefined)
         .orderBy(asc(suppliers.nameNormalized));
       return rows;
-    },
-
-    async findByCnpj(cnpj, exceptId) {
-      const [r] = await tx
-        .select({ id: suppliers.id, name: suppliers.name })
-        .from(suppliers)
-        .where(and(eq(suppliers.cnpj, cnpj), exceptId ? ne(suppliers.id, exceptId) : undefined));
-      return r ?? null;
-    },
-
-    async findActiveByName(normalized, exceptId) {
-      const [r] = await tx
-        .select({ id: suppliers.id })
-        .from(suppliers)
-        .where(
-          and(
-            eq(suppliers.nameNormalized, normalized),
-            eq(suppliers.active, true),
-            exceptId ? ne(suppliers.id, exceptId) : undefined,
-          ),
-        );
-      return r ?? null;
     },
 
     async activeWithPackages() {
@@ -247,7 +233,7 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
     },
 
     insertItem: (row, audit) =>
-      guarded(tx, async () => {
+      guarded(async () => {
         await tx.insert(supplierItems).values({
           id: row.id,
           restaurantId,
@@ -266,7 +252,7 @@ export function supplierRepository(tx: Tx, restaurantId: string): SupplierRepo {
       }),
 
     updateItem: (id, data, version, audit) =>
-      guarded(tx, () =>
+      guarded(() =>
         optimistic(
           supplierItems,
           id,
