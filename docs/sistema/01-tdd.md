@@ -96,13 +96,23 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
   funções no código novo do cardápio (domínio, casos de uso, componentes, loja de fotos e
   repositório), e `pnpm test:mutation` (Stryker) exige que todo mutante de `src/domain/menu/**`
   morra. Uma linha que nenhum teste exige não passa.
+- **Conta da mesa, estoque, pedido e fornecedores (feature 018): 100%.** `pnpm test:billing`,
+  `pnpm test:stock` e `pnpm test:orders` exigem 100% de linhas, desvios, funções e instruções no
+  domínio, nos casos de uso, nos componentes e nos repositórios de cada área (a lista exata fica no
+  `vitest.config.mts`; o escopo, em `specs/018-validar-estoque-conta/contracts/gates.md`), e
+  `pnpm test:mutation` cobre todo `src/domain/**`. Linha que nenhum teste exige ou é apagada
+  (código morto) ou ganha o teste que faltava; `/* v8 ignore */` e `// Stryker disable` não entram.
+  Cada regra de `docs/produto/estoque/` e `pedidos/01` a `05` tem o seu teste nomeado em
+  `specs/018-validar-estoque-conta/rules.md`.
 - **As telas também têm teste**: a matriz de 9 tamanhos × 2 modos de cor × 2 motores, com
   asserções de layout e comparação de imagem. Ver [05-testes-de-tela.md](05-testes-de-tela.md).
 - A CI roda em todo PR, com os jobs em paralelo: **estatico** (`format:check`, `lint`,
-  `typecheck`), **unidade** (`test:unit`, `test:mutation`), **integracao** (`test:menu`, que roda
-  todos os testes de unidade e de integração com a régua de 100% do cardápio), **e2e** (`test:e2e`
-  com o axe) e **telas** (`test:screens` em 6 partes: 2 motores × cardápio do cliente claro, escuro e o resto dos
-  arquivos).
+  `typecheck`), **unidade** (`test:unit`), **mutacao** (`test:mutation` em 2 partes: estoque e fornecedores, e o
+  resto do domínio), **integracao** (5 partes, cada uma com o seu banco: `test:menu`, que roda todos
+  os testes de unidade e de integração com a régua de 100% do cardápio; `test:cash` e `test:staff`;
+  `test:billing`; `test:stock`; `test:orders`), **e2e** (`test:e2e` com o axe) e **telas**
+  (`test:screens` em 8 partes: 2 motores × cardápio do cliente claro, escuro, telas da operação e o
+  resto dos arquivos).
 - PR que só muda documentação (Markdown, `docs/`, `specs/`, `.specify/`) roda só o **estatico**; os
   outros jobs aparecem como pulados. Commit novo no PR cancela a rodada anterior.
 - Teste que falha "de vez em quando" é defeito do teste: conserta a causa (dado fixo, esperar a
