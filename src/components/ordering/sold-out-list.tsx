@@ -13,7 +13,7 @@ export function SoldOutList({
 }) {
   return (
     <details className="rounded-lg border border-border p-3">
-      <summary className="cursor-pointer font-medium">
+      <summary className="flex min-h-11 cursor-pointer items-center font-medium">
         Esgotado hoje ({dishes.filter((x) => x.soldOut).length})
       </summary>
       <ul className="mt-2 grid gap-2">

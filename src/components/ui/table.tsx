@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 /** Tabela do padrão (spec 012): cabeçalho em `muted`, realce da linha ao passar o mouse. */
 export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-border bg-card shadow-xs">
+    // Recebe foco para quem usa teclado rolar a tabela de lado no celular (axe: scrollable-region-focusable).
+    <div
+      tabIndex={0}
+      className="w-full overflow-x-auto rounded-xl border border-border bg-card shadow-xs focus-visible:outline-2 focus-visible:outline-ring"
+    >
       <table
         className={cn(
           "w-full text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50",

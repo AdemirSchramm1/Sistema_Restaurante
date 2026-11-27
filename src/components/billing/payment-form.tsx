@@ -73,7 +73,7 @@ export function PaymentForm({
           {PAYMENT_METHODS.map((m) => (
             <label
               key={m}
-              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm font-medium transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground"
+              className="flex h-11 cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm font-medium transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground"
             >
               <input
                 type="radio"
@@ -93,6 +93,7 @@ export function PaymentForm({
         <label className="grid gap-1 text-sm font-medium">
           Valor (R$)
           <Input
+            size="lg"
             name="amount"
             inputMode="decimal"
             className="w-36"
@@ -105,6 +106,7 @@ export function PaymentForm({
           <label className="grid gap-1 text-sm font-medium">
             Recebido em dinheiro (R$)
             <Input
+              size="lg"
               name="received"
               inputMode="decimal"
               className="w-36"
@@ -114,7 +116,7 @@ export function PaymentForm({
             />
           </label>
         )}
-        <Button type="submit" disabled={pending || Boolean(blockedBy)} aria-describedby={blockedBy}>
+        <Button size="lg" type="submit" disabled={pending || Boolean(blockedBy)} aria-describedby={blockedBy}>
           Lançar pagamento
         </Button>
       </div>
@@ -241,7 +243,7 @@ export function PaymentList({
             {remove && !removed && confirming !== p.id && (
               <Button
                 type="button"
-                size="sm"
+                size="lg"
                 variant="ghost"
                 className="justify-self-start"
                 aria-label={`Tirar pagamento de ${value} (${label})`}
@@ -262,7 +264,7 @@ export function PaymentList({
                 aria-label={`Tirar pagamento de ${value} (${label})`}
               >
                 <p className="basis-full">{`Tirar o pagamento de ${value} em ${label}?`}</p>
-                <Button type="button" size="sm" variant="ghost" onClick={() => setConfirming(null)}>
+                <Button type="button" size="lg" variant="ghost" onClick={() => setConfirming(null)}>
                   Voltar
                 </Button>
               </ActionForm>

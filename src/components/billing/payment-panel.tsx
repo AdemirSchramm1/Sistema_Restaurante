@@ -34,7 +34,9 @@ export function PaymentPanel({
         </Alert>
       )}
       <details className="rounded-md border border-border p-3">
-        <summary className="cursor-pointer text-sm font-medium">Dividir a conta</summary>
+        <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">
+          Dividir a conta
+        </summary>
         <div className="mt-3">
           <SplitHelper
             remaining={remaining}

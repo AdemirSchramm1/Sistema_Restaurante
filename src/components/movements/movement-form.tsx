@@ -131,7 +131,13 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Tipo de lançamento" htmlFor="type" error={fe("type")}>
-          <Select id="type" name="type" value={type} onChange={(e) => setType(e.target.value as FormType)}>
+          <Select
+            size="lg"
+            id="type"
+            name="type"
+            value={type}
+            onChange={(e) => setType(e.target.value as FormType)}
+          >
             {types.map((t) => (
               <option key={t} value={t}>
                 {t === "ADJUSTMENT" ? "Pedir acerto do saldo" : MOVEMENT_TYPE_LABELS[t]}
@@ -141,6 +147,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
         </Field>
         <Field label="Item" htmlFor="itemId" error={fe("itemId")}>
           <Select
+            size="lg"
             id="itemId"
             name="itemId"
             value={itemId}
@@ -164,6 +171,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
           error={fe("supplierId")}
         >
           <Select
+            size="lg"
             id="supplierId"
             name="supplierId"
             value={supplierId}
@@ -191,6 +199,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
           error={fe(qtyName)}
         >
           <Input
+            size="lg"
             id={qtyName}
             name={qtyName}
             inputMode="decimal"
@@ -201,7 +210,13 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
           />
         </Field>
         <Field label="Medida" htmlFor="unit" error={fe("unit")}>
-          <Select id="unit" name="unit" value={currentUnit} onChange={(e) => setUnit(e.target.value)}>
+          <Select
+            size="lg"
+            id="unit"
+            name="unit"
+            value={currentUnit}
+            onChange={(e) => setUnit(e.target.value)}
+          >
             {!item && <option value="">—</option>}
             {units.map((u) => (
               <option key={u.value} value={u.value}>
@@ -218,6 +233,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
             error={fe("totalPaid")}
           >
             <Input
+              size="lg"
               id="totalPaid"
               name="totalPaid"
               inputMode="decimal"
@@ -236,7 +252,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
       </div>
       {type !== "PURCHASE" && (
         <Field label="Motivo" htmlFor="reasonId" error={fe("reasonId")}>
-          <Select id="reasonId" name="reasonId" defaultValue="" required className="sm:w-80">
+          <Select size="lg" id="reasonId" name="reasonId" defaultValue="" required className="sm:w-80">
             <option value="">Escolha o motivo…</option>
             {families.map((f) => (
               <optgroup key={f} label={REASON_FAMILY_LABELS[f]}>
@@ -255,11 +271,11 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
       <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
         {type !== "ADJUSTMENT" && (
           <Field label="Data" htmlFor="occurredAt" error={fe("occurredAt")}>
-            <Input id="occurredAt" name="occurredAt" type="date" defaultValue={today} max={today} />
+            <Input size="lg" id="occurredAt" name="occurredAt" type="date" defaultValue={today} max={today} />
           </Field>
         )}
         <Field label="Observação (opcional)" htmlFor="notes" hint="Ex.: de quem comprou, o que aconteceu">
-          <Input id="notes" name="notes" maxLength={500} />
+          <Input size="lg" id="notes" name="notes" maxLength={500} />
         </Field>
       </div>
       {type === "ADJUSTMENT" && (
@@ -268,7 +284,7 @@ export function MovementForm({ action, items, types, today, suppliers = [] }: Pr
         </p>
       )}
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Salvando…" : type === "ADJUSTMENT" ? "Pedir acerto" : "Lançar"}
         </Button>
       </div>

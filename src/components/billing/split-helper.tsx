@@ -43,6 +43,7 @@ export function SplitHelper({ remaining, onPick }: { remaining: string; onPick: 
       <label className="grid gap-1 text-sm font-medium">
         Dividir por quantas pessoas?
         <Input
+          size="lg"
           type="number"
           inputMode="numeric"
           min={MIN_PEOPLE}
@@ -70,7 +71,7 @@ export function SplitHelper({ remaining, onPick }: { remaining: string; onPick: 
                 <span>{`Parte ${n} de ${people}: ${brl(part)}`}</span>
                 <Button
                   type="button"
-                  size="sm"
+                  size="lg"
                   variant="outline"
                   onClick={() => {
                     setPicked(part.toFixed(2));

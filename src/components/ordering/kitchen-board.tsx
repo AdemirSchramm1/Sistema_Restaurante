@@ -71,12 +71,13 @@ function CancelForm({
       hidden={{ id: order.id, version: order.version }}
       submitLabel="Confirmar cancelamento"
       variant="destructive"
+      size="lg"
       className="grid gap-2 rounded-md border border-border p-2"
       aria-label={`Cancelar pedido ${order.number}`}
     >
       <label className="grid gap-1 text-sm">
         <span>Motivo</span>
-        <Select name="reason" value={reason} onChange={(e) => setReason(e.target.value)} required>
+        <Select size="lg" name="reason" value={reason} onChange={(e) => setReason(e.target.value)} required>
           <option value="">Escolha</option>
           {CANCEL_REASONS.map((r) => (
             <option key={r} value={r}>
@@ -88,13 +89,13 @@ function CancelForm({
       {reason === "OTHER" && (
         <label className="grid gap-1 text-sm">
           <span>Qual o motivo?</span>
-          <Input name="note" maxLength={CANCEL_NOTE_MAX} required />
+          <Input size="lg" name="note" maxLength={CANCEL_NOTE_MAX} required />
         </label>
       )}
       {leftTheShelf(order.status) && (
         <fieldset className="grid gap-1 text-sm">
           <legend className="mb-1">Os ingredientes já foram usados?</legend>
-          <label className="flex items-center gap-2">
+          <label className="flex min-h-11 items-center gap-2">
             <input
               type="radio"
               className="accent-primary"
@@ -104,13 +105,13 @@ function CancelForm({
             />
             Sim, vão para a perda
           </label>
-          <label className="flex items-center gap-2">
+          <label className="flex min-h-11 items-center gap-2">
             <input type="radio" className="accent-primary" name="ingredientsUsed" value="false" />
             Não, voltam para o estoque
           </label>
         </fieldset>
       )}
-      <Button type="button" size="sm" variant="ghost" onClick={onClose}>
+      <Button type="button" size="lg" variant="ghost" onClick={onClose}>
         Voltar
       </Button>
     </ActionForm>

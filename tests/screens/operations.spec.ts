@@ -93,6 +93,9 @@ for (const mode of COLOR_MODES) {
           .first()
           .getByRole("button")
           .click();
+        await expect(
+          page.getByRole("region", { name: "Prontos" }).getByRole("article").first(),
+        ).toBeVisible();
         await page.goto("/pedidos/garcom");
         await expect(page.getByRole("button", { name: "Entregue" }).first()).toBeVisible();
         await checkLayout(page);
@@ -106,8 +109,9 @@ for (const mode of COLOR_MODES) {
 
       test("Conta da mesa com pagamento, divisão e taxa", async ({ asStaff: page }) => {
         await sendOrder(page);
-        await page.goto("/caixa");
+        await ensureCashOpen(page);
         await page
+          .locator("main")
           .getByRole("link", { name: /Mesa 12/ })
           .first()
           .click();
@@ -119,6 +123,7 @@ for (const mode of COLOR_MODES) {
         await expect(
           page.getByRole("button", { name: /^Tirar pagamento de R\$ 1,00/ }).first(),
         ).toBeVisible();
+        await page.getByText("Dividir a conta").click();
         await page.getByLabel("Dividir por quantas pessoas?").fill("3");
         await expect(page.getByRole("button", { name: "Pagar parte 1 de 3" })).toBeVisible();
         await expect(
