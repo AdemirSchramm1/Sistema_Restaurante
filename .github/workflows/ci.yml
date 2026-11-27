@@ -77,11 +77,13 @@ jobs:
       fail-fast: false
       matrix:
         parte: [estoque, resto]
+        # O Stryker separa a lista por vírgula: chaves como {a,b} quebram o padrão, então cada pasta
+        # vai por extenso.
         include:
           - parte: estoque
-            mutate: "src/domain/{inventory,suppliers}/**/*.ts,!src/domain/**/*.test.ts"
+            mutate: "src/domain/inventory/**/*.ts,src/domain/suppliers/**/*.ts,!src/domain/**/*.test.ts"
           - parte: resto
-            mutate: "src/domain/**/*.ts,!src/domain/{inventory,suppliers}/**,!src/domain/**/*.test.ts"
+            mutate: "src/domain/**/*.ts,!src/domain/inventory/**,!src/domain/suppliers/**,!src/domain/**/*.test.ts"
     name: mutacao (${{ matrix.parte }})
     steps:
       - uses: actions/checkout@v4
