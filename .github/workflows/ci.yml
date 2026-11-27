@@ -65,17 +65,58 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:unit
-      # Specs 013 (TDD-008) e 014 (R12): todo mutante do domínio do cardápio e do caixa morto.
-      - run: pnpm test:mutation
 
-  # Unidade e integração juntas, com a régua de 100% do cardápio (spec 013, TDD-008). É aqui que
-  # todos os testes de integração rodam: `test:menu` não filtra projeto, então um `test:integration`
-  # separado repetiria os mesmos testes.
+  # Spec 018 (R1): todo mutante de src/domain/ morto, em duas partes paralelas. As duas listas
+  # cobrem todas as pastas do domínio: pasta nova entra na parte "resto" sozinha.
+  mutacao:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        parte: [estoque, resto]
+        include:
+          - parte: estoque
+            mutate: "src/domain/{inventory,suppliers}/**/*.ts,!src/domain/**/*.test.ts"
+          - parte: resto
+            mutate: "src/domain/**/*.ts,!src/domain/{inventory,suppliers}/**,!src/domain/**/*.test.ts"
+    name: mutacao (${{ matrix.parte }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:mutation --mutate "${{ matrix.mutate }}"
+
+  # Unidade e integração juntas, com as réguas de 100%. A parte "cardapio" roda todos os testes
+  # (`test:menu` não filtra arquivo, spec 013, TDD-008); as outras rodam só os testes do seu escopo
+  # (specs 014, 015 e 018, R3), cada parte com o seu PostgreSQL.
   integracao:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        parte: [cardapio, caixa-e-equipe, conta, estoque, pedido]
+        include:
+          - parte: cardapio
+            run: pnpm test:menu
+          - parte: caixa-e-equipe
+            run: pnpm test:cash && pnpm test:staff
+          - parte: conta
+            run: pnpm test:billing
+          - parte: estoque
+            run: pnpm test:stock
+          - parte: pedido
+            run: pnpm test:orders
+    name: integracao (${{ matrix.parte }})
     services:
       postgres:
         image: postgres:17
@@ -96,12 +137,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:menu
-      # Spec 014 (R12): régua de 100% do caixa do dia. Roda só os testes do caixa, para não repetir
-      # a suíte inteira que o `test:menu` já rodou.
-      - run: pnpm test:cash
-      # Spec 015 (R19): régua de 100% do pedido lançado pela equipe.
-      - run: pnpm test:staff
+      - run: ${{ matrix.run }}
 
   e2e:
     needs: changes
@@ -147,9 +183,10 @@ jobs:
 
   # Testes de tela (spec 013): matriz de 9 telas, claro e escuro, Chromium e WebKit, com comparação
   # de imagem. Roda dentro da imagem oficial do Playwright para os pixels serem os da referência.
-  # Seis partes em paralelo: cada motor roda o cardápio do cliente (o arquivo mais demorado) no
-  # modo claro, no modo escuro, e o resto dos arquivos. As três partes se completam: arquivo ou
-  # teste novo cai sozinho em uma delas. Cada parte tem o seu banco e o seu restaurante de teste.
+  # Oito partes em paralelo: cada motor roda o cardápio do cliente (o arquivo mais demorado) no
+  # modo claro, no modo escuro, as telas da operação (spec 018) e o resto dos arquivos. As quatro
+  # partes se completam: arquivo ou teste novo cai sozinho em uma delas. Cada parte tem o seu banco
+  # e o seu restaurante de teste.
   telas:
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -159,14 +196,16 @@ jobs:
       fail-fast: false
       matrix:
         motor: [telas-chromium, telas-webkit]
-        parte: [cardapio-claro, cardapio-escuro, resto]
+        parte: [cardapio-claro, cardapio-escuro, operacoes, resto]
         include:
           - parte: cardapio-claro
             args: tests/screens/customer-menu.spec.ts --grep-invert dark
           - parte: cardapio-escuro
             args: tests/screens/customer-menu.spec.ts --grep dark
+          - parte: operacoes
+            args: tests/screens/operations.spec.ts
           - parte: resto
-            args: "'tests/screens/(?!customer-menu)'"
+            args: "'tests/screens/(?!customer-menu|operations)'"
     name: telas (${{ matrix.motor }}, ${{ matrix.parte }})
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
