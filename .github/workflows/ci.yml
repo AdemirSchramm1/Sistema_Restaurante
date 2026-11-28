@@ -97,7 +97,7 @@ jobs:
 
   # Unidade e integração juntas, com as réguas de 100%. A parte "cardapio" roda todos os testes
   # (`test:menu` não filtra arquivo, spec 013, TDD-008); as outras rodam só os testes do seu escopo
-  # (specs 014, 015 e 018, R3), cada parte com o seu PostgreSQL.
+  # (specs 014, 015, 018 e 019), cada parte com o seu PostgreSQL.
   integracao:
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -106,7 +106,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        parte: [cardapio, caixa-e-equipe, conta, estoque, pedido]
+        parte: [cardapio, caixa-e-equipe, conta, estoque, pedido, auditoria]
         include:
           - parte: cardapio
             run: pnpm test:menu
@@ -118,6 +118,8 @@ jobs:
             run: pnpm test:stock
           - parte: pedido
             run: pnpm test:orders
+          - parte: auditoria
+            run: pnpm test:audit
     name: integracao (${{ matrix.parte }})
     services:
       postgres:

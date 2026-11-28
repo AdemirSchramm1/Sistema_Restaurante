@@ -67,7 +67,8 @@ export type AuditSearch = {
   userId: string | null;
   entities: readonly string[] | null;
   deniedOnly: boolean;
-  limit: number;
+  /** Sem limite: a planilha leva o período inteiro. */
+  limit: number | null;
   offset: number;
 };
 

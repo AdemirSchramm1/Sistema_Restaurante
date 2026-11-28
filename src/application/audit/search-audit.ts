@@ -21,6 +21,7 @@ export async function searchAudit(
   deps: Deps,
   ctx: RequestContext,
   query: Record<string, string | string[] | undefined>,
+  options: { allPages?: boolean } = {},
 ): Promise<Result<AuditReport>> {
   const allowed = await authorize(deps, ctx, "audit.read", AUDIT_ENTITY);
   if (!allowed.ok) return allowed;
@@ -35,8 +36,8 @@ export async function searchAudit(
       userId: f.userId,
       entities: f.type ? entitiesOf(f.type) : null,
       deniedOnly: f.deniedOnly,
-      limit: AUDIT_PAGE_SIZE,
-      offset: (f.page - 1) * AUDIT_PAGE_SIZE,
+      limit: options.allPages ? null : AUDIT_PAGE_SIZE,
+      offset: options.allPages ? 0 : (f.page - 1) * AUDIT_PAGE_SIZE,
     });
     return ok({ filter: f, ...found, timezone });
   });

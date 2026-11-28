@@ -14,6 +14,7 @@ import {
   NotebookPen,
   Package,
   Receipt,
+  ShieldCheck,
   ShoppingCart,
   Truck,
   UtensilsCrossed,
@@ -128,6 +129,13 @@ export const NAV: readonly NavEntry[] = [
     icon: CirclePlus,
   },
   { href: "/equipe", label: "Equipe", action: "user.manage", section: "settings", icon: Users },
+  {
+    href: "/equipe/auditoria",
+    label: "Auditoria",
+    action: "audit.read",
+    section: "settings",
+    icon: ShieldCheck,
+  },
 ];
 
 const SECTIONS: readonly { id: NavSectionId; label: string }[] = [

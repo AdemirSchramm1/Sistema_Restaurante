@@ -102,6 +102,18 @@ const ordersCoverage = gate("orders", [
   "src/infra/db/repositories/{ordering,addon,supplier}-repository.ts",
 ]);
 
+/**
+ * Régua da spec 019 (FR-011), usada por `pnpm test:audit` (`--mode audit`): auditoria, operação
+ * pequena e revisão semanal com 100% de linhas, desvios e funções, somando unidade e integração.
+ */
+const auditCoverage = gate("audit", [
+  "src/domain/audit/**/*.ts",
+  "src/application/audit/**/*.ts",
+  "src/components/audit/**/*.{ts,tsx}",
+  "src/infra/db/repositories/audit-repository.ts",
+  "src/actions/_audit-csv.ts",
+]);
+
 const focused = {
   menu: menuCoverage,
   cash: cashCoverage,
@@ -109,6 +121,7 @@ const focused = {
   billing: billingCoverage,
   stock: stockCoverage,
   orders: ordersCoverage,
+  audit: auditCoverage,
 } as const;
 
 export default defineConfig(({ mode }) => ({

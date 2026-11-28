@@ -76,9 +76,9 @@ describe("Auditoria (spec 019, US1)", () => {
       ),
     ).toEqual([
       ["20/11/2026, 14:30:00", "Ana", "Equipe e acessos", "Tentou sem permissão", ""],
-      ["20/11/2026, 14:30:00", "Cliente pelo QR code", "Pedidos", "Criou", ""],
+      ["20/11/2026, 14:30:00", "Cliente pelo QR code", "PedidosAbrir", "Criou", ""],
     ]);
-    expect(within(rows[1]!).getByRole("link", { name: "Ver pedido" }).getAttribute("href")).toBe(
+    expect(within(rows[1]!).getByRole("link", { name: "Abrir" }).getAttribute("href")).toBe(
       `/pedidos/${ITEM}`,
     );
     expect(within(rows[0]!).queryByRole("link")).toBeNull();

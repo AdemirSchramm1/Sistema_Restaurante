@@ -55,14 +55,14 @@ export function auditRepository(tx: Tx, restaurantId: string, ids: IdGenerator, 
         .select({ total: sql<number>`count(*)::int` })
         .from(auditLog)
         .where(matching(f));
-      const rows = await tx
+      const query = tx
         .select({ log: auditLog, userName: users.name })
         .from(auditLog)
         .leftJoin(users, eq(users.id, auditLog.userId))
         .where(matching(f))
         .orderBy(desc(auditLog.occurredAt), desc(auditLog.id))
-        .limit(f.limit)
-        .offset(f.offset);
+        .$dynamic();
+      const rows = await (f.limit === null ? query : query.limit(f.limit).offset(f.offset));
       return {
         total: count!.total,
         rows: rows.map(({ log, userName }) => ({

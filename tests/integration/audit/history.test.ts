@@ -32,4 +32,23 @@ describe("histórico do registro (FR-004, SC-007)", () => {
     expect(h.value[1]!.changes).toEqual({ purchaseUnitLabel: ["Caixa", "Saco"] });
     expect(h.value[1]!.occurredAt.getTime() - h.value[0]!.occurredAt.getTime()).toBe(60_000);
   });
+
+  it("garçom e caixa não veem o histórico do cadastro, e a tentativa fica na trilha", async () => {
+    const env = testEnv();
+    const manager = await newRestaurant(env);
+    const waiter = await addMember(env, manager, ["WAITER"], "Garçom Leo");
+    const sub = await subgroupId(env, manager, "01", "02");
+    const created = await createItem(env.deps, manager, itemData({ subgroupId: sub }));
+    if (!created.ok) throw new Error();
+    const h = await getAuditHistory(env.deps, waiter, "item", created.value.id);
+    expect(h).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+    const all = await env.deps.tenant(manager.restaurantId, async (repos) => ({
+      ok: true as const,
+      value: await repos.audit.history("item", created.value.id),
+    }));
+    expect(all.ok && all.value.map((e) => [e.action, e.userId])).toEqual([
+      ["CREATE", manager.userId],
+      ["DENIED", waiter.userId],
+    ]);
+  });
 });

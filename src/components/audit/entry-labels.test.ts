@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { changeLines, entryLabel, recordHref, recordName, whoDid } from "./entry-labels";
+import { changeLines, entryLabel, operationLabel, recordHref, recordName, whoDid } from "./entry-labels";
 
 const e = (action: "CREATE" | "UPDATE" | "DEACTIVATE" | "REACTIVATE" | "DENIED", changes = {}) => ({
   action,
@@ -48,6 +48,11 @@ describe("rótulos de um registro da trilha (spec 019, FR-004: um tradutor só)"
     expect(whoDid({ userName: null, origin: { channel: "web" } })).toBe("Cliente pelo QR code");
     expect(whoDid({ userName: null, origin: { channel: "system" } })).toBe("Sistema");
     expect(whoDid({ userName: null, origin: { channel: "test" } })).toBe("Sistema");
+  });
+
+  it("tipo de operação da entidade, ou a entidade como veio", () => {
+    expect(operationLabel("adjustment_request")).toBe("Lançamentos de estoque");
+    expect(operationLabel("coisa_nova")).toBe("coisa_nova");
   });
 
   it("link para o registro que tem tela", () => {

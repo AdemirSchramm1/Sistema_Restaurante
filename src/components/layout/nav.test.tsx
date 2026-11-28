@@ -98,7 +98,7 @@ describe("menu lateral por área (spec 012, US2)", () => {
         "Operação",
         ["Cozinha", "Lançar pedido", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"],
       ],
-      ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
+      ["Configuração", ["Mesas", "Adicionais", "Equipe", "Auditoria"]],
     ]);
   });
 
