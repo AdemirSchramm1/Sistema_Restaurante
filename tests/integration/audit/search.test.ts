@@ -6,11 +6,12 @@ import { updateItem } from "../../../src/application/inventory/update-item";
 import { searchAudit } from "../../../src/application/audit/search-audit";
 import type { RequestContext } from "../../../src/application/context";
 import type { AuditEntry } from "../../../src/application/ports";
+import { ok } from "../../../src/domain/shared/result";
 
 /** Grava direto na trilha (atalho de teste), na hora do relógio do teste. */
 async function record(env: TestEnv, ctx: RequestContext, entry: Partial<AuditEntry> = {}) {
-  await env.deps.tenant(ctx.restaurantId, (repos) =>
-    repos.audit.record({
+  await env.deps.tenant(ctx.restaurantId, async (repos) => {
+    await repos.audit.record({
       entity: "supplier",
       entityId: env.deps.ids.next(),
       action: "CREATE",
@@ -18,8 +19,9 @@ async function record(env: TestEnv, ctx: RequestContext, entry: Partial<AuditEnt
       userId: ctx.userId,
       origin: { channel: "test" },
       ...entry,
-    }),
-  );
+    });
+    return ok(undefined);
+  });
 }
 
 const unwrap = <T>(r: { ok: true; value: T } | { ok: false; error: unknown }): T => {
@@ -138,7 +140,10 @@ describe("relatório de auditoria (spec 019, US1)", () => {
     const chef = await addMember(env, manager, ["CHEF"], "Chef Bia");
     const cashier = await addMember(env, manager, ["CASHIER"], "Caixa Ana");
     for (const who of [chef, cashier])
-      expect(await searchAudit(env.deps, who, {})).toEqual({ ok: false, error: { code: "FORBIDDEN" } });
+      expect(await searchAudit(env.deps, who, {})).toEqual({
+        ok: false,
+        error: { code: "FORBIDDEN", details: { action: "audit.read" } },
+      });
     const denied = unwrap(await searchAudit(env.deps, manager, { negadas: "1" }));
     expect(denied.rows.map((e) => [e.entity, e.entityId, e.userName, e.changes])).toEqual([
       ["audit_log", null, "Caixa Ana", { action: "audit.read" }],

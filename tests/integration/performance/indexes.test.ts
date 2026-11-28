@@ -17,6 +17,7 @@ import { listItems } from "../../../src/application/inventory/list-items";
 import { listGroupTree } from "../../../src/application/inventory/list-group-tree";
 import { listRecipes } from "../../../src/application/inventory/recipes";
 import { getShellInfo } from "../../../src/application/shell";
+import { searchAudit } from "../../../src/application/audit/search-audit";
 import { listSuppliers } from "../../../src/application/suppliers/suppliers";
 import { cashScenario } from "../cash/fixtures";
 import { tablet, tableWithQr, unwrap } from "../ordering/fixtures";
@@ -71,6 +72,10 @@ describe("consultas das telas usam índice (spec 012, FR-008)", () => {
       mesas: () => listTables(deps, b.m, { includeInactive: true }),
       adicionais: () => listAddons(deps, b.m, { includeInactive: true }),
       "cabeçalho (nome e Repor)": () => getShellInfo(deps, b.m),
+      auditoria: () => searchAudit(deps, b.m, { de: day, ate: day }),
+      "auditoria por pessoa e tipo": () =>
+        searchAudit(deps, b.m, { de: day, ate: day, pessoa: b.m.userId, tipo: "ORDERS" }),
+      "auditoria só negadas": () => searchAudit(deps, b.m, { de: day, ate: day, negadas: "1" }),
     };
 
     const problems: string[] = [];

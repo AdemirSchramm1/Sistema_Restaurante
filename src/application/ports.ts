@@ -57,7 +57,21 @@ export interface AuditRepo {
     entity: string,
     entityId: string,
   ): Promise<(AuditEntry & { occurredAt: Date; userName: string | null })[]>;
+  /** Relatório de auditoria (spec 019): dias locais no fuso do restaurante, mais novo primeiro. */
+  search(f: AuditSearch): Promise<{ total: number; rows: AuditRow[] }>;
 }
+
+export type AuditSearch = {
+  fromDay: string;
+  toDay: string;
+  userId: string | null;
+  entities: readonly string[] | null;
+  deniedOnly: boolean;
+  limit: number;
+  offset: number;
+};
+
+export type AuditRow = AuditEntry & { id: string; occurredAt: Date; userName: string | null };
 
 export type Repos = AccessRepos &
   CatalogRepos &

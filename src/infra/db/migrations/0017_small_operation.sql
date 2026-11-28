@@ -1,0 +1,2 @@
+CREATE INDEX "audit_log_period" ON "audit_log" USING btree ("restaurant_id","occurred_at","id");--> statement-breakpoint
+CREATE INDEX "audit_log_user_period" ON "audit_log" USING btree ("restaurant_id","user_id","occurred_at","id");

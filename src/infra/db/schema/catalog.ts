@@ -268,5 +268,10 @@ export const auditLog = pgTable(
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     origin: jsonb("origin").notNull(),
   },
-  (t) => [index("audit_log_entity").on(t.restaurantId, t.entity, t.entityId, t.occurredAt)],
+  (t) => [
+    index("audit_log_entity").on(t.restaurantId, t.entity, t.entityId, t.occurredAt),
+    // Relatório de auditoria (spec 019, R3): período e pessoa + período, lidos de trás para frente.
+    index("audit_log_period").on(t.restaurantId, t.occurredAt, t.id),
+    index("audit_log_user_period").on(t.restaurantId, t.userId, t.occurredAt, t.id),
+  ],
 );

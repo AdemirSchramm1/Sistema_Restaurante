@@ -120,6 +120,13 @@
       "when": 1794960529819,
       "tag": "0016_table_tablets",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795830640295,
+      "tag": "0017_small_operation",
+      "breakpoints": true
     }
   ]
 }

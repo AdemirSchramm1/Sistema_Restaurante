@@ -41,7 +41,7 @@ const ENTITIES: Record<OperationType, readonly string[]> = {
   TABS: ["table_tab"],
   CASH: ["cash_session"],
   MENU: ["menu", "menu_section"],
-  TEAM: ["membership", "invitation"],
+  TEAM: ["membership", "invitation", "audit_log"],
   SETTINGS: ["restaurant"],
 };
 
