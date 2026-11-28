@@ -23,6 +23,9 @@ export type AuditReportProps = {
   error: "INVALID_PERIOD" | null;
 };
 
+/** Link dentro da tabela com área de toque de 44 px (spec 012, US6.5). */
+const TAP = "inline-flex min-h-11 min-w-11 items-center";
+
 const PERIOD_ERROR = "Escolha um período de até 31 dias, com o início antes do fim.";
 
 /** O filtro no endereço, sem os campos vazios. */
@@ -40,7 +43,13 @@ function What({ row }: { row: AuditRow }) {
   return (
     <>
       <span className="block text-muted-foreground">{operationLabel(row.entity)}</span>
-      {href ? <TextLink href={href}>{name ?? "Abrir"}</TextLink> : name}
+      {href ? (
+        <TextLink className={TAP} href={href}>
+          {name ?? "Abrir"}
+        </TextLink>
+      ) : (
+        name
+      )}
     </>
   );
 }

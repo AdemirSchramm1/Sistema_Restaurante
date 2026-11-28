@@ -14,7 +14,12 @@ export function ReviewBanner({ weeks }: { weeks: readonly string[] }) {
         {weeks.map((w) => (
           <li key={w}>
             Há exceções da operação pequena para revisar (semana de {weekText(w)}).{" "}
-            <TextLink href={`/equipe/auditoria/revisao?semana=${w}`}>Revisar</TextLink>
+            <TextLink
+              className="inline-flex min-h-11 min-w-11 items-center"
+              href={`/equipe/auditoria/revisao?semana=${w}`}
+            >
+              Revisar
+            </TextLink>
           </li>
         ))}
       </ul>

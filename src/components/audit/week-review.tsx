@@ -66,7 +66,12 @@ export function WeekReview({ week, timezone, action }: WeekReviewProps) {
                   <Td className="whitespace-nowrap">{when(e.decidedAt, timezone)}</Td>
                   <Td>{e.decidedByName}</Td>
                   <Td>
-                    <TextLink href={`/estoque/itens/${e.itemId}`}>{e.itemName}</TextLink>
+                    <TextLink
+                      className="inline-flex min-h-11 min-w-11 items-center"
+                      href={`/estoque/itens/${e.itemId}`}
+                    >
+                      {e.itemName}
+                    </TextLink>
                   </Td>
                   <Td numeric>
                     {qty(e.difference)} {e.stockUnit}
