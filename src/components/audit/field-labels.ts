@@ -83,6 +83,8 @@ export const FIELD_LABELS: Record<string, string> = {
   menuSection: "Seção do cardápio",
   menuPosition: "Posição na seção",
   position: "Posição",
+  smallOperation: "Modo operação pequena",
+  selfApproved: "Aprovado por quem pediu (operação pequena)",
 };
 
 /** Campos cujo valor é um id interno ou uma lista técnica: o histórico só diz que mudou. */

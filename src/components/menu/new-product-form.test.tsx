@@ -39,7 +39,11 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function setup({ answer = created, check = ok(reduced) as Result<Blob> } = {}) {
+function setup({
+  answer = created,
+  check = ok(reduced) as Result<Blob>,
+  reduce = async () => check,
+}: { answer?: ActionState; check?: Result<Blob>; reduce?: () => Promise<Result<Blob>> } = {}) {
   const sent: Record<string, FormDataEntryValue>[] = [];
   const saving = deferred<ActionState>();
   const sending = deferred<Result<Photo>>();
@@ -53,7 +57,7 @@ function setup({ answer = created, check = ok(reduced) as Result<Blob> } = {}) {
         sent.push(Object.fromEntries(form));
         return saving.promise;
       }}
-      reduce={async () => check}
+      reduce={reduce}
       upload={(input) => {
         uploads.push({ recipeId: input.recipeId!, file: input.file });
         progress = input.onProgress;
@@ -153,6 +157,20 @@ describe("produto novo do Cardápio", () => {
     expect(push).not.toHaveBeenCalled();
     await photoAnswer(ok(photo));
     expect(push).toHaveBeenCalledWith("/pedidos/cardapio");
+  });
+
+  it("enquanto a foto é preparada no aparelho, Criar produto espera (a foto não se perde)", async () => {
+    const preparing = deferred<Result<Blob>>();
+    setup({ reduce: () => preparing.promise });
+    fillAll();
+    await choosePhoto();
+    const create = screen.getByRole("button", { name: "Criar produto" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(screen.getByRole("status", { name: "Preparando a foto" })).toBeTruthy();
+    await act(async () => preparing.resolve(ok(reduced)));
+    expect(create.disabled).toBe(false);
+    expect(screen.queryByRole("status", { name: "Preparando a foto" })).toBeNull();
+    expect(screen.getByRole("img", { name: "Prévia da foto" })).toBeTruthy();
   });
 
   it("se a foto falhar, o produto já está salvo: abre o produto avisando da foto", async () => {

@@ -74,6 +74,8 @@ export function NewProductForm({
   const [photo, setPhoto] = useState<Chosen | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // A foto é reduzida no aparelho antes de valer; criar antes disso perderia a foto sem aviso.
+  const [preparing, setPreparing] = useState(false);
   const [percent, setPercent] = useState<number | null>(null);
   const [error, setError] = useState<ActionError | null>(null);
   const [noAnswer, setNoAnswer] = useState(false);
@@ -89,7 +91,9 @@ export function NewProductForm({
     const file = input.files?.[0];
     if (!file) return;
     setPhotoError(null);
+    setPreparing(true);
     const ready = await reduce(file);
+    setPreparing(false);
     input.value = "";
     if (!ready.ok) return setPhotoError(messageFor(ready.error));
     choose({ file: ready.value, preview: URL.createObjectURL(ready.value) });
@@ -153,6 +157,11 @@ export function NewProductForm({
             <p className="grid size-full place-items-center text-sm text-muted-foreground">Sem foto</p>
           )}
         </div>
+        {preparing && (
+          <p role="status" aria-label="Preparando a foto" className="text-sm text-muted-foreground">
+            Preparando a foto…
+          </p>
+        )}
         {percent !== null && (
           <div
             role="progressbar"
@@ -184,7 +193,7 @@ export function NewProductForm({
       </section>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit" size="lg" className={WRAPPING_BUTTON} disabled={pending}>
+        <Button type="submit" size="lg" className={WRAPPING_BUTTON} disabled={pending || preparing}>
           Criar produto
         </Button>
         {error && !OWN_ERROR.test(error.field ?? "") && <Problem>{error.message}</Problem>}

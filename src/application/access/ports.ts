@@ -28,6 +28,10 @@ export interface RestaurantRepo {
     audit: Audit,
   ): Promise<void>;
   get(): Promise<{ id: string; name: string; timezone: string } | null>;
+  /** Modo operação pequena (spec 019), travado para leitura até o fim da transação (`for share`). */
+  smallOperation(): Promise<{ enabled: boolean; version: number }>;
+  /** Trava otimista pela versão do restaurante. */
+  setSmallOperation(enabled: boolean, version: number, audit: Audit): Promise<boolean>;
 }
 
 export interface MemberRepo {

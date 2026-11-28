@@ -230,8 +230,11 @@ export async function decideAdjustment(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const req = await repos.movements.lockRequest(requestId);
     if (!req) return err("NOT_FOUND");
-    const decision = checkAdjustmentDecision(req, ctx.userId);
+    // O modo é lido e travado na mesma transação: ligar ou desligar ao mesmo tempo espera (US2-7).
+    const small = await repos.restaurants.smallOperation();
+    const decision = checkAdjustmentDecision(req, ctx.userId, small.enabled);
     if (!decision.ok) return decision;
+    const { selfDecided } = decision.value;
     const at = deps.clock.now();
     let movementId: string | null = null;
     if (approve) {
@@ -265,12 +268,17 @@ export async function decideAdjustment(
       at,
       notes: cleanNotes(notes),
       movementId,
+      selfDecided,
     });
     await repos.audit.record({
       entity: "adjustment_request",
       entityId: requestId,
       action: "UPDATE",
-      changes: { status: ["PENDING", approve ? "APPROVED" : "REJECTED"] },
+      changes: {
+        status: ["PENDING", approve ? "APPROVED" : "REJECTED"],
+        // Exceção da operação pequena: só a aprovação de quem pediu (recusar não muda saldo).
+        ...(selfDecided && approve ? { selfApproved: [false, true] } : {}),
+      },
       userId: ctx.userId,
       origin: ctx.origin,
     });
@@ -297,6 +305,7 @@ export async function cancelAdjustment(
       at: deps.clock.now(),
       notes: null,
       movementId: null,
+      selfDecided: false,
     });
     return ok(undefined);
   });

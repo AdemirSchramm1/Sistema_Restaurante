@@ -5,6 +5,7 @@ import type { Result } from "@/domain/shared/result";
 import type { Role } from "@/domain/access/permissions";
 import { withTenantTx, type Db, type Tx } from "./db/db";
 import { auditRepository } from "./db/repositories/audit-repository";
+import { exceptionReviewRepository } from "./db/repositories/exception-review-repository";
 import {
   invitationRepository,
   memberRepository,
@@ -47,6 +48,7 @@ export const uuidIds = { next: () => uuidv7() };
 function repos(tx: Tx, restaurantId: string, clock: Clock): Repos {
   return {
     audit: auditRepository(tx, restaurantId, uuidIds, clock),
+    exceptionReviews: exceptionReviewRepository(tx, restaurantId),
     restaurants: restaurantRepository(tx, restaurantId),
     members: memberRepository(tx, restaurantId, uuidIds.next),
     invitations: invitationRepository(tx, restaurantId),

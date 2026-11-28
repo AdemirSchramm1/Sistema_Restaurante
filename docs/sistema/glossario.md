@@ -50,7 +50,7 @@
 | Variância | – | `variance` | |
 | Recebimento | – | `receiving` | |
 | Acerto de estoque | – | `MovementType.ADJUSTMENT` | Substitui o ajuste de inventário (sem contagem). Só nasce de pedido aprovado |
-| Pedido de acerto | – | `adjustment_request` (`AdjustmentStatus`: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`) | Quem pediu não aprova |
+| Pedido de acerto | – | `adjustment_request` (`AdjustmentStatus`: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`) | Quem pediu não aprova, exceto no modo operação pequena (019) |
 | Estorno | – | `MovementType.REVERSAL` (`reverses_id`) | Uma vez por movimentação |
 | Lançamento | – | `stock_movement` | Nome na tela do menu "Lançamentos" |
 | Permissões de lançamento | – | `movement.purchase`, `movement.loss`, `adjustment.request`, `adjustment.approve`, `movement.reverse` | Ver spec 004, FR-006 |
@@ -132,6 +132,11 @@
 | Boas-vindas do tablet | – | `TabletScreen`: `WELCOME`, `MENU`, `STILL_THERE`, `SENT` | Telas do tablet; volta às boas-vindas sozinho |
 | Layout do cardápio | – | `MenuLayout`: `list`, `grid3`, `grid3side`, `grid4side` | Linhas no celular, 3 ou 4 colunas, carrinho ao lado ou barra no pé |
 | Permissão da aparência | – | `menu.appearance` | Só gerente. O tablet da mesa usa `table.manage` |
+| Auditoria (relatório) | – | `searchAudit`, `audit.read` | Tela `/equipe/auditoria` sobre `audit_log`. Feature 019 |
+| Tipo de operação | – | `OperationType` (`src/domain/audit/operation-types.ts`) | Grupo de entidades da trilha para o filtro |
+| Modo operação pequena | – | `restaurants.small_operation`, `restaurant.small_operation` | Deixa o gerente decidir o próprio acerto |
+| Exceção da operação pequena | – | `adjustment_requests.self_decided` + `APPROVED`; na trilha, `selfApproved` | Acerto aprovado por quem pediu |
+| Revisão da semana | – | `exception_review` (`week_start` = segunda) | Só inserção; uma por semana |
 
 Termos retirados na feature 002 (não usar em código novo): unidade de receita (`recipeUnit`),
 conversão do item, quarentena, conferência cega, contagem/inventário (`stock_count`), leitura de

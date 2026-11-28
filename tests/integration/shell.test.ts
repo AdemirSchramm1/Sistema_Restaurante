@@ -17,7 +17,7 @@ describe("cabeçalho da tela: nome do restaurante e número do Repor (spec 012, 
 
     expect(await getShellInfo(env.deps, m)).toEqual({
       ok: true,
-      value: { restaurantName: "Cantina da Nona", reorderCount: 1 },
+      value: { restaurantName: "Cantina da Nona", reorderCount: 1, pendingReviewWeeks: [] },
     });
     expect(tenant).toHaveBeenCalledTimes(1);
   });
@@ -29,7 +29,7 @@ describe("cabeçalho da tela: nome do restaurante e número do Repor (spec 012, 
 
     expect(await getShellInfo(env.deps, waiter)).toEqual({
       ok: true,
-      value: { restaurantName: "Cantina da Nona", reorderCount: null },
+      value: { restaurantName: "Cantina da Nona", reorderCount: null, pendingReviewWeeks: null },
     });
     const denied = await ownerTestDb().$client.query(
       "select count(*)::int as n from audit_log where action = 'DENIED' and user_id = $1",

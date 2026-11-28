@@ -199,13 +199,28 @@ describe("acerto com aprovação (spec 004, US3)", () => {
   });
 
   it("quem pediu não aprova o próprio acerto; só pedido pendente é decidido", () => {
-    expect(code(checkAdjustmentDecision({ status: "PENDING", requestedBy: "ana" }, "ana"))).toBe(
-      "SELF_APPROVAL",
-    );
-    expect(code(checkAdjustmentDecision({ status: "PENDING", requestedBy: "ana" }, "bia"))).toBe("OK");
-    expect(code(checkAdjustmentDecision({ status: "APPROVED", requestedBy: "ana" }, "bia"))).toBe(
+    const pending = { status: "PENDING" as const, requestedBy: "ana" };
+    expect(code(checkAdjustmentDecision(pending, "ana", false))).toBe("SELF_APPROVAL");
+    expect(checkAdjustmentDecision(pending, "bia", false)).toEqual({
+      ok: true,
+      value: { selfDecided: false },
+    });
+    expect(code(checkAdjustmentDecision({ status: "APPROVED", requestedBy: "ana" }, "bia", false))).toBe(
       "REQUEST_NOT_PENDING",
     );
+  });
+
+  it("operação pequena (spec 019, US2): quem pediu decide, e a decisão fica marcada", () => {
+    const pending = { status: "PENDING" as const, requestedBy: "ana" };
+    expect(checkAdjustmentDecision(pending, "ana", true)).toEqual({ ok: true, value: { selfDecided: true } });
+    expect(checkAdjustmentDecision(pending, "bia", true)).toEqual({
+      ok: true,
+      value: { selfDecided: false },
+    });
+    for (const status of ["APPROVED", "REJECTED", "CANCELLED"] as const)
+      expect(code(checkAdjustmentDecision({ status, requestedBy: "ana" }, "ana", true))).toBe(
+        "REQUEST_NOT_PENDING",
+      );
   });
 
   it("aprovar lança a diferença do pedido pelo custo médio, sem deixar saldo negativo", () => {

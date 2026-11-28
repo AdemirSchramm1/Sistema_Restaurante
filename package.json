@@ -22,6 +22,7 @@
     "test:billing": "vitest run --mode billing --coverage billing",
     "test:stock": "vitest run --mode stock --coverage inventory items groups movements recipes costs reorder reports audit billing/sale billing/cancel-stock suppliers/",
     "test:orders": "vitest run --mode orders --coverage ordering suppliers shared layout billing/cancel-stock billing/sale.test billing/tab-open menu/order menu/board audit/tablet-audit billing/close",
+    "test:audit": "vitest run --mode audit --coverage audit",
     "test:mutation": "stryker run",
     "db:up": "docker compose up -d --wait db",
     "db:generate": "drizzle-kit generate",

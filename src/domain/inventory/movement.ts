@@ -181,14 +181,19 @@ export function planAdjustmentRequest(
 
 export type AdjustmentStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 
-/** Só pedido pendente é decidido, e nunca por quem pediu (constituição V). */
+/**
+ * Só pedido pendente é decidido, e nunca por quem pediu (constituição V), exceto no modo operação
+ * pequena (spec 019, US2): aí quem pediu decide e a decisão fica marcada (`selfDecided`).
+ */
 export function checkAdjustmentDecision(
   request: { status: AdjustmentStatus; requestedBy: string },
   deciderId: string,
-): Result<void> {
+  smallOperation: boolean,
+): Result<{ selfDecided: boolean }> {
   if (request.status !== "PENDING") return err("REQUEST_NOT_PENDING");
-  if (request.requestedBy === deciderId) return err("SELF_APPROVAL");
-  return ok(undefined);
+  const selfDecided = request.requestedBy === deciderId;
+  if (selfDecided && !smallOperation) return err("SELF_APPROVAL");
+  return ok({ selfDecided });
 }
 
 /** Aprovação: lança a diferença do pedido pelo custo médio. */

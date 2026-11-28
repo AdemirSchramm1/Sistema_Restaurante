@@ -42,6 +42,14 @@ describe("menu por permissão (spec 009, T022)", () => {
     );
   });
 
+  it("só o gerente vê a Auditoria, depois da Equipe (spec 019)", () => {
+    const l = labels(["MANAGER"]);
+    expect(l.slice(l.indexOf("Equipe"))).toEqual(["Equipe", "Auditoria"]);
+    for (const r of ["CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"] as const)
+      expect(labels([r])).not.toContain("Auditoria");
+    expect(NAV.find((n) => n.label === "Auditoria")?.href).toBe("/equipe/auditoria");
+  });
+
   it("estoquista não vê nada dos pedidos", () => {
     const l = labels(["STOCKKEEPER"]);
     for (const x of ["Mesas", "Cozinha", "Garçom", "Caixa", "Contas", "Pedidos", "Adicionais"])
@@ -90,7 +98,7 @@ describe("menu lateral por área (spec 012, US2)", () => {
         "Operação",
         ["Cozinha", "Lançar pedido", "Garçom", "Caixa", "Contas", "Turnos", "Vendas", "Pedidos", "Cardápio"],
       ],
-      ["Configuração", ["Mesas", "Adicionais", "Equipe"]],
+      ["Configuração", ["Mesas", "Adicionais", "Equipe", "Auditoria"]],
     ]);
   });
 

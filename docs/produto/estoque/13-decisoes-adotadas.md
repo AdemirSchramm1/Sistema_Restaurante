@@ -112,3 +112,15 @@ O resto é refinamento. Essa ordem orienta o [roadmap do módulo](00-visao-geral
 ## Em aberto (próxima rodada de pesquisa)
 
 - Comparação dos módulos de estoque de cada software.
+
+## Decisões da feature 019 (Auditoria e operação pequena), 2026-11-28
+
+| Tema | Decisão |
+|---|---|
+| Contagem pelo dono e revisão da variância (manual, seção 7) | **Trocadas pela revisão semanal das exceções**, porque a contagem está fora do escopo desde novembro de 2026. Opção recomendada ao dono em 2026-11-28; se ele escolher outra, a revisão muda |
+| O que o modo libera | Só aprovar e recusar o próprio acerto de estoque (é o único acúmulo que o sistema bloqueia) |
+| Exceção | Só a aprovação de quem pediu; recusar o próprio pedido não muda saldo e não entra na revisão |
+| Semana | Segunda a domingo, no fuso do restaurante; só semana encerrada pede revisão |
+| Aviso | No topo de todas as telas do gerente (o casco), não por e-mail |
+| Relatório de auditoria | Até 31 dias, 50 por página; "Dono" = papel Gerente |
+

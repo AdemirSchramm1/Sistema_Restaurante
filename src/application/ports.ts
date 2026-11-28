@@ -3,7 +3,9 @@ import type { FieldChanges } from "@/domain/shared/audit";
 import type { Role } from "@/domain/access/permissions";
 import type { MenuAccessKind } from "@/domain/ordering/menu-access";
 import type { Origin } from "./context";
-import type { AccessRepos } from "./access/ports";
+import type { AccessRepos, Audit } from "./access/ports";
+import type { Decimal } from "@/domain/shared/decimal";
+import type { UnitCode } from "@/domain/inventory/units";
 import type { CatalogRepos } from "./inventory/ports";
 import type { SupplierRepos } from "./suppliers/ports";
 import type { OrderingRepos } from "./ordering/ports";
@@ -57,6 +59,50 @@ export interface AuditRepo {
     entity: string,
     entityId: string,
   ): Promise<(AuditEntry & { occurredAt: Date; userName: string | null })[]>;
+  /** Relatório de auditoria (spec 019): dias locais no fuso do restaurante, mais novo primeiro. */
+  search(f: AuditSearch): Promise<{ total: number; rows: AuditRow[] }>;
+}
+
+export type AuditSearch = {
+  fromDay: string;
+  toDay: string;
+  userId: string | null;
+  entities: readonly string[] | null;
+  deniedOnly: boolean;
+  /** Sem limite: a planilha leva o período inteiro. */
+  limit: number | null;
+  offset: number;
+};
+
+export type AuditRow = AuditEntry & { id: string; occurredAt: Date; userName: string | null };
+
+/** Exceção da operação pequena: acerto aprovado por quem pediu (spec 019, US3). */
+export type ExceptionRow = {
+  requestId: string;
+  decidedAt: Date;
+  /** Quem pediu e aprovou (a exceção sempre tem pessoa). */
+  decidedByName: string;
+  itemId: string;
+  itemName: string;
+  stockUnit: UnitCode;
+  difference: Decimal;
+  /** Valor do lançamento do acerto (quantidade × custo médio). */
+  value: Decimal;
+  reasonId: string;
+  notes: string | null;
+  /** Saldo do item agora. */
+  balance: Decimal;
+};
+
+export type WeekReviewRecord = { reviewedByName: string | null; reviewedAt: Date; note: string | null };
+
+export interface ExceptionReviewRepo {
+  /** Semanas (segundas) com exceção, antes de `beforeWeek` e sem revisão, da mais antiga. */
+  pendingWeeks(beforeWeek: string): Promise<string[]>;
+  weekExceptions(weekStart: string): Promise<ExceptionRow[]>;
+  review(weekStart: string): Promise<WeekReviewRecord | null>;
+  /** Falso se a semana já tinha revisão (índice único). */
+  insert(r: { id: string; weekStart: string; note: string | null }, audit: Audit): Promise<boolean>;
 }
 
 export type Repos = AccessRepos &
@@ -65,7 +111,7 @@ export type Repos = AccessRepos &
   OrderingRepos &
   BillingRepos &
   CashRepos &
-  MenuRepos & { audit: AuditRepo };
+  MenuRepos & { audit: AuditRepo; exceptionReviews: ExceptionReviewRepo };
 
 /** Consultas que atravessam restaurantes antes de saber qual é o do usuário. */
 export interface GlobalLookups {

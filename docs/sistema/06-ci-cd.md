@@ -52,7 +52,7 @@ Rode localmente o que o PR mexeu, do mais rápido para o mais lento:
 1. `pnpm format:check && pnpm lint && pnpm typecheck`
 2. `pnpm test` (unidade) e os testes de integração dos arquivos mexidos
 3. o portão de cobertura da área (`test:menu`, `test:cash`, `test:staff`, `test:billing`,
-   `test:stock`, `test:orders`) e `test:mutation` se o domínio mudou
+   `test:stock`, `test:orders`, `test:audit`) e `test:mutation` se o domínio mudou
 4. `pnpm test:e2e --trace off` se mudou fluxo de tela
 5. `pnpm build && pnpm test:screens` se mudou visual; imagens de referência só na imagem oficial
    do Playwright (`05-testes-de-tela.md`)

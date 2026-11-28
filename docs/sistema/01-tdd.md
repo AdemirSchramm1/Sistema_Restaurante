@@ -104,13 +104,19 @@ Convenção: o `describe` cita o documento de produto de onde a regra vem.
   (código morto) ou ganha o teste que faltava; `/* v8 ignore */` e `// Stryker disable` não entram.
   Cada regra de `docs/produto/estoque/` e `pedidos/01` a `05` tem o seu teste nomeado em
   `specs/018-validar-estoque-conta/rules.md`.
+- **Auditoria e operação pequena (feature 019): 100%.** `pnpm test:audit` exige 100% de linhas,
+  desvios, funções e instruções em `src/domain/audit/**`, `src/application/audit/**`,
+  `src/components/audit/**`, no repositório da trilha e na planilha da auditoria;
+  `test:mutation` já cobre `src/domain/audit/` e a regra da aprovação em `inventory/movement.ts`.
+  Um teste (`operation-types.test.ts`) lê o código e falha se uma entidade gravada na trilha não
+  tiver tipo de operação no relatório.
 - **As telas também têm teste**: a matriz de 9 tamanhos × 2 modos de cor × 2 motores, com
   asserções de layout e comparação de imagem. Ver [05-testes-de-tela.md](05-testes-de-tela.md).
 - A CI roda em todo PR, com os jobs em paralelo: **estatico** (`format:check`, `lint`,
   `typecheck`), **unidade** (`test:unit`), **mutacao** (`test:mutation` em 2 partes: estoque e fornecedores, e o
-  resto do domínio), **integracao** (5 partes, cada uma com o seu banco: `test:menu`, que roda todos
+  resto do domínio), **integracao** (6 partes, cada uma com o seu banco: `test:menu`, que roda todos
   os testes de unidade e de integração com a régua de 100% do cardápio; `test:cash` e `test:staff`;
-  `test:billing`; `test:stock`; `test:orders`), **e2e** (`test:e2e` com o axe) e **telas**
+  `test:billing`; `test:stock`; `test:orders`; `test:audit`), **e2e** (`test:e2e` com o axe) e **telas**
   (`test:screens` em 8 partes: 2 motores × cardápio do cliente claro, escuro, telas da operação e o
   resto dos arquivos).
 - PR que só muda documentação (Markdown, `docs/`, `specs/`, `.specify/`) roda só o **estatico**; os

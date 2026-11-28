@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { requireContext } from "@/actions/_session";
 import { cancelAdjustmentAction, decideAdjustmentAction, registerMovementAction } from "@/actions/movements";
+import { getSmallOperation } from "@/application/audit/small-operation";
+import { adjustmentActions } from "@/components/movements/adjustment-actions";
 import { serverDeps } from "@/infra/server";
 import {
   listAdjustmentRequests,
@@ -30,6 +32,45 @@ export const metadata: Metadata = { title: "Lançamentos" };
 const TIMEZONE = "America/Sao_Paulo";
 const signed = (v: Decimal) => `${v.gt(0) ? "+" : ""}${formatBrDecimal(v, { maxPlaces: 4 })}`;
 
+function DecisionButtons({
+  r,
+  actions,
+}: {
+  r: { id: string; itemName: string };
+  actions: ReturnType<typeof adjustmentActions>;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {actions.hint && <span className="basis-full text-xs text-muted-foreground">{actions.hint}</span>}
+      {actions.decide && (
+        <>
+          <ActionForm
+            action={decideAdjustmentAction}
+            hidden={{ requestId: r.id, decision: "approve" }}
+            submitLabel="Aprovar"
+            variant="default"
+            aria-label={`Aprovar acerto de ${r.itemName}`}
+          />
+          <ActionForm
+            action={decideAdjustmentAction}
+            hidden={{ requestId: r.id, decision: "reject" }}
+            submitLabel="Recusar"
+            aria-label={`Recusar acerto de ${r.itemName}`}
+          />
+        </>
+      )}
+      {actions.cancel && (
+        <ActionForm
+          action={cancelAdjustmentAction}
+          hidden={{ requestId: r.id }}
+          submitLabel="Cancelar pedido"
+          aria-label={`Cancelar acerto de ${r.itemName}`}
+        />
+      )}
+    </div>
+  );
+}
+
 export default async function Page({ searchParams }: PageProps<"/estoque/lancamentos">) {
   const ctx = await requireContext();
   const sp = await searchParams;
@@ -46,6 +87,9 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
     .filter(([, action]) => can(ctx.roles, action))
     .map(([t]) => t);
   const canApprove = can(ctx.roles, "adjustment.approve");
+  // Só o gerente lê o modo (a leitura de quem não pode iria para a trilha como tentativa negada).
+  const small = can(ctx.roles, "restaurant.small_operation") ? await getSmallOperation(deps, ctx) : null;
+  const smallOperation = Boolean(small?.ok && small.value.enabled);
 
   const [items, movements, pending, supplierList] = await Promise.all([
     movementItemOptions(deps, ctx),
@@ -118,36 +162,14 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
                 </Td>
                 <Td>{r.requestedByName ?? "—"}</Td>
                 <Td>
-                  <div className="flex flex-wrap gap-2">
-                    {canApprove && r.requestedBy !== ctx.userId && (
-                      <>
-                        <ActionForm
-                          action={decideAdjustmentAction}
-                          hidden={{ requestId: r.id, decision: "approve" }}
-                          submitLabel="Aprovar"
-                          variant="default"
-                          aria-label={`Aprovar acerto de ${r.itemName}`}
-                        />
-                        <ActionForm
-                          action={decideAdjustmentAction}
-                          hidden={{ requestId: r.id, decision: "reject" }}
-                          submitLabel="Recusar"
-                          aria-label={`Recusar acerto de ${r.itemName}`}
-                        />
-                      </>
-                    )}
-                    {r.requestedBy === ctx.userId && (
-                      <>
-                        <span className="text-xs text-muted-foreground">Outro gerente precisa aprovar.</span>
-                        <ActionForm
-                          action={cancelAdjustmentAction}
-                          hidden={{ requestId: r.id }}
-                          submitLabel="Cancelar pedido"
-                          aria-label={`Cancelar acerto de ${r.itemName}`}
-                        />
-                      </>
-                    )}
-                  </div>
+                  <DecisionButtons
+                    r={r}
+                    actions={adjustmentActions({
+                      canApprove,
+                      own: r.requestedBy === ctx.userId,
+                      smallOperation,
+                    })}
+                  />
                 </Td>
               </tr>
             ))}
