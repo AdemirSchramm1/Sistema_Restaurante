@@ -18,6 +18,8 @@ export const AUDIT_MAX_DAYS = 31;
 type Query = Record<string, string | string[] | undefined>;
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) || undefined;
+/** Página: inteiro positivo de até 6 dígitos, sem zero à esquerda. */
+const PAGE = /^[1-9]\d{0,5}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** "2026-02-30" não é dia: a data tem de voltar igual depois de lida. Dia inválido é NaN. */
@@ -35,13 +37,13 @@ export function readAuditFilter(q: Query, today: string): Result<AuditFilter> {
   if (!(span >= 0 && span < AUDIT_MAX_DAYS)) return err("INVALID_PERIOD", "de");
   const user = first(q.pessoa);
   const type = first(q.tipo);
-  const page = Number(first(q.pagina));
+  const page = `${first(q.pagina)}`;
   return ok({
     from,
     to,
     userId: user && UUID.test(user) ? user : null,
     type: OPERATION_TYPES.find((t) => t === type) ?? null,
     deniedOnly: first(q.negadas) === "1",
-    page: Number.isInteger(page) && page > 0 ? page : 1,
+    page: PAGE.test(page) ? Number.parseInt(page, 10) : 1,
   });
 }

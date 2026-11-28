@@ -62,6 +62,9 @@ describe("filtro da auditoria (spec 019, US1)", () => {
     for (const pessoa of [`x${USER}`, `${USER}x`])
       expect(readAuditFilter({ pessoa }, today)).toMatchObject({ value: { userId: null } });
     expect(readAuditFilter({ pagina: ["2", "3"] }, today)).toMatchObject({ value: { page: 2 } });
+    for (const pagina of ["x3", "3x", "-3", "1234567"])
+      expect(readAuditFilter({ pagina }, today)).toMatchObject({ value: { page: 1 } });
+    expect(readAuditFilter({ pagina: "999999" }, today)).toMatchObject({ value: { page: 999999 } });
   });
 
   it("página de 50", () => {
