@@ -191,6 +191,16 @@ describe("caixa do dia (spec 014, FR-008)", () => {
   });
 });
 
+describe("auditoria e operação pequena (spec 019, FR-001 e FR-006)", () => {
+  const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
+  const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
+
+  it("relatório de auditoria e modo operação pequena: só o gerente", () => {
+    expect(who("audit.read")).toEqual(["MANAGER"]);
+    expect(who("restaurant.small_operation")).toEqual(["MANAGER"]);
+  });
+});
+
 describe("garçom lança o pedido da mesa (spec 015, FR-001 e FR-010)", () => {
   const ALL: Role[] = ["MANAGER", "CHEF", "STOCKKEEPER", "BUYER", "ADMINISTRATIVE", "WAITER", "CASHIER"];
   const who = (a: Parameters<typeof can>[1]) => ALL.filter((r) => can([r], a));
