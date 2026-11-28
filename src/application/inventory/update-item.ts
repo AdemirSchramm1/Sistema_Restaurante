@@ -23,7 +23,8 @@ export async function updateItem(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.items.get(id);
     if (!current) return err("NOT_FOUND");
-    const unit = canChangeStockUnit(current, data.stockUnit);
+    const usedBy = data.stockUnit === current.stockUnit ? [] : await repos.items.usedBy(id);
+    const unit = canChangeStockUnit(current, data.stockUnit, usedBy);
     if (!unit.ok) return unit;
 
     if (data.subgroupId !== current.subgroupId) {

@@ -39,6 +39,8 @@ export async function consumptionFor(repos: Repos, orderId: string): Promise<Res
 
   const total = new Map<string, Decimal>();
   for (const l of lines) {
+    // Toda linha converte: item que um produto ou adicional usa não troca de família de medida
+    // (docs/produto/estoque/02, spec 018), e os componentes existem (chaves estrangeiras).
     const used = lineConsumption(
       {
         versionLines: l.versionLines,
@@ -51,8 +53,7 @@ export async function consumptionFor(repos: Repos, orderId: string): Promise<Res
       },
       graph,
       items,
-    );
-    if (!used.ok) return used;
+    ) as { ok: true; value: Map<string, Decimal> };
     for (const [id, q] of used.value) total.set(id, (total.get(id) ?? d(0)).plus(q));
   }
   return ok(total);

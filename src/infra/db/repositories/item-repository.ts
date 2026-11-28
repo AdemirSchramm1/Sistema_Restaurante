@@ -214,6 +214,18 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       return d(r?.q ?? "0");
     },
 
+    async usedBy(id) {
+      const r = await tx.execute(sql`
+        select r.name from recipe_lines l
+          join recipe_versions v on v.id = l.recipe_version_id
+          join recipes r on r.id = v.recipe_id
+         where l.item_id = ${id}
+        union
+        select a.name from addons a where a.item_id = ${id}
+        order by 1`);
+      return (r.rows as { name: string }[]).map((x) => x.name);
+    },
+
     async activeCountInSubgroup(subgroupId) {
       const [r] = await tx
         .select({ n: sql<number>`count(*)::int` })

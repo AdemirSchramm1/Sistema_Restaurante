@@ -93,6 +93,11 @@ export interface ItemRepo {
     audit: Audit,
   ): Promise<Result<void>>;
   activeCountInSubgroup(subgroupId: string): Promise<number>;
+  /**
+   * Nomes dos produtos e preparos (em qualquer versão: pedidos antigos baixam pela versão do envio)
+   * e dos adicionais que usam o item, em ordem alfabética.
+   */
+  usedBy(id: string): Promise<string[]>;
   /** Saldo do item na sua medida (0 sem movimentação). */
   balance(id: string): Promise<Decimal>;
 }

@@ -143,10 +143,8 @@ async function move(
     );
     if (!changed.ok) return changed;
     // Spec 011, FR-006: os ingredientes saem da prateleira quando a cozinha começa o preparo.
-    if (input.to === "PREPARING") {
-      const sold = await recordOrderSale(deps, ctx, repos, input.id);
-      if (!sold.ok) return sold;
-    }
+    // A baixa só recusa pedido que não existe, e este acabou de mudar de situação.
+    if (input.to === "PREPARING") await recordOrderSale(deps, ctx, repos, input.id);
     return ok(undefined);
   });
 }
