@@ -94,9 +94,13 @@ describe("modo operação pequena (spec 019, US2)", () => {
     value(await turn(false));
 
     const trail = value(await searchAudit(env.deps, m, { tipo: "SETTINGS" })).rows;
-    expect(trail.map((r) => [r.entity, r.entityId, r.userName, r.changes])).toEqual([
-      ["restaurant", m.restaurantId, "Gerente", { smallOperation: [true, false] }],
-      ["restaurant", m.restaurantId, "Gerente", { smallOperation: [false, true] }],
+    expect(
+      trail.filter((r) => r.action !== "CREATE").map((r) => [r.entityId, r.action, r.userName, r.changes]),
+    ).toEqual([
+      [m.restaurantId, "UPDATE", "Gerente", { smallOperation: [true, false] }],
+      [m.restaurantId, "UPDATE", "Gerente", { smallOperation: [false, true] }],
+      [m.restaurantId, "DENIED", "Chef Bia", { action: "restaurant.small_operation" }],
+      [m.restaurantId, "DENIED", "Chef Bia", { action: "restaurant.small_operation" }],
     ]);
   });
 

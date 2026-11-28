@@ -106,6 +106,7 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
     decidedAt: x.r.decidedAt,
     decisionNotes: x.r.decisionNotes,
     movementId: x.r.movementId,
+    selfDecided: x.r.selfDecided,
   });
 
   return {
@@ -258,6 +259,7 @@ export function movementRepository(tx: Tx, restaurantId: string): MovementRepo {
           decidedAt: c.at,
           decisionNotes: c.notes,
           movementId: c.movementId,
+          selfDecided: c.selfDecided,
           updatedAt: c.at,
           updatedBy: c.by,
           version: sql`${adjustmentRequests.version} + 1`,

@@ -1,5 +1,5 @@
 {
-  "id": "417278ca-4352-4b15-ae0a-3ff7a9c5a80a",
+  "id": "4c14ff0c-61ad-485b-8e46-cabbbd999e1c",
   "prevId": "c6f46bd0-3af4-4901-a813-af5f961a753e",
   "version": "7",
   "dialect": "postgresql",
@@ -676,6 +676,13 @@
           "type": "smallint[]",
           "primaryKey": false,
           "notNull": false
+        },
+        "small_operation": {
+          "name": "small_operation",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -2356,6 +2363,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "self_decided": {
+          "name": "self_decided",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {
@@ -2434,7 +2448,11 @@
       "checkConstraints": {
         "adjustment_requests_other_decider": {
           "name": "adjustment_requests_other_decider",
-          "value": "decided_by is null or decided_by <> created_by or status = 'CANCELLED'"
+          "value": "decided_by is null or decided_by <> created_by or status = 'CANCELLED' or self_decided"
+        },
+        "adjustment_requests_self_decided": {
+          "name": "adjustment_requests_self_decided",
+          "value": "not self_decided or (decided_by = created_by and status in ('APPROVED', 'REJECTED'))"
         },
         "adjustment_requests_difference": {
           "name": "adjustment_requests_difference",

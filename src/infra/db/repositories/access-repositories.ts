@@ -26,6 +26,23 @@ export function restaurantRepository(tx: Tx, restaurantId: string): RestaurantRe
         .where(eq(restaurants.id, restaurantId));
       return row ?? null;
     },
+    async smallOperation() {
+      const [row] = await tx
+        .select({ enabled: restaurants.smallOperation, version: restaurants.version })
+        .from(restaurants)
+        .where(eq(restaurants.id, restaurantId))
+        .for("share");
+      // O restaurante da sessão sempre existe (o RLS já filtrou por ele).
+      return row!;
+    },
+    async setSmallOperation(enabled, version, audit) {
+      const r = await tx
+        .update(restaurants)
+        .set({ smallOperation: enabled, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
+        .where(and(eq(restaurants.id, restaurantId), eq(restaurants.version, version)))
+        .returning({ id: restaurants.id });
+      return r.length > 0;
+    },
   };
 }
 

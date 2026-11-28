@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -130,12 +131,18 @@ export const adjustmentRequests = pgTable(
     decidedAt: timestamp("decided_at", { withTimezone: true }),
     decisionNotes: text("decision_notes"),
     movementId: uuid("movement_id").references(() => stockMovements.id),
+    /** Decidido por quem pediu, no modo operação pequena (spec 019, US2). Aprovado = exceção. */
+    selfDecided: boolean("self_decided").notNull().default(false),
   },
   (t) => [
     index("adjustment_requests_status").on(t.restaurantId, t.status, t.createdAt),
     check(
       "adjustment_requests_other_decider",
-      sql`decided_by is null or decided_by <> created_by or status = 'CANCELLED'`,
+      sql`decided_by is null or decided_by <> created_by or status = 'CANCELLED' or self_decided`,
+    ),
+    check(
+      "adjustment_requests_self_decided",
+      sql`not self_decided or (decided_by = created_by and status in ('APPROVED', 'REJECTED'))`,
     ),
     check("adjustment_requests_difference", sql`difference <> 0`),
   ],

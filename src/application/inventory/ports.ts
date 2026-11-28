@@ -245,6 +245,8 @@ export type AdjustmentRequestRecord = {
   decidedAt: Date | null;
   decisionNotes: string | null;
   movementId: string | null;
+  /** Decidido por quem pediu, no modo operação pequena (spec 019). */
+  selfDecided: boolean;
 };
 
 export interface MovementRepo {
@@ -282,6 +284,7 @@ export interface MovementRepo {
       at: Date;
       notes: string | null;
       movementId: string | null;
+      selfDecided: boolean;
     },
   ): Promise<void>;
   listRequests(status: AdjustmentStatus | "ALL"): Promise<AdjustmentRequestRecord[]>;

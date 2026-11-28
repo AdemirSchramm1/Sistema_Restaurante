@@ -47,6 +47,8 @@ export const restaurants = pgTable(
     logoWidths: smallint("logo_widths").array(),
     coverBase: text("cover_base"),
     coverWidths: smallint("cover_widths").array(),
+    /** Modo operação pequena (spec 019, US2): o gerente pode aprovar o próprio acerto. */
+    smallOperation: boolean("small_operation").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     createdBy: uuid("created_by"),
     ...editable,
