@@ -89,6 +89,23 @@ describe("medida bloqueada após a 1ª movimentação (FR-023 da 001)", () => {
     expect(canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "un").ok).toBe(true);
   });
 
+  it("item usado em produto ou adicional não troca de família, e a recusa diz onde ele está (spec 018)", () => {
+    const r = canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "un", [
+      "X-Burger",
+      "Fatia de queijo",
+    ]);
+    expect(r.ok ? null : r.error).toEqual({
+      code: "ITEM_UNIT_IN_USE",
+      field: "stockUnit",
+      details: { usedBy: ["X-Burger", "Fatia de queijo"] },
+    });
+  });
+
+  it("usado em produto, a medida ainda muda dentro da família: kg para g, l para ml", () => {
+    expect(canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "g", ["X-Burger"]).ok).toBe(true);
+    expect(canChangeStockUnit({ stockUnit: "l", stockUnitLockedAt: null }, "ml", ["Suco"]).ok).toBe(true);
+  });
+
   it("manter a mesma medida nunca é bloqueado", () => {
     expect(
       canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: new Date("2026-10-01T00:00:00Z") }, "kg").ok,
