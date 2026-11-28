@@ -60,7 +60,6 @@ describe("relatório de auditoria (spec 019, US1)", () => {
       changes: { purchaseUnitLabel: ["Caixa", "Saco"] },
       occurredAt: new Date("2026-10-31T12:01:00Z"),
     });
-    expect(r.people.map((p) => p.name).sort()).toEqual(["Chef Bia", "Gerente"]);
   });
 
   it("filtra por pessoa, por tipo de operação e só pelas tentativas negadas", async () => {
@@ -156,6 +155,5 @@ describe("relatório de auditoria (spec 019, US1)", () => {
     await record(env, other, { entity: "supplier" });
     const r = unwrap(await searchAudit(env.deps, manager, { tipo: "SUPPLIERS" }));
     expect(r).toMatchObject({ total: 0, rows: [] });
-    expect(r.people.map((p) => p.userId)).toEqual([manager.userId]);
   });
 });

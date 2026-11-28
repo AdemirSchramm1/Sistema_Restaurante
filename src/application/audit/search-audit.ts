@@ -13,8 +13,6 @@ export type AuditReport = {
   filter: AuditFilter;
   total: number;
   rows: AuditRow[];
-  /** Todos os membros do restaurante, ativos ou não, para o filtro de pessoa. */
-  people: { userId: string; name: string }[];
   timezone: string;
 };
 
@@ -40,7 +38,6 @@ export async function searchAudit(
       limit: AUDIT_PAGE_SIZE,
       offset: (f.page - 1) * AUDIT_PAGE_SIZE,
     });
-    const people = (await repos.members.list()).map((m) => ({ userId: m.userId, name: m.name }));
-    return ok({ filter: f, ...found, people, timezone });
+    return ok({ filter: f, ...found, timezone });
   });
 }
