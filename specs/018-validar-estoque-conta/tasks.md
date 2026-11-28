@@ -52,7 +52,7 @@ Formato: `[ID] [P?] [História] Descrição`. `[P]` = pode rodar em paralelo (ar
 Corre junto das fases 3, 4 e 6: toda tarefa de mutante aplica R6.
 
 - [x] T021 [US5] Revisar `mutants.md`: nenhuma linha sem decisão; cada `erro` tem commit vermelho antes do `fix` e nota de antes e depois
-- [ ] T022 [US5] Erros que mudam regra visível: perguntar ao dono antes; atualizar `docs/produto/` no mesmo PR
+- [x] T022 [US5] Erros que mudam regra visível: perguntar ao dono antes; atualizar `docs/produto/` no mesmo PR
 
 ## Fase 6: US3 — Pedido, fornecedores e código comum (P2)
 

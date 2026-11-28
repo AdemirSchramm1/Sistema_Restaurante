@@ -49,6 +49,7 @@ Decisões (ver [data-model.md](data-model.md)):
 | Onde | Antes | Depois | Commits |
 |---|---|---|---|
 | `src/application/inventory/movement-input.ts` | Lançamento com 30/02/2026 virava 02/03/2026 | Recusa no campo da data ("dia que não existe") | `b85e056` (vermelho) → `445493d` |
+| Medida de item usado em produto (`src/domain/inventory/item.ts`, `update-item.ts`) | Trocar kg por un num item que um produto ou adicional usa era aceito, e o "Começar preparo" daquele produto falhava (a linha de 150 g não converte). Era o que deixava `kitchen.ts:148` e `order-consumption.ts:55` sem teste | Recusa `ITEM_UNIT_IN_USE` no campo da medida, dizendo onde o item está; na mesma família (kg → g) pode. Decisão do Ademir em 2026-11-28; os dois ramos viraram código morto e saíram | `c116a9a` (vermelho) → `18081de` |
 | Telas da Cozinha, Conta da mesa e Lançamentos | Botões, campos e "Esgotado hoje" com 24 a 40 px de toque; tabela rolável sem foco pelo teclado (axe) | Tudo com 44 px; a área da tabela recebe foco | `427e84d` (vermelho) → `2111fb4` |
 
 ## Fora do domínio (réguas de cobertura)
