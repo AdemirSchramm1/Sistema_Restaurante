@@ -59,6 +59,8 @@ export const ACTIONS = [
   "cash.expected",
   "cash.history",
   "sales.report",
+  "audit.read",
+  "restaurant.small_operation",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 

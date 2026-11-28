@@ -30,6 +30,13 @@ describe("filtro da auditoria (spec 019, US1)", () => {
       { de: "2026-10-28", ate: "2026-11-28" },
       { de: "2026-11-28", ate: "2026-11-27" },
       { de: "28/11/2026", ate: today },
+      { de: "2026-13-45", ate: today },
+      { de: "2026-02-30", ate: "2026-03-01" },
+      { de: "x2026-11-20", ate: today },
+      { de: "2026-11-20x", ate: today },
+      { de: "2026", ate: today },
+      { de: "2026-11", ate: today },
+      { de: "+002026-11-20", ate: today },
     ])
       expect(readAuditFilter(q, today)).toEqual({
         ok: false,
@@ -52,6 +59,8 @@ describe("filtro da auditoria (spec 019, US1)", () => {
       readAuditFilter({ pessoa: "joão", tipo: "NADA", pagina: "0", negadas: "sim" }, today),
     ).toMatchObject({ value: { userId: null, type: null, page: 1, deniedOnly: false } });
     expect(readAuditFilter({ pagina: "2.5" }, today)).toMatchObject({ value: { page: 1 } });
+    for (const pessoa of [`x${USER}`, `${USER}x`])
+      expect(readAuditFilter({ pessoa }, today)).toMatchObject({ value: { userId: null } });
     expect(readAuditFilter({ pagina: ["2", "3"] }, today)).toMatchObject({ value: { page: 2 } });
   });
 
