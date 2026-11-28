@@ -39,7 +39,7 @@ Na primeira versão (features 004 e 007) os papéis fazem:
 | Lançar compra | Gerente, estoquista, comprador |
 | Lançar perda | Gerente, chef, estoquista |
 | Pedir acerto | Gerente, chef, estoquista, comprador |
-| Aprovar acerto e estornar | Gerente (nunca o próprio pedido) |
+| Aprovar acerto e estornar | Gerente (nunca o próprio pedido, exceto no modo operação pequena, feature 019) |
 | Cadastrar fornecedor, itens e preços, bloquear | Gerente e comprador |
 | Definir o aviso de reposição do item (feature 006) | Gerente, chef e comprador |
 | Definir o preço de venda do produto (feature 008) | Gerente e chef |
@@ -124,16 +124,53 @@ assinar; o caixa conta antes de ver o esperado e todas as contagens ficam guarda
 não muda; troco diferente do que ficou na gaveta exige explicação; só o gerente vê o esperado do
 turno aberto e fecha o turno de outra pessoa.
 
+### Auditoria e operação pequena (feature 019)
+
+| Ação | Permissão | Quem pode |
+|---|---|---|
+| Tela **Auditoria** (`/equipe/auditoria`), planilha da auditoria, **Revisão da semana** e o aviso de revisão | `audit.read` | Gerente |
+| Ligar e desligar o **modo operação pequena** (`/equipe/operacao-pequena`) | `restaurant.small_operation` | Gerente |
+
+**Auditoria.** Uma tela com tudo o que a equipe fez num período de até 31 dias (dias no fuso do
+restaurante; padrão hoje), do mais novo para o mais antigo, 50 por página com o total. Filtros:
+pessoa (todos os membros, ativos ou não), tipo de operação e "só tentativas sem permissão"; ficam no
+endereço da página. Cada linha mostra quando, quem ("Sistema" ou "Cliente pelo QR code" quando não há
+pessoa), o tipo e o nome do registro com link para a tela dele, a ação e o que mudou com os mesmos
+textos do histórico de cada registro (token, senha e endereço de arquivo nunca aparecem). "Baixar
+planilha" leva o período inteiro com o mesmo filtro (CSV com `;`, como Vendas).
+
+Tipos de operação: Itens e grupos; Produtos e adicionais; Fornecedores; Lançamentos de estoque
+(inclui acertos, estornos e as revisões da semana); Mesas e QR code; Pedidos; Contas da mesa; Caixa do
+dia; Cardápio; Equipe e acessos (inclui quem tentou abrir a Auditoria sem permissão); Configurações
+do restaurante.
+
 ## Operação pequena
 
-Quando não dá para separar todas as funções, o restaurante liga o **modo operação pequena**: o
-sistema permite acumular, mas registra a exceção e exige **contagem periódica feita pelo dono** e
-**revisão semanal da variância** (aparece como tarefa pendente no painel).
+Num restaurante com um gerente só, o acerto que ele mesmo pede ficaria parado para sempre. O
+gerente liga o **modo operação pequena** (padrão desligado; ligar e desligar pedem confirmação, usam
+a trava de "mudou em outra tela" e vão para a trilha):
+
+- Com o modo ligado, o gerente que pediu o acerto vê **Aprovar** e **Recusar** no próprio pedido. A
+  aprovação muda o saldo como um acerto comum e fica marcada como **exceção**: "Aprovado por quem
+  pediu (operação pequena)" nos Lançamentos e na trilha. Recusar o próprio pedido também pode e não
+  é exceção (não muda saldo).
+- Só o gerente aprova, com o modo ligado ou não. Desligar não desfaz exceções já aprovadas; os
+  pedidos pendentes voltam a precisar de outro gerente. O modo é lido na mesma transação da
+  aprovação, e o banco recusa decisão de quem pediu sem a marca.
+- **Revisão semanal das exceções** (no lugar da contagem pelo dono, ver
+  [13](13-decisoes-adotadas.md#decisões-da-feature-019-auditoria-e-operação-pequena-2026-11-28)):
+  semana de segunda a domingo no fuso do restaurante. Quando uma semana já encerrada tem exceção sem
+  revisão, o gerente vê no topo das telas "Há exceções da operação pequena para revisar (semana de
+  16/11 a 22/11)." (uma linha por semana, a mais antiga primeiro). A Revisão da semana lista quando,
+  quem, item, quantidade, valor, motivo e o saldo atual de cada item, com o total em R$; **Marcar
+  como revisada** grava quem, quando e uma observação opcional (até 140 letras), vai para a trilha e
+  o aviso some. Uma revisão por semana, que não muda depois.
 
 ## Critérios de aceite (para a spec)
 
 - O usuário que lançou um ajuste não consegue aprová-lo (exceto em modo operação pequena, com
-  registro).
+  registro). **Feito na 004 e na 019.**
 - O usuário que fez a contagem cega de um recebimento não consegue lançar a NF desse recebimento.
+  (Fora do escopo: não há contagem cega.)
 - Toda escrita registra usuário, data/hora e origem.
-- Relatório de auditoria filtra por usuário, período, tipo de operação.
+- Relatório de auditoria filtra por usuário, período, tipo de operação. **Feito na 019.**

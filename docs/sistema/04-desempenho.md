@@ -36,6 +36,14 @@ Antes de otimizar, meça (abaixo).
    adicionais, taxa e pendentes com um número fixo de consultas numa transação;
    `tests/integration/performance/sales-report.test.ts` compara 10 e 500 pedidos (mesmas idas ao
    banco, menos de 2 s).
+9. **Auditoria com 100 mil registros (019, SC-004).** A trilha (`audit_log`) só cresce. A
+   Auditoria lê por `audit_log_period (restaurant_id, occurred_at, id)` ou, com pessoa,
+   `audit_log_user_period (restaurant_id, user_id, occurred_at, id)`, de trás para frente (mais
+   novo primeiro), com o total na mesma transação. `tests/integration/performance/audit-report.test.ts`
+   põe 100 mil registros no restaurante e outros 100 mil noutro e exige menos de 1 s em cada
+   filtro; medido em 2026-11-28 no banco local: hoje 75 ms, 31 dias 58 ms, por pessoa 41 ms, por
+   tipo 48 ms, só negadas na página 5 94 ms. O aviso de revisão do gerente usa o índice parcial
+   `adjustment_requests_exceptions (restaurant_id, decided_at) where self_decided and status = 'APPROVED'`.
 
 ## Como medir
 

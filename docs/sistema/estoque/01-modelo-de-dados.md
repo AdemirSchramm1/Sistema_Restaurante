@@ -147,6 +147,18 @@ insere a movimentação; o teste de propriedade confere que projeção = soma do
 `decided_at`, `decision_notes`, `movement_id`. Check: quem decide não é quem pediu (salvo
 cancelamento pelo próprio).
 
+**Feature 019 (migração `0017_small_operation`):** `self_decided boolean` (decidido por quem pediu
+no modo operação pequena). `adjustment_requests_other_decider` passa a aceitar `self_decided`, e
+`adjustment_requests_self_decided` só deixa a marca com `decided_by = created_by` e `APPROVED` ou
+`REJECTED`. Exceção = `self_decided and status = 'APPROVED'`, com índice parcial
+`adjustment_requests_exceptions (restaurant_id, decided_at)`. O modo fica em
+`restaurants.small_operation` e é lido com `for share` na transação da aprovação.
+
+### `exception_reviews` (feature 019)
+`week_start date` (segunda-feira, check `exception_reviews_monday`), `note` (até 140), `created_by`
+(quem revisou, obrigatório) e `created_at`. Única por `(restaurant_id, week_start)`; gatilho
+`app_reject_change` e `app_user` só com `SELECT, INSERT`; RLS por `restaurant_id`.
+
 ### Relatórios (feature 006, só leitura)
 Sem tabela nova. `report-repository.ts` agrega `stock_movements`, `stock_balances`, `items` e o
 fornecedor preferido (`supplier_items.preferred`). **Saída** = `quantity < 0`, `type <> 'REVERSAL'`

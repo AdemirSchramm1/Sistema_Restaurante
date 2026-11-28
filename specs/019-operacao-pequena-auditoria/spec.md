@@ -1,6 +1,6 @@
 # Feature 019 — Modo operação pequena e relatório de auditoria
 
-**Branch**: `claude/project-thread-oukdi6` · **Criada**: 2026-11-28 · **Status**: rascunho
+**Branch**: `claude/project-thread-oukdi6` · **Criada**: 2026-11-28 · **Status**: implementada
 
 **Pedido do dono** (2026-11-26): depois da revisão do projeto, "vamos na sequência 1 2 ignora a 3".
 A frente 1 foi a [018](../018-validar-estoque-conta/spec.md) (merge no PR #36). Esta é a frente 2:
