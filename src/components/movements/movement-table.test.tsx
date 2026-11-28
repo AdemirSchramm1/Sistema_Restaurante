@@ -125,6 +125,12 @@ describe("lista de lançamentos: cada coluna (spec 018, US2 e R4)", () => {
             approvedByName: "Gerente Gil",
           }),
           row({ id: "solto", notes: "linha solto" }),
+          row({
+            id: "excecao",
+            type: "ADJUSTMENT",
+            approvedBy: "u1",
+            approvedByName: "Chef Ana",
+          }),
         ]}
       />,
     );
@@ -146,6 +152,8 @@ describe("lista de lançamentos: cada coluna (spec 018, US2 e R4)", () => {
       "Chef Anaaprovado por Gerente Gil",
     ]);
     expect(cells("solto")[5]).toBe("—linha solto");
+    // Operação pequena (spec 019, US2): quem pediu aprovou.
+    expect(cells("excecao")[6]).toBe("Chef AnaAprovado por quem pediu (operação pequena)");
   });
 
   it("sem lançamentos diz isso; sem a coluna do item quando a lista é de um item só", () => {
