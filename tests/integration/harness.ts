@@ -46,6 +46,7 @@ const TABLES = [
   "dining_tables",
   "supplier_items",
   "suppliers",
+  "exception_reviews",
   "adjustment_requests",
   "stock_movements",
   "stock_balances",

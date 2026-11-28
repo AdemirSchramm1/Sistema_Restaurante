@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { serverDeps } from "@/infra/server";
 import { setSmallOperation } from "@/application/audit/small-operation";
+import { markWeekReviewed } from "@/application/audit/exception-review";
 import { withContext, type ActionState } from "./_session";
 
 /** Liga ou desliga o modo operação pequena (spec 019, US2). */
@@ -14,5 +15,15 @@ export async function setSmallOperationAction(_prev: ActionState, form: FormData
   revalidatePath("/estoque/lancamentos");
   if (state && !state.ok && state.error.code === "STALE_RECORD")
     return { ...state, error: { ...state.error, message: "Mudou em outra tela. Confira e tente de novo." } };
+  return state;
+}
+
+/** Marca a semana como revisada (spec 019, US3). */
+export async function markWeekReviewedAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const weekStart = String(form.get("weekStart") ?? "");
+  const note = String(form.get("note") ?? "");
+  const state = await withContext((ctx) => markWeekReviewed(serverDeps(), ctx, { weekStart, note }));
+  // O aviso no topo de todas as telas some junto.
+  if (state?.ok) revalidatePath("/", "layout");
   return state;
 }

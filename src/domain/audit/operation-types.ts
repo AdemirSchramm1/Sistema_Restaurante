@@ -35,7 +35,7 @@ const ENTITIES: Record<OperationType, readonly string[]> = {
   ITEMS: ["item", "item_group", "item_subgroup"],
   PRODUCTS: ["recipe", "addon"],
   SUPPLIERS: ["supplier"],
-  STOCK: ["stock_movement", "adjustment_request", "stock_report"],
+  STOCK: ["stock_movement", "adjustment_request", "stock_report", "exception_review"],
   TABLES: ["dining_table"],
   ORDERS: ["order"],
   TABS: ["table_tab"],

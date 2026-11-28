@@ -1,5 +1,5 @@
 {
-  "id": "4c14ff0c-61ad-485b-8e46-cabbbd999e1c",
+  "id": "d01a07db-f5c0-45c1-9383-c7ae55c0861d",
   "prevId": "c6f46bd0-3af4-4901-a813-af5f961a753e",
   "version": "7",
   "dialect": "postgresql",
@@ -2399,6 +2399,28 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "adjustment_requests_exceptions": {
+          "name": "adjustment_requests_exceptions",
+          "columns": [
+            {
+              "expression": "restaurant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "decided_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "self_decided and status = 'APPROVED'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2457,6 +2479,90 @@
         "adjustment_requests_difference": {
           "name": "adjustment_requests_difference",
           "value": "difference <> 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.exception_reviews": {
+      "name": "exception_reviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "restaurant_id": {
+          "name": "restaurant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "week_start": {
+          "name": "week_start",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "exception_reviews_week": {
+          "name": "exception_reviews_week",
+          "columns": [
+            {
+              "expression": "restaurant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "week_start",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "exception_reviews_monday": {
+          "name": "exception_reviews_monday",
+          "value": "extract(isodow from week_start) = 1"
+        },
+        "exception_reviews_by": {
+          "name": "exception_reviews_by",
+          "value": "created_by is not null"
+        },
+        "exception_reviews_note": {
+          "name": "exception_reviews_note",
+          "value": "note is null or char_length(note) between 1 and 140"
         }
       },
       "isRLSEnabled": false

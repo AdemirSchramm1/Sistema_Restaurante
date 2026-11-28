@@ -47,14 +47,14 @@ describe("revisão da semana (spec 019, US3-2 e US3-3)", () => {
       "Gerente Gil",
       "Tomate",
       "-1,5 kg",
-      "-R$ 4,50",
+      "R$ -4,50",
       "Conferi na prateleirafaltou na contagem",
       "18,5 kg",
     ]);
     expect(within(table).getByRole("link", { name: "Tomate" }).getAttribute("href")).toBe(
       "/estoque/itens/i1",
     );
-    expect(screen.getByText("Total das exceções: -R$ 4,50")).toBeTruthy();
+    expect(screen.getByText("Total das exceções: R$ -4,50")).toBeTruthy();
     const form = screen.getByRole("form", { name: "Marcar a semana como revisada" });
     expect((within(form).getByLabelText("Observação (opcional)") as HTMLTextAreaElement).maxLength).toBe(140);
     expect(within(form).getByRole("button", { name: "Marcar como revisada" })).toBeTruthy();

@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   index,
   integer,
   numeric,
@@ -145,5 +146,26 @@ export const adjustmentRequests = pgTable(
       sql`not self_decided or (decided_by = created_by and status in ('APPROVED', 'REJECTED'))`,
     ),
     check("adjustment_requests_difference", sql`difference <> 0`),
+    // Aviso e revisão das exceções da operação pequena (spec 019, R8).
+    index("adjustment_requests_exceptions")
+      .on(t.restaurantId, t.decidedAt)
+      .where(sql`self_decided and status = 'APPROVED'`),
+  ],
+);
+
+/** Semana de exceções da operação pequena revisada pelo gerente (spec 019, US3). Só inserção. */
+export const exceptionReviews = pgTable(
+  "exception_reviews",
+  {
+    ...base,
+    /** Segunda-feira da semana (dia local). */
+    weekStart: date("week_start", { mode: "string" }).notNull(),
+    note: text("note"),
+  },
+  (t) => [
+    uniqueIndex("exception_reviews_week").on(t.restaurantId, t.weekStart),
+    check("exception_reviews_monday", sql`extract(isodow from week_start) = 1`),
+    check("exception_reviews_by", sql`created_by is not null`),
+    check("exception_reviews_note", sql`note is null or char_length(note) between 1 and 140`),
   ],
 );
