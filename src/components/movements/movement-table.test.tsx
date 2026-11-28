@@ -128,6 +128,7 @@ describe("lista de lançamentos: cada coluna (spec 018, US2 e R4)", () => {
           row({
             id: "excecao",
             type: "ADJUSTMENT",
+            notes: "linha excecao",
             approvedBy: "u1",
             approvedByName: "Chef Ana",
           }),

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox, Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/page-header";
+import { TextLink } from "@/components/ui/text-link";
 
 export const metadata: Metadata = { title: "Equipe" };
 
@@ -48,6 +49,14 @@ export default async function Page() {
         title="Equipe"
         description="Quem trabalha no restaurante e o que cada pessoa pode fazer no sistema."
       />
+      <nav aria-label="Controles da equipe" className="flex flex-wrap gap-4 text-sm">
+        <TextLink className="inline-flex min-h-11 items-center" href="/equipe/auditoria">
+          Auditoria
+        </TextLink>
+        <TextLink className="inline-flex min-h-11 items-center" href="/equipe/operacao-pequena">
+          Operação pequena
+        </TextLink>
+      </nav>
       <Card className="grid gap-3">
         <CardTitle>Convidar pessoa</CardTitle>
         <ActionForm

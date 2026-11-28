@@ -71,8 +71,14 @@ export function MovementTable({
             </Td>
             <Td>
               {m.recordedByName ?? "—"}
-              {m.approvedByName && (
-                <span className="block text-xs text-muted-foreground">aprovado por {m.approvedByName}</span>
+              {m.approvedBy && m.approvedBy === m.recordedBy ? (
+                <span className="block text-xs text-muted-foreground">
+                  Aprovado por quem pediu (operação pequena)
+                </span>
+              ) : (
+                m.approvedByName && (
+                  <span className="block text-xs text-muted-foreground">aprovado por {m.approvedByName}</span>
+                )
               )}
             </Td>
             {canReverse && (
