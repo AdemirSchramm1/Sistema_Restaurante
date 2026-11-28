@@ -29,6 +29,17 @@ describe("dividir a conta em partes iguais (spec 011, US3 e FR-005)", () => {
     expect(parts("100.00", 20)).toHaveLength(20);
   });
 
+  it("recusa o que falta negativo ou com mais de 2 casas (spec 018, US1)", () => {
+    const fail = (remaining: string, people: number) => {
+      const r = splitEvenly(d(remaining), people);
+      return r.ok ? "OK" : `${r.error.code} ${r.error.field}`;
+    };
+    expect(fail("-0.01", 2)).toBe("INVALID_AMOUNT remaining");
+    expect(fail("10.005", 2)).toBe("INVALID_AMOUNT remaining");
+    expect(fail("0.00", 2)).toBe("OK");
+    expect(fail("100.00", 21)).toBe("INVALID_PEOPLE people");
+  });
+
   it("a soma das partes é sempre igual ao que falta", () => {
     // Gerador fixo: o teste é sempre o mesmo.
     let seed = 11;

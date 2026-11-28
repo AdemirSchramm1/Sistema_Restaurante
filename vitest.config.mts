@@ -68,7 +68,48 @@ const staffCoverage = {
   reportsDirectory: "coverage/staff",
 };
 
-const focused = { menu: menuCoverage, cash: cashCoverage, staff: staffCoverage } as const;
+/**
+ * Réguas da spec 018 (R2), usadas por `pnpm test:billing`, `test:stock` e `test:orders`: o código
+ * das features 001 a 011 tem 100% de linhas, desvios e funções cobertos, somando unidade e
+ * integração (specs/018-validar-estoque-conta/contracts/gates.md).
+ */
+const gate = (name: string, include: string[]) => ({
+  provider: "v8" as const,
+  include,
+  exclude: ["**/*.test.{ts,tsx}"],
+  thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
+  reportsDirectory: `coverage/${name}`,
+});
+
+const billingCoverage = gate("billing", [
+  "src/domain/billing/**/*.ts",
+  "src/application/billing/**/*.ts",
+  "src/components/billing/**/*.{ts,tsx}",
+  "src/infra/db/repositories/billing-repository.ts",
+]);
+
+const stockCoverage = gate("stock", [
+  "src/domain/inventory/**/*.ts",
+  "src/application/inventory/**/*.ts",
+  "src/components/{items,groups,movements,recipes,costs,reorder,reports,audit}/**/*.{ts,tsx}",
+  "src/infra/db/repositories/{item,group,movement,recipe,report}-repository.ts",
+]);
+
+const ordersCoverage = gate("orders", [
+  "src/domain/{ordering,suppliers,shared}/**/*.ts",
+  "src/application/{ordering,suppliers}/**/*.ts",
+  "src/components/{ordering,suppliers,layout}/**/*.{ts,tsx}",
+  "src/infra/db/repositories/{ordering,addon,supplier}-repository.ts",
+]);
+
+const focused = {
+  menu: menuCoverage,
+  cash: cashCoverage,
+  staff: staffCoverage,
+  billing: billingCoverage,
+  stock: stockCoverage,
+  orders: ordersCoverage,
+} as const;
 
 export default defineConfig(({ mode }) => ({
   resolve: { alias },

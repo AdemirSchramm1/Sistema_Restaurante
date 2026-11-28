@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { ActionState } from "@/actions/_session";
+import type { ActionResult } from "@/actions/_session";
 import type { SubmitOrderResult } from "@/application/ordering/submit-order";
 import { MAX_LINE_QUANTITY } from "@/domain/ordering/order-lines";
 import { Alert } from "@/components/ui/alert";
@@ -23,7 +23,7 @@ import { brl } from "./format";
 import { LineChanges } from "./line-changes";
 
 export type SubmitInput = { clientRequestId: string; lines: ReturnType<typeof toOrderLines> };
-export type SubmitFn = (input: SubmitInput) => Promise<ActionState<SubmitOrderResult>>;
+export type SubmitFn = (input: SubmitInput) => Promise<ActionResult<SubmitOrderResult>>;
 
 const newId = () => crypto.randomUUID();
 
@@ -78,7 +78,7 @@ export function Cart({
     setMessages([]);
     try {
       const r = await submit!({ clientRequestId: requestId.current, lines: toOrderLines(lines) });
-      if (r?.ok) {
+      if (r.ok) {
         setSent(r.data);
         setConfirming(false);
         requestId.current = null;
@@ -86,7 +86,6 @@ export function Cart({
         onSent?.(r.data);
         return;
       }
-      if (!r) return;
       const details = (r.error.details ?? {}) as PriceChanges & Unavailable;
       if (r.error.code === "PRICE_CHANGED") {
         const next = applyPriceChanges(lines, details);

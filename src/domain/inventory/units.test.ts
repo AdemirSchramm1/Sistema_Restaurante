@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { convert, toStockUnit, fromStockUnit, unitByCode } from "./units";
+import { convert, toStockUnit, fromStockUnit, unitByCode, UNITS } from "./units";
 import { d } from "../shared/decimal";
 
 const u = (c: string) => unitByCode(c)!;
@@ -43,6 +43,26 @@ describe("conversão de unidades (docs/produto/estoque/02-cadastro-de-itens.md#2
       if (!r.ok) expect(r.error.code).toBe("INVALID_FACTOR");
       expect(fromStockUnit(d("1"), d(f)).ok).toBe(false);
     }
+  });
+
+  it("catálogo: medida, família, fator e nome de cada unidade (spec 018, R4)", () => {
+    expect(UNITS.map((x) => [x.code, x.dimension, x.toBase.toString(), x.label])).toEqual([
+      ["g", "MASS", "1", "grama"],
+      ["kg", "MASS", "1000", "quilograma"],
+      ["ml", "VOLUME", "1", "mililitro"],
+      ["l", "VOLUME", "1000", "litro"],
+      ["un", "COUNT", "1", "unidade"],
+    ]);
+  });
+
+  it("recusas dizem o código, o campo e as medidas", () => {
+    const mismatch = convert(d("1"), u("kg"), u("un"));
+    expect(mismatch.ok ? null : mismatch.error).toMatchObject({
+      code: "UNIT_DIMENSION_MISMATCH",
+      details: { from: "kg", to: "un" },
+    });
+    for (const r of [toStockUnit(d("1"), d("0")), fromStockUnit(d("1"), d("0"))])
+      expect(r.ok ? null : r.error).toMatchObject({ code: "INVALID_FACTOR", field: "purchaseFactor" });
   });
 
   it("conhece só as unidades do catálogo", () => {

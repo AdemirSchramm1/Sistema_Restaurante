@@ -42,9 +42,10 @@ async function costing(repos: Repos, addons: readonly AddonRecord[]) {
   graph.forEach((n) => n.lines.forEach((l) => refs.set(refKey(l.component), l.component)));
   const found = refs.size ? await repos.recipes.components([...refs.values()]) : [];
   const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
+  // Os itens do adicional e dos preparos existem (chave estrangeira) e vieram todos na busca.
   const item = (id: string) => {
-    const c = byKey.get(refKey({ kind: "ITEM", id }));
-    return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+    const c = byKey.get(refKey({ kind: "ITEM", id }))!;
+    return { stockUnit: c.unit, averageCost: c.averageCost };
   };
   return (a: AddonRecord): AddonView => {
     const cost = recipeCost(
@@ -131,7 +132,6 @@ export async function updateAddon(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.addons.get(input.id);
     if (!current) return err("NOT_FOUND");
-    if (current.version !== input.version) return err("STALE_RECORD");
     const valid = await validate(repos, input);
     if (!valid.ok) return valid;
     const { id: _id, version, ...rest } = input;

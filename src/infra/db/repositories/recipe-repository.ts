@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, inArray, lte, ne, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, lte, sql, type SQL } from "drizzle-orm";
 import type {
   ComponentRecord,
   RecipeListRow,
@@ -49,7 +49,6 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
 
   async function withLines(versions: VersionRow[]): Promise<Map<string, RecipeVersionRecord>> {
     const out = new Map<string, RecipeVersionRecord>();
-    if (!versions.length) return out;
     const lines = await tx
       .select()
       .from(recipeLines)
@@ -68,7 +67,8 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
         validFrom: v.validFrom,
         yieldQuantity: dec(v.yieldQuantity),
         yieldUnit: v.yieldUnitId ? UNIT_CODE_BY_ID[v.yieldUnitId]! : null,
-        lines: (linesByVersion.get(v.id) ?? []).map(toLine),
+        // Toda versão tem pelo menos uma linha (RECIPE_EMPTY).
+        lines: linesByVersion.get(v.id)!.map(toLine),
       });
     return out;
   }
@@ -99,9 +99,8 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
       .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
       .where(and(eq(recipes.id, id), eq(recipes.version, version)))
       .returning({ id: recipes.id });
-    if (r.length) return ok(undefined);
-    const exists = await tx.select({ id: recipes.id }).from(recipes).where(eq(recipes.id, id));
-    return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+    // Quem chama já achou o produto: se nada mudou, a versão era velha.
+    return r.length ? ok(undefined) : err("STALE_RECORD");
   }
 
   const repo: RecipeRepo = {
@@ -185,9 +184,8 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
     async get(id) {
       const [r] = await tx.select().from(recipes).where(eq(recipes.id, id));
       if (!r) return null;
-      const current = (await latestVersions([id])).get(id);
-      if (!current) return null;
-      return toRecord(r, current);
+      // Produto e primeira versão são gravados juntos.
+      return toRecord(r, (await latestVersions([id])).get(id)!);
     },
 
     async activeWithLatest() {
@@ -234,35 +232,20 @@ export function recipeRepository(tx: Tx, restaurantId: string): RecipeRepo {
       return rows.map((r): RecipeListRow => ({ ...r, lineCount: Number(r.lineCount) }));
     },
 
-    async findActiveByName(normalized, exceptId) {
-      const [r] = await tx
-        .select({ id: recipes.id })
-        .from(recipes)
-        .where(
-          and(
-            eq(recipes.nameNormalized, normalized),
-            eq(recipes.active, true),
-            exceptId ? ne(recipes.id, exceptId) : undefined,
-          ),
-        );
-      return r ?? null;
-    },
-
     async subRecipeGraph() {
       const preps = await tx.select().from(recipes).where(eq(recipes.kind, "SUB_RECIPE"));
       const versions = await latestVersions(preps.map((p) => p.id));
       const graph = new Map<string, RecipeNode>();
       for (const p of preps) {
-        const v = versions.get(p.id);
-        if (v)
-          graph.set(p.id, {
-            id: p.id,
-            name: p.name,
-            kind: p.kind,
-            yieldQuantity: v.yieldQuantity,
-            yieldUnit: v.yieldUnit,
-            lines: v.lines,
-          });
+        const v = versions.get(p.id)!;
+        graph.set(p.id, {
+          id: p.id,
+          name: p.name,
+          kind: p.kind,
+          yieldQuantity: v.yieldQuantity,
+          yieldUnit: v.yieldUnit,
+          lines: v.lines,
+        });
       }
       return graph;
     },

@@ -40,14 +40,9 @@ function auditView(
     name: data.name.trim(),
     kind: data.kind,
     yield: data.yieldQuantity && data.yieldUnit ? qty(data.yieldQuantity, data.yieldUnit) : null,
-    lines: data.lines
-      .map((l) => `${lookup(l.component)?.name ?? "?"}: ${qty(l.quantity, l.unit)}`)
-      .join("; "),
+    lines: data.lines.map((l) => `${lookup(l.component)!.name}: ${qty(l.quantity, l.unit)}`).join("; "),
   };
 }
-
-const sameName = (normalized: string, repos: Repos, exceptId?: string) =>
-  repos.recipes.findActiveByName(normalized, exceptId);
 
 export async function createRecipe(
   deps: Deps,
@@ -74,7 +69,6 @@ export async function createRecipeIn(
   if (!valid.ok) return valid;
 
   const normalized = normalizeDescription(data.name);
-  if (await sameName(normalized, repos)) return err("RECIPE_DUPLICATE_NAME", "name");
 
   const id = deps.ids.next();
   const stamp = auditStamp(deps, ctx);
@@ -82,6 +76,7 @@ export async function createRecipeIn(
     { id, name: data.name, nameNormalized: normalized, kind: data.kind },
     stamp,
   );
+  // Nome repetido entre ativos: o índice único recusa e tudo volta atrás.
   if (!inserted.ok) return inserted;
   await repos.recipes.insertVersion(
     { id: deps.ids.next(), recipeId: id, number: 1, validFrom: stamp.at, ...versionContent(data) },
@@ -141,8 +136,6 @@ export async function updateRecipe(
     if (!change.ok) return change;
 
     const normalized = normalizeDescription(data.name);
-    if (current.active && (await sameName(normalized, repos, id)))
-      return err("RECIPE_DUPLICATE_NAME", "name");
 
     const stamp = auditStamp(deps, ctx);
     const updated = await repos.recipes.update(
@@ -151,6 +144,7 @@ export async function updateRecipe(
       version,
       stamp,
     );
+    // Nome repetido entre ativos: o índice único recusa e tudo volta atrás.
     if (!updated.ok) return updated;
 
     const content = versionContent(data);
@@ -278,11 +272,12 @@ export async function getRecipe(deps: Deps, ctx: RequestContext, id: string): Pr
       ...[...graph.values()].flatMap((n) => n.lines.map((l) => l.component)),
     ];
     const lookup = await lookupFor(repos, refs);
+    // Tudo o que o produto e os preparos usam foi lido acima (linhas apontam para o que existe).
     const itemInfo = (itemId: string) => {
-      const c = lookup({ kind: "ITEM", id: itemId });
-      return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+      const c = lookup({ kind: "ITEM", id: itemId })!;
+      return { stockUnit: c.unit, averageCost: c.averageCost };
     };
-    const nameOf = (itemId: string) => lookup({ kind: "ITEM", id: itemId })?.name ?? "?";
+    const nameOf = (itemId: string) => lookup({ kind: "ITEM", id: itemId })!.name;
     const cost = recipeCost(r.current.lines, graph, itemInfo);
     const v = r.current;
     return ok({
@@ -299,15 +294,15 @@ export async function getRecipe(deps: Deps, ctx: RequestContext, id: string): Pr
       versionNumber: v.number,
       validFrom: v.validFrom,
       lines: v.lines.map((l: RecipeLineData, i): RecipeLineView => {
-        const c = lookup(l.component);
+        const c = lookup(l.component)!;
         return {
           componentKind: l.component.kind,
           componentId: l.component.id,
-          name: c?.name ?? "?",
-          componentActive: c?.active ?? false,
+          name: c.name,
+          componentActive: c.active,
           quantity: l.quantity,
           unit: l.unit,
-          componentUnit: c?.unit ?? l.unit,
+          componentUnit: c.unit,
           cost: cost.lines[i]!.cost,
           missingCostNames: cost.lines[i]!.missingItemIds.map(nameOf),
         };

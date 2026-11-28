@@ -143,10 +143,8 @@ async function move(
     );
     if (!changed.ok) return changed;
     // Spec 011, FR-006: os ingredientes saem da prateleira quando a cozinha começa o preparo.
-    if (input.to === "PREPARING") {
-      const sold = await recordOrderSale(deps, ctx, repos, input.id);
-      if (!sold.ok) return sold;
-    }
+    // A baixa só recusa pedido que não existe, e este acabou de mudar de situação.
+    if (input.to === "PREPARING") await recordOrderSale(deps, ctx, repos, input.id);
     return ok(undefined);
   });
 }
@@ -196,10 +194,10 @@ export async function cancelOrder(
     canCancel: can(ctx.roles, "order.cancel"),
     canCancelOwn: can(ctx.roles, "order.cancel_own"),
   };
-  if (!who.canCancel && !who.canCancelOwn) {
-    const denied = await authorize(deps, ctx, "order.cancel", ENTITY, input.id);
-    if (!denied.ok) return denied;
-  }
+  // Sem nenhuma das duas permissões, a recusa (e o registro dela) é a de `order.cancel`.
+  const action = !who.canCancel && who.canCancelOwn ? "order.cancel_own" : "order.cancel";
+  const allowed = await authorize(deps, ctx, action, ENTITY, input.id);
+  if (!allowed.ok) return allowed;
   const r = await deps.tenant(ctx.restaurantId, async (repos): Promise<Result<void>> => {
     const current = await repos.orders.get(input.id);
     if (!current) return err("NOT_FOUND");
@@ -223,10 +221,8 @@ export async function cancelOrder(
       audit,
     );
     if (!changed.ok) return changed;
-    if (leftTheShelf(current.status)) {
-      const back = await reverseOrderSale(deps, ctx, repos, input.id, input.ingredientsUsed === true);
-      if (!back.ok) return back;
-    }
+    if (leftTheShelf(current.status))
+      await reverseOrderSale(deps, ctx, repos, input.id, input.ingredientsUsed === true);
     if (current.tabId) await repos.tabs.touch(current.tabId, audit);
     return ok(undefined);
   });

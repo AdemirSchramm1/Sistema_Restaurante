@@ -23,8 +23,8 @@ export async function updateItem(
   return deps.tenant(ctx.restaurantId, async (repos) => {
     const current = await repos.items.get(id);
     if (!current) return err("NOT_FOUND");
-    if (current.version !== version) return err("STALE_RECORD");
-    const unit = canChangeStockUnit(current, data.stockUnit);
+    const usedBy = data.stockUnit === current.stockUnit ? [] : await repos.items.usedBy(id);
+    const unit = canChangeStockUnit(current, data.stockUnit, usedBy);
     if (!unit.ok) return unit;
 
     if (data.subgroupId !== current.subgroupId) {
@@ -34,10 +34,6 @@ export async function updateItem(
     }
 
     const normalized = normalizeDescription(data.description);
-    if (current.active) {
-      const dup = await repos.items.findActiveByDescription(data.subgroupId, normalized, id);
-      if (dup) return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: dup.code });
-    }
 
     const updated = await repos.items.update(
       id,
@@ -45,6 +41,7 @@ export async function updateItem(
       version,
       auditStamp(deps, ctx),
     );
+    // Versão velha ou descrição repetida entre ativos: a trava otimista e o índice único recusam.
     if (!updated.ok) return updated;
     const changes = diffFields(itemAuditView(current), itemAuditView(data));
     if (Object.keys(changes).length)

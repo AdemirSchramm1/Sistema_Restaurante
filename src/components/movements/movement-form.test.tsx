@@ -159,3 +159,54 @@ describe("fornecedor na compra (spec 007, US4)", () => {
     expect(values(screen.getByLabelText("Medida"))).toEqual(["g", "kg", "PACKAGE"]);
   });
 });
+
+describe("formulário de lançamento: casos que faltavam (spec 018, US2)", () => {
+  const submit = async () => {
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("form", { name: "Lançamento" }));
+    });
+  };
+  const keyOf = () =>
+    (
+      screen
+        .getByRole("form", { name: "Lançamento" })
+        .querySelector('input[name="idempotencyKey"]') as HTMLInputElement
+    ).value;
+
+  it("acerto: contagem igual ao saldo não tem diferença; maior diz que sobram; enviado avisa da aprovação", async () => {
+    renderForm({ action: async () => ({ ok: true, data: null, at: 1 }) });
+    fireEvent.change(screen.getByLabelText("Tipo de lançamento"), { target: { value: "ADJUSTMENT" } });
+    fireEvent.change(screen.getByLabelText("Item"), { target: { value: "tomate" } });
+    fireEvent.change(screen.getByLabelText("Quanto tem de verdade"), { target: { value: "10" } });
+    expect(screen.getByTestId("movement-preview").textContent).toBe("Sem diferença: o saldo já é esse.");
+    fireEvent.change(screen.getByLabelText("Quanto tem de verdade"), { target: { value: "12500" } });
+    fireEvent.change(screen.getByLabelText("Medida"), { target: { value: "g" } });
+    expect(screen.getByTestId("movement-preview").textContent).toBe("Diferença: +2,5 kg (sobram)");
+    await submit();
+    expect(await screen.findByText("Pedido de acerto enviado para aprovação.")).toBeTruthy();
+  });
+
+  it("valor pago recusado pelo servidor fica marcado", async () => {
+    renderForm({
+      action: async () => ({
+        ok: false as const,
+        error: { code: "INVALID_AMOUNT" as const, field: "totalPaid", message: "Valor inválido." },
+        at: 1,
+      }),
+    });
+    await submit();
+    expect(screen.getByLabelText("Valor total pago (R$)").getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("sem tipo liberado começa pela perda; navegador sem randomUUID (http na rede local) ainda gera a chave", () => {
+    const original = crypto.randomUUID;
+    Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true });
+    try {
+      renderForm({ types: [] });
+      expect(screen.getByLabelText("Motivo")).toBeTruthy();
+      expect(keyOf()).toMatch(/^0\.\d+-0$/);
+    } finally {
+      Object.defineProperty(crypto, "randomUUID", { value: original, configurable: true });
+    }
+  });
+});

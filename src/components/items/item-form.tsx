@@ -47,8 +47,8 @@ export function ItemForm({
   const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const [stockUnit, setStockUnit] = useState(String(initial.stockUnit) as UnitCode);
-  const [purchaseLabel, setPurchaseLabel] = useState(String(initial.purchaseUnitLabel ?? ""));
-  const [purchaseFactor, setPurchaseFactor] = useState(String(initial.purchaseFactor ?? ""));
+  const [purchaseLabel, setPurchaseLabel] = useState(String(initial.purchaseUnitLabel));
+  const [purchaseFactor, setPurchaseFactor] = useState(String(initial.purchaseFactor));
 
   const summary = useMemo(() => {
     const factor = parseBrDecimal(purchaseFactor);
@@ -60,7 +60,8 @@ export function ItemForm({
   }, [purchaseFactor, purchaseLabel, stockUnit]);
 
   const fe = (f: string) => fieldError(error, f);
-  const v = (k: string) => String(initial[k] ?? "");
+  // Os valores vêm sempre completos (emptyItemValues ou itemToValues).
+  const v = (k: string) => String(initial[k]);
 
   return (
     <form {...formProps} className="grid gap-6" aria-label="Cadastro do item">

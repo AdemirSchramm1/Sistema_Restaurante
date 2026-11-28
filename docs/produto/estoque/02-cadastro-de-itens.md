@@ -38,6 +38,11 @@ Uma pergunta só: **"Em que medida você controla este item?"**
 - Na tela de produtos, a quantidade usada pode ser digitada em medida menor da mesma família
   (gramas de um item controlado em kg; ml de um item em litros). A conversão é automática.
 - **Depois da primeira movimentação a medida não muda.** Para mudar, inative o item e crie outro.
+- **Item que um produto, preparo ou adicional usa só muda de medida dentro da família** (kg e g,
+  l e ml), mesmo antes da primeira movimentação. Vale também para versões antigas do produto, que
+  os pedidos já enviados usam na baixa. A tela diz em quais produtos e adicionais o item está; para
+  trocar de família (kg para un), crie outro item. Decisão de novembro de 2026: sem isso, a
+  quantidade da linha (150 g) não convertia e o "Começar preparo" daquele produto falhava.
 
 ## 3. Como você compra (opcional)
 
@@ -74,4 +79,6 @@ item, "inventariável" e frequência de contagem.
 - Não é possível salvar dois itens ativos com o mesmo nome normalizado no mesmo subgrupo.
 - Código é gerado pelo sistema e não pode ser editado.
 - A medida do item não pode ser alterada depois da primeira movimentação.
+- Item usado em produto, preparo ou adicional (em qualquer versão) só muda de medida dentro da
+  família, e a recusa diz onde ele está.
 - Embalagem sem quantidade (ou quantidade sem embalagem) não salva e aponta o campo que falta.

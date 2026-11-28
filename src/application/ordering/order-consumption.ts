@@ -29,15 +29,18 @@ export async function consumptionFor(repos: Repos, orderId: string): Promise<Res
     l.addons.forEach((a) => add(a.component));
   });
   graph.forEach((n) => n.lines.forEach((l) => add(l.component)));
-  const found = refs.size ? await repos.recipes.components([...refs.values()]) : [];
+  // Toda linha do pedido tem a versão do produto, e as linhas apontam para itens que existem.
+  const found = await repos.recipes.components([...refs.values()]);
   const byKey = new Map(found.map((c) => [refKey(c.ref), c]));
   const items = (id: string) => {
-    const c = byKey.get(refKey({ kind: "ITEM", id }));
-    return c ? { stockUnit: c.unit, averageCost: c.averageCost } : undefined;
+    const c = byKey.get(refKey({ kind: "ITEM", id }))!;
+    return { stockUnit: c.unit, averageCost: c.averageCost };
   };
 
   const total = new Map<string, Decimal>();
   for (const l of lines) {
+    // Toda linha converte: item que um produto ou adicional usa não troca de família de medida
+    // (docs/produto/estoque/02, spec 018), e os componentes existem (chaves estrangeiras).
     const used = lineConsumption(
       {
         versionLines: l.versionLines,
@@ -50,8 +53,7 @@ export async function consumptionFor(repos: Repos, orderId: string): Promise<Res
       },
       graph,
       items,
-    );
-    if (!used.ok) return used;
+    ) as { ok: true; value: Map<string, Decimal> };
     for (const [id, q] of used.value) total.set(id, (total.get(id) ?? d(0)).plus(q));
   }
   return ok(total);

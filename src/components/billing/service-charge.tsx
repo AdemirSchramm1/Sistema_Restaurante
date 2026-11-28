@@ -37,7 +37,7 @@ export function ServiceChargeToggle({
     );
   if (confirmingVersion !== tab.version)
     return (
-      <Button type="button" size="sm" variant="outline" onClick={() => setConfirmingVersion(tab.version)}>
+      <Button type="button" size="lg" variant="outline" onClick={() => setConfirmingVersion(tab.version)}>
         Tirar taxa de serviço
       </Button>
     );
@@ -51,7 +51,7 @@ export function ServiceChargeToggle({
       aria-label="Tirar taxa de serviço"
     >
       <p className="basis-full text-sm">{`Tirar a taxa de serviço de ${brl(d(tab.serviceCharge))} desta conta?`}</p>
-      <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmingVersion(null)}>
+      <Button type="button" size="lg" variant="ghost" onClick={() => setConfirmingVersion(null)}>
         Voltar
       </Button>
     </ActionForm>
@@ -82,6 +82,7 @@ export function ServiceRateForm({
         hint="Vale para as contas que abrirem depois. Deixe vazio para não cobrar taxa."
       >
         <Input
+          size="lg"
           id="service-rate"
           name="rate"
           inputMode="decimal"

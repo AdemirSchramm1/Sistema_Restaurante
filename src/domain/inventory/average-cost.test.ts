@@ -10,6 +10,11 @@ describe("custo médio ponderado (docs/sistema/estoque/02-regras-de-calculo.md#c
     expect(avg.toDecimalPlaces(4).toString()).toBe("23.3333");
   });
 
+  it("item com saldo e sem custo médio (só entrou por acerto): vale o custo da compra (spec 018)", () => {
+    const avg = applyPurchase({ qty: d(5), avgCost: null }, { qty: d(10), unitCost: d("4.50") });
+    expect(s(avg)).toBe("4.5");
+  });
+
   it("estoque zerado: vale o custo da compra", () => {
     expect(s(applyPurchase({ qty: d(0), avgCost: d(20) }, { qty: d(5), unitCost: d(10) }))).toBe("10");
     expect(s(applyPurchase({ qty: d(0), avgCost: null }, { qty: d(5), unitCost: d(10) }))).toBe("10");

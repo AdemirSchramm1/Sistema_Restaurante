@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { canChangeStockUnit, describePurchase, validateItem } from "./item";
+import {
+  canChangeStockUnit,
+  describePurchase,
+  ITEM_TYPE_HINTS,
+  ITEM_TYPE_LABELS,
+  ITEM_TYPES,
+  validateItem,
+} from "./item";
 import { d } from "../shared/decimal";
 import { itemData } from "../../../tests/builders/item-data";
 
@@ -82,6 +89,23 @@ describe("medida bloqueada após a 1ª movimentação (FR-023 da 001)", () => {
     expect(canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "un").ok).toBe(true);
   });
 
+  it("item usado em produto ou adicional não troca de família, e a recusa diz onde ele está (spec 018)", () => {
+    const r = canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "un", [
+      "X-Burger",
+      "Fatia de queijo",
+    ]);
+    expect(r.ok ? null : r.error).toEqual({
+      code: "ITEM_UNIT_IN_USE",
+      field: "stockUnit",
+      details: { usedBy: ["X-Burger", "Fatia de queijo"] },
+    });
+  });
+
+  it("usado em produto, a medida ainda muda dentro da família: kg para g, l para ml", () => {
+    expect(canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: null }, "g", ["X-Burger"]).ok).toBe(true);
+    expect(canChangeStockUnit({ stockUnit: "l", stockUnitLockedAt: null }, "ml", ["Suco"]).ok).toBe(true);
+  });
+
   it("manter a mesma medida nunca é bloqueado", () => {
     expect(
       canChangeStockUnit({ stockUnit: "kg", stockUnitLockedAt: new Date("2026-10-01T00:00:00Z") }, "kg").ok,
@@ -100,5 +124,57 @@ describe("entra no CMV: vem do grupo e pode ser sobrescrito no item (docs/produt
     const { effectiveInCogs } = await import("./item");
     expect(effectiveInCogs({ groupInCogs: false, inCogsOverride: true })).toBe(true);
     expect(effectiveInCogs({ groupInCogs: true, inCogsOverride: false })).toBe(false);
+  });
+});
+
+describe("tipos, limites e campos do cadastro (spec 018, R4)", () => {
+  it("nomes e explicações dos tipos na tela", () => {
+    expect(ITEM_TYPES.map((t) => `${ITEM_TYPE_LABELS[t]}: ${ITEM_TYPE_HINTS[t]}`)).toEqual([
+      "Ingrediente: vai nos pratos (carne, arroz, tomate)",
+      "Revenda: vendido como chega (refrigerante, cerveja)",
+      "Feito na cozinha: preparado aqui (molho, massa pronta)",
+      "Material de uso: limpeza e descartáveis",
+      "Equipamento: panelas, utensílios",
+    ]);
+  });
+
+  it("nome com exatamente 200 caracteres é aceito; espaços nas pontas não contam", () => {
+    expect(code(validateItem(itemData({ description: "x".repeat(200) })))).toBe("OK");
+    expect(code(validateItem(itemData({ description: ` ${"x".repeat(200)} ` })))).toBe("OK");
+    expect(field(validateItem(itemData({ description: "ab" })))).toBe("description");
+  });
+
+  it("tipo fora da lista e medida fora do catálogo apontam o campo", () => {
+    const bad = validateItem(itemData({ type: "OUTRO" as never }));
+    expect([code(bad), field(bad)]).toEqual(["VALIDATION", "type"]);
+    expect(field(validateItem(itemData({ stockUnit: "caixa" as never })))).toBe("stockUnit");
+  });
+
+  it("embalagem com 60 caracteres é aceita; espaços nas pontas não contam", () => {
+    expect(code(validateItem(itemData({ purchaseUnitLabel: "x".repeat(60) })))).toBe("OK");
+    expect(code(validateItem(itemData({ purchaseUnitLabel: ` ${"x".repeat(60)} ` })))).toBe("OK");
+    expect(code(validateItem(itemData({ purchaseUnitLabel: "x".repeat(61) })))).toBe("VALIDATION");
+  });
+
+  it("quantidade zero na embalagem aponta o campo da quantidade", () => {
+    const r = validateItem(itemData({ purchaseFactor: d(0) }));
+    expect([code(r), field(r)]).toEqual(["INVALID_FACTOR", "purchaseFactor"]);
+  });
+
+  it("a frase da embalagem tira espaços, mostra até 4 casas e some sem nome ou sem quantidade", () => {
+    expect(describePurchase(itemData({ purchaseUnitLabel: "  Saco  ", purchaseFactor: d("2.12345") }))).toBe(
+      "1 Saco = 2,1235 kg",
+    );
+    expect(describePurchase(itemData({ purchaseUnitLabel: "Caixa", purchaseFactor: null }))).toBeNull();
+    expect(describePurchase(itemData({ purchaseUnitLabel: "  ", purchaseFactor: d(5) }))).toBeNull();
+    expect(describePurchase(itemData({ purchaseFactor: d(0) }))).toBeNull();
+  });
+
+  it("medida bloqueada aponta o campo da medida", () => {
+    const r = canChangeStockUnit(
+      { stockUnit: "kg", stockUnitLockedAt: new Date("2026-10-01T00:00:00Z") },
+      "g",
+    );
+    expect(r.ok ? null : r.error.field).toBe("stockUnit");
   });
 });

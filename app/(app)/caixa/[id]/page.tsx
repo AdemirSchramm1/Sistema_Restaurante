@@ -60,12 +60,15 @@ export default async function Page({ params }: PageProps<"/caixa/[id]">) {
             {t.status === "OPEN" && can(ctx.roles, "order.place") && (
               <Link
                 href={`/pedidos/lancar/${t.tableId}?aba=pedidos`}
-                className={buttonVariants({ variant: "outline" })}
+                className={buttonVariants({ variant: "outline", size: "lg" })}
               >
                 Voltar à Mesa {t.tableName}
               </Link>
             )}
-            <Link href={`/caixa/${t.id}/imprimir`} className={buttonVariants({ variant: "outline" })}>
+            <Link
+              href={`/caixa/${t.id}/imprimir`}
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
               <Printer aria-hidden="true" />
               Imprimir conta
             </Link>

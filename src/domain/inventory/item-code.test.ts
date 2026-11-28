@@ -33,3 +33,25 @@ describe("códigos de 2 dígitos de grupos e subgrupos (FR-009)", () => {
     if (!r.ok) expect(r.error.code).toBe("GROUP_CODES_EXHAUSTED");
   });
 });
+
+describe("limites dos contadores (spec 018)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string } }) => (r.ok ? "OK" : r.error!.code);
+
+  it("sequência do item começa em 1 e é inteira", () => {
+    expect(fail(formatItemCode("01", "02", 0))).toBe("SUBGROUP_SEQUENCE_EXHAUSTED");
+    expect(fail(formatItemCode("01", "02", 1.5))).toBe("SUBGROUP_SEQUENCE_EXHAUSTED");
+  });
+
+  it("contador de grupo vai de 1 a 99, inteiro", () => {
+    const value = (n: number) => {
+      const r = nextTwoDigitCode(n);
+      return r.ok ? r.value : r.error.code;
+    };
+    expect([0, 1, 99, 2.5].map(value)).toEqual([
+      "GROUP_CODES_EXHAUSTED",
+      "01",
+      "99",
+      "GROUP_CODES_EXHAUSTED",
+    ]);
+  });
+});

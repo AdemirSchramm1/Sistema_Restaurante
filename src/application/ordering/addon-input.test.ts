@@ -26,6 +26,11 @@ describe("formulário do adicional (spec 010, US1)", () => {
     expect(r.ok && r.value.price.isZero()).toBe(true);
   });
 
+  it("sem nome no formulário, o nome vem vazio para a regra do domínio recusar", () => {
+    const r = parseAddonForm({ component: `ITEM:${id}`, quantity: "1", unit: "un" });
+    expect(r.ok && r.value.name).toBe("");
+  });
+
   it("aponta o campo com problema", () => {
     const field = (raw: Record<string, string>) => {
       const r = parseAddonForm({

@@ -89,15 +89,23 @@ export function describePurchase(
   data: Pick<ItemData, "purchaseUnitLabel" | "purchaseFactor" | "stockUnit">,
 ): string | null {
   if (blank(data.purchaseUnitLabel) || !data.purchaseFactor || data.purchaseFactor.lte(0)) return null;
-  return `1 ${data.purchaseUnitLabel!.trim()} = ${formatBrDecimal(data.purchaseFactor, { maxPlaces: 4 })} ${data.stockUnit}`;
+  return `1 ${data.purchaseUnitLabel!.trim()} = ${formatBrDecimal(data.purchaseFactor)} ${data.stockUnit}`;
 }
 
-/** A medida não muda depois da 1ª movimentação. */
+/**
+ * A medida não muda depois da 1ª movimentação. Antes disso, item que um produto, preparo ou
+ * adicional usa (`usedBy`) só muda dentro da família (kg ↔ g, l ↔ ml): a quantidade da linha
+ * precisa continuar convertendo, senão o "Começar preparo" daquele produto falha (decisão de
+ * 2026-11-28, docs/produto/estoque/02).
+ */
 export function canChangeStockUnit(
   item: { stockUnit: UnitCode; stockUnitLockedAt: Date | null },
   newUnit: UnitCode,
+  usedBy: readonly string[] = [],
 ): Result<void> {
   if (item.stockUnit !== newUnit && item.stockUnitLockedAt) return err("ITEM_UNIT_LOCKED", "stockUnit");
+  const sameFamily = unitByCode(item.stockUnit)!.dimension === unitByCode(newUnit)!.dimension;
+  if (!sameFamily && usedBy.length) return err("ITEM_UNIT_IN_USE", "stockUnit", { usedBy: [...usedBy] });
   return ok(undefined);
 }
 

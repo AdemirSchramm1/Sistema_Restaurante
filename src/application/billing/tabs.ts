@@ -345,7 +345,8 @@ export async function reopenTab(
     const audit = auditStamp(deps, ctx);
     const reopened = await repos.tabs.reopen(tab.id, audit);
     if (!reopened.ok) return reopened;
-    const before = tab.closedTotals;
+    // Conta fechada sempre tem os totais e quem fechou (table_tabs_closed no banco).
+    const before = tab.closedTotals!;
     await repos.tabs.addEvent({
       id: deps.ids.next(),
       tabId: tab.id,
@@ -353,10 +354,10 @@ export async function reopenTab(
       reason: reason.value,
       details: {
         previous: {
-          subtotal: before?.subtotal.toFixed(2) ?? null,
-          serviceCharge: before?.serviceCharge.toFixed(2) ?? null,
-          total: before?.total.toFixed(2) ?? null,
-          closedAt: tab.closedAt?.toISOString() ?? null,
+          subtotal: before.subtotal.toFixed(2),
+          serviceCharge: before.serviceCharge.toFixed(2),
+          total: before.total.toFixed(2),
+          closedAt: tab.closedAt!.toISOString(),
           closedByName: tab.closedByName,
         },
       },

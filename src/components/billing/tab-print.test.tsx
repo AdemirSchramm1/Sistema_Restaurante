@@ -113,4 +113,28 @@ describe("conta impressa (spec 011, US1-9)", () => {
     const rows = screen.getAllByRole("row").map((r) => r.textContent);
     expect(rows).toEqual(["SubtotalR$ 77,00", "TotalR$ 77,00", "PagoR$ 50,00", "FaltaR$ 27,00"]);
   });
+
+  it("taxa tirada sai marcada; pago a mais não mostra falta negativa (spec 018)", () => {
+    render(
+      <TabPrint
+        {...props}
+        tab={{
+          ...tab,
+          serviceWaived: true,
+          serviceCharge: "0.00",
+          total: "77.00",
+          paid: "80.00",
+          remaining: "-3.00",
+        }}
+      />,
+    );
+    const rows = screen.getAllByRole("row").map((r) => r.textContent);
+    expect(rows).toEqual([
+      "SubtotalR$ 77,00",
+      "Serviço 10% (tirado)R$ 0,00",
+      "TotalR$ 77,00",
+      "PagoR$ 80,00",
+      "FaltaR$ 0,00",
+    ]);
+  });
 });

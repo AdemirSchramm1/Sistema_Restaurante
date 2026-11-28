@@ -95,3 +95,31 @@ describe("preço do adicional (spec 010, US1-5)", () => {
     expect(code(validateAddonPrice(d("3.005")))).toBe("INVALID_PRICE");
   });
 });
+
+describe("campos de cada recusa do adicional (spec 018, R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code} ${r.error!.field}`;
+
+  it("cada recusa aponta o campo da tela", () => {
+    expect(fail(validateAddon(fatia({ name: "" }), lookup))).toBe("INVALID_NAME name");
+    expect(fail(validateAddon(fatia({ name: "a" }), lookup))).toBe("OK");
+    expect(fail(validateAddon(fatia({ component: { kind: "ITEM", id: "nada" } }), lookup))).toBe(
+      "NOT_FOUND component",
+    );
+    expect(fail(validateAddon(fatia({ component: { kind: "RECIPE", id: "xburger" } }), lookup))).toBe(
+      "NOT_A_SUB_RECIPE component",
+    );
+    expect(fail(validateAddon(fatia({ component: { kind: "ITEM", id: "velho" } }), lookup))).toBe(
+      "COMPONENT_INACTIVE component",
+    );
+    expect(fail(validateAddon(fatia({ quantity: d(0) }), lookup))).toBe("INVALID_QUANTITY quantity");
+    expect(fail(validateAddon(fatia({ unit: "cx" as never }), lookup))).toBe("UNKNOWN_UNIT unit");
+    expect(fail(validateAddon(fatia({ price: d(-1) }), lookup))).toBe("INVALID_PRICE price");
+    expect(fail(validateAddonPrice(d("3.25")))).toBe("OK");
+  });
+
+  it("medida de outra família diz as duas medidas", () => {
+    const r = validateAddon(fatia({ unit: "un" }), lookup);
+    expect(r.ok ? null : r.error).toMatchObject({ field: "unit", details: { from: "un", to: "kg" } });
+  });
+});

@@ -132,3 +132,33 @@ describe("observação para a cozinha na conferência (spec 015, FR-018)", () =>
     expect(r.value.map((l) => l.unitPrice.toFixed(2))).toEqual(["34.00", "34.00", "9.00"]);
   });
 });
+
+describe("campos das recusas do envio (spec 018, R4)", () => {
+  it("quantidade inválida aponta a linha certa", () => {
+    const r = checkOrder([sucoLine, line({ quantity: 0 })], catalog(xBurger, suco));
+    expect(r.ok ? null : [r.error.code, r.error.field]).toEqual(["INVALID_QUANTITY", "lines.1.quantity"]);
+  });
+
+  it("adicional que o produto não oferece entra na lista de indisponíveis", () => {
+    const r = checkOrder(
+      [line({ addons: [{ addonId: "bacon", times: 1, unitPrice: d("4.00") }] })],
+      catalog(xBurger),
+    );
+    expect(r.ok ? null : r.error).toMatchObject({
+      code: "PRODUCT_UNAVAILABLE",
+      details: { recipeIds: [], addonIds: ["bacon"] },
+    });
+  });
+
+  it("escolha recusada aponta a linha e diz o produto", () => {
+    const r = checkOrder(
+      [sucoLine, line({ removals: [{ kind: "ITEM", id: "tomate" }] })],
+      catalog(xBurger, suco),
+    );
+    expect(r.ok ? null : r.error).toMatchObject({
+      code: "OPTION_UNAVAILABLE",
+      field: "lines.1",
+      details: { recipeId: "x", removals: [{ kind: "ITEM", id: "tomate" }] },
+    });
+  });
+});

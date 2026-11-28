@@ -170,3 +170,47 @@ describe("formulário de estorno (spec 004)", () => {
     expect([code(r), field(r)]).toEqual(["INVALID_REASON", "reasonId"]);
   });
 });
+
+describe("formulário de lançamento: campos vazios e inválidos (spec 018, US2 e R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code}@${r.error!.field}`;
+  const purchase = (over: Record<string, unknown> = {}) =>
+    parseMovementForm(
+      {
+        type: "PURCHASE",
+        itemId: ITEM,
+        quantity: "2",
+        unit: "kg",
+        totalPaid: "10,00",
+        occurredAt: "",
+        ...over,
+      },
+      NOW,
+    );
+  const adjustment = (over: Record<string, unknown> = {}) =>
+    parseMovementForm(
+      { type: "ADJUSTMENT", itemId: ITEM, reasonId: REASON, countedQuantity: "3", unit: "kg", ...over },
+      NOW,
+    );
+
+  it("dia que não existe no calendário é recusado", () => {
+    expect(parseMovementDate("2026-02-30", NOW)).toBeNull();
+    expect(parseMovementDate("2026-13-01", NOW)).toBeNull();
+    expect(parseMovementDate("2026-02-28", NOW)?.toISOString()).toBe("2026-02-28T15:00:00.000Z");
+    expect(fail(purchase({ occurredAt: "2026-02-30" }))).toBe("VALIDATION@occurredAt");
+  });
+
+  it("quantidade vazia é INVALID_QUANTITY; valor pago vazio ou inválido é INVALID_AMOUNT", () => {
+    expect(fail(purchase({ quantity: "" }))).toBe("INVALID_QUANTITY@quantity");
+    expect(fail(purchase({ quantity: "dois" }))).toBe("INVALID_NUMBER@quantity");
+    expect(fail(purchase({ totalPaid: "" }))).toBe("INVALID_AMOUNT@totalPaid");
+    expect(fail(purchase({ totalPaid: "dez" }))).toBe("INVALID_AMOUNT@totalPaid");
+  });
+
+  it("contagem: quantidade vazia ou inválida, e embalagem não vale como medida", () => {
+    expect(fail(adjustment())).toBe("OK");
+    expect(fail(adjustment({ countedQuantity: "" }))).toBe("INVALID_QUANTITY@countedQuantity");
+    expect(fail(adjustment({ countedQuantity: "três" }))).toBe("INVALID_NUMBER@countedQuantity");
+    expect(fail(adjustment({ unit: "PACKAGE" }))).toBe("UNKNOWN_UNIT@unit");
+  });
+});

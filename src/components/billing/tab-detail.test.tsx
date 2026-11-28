@@ -219,3 +219,48 @@ describe("conta da mesa (spec 011, US1)", () => {
     ]);
   });
 });
+
+describe("conta da mesa: casos raros (spec 018, US1)", () => {
+  it("cancelado com observação; detalhe faltando no histórico não quebra a tela", () => {
+    render(
+      <TabDetail
+        tab={tab({
+          orders: [
+            {
+              id: "o9",
+              number: 9,
+              status: "CANCELLED",
+              cancelReason: "OTHER",
+              cancelNote: "pediu outro",
+              total: "9.00",
+              lines: [{ quantity: 1, productName: "Suco", unitPrice: "9.00", changes: [] }],
+            },
+          ],
+          events: [
+            { kind: "PAYMENT_ADDED", reason: null, userName: "Carla", at: "2026-11-11T21:00:00.000Z" },
+            {
+              kind: "PAYMENT_REMOVED",
+              reason: null,
+              details: { amount: 50, method: "CHEQUE" },
+              userName: "Carla",
+              at: "2026-11-11T21:00:00.000Z",
+            },
+            { kind: "REOPENED", reason: null, userName: "Gil", at: "2026-11-11T21:00:00.000Z" },
+          ],
+        })}
+        timezone="America/Sao_Paulo"
+      />,
+    );
+    expect(screen.getByText(/^Cancelado: .+ \(pediu outro\)$/)).toBeTruthy();
+    const history = screen.getByText("Histórico da conta").parentElement!;
+    expect(
+      within(history)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
+      "18:00 · Pagamento lançado: ,  · Carla",
+      "18:00 · Pagamento tirado: ,  · Carla",
+      "18:00 · Conta reaberta. Motivo:  · Gil",
+    ]);
+  });
+});

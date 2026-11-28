@@ -101,3 +101,39 @@ describe("reabrir conta (spec 011, US6)", () => {
     expect(calls).toEqual([{ tabId: "t12", version: "9", reason: "Cliente pediu a conta em dois CPFs" }]);
   });
 });
+
+describe("contas fechadas: o que faltava provar (spec 018, US1)", () => {
+  it("uma conta só fica no singular; sem nome de quem fechou, a célula fica vazia", () => {
+    render(
+      <TabsReport
+        tabs={[{ ...report.tabs[0]!, closedByName: null }]}
+        summary={report.summary}
+        timezone="America/Sao_Paulo"
+      />,
+    );
+    expect(screen.getByText("1 conta fechada")).toBeTruthy();
+    const row = screen.getByRole("link", { name: /13/ }).closest("tr")!;
+    expect(
+      within(row)
+        .getAllByRole("cell")
+        .map((c) => c.textContent),
+    ).toContain("");
+  });
+
+  it("Voltar fecha o pedido de motivo sem enviar", () => {
+    let sent = 0;
+    render(
+      <ReopenTabForm
+        tab={{ id: "t12", version: 9 }}
+        action={async () => {
+          sent++;
+          return { ok: true, data: null, at: 1 };
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Reabrir conta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(screen.queryByLabelText("Motivo da reabertura")).toBeNull();
+    expect(sent).toBe(0);
+  });
+});

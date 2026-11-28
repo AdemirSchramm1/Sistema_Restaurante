@@ -118,3 +118,10 @@ describe("painel de custo dos produtos (spec 008, US2)", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
+
+describe("painel de custo: produto de custo zero (spec 018)", () => {
+  it("custo zero não aponta o que mais pesa", () => {
+    render(<ProductCostTable panel={panel(input({ cost: d(0), lines: [{ name: "Água", cost: d(0) }] }))} />);
+    expect(row("x").textContent).toContain("—");
+  });
+});

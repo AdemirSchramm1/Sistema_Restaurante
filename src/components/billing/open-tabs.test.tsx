@@ -46,4 +46,20 @@ describe("caixa: mesas com conta aberta (spec 011, US1)", () => {
     render(<OpenTabs serverNow={NOW} tabs={[]} />);
     expect(screen.getByText("Nenhuma mesa com conta aberta.")).toBeTruthy();
   });
+
+  it("diz quanto falta, se pagaram a mais, e nada sobre a cozinha quando tudo foi entregue (spec 018)", () => {
+    const card = (id: string, total: string, remaining: string) => ({
+      id,
+      tableName: id,
+      openedAt: NOW,
+      total,
+      remaining,
+      pendingOrders: 0,
+    });
+    render(<OpenTabs serverNow={NOW} tabs={[card("4", "84.70", "30.00"), card("5", "20.00", "-5.00")]} />);
+    const mesa4 = screen.getByRole("link", { name: /Mesa 4/ });
+    expect(within(mesa4).getByText("Falta R$ 30,00")).toBeTruthy();
+    expect(within(mesa4).queryByText(/entregue/)).toBeNull();
+    expect(within(screen.getByRole("link", { name: /Mesa 5/ })).getByText("Pago a mais")).toBeTruthy();
+  });
 });

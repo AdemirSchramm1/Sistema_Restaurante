@@ -84,11 +84,6 @@ export interface ItemRepo {
   ): Promise<Result<void>>;
   get(id: string): Promise<Item | null>;
   list(filter: ItemFilter): Promise<{ rows: ItemListRow[]; total: number }>;
-  findActiveByDescription(
-    subgroupId: string,
-    normalized: string,
-    exceptId?: string,
-  ): Promise<{ id: string; code: string } | null>;
   setActive(id: string, active: boolean, version: number, audit: Audit): Promise<Result<void>>;
   setCogsOverride(id: string, value: boolean | null, version: number, audit: Audit): Promise<Result<void>>;
   setReorderLevels(
@@ -98,6 +93,11 @@ export interface ItemRepo {
     audit: Audit,
   ): Promise<Result<void>>;
   activeCountInSubgroup(subgroupId: string): Promise<number>;
+  /**
+   * Nomes dos produtos e preparos (em qualquer versão: pedidos antigos baixam pela versão do envio)
+   * e dos adicionais que usam o item, em ordem alfabética.
+   */
+  usedBy(id: string): Promise<string[]>;
   /** Saldo do item na sua medida (0 sem movimentação). */
   balance(id: string): Promise<Decimal>;
 }
@@ -154,7 +154,6 @@ export interface RecipeRepo {
   get(id: string): Promise<RecipeRecord | null>;
   versionAt(recipeId: string, at: Date): Promise<RecipeVersionRecord | null>;
   list(filter: RecipeFilter): Promise<RecipeListRow[]>;
-  findActiveByName(normalized: string, exceptId?: string): Promise<{ id: string } | null>;
   /** Versão mais nova de cada preparo do restaurante (ativos e inativos). */
   subRecipeGraph(): Promise<Map<string, RecipeNode>>;
   /** Produtos ativos (vendidos e preparos) com a versão mais nova, em ordem de nome. */

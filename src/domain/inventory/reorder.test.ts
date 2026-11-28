@@ -75,6 +75,14 @@ describe("item no ponto (spec 006, FR-003)", () => {
 });
 
 describe("campos do aviso (spec 006, FR-001)", () => {
+  it("aceita até 4 casas e aponta o campo errado (spec 018)", () => {
+    expect(code(validateReorderLevels({ reorderPoint: d("1.0001"), parLevel: d("2.0001") }))).toBe("OK");
+    const point = validateReorderLevels({ reorderPoint: d(-1), parLevel: null });
+    expect(point.ok ? null : point.error.field).toBe("reorderPoint");
+    const par = validateReorderLevels({ reorderPoint: d(1), parLevel: d("2.00001") });
+    expect(par.ok ? null : [par.error.code, par.error.field]).toEqual(["INVALID_QUANTITY", "parLevel"]);
+  });
+
   it("aceita só o ponto, os dois, ou nenhum", () => {
     expect(code(validateReorderLevels({ reorderPoint: d(10), parLevel: null }))).toBe("OK");
     expect(code(validateReorderLevels({ reorderPoint: d(10), parLevel: d(30) }))).toBe("OK");

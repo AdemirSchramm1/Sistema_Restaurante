@@ -42,6 +42,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   NOT_A_SUB_RECIPE: "Só preparos podem ser usados dentro de outro produto.",
   RECIPE_CYCLE: "Este preparo acabaria usando a si mesmo.",
   RECIPE_IN_USE: "Este preparo está em uso em outros produtos.",
+  ITEM_UNIT_IN_USE:
+    "Este item está em produtos ou adicionais. A medida só pode mudar dentro da família (kg e g, l e ml).",
   ITEM_INACTIVE: "Este item está inativo. Reative o item para lançar.",
   INVALID_AMOUNT: "Valor inválido. Use até 2 casas depois da vírgula (ex.: 240,50).",
   INVALID_REASON: "Escolha um motivo da lista.",
@@ -198,6 +200,8 @@ export function messageFor(error: DomainError): string {
     return `Já existe um item ativo com este nome neste grupo (${String(error.details.existingCode)}).`;
   if (error.code === "INSUFFICIENT_STOCK" && error.details?.available !== undefined)
     return `Não há estoque suficiente: só há ${String(error.details.available).replace(".", ",")} ${String(error.details.unit)}.`;
+  if (error.code === "ITEM_UNIT_IN_USE" && Array.isArray(error.details?.usedBy))
+    return `Este item está em: ${(error.details.usedBy as string[]).join(", ")}. A medida só pode mudar dentro da família (kg e g, l e ml); para outra, crie outro item.`;
   if (error.code === "RECIPE_IN_USE" && Array.isArray(error.details?.usedBy))
     return `Este preparo está em uso em: ${(error.details.usedBy as string[]).join(", ")}. Tire dele primeiro.`;
   if (error.code === "CNPJ_IN_USE" && error.details?.existingName)

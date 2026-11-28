@@ -23,8 +23,9 @@ export function SupplierForm({ action, initial, meta, readOnly, submitLabel }: P
   const { state, pending, saved, formProps } = useFormAction(action);
   const error = state && !state.ok ? state.error : null;
   const fe = (f: string) => fieldError(error, f);
-  const v = (k: string) => String(initial[k] ?? "");
-  const days = new Set((initial.deliveryDays as string[] | undefined) ?? []);
+  // Os valores vêm sempre completos (emptySupplierValues ou supplierToValues).
+  const v = (k: string) => String(initial[k]);
+  const days = new Set(initial.deliveryDays as string[]);
 
   const text = (
     name: string,

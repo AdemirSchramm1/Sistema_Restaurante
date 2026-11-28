@@ -250,7 +250,9 @@ export function SupplierItems({
               {canWrite && (
                 <Td>
                   <details>
-                    <summary className="cursor-pointer text-sm text-primary">Editar</summary>
+                    <summary className="flex min-h-11 w-fit cursor-pointer items-center text-sm text-primary">
+                      Editar
+                    </summary>
                     <div className="mt-2 grid gap-2">
                       <EditForm row={r} action={updateAction} />
                       <ActionForm

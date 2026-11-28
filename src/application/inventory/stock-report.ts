@@ -27,7 +27,7 @@ export async function stockReport(
   if (!allowed.ok) return allowed;
   const period = parsePeriod(rawDays, deps.clock.now());
   return deps.tenant(ctx.restaurantId, async (repos) => {
-    const timezone = (await repos.restaurants.get())?.timezone ?? "America/Sao_Paulo";
+    const timezone = (await repos.restaurants.get())!.timezone;
     const { from, to } = period;
     const { most, least } = rankOutflow(await repos.reports.outflowByItem(from, to));
     const byReason = await repos.reports.outflowByReason(from, to);
@@ -44,7 +44,8 @@ export async function stockReport(
         label:
           r.type === "SALE_RECIPE"
             ? MOVEMENT_TYPE_LABELS.SALE_RECIPE
-            : ((r.reasonId && reasonById(r.reasonId)?.label) ?? "Outro"),
+            : // Fora a venda, toda saída tem motivo (stock_movements_reason no banco).
+              reasonById(r.reasonId!)!.label,
         value: r.value,
       })),
       weeks: await repos.reports.weekly(from, to, timezone),

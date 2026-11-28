@@ -3,6 +3,7 @@ import {
   compatibleUnits,
   checkSubRecipeChange,
   hasVersionChanges,
+  RECIPE_KIND_LABELS,
   validateRecipe,
   versionAt,
   type ComponentInfo,
@@ -199,5 +200,165 @@ describe("medidas que aparecem na linha", () => {
     expect(compatibleUnits("kg")).toEqual(["g", "kg"]);
     expect(compatibleUnits("ml")).toEqual(["ml", "l"]);
     expect(compatibleUnits("un")).toEqual(["un"]);
+  });
+});
+
+describe("limites, campos e versões do produto (spec 018, US2 e R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string; details?: unknown } }) =>
+    r.ok ? "OK" : `${r.error!.code} ${r.error!.field ?? "-"}`;
+
+  it("nomes dos tipos na tela", () => {
+    expect(RECIPE_KIND_LABELS).toEqual({
+      DISH: "Vendido ao cliente",
+      SUB_RECIPE: "Preparo (usado dentro de outros produtos)",
+    });
+  });
+
+  it("nome de 3 a 120 letras, sem contar os espaços das pontas", () => {
+    expect(fail(validateRecipe(dishData({ name: "abc" }), lookup))).toBe("OK");
+    expect(fail(validateRecipe(dishData({ name: "x".repeat(120) }), lookup))).toBe("OK");
+    expect(fail(validateRecipe(dishData({ name: ` ${"x".repeat(120)} ` }), lookup))).toBe("OK");
+    expect(fail(validateRecipe(dishData({ name: "x".repeat(121) }), lookup))).toBe("INVALID_NAME name");
+  });
+
+  it("tipo fora da lista aponta o campo", () => {
+    expect(fail(validateRecipe(dishData({ kind: "OUTRO" as never }), lookup))).toBe("VALIDATION kind");
+  });
+
+  it("quantidade da linha e rendimento com até 4 casas", () => {
+    expect(fail(validateRecipe(dishData({ lines: [itemLine("carne", "0.0001", "kg")] }), lookup))).toBe("OK");
+    expect(fail(validateRecipe(dishData({ lines: [itemLine("carne", "0.00001", "kg")] }), lookup))).toBe(
+      "INVALID_QUANTITY lines.0.quantity",
+    );
+    expect(fail(validateRecipe(prepData({ yieldQuantity: d("2.0001") }), lookup))).toBe("OK");
+  });
+
+  it("rendimento: medida fora do catálogo; produto vendido sem medida de rendimento", () => {
+    expect(fail(validateRecipe(prepData({ yieldUnit: "cx" as never }), lookup))).toBe(
+      "INVALID_YIELD yieldUnit",
+    );
+    expect(fail(validateRecipe(dishData({ yieldQuantity: d(1) }), lookup))).toBe("VALIDATION yieldQuantity");
+    expect(fail(validateRecipe(dishData({ yieldUnit: "kg" }), lookup))).toBe("VALIDATION yieldQuantity");
+  });
+
+  it("cada recusa da linha aponta o campo da linha", () => {
+    const dup = [itemLine("pao", "1", "un"), itemLine("pao", "2", "un")];
+    expect(fail(validateRecipe(dishData({ lines: dup }), lookup))).toBe(
+      "DUPLICATE_RECIPE_COMPONENT lines.1.component",
+    );
+    expect(fail(validateRecipe(dishData({ lines: [itemLine("nada", "1", "un")] }), lookup))).toBe(
+      "NOT_FOUND lines.0.component",
+    );
+    expect(fail(validateRecipe(dishData({ lines: [itemLine("velho", "1", "kg")] }), lookup))).toBe(
+      "COMPONENT_INACTIVE lines.0.component",
+    );
+    expect(fail(validateRecipe(dishData({ lines: [itemLine("pao", "1", "cx" as never)] }), lookup))).toBe(
+      "UNKNOWN_UNIT lines.0.unit",
+    );
+    const wrong = validateRecipe(dishData({ lines: [itemLine("carne", "1", "un")] }), lookup);
+    expect(wrong.ok ? null : wrong.error).toMatchObject({
+      field: "lines.0.unit",
+      details: { from: "un", to: "kg" },
+    });
+  });
+
+  it("preparo que usa a si mesmo aponta a linha; sem o mapa dos preparos não procura ciclo longo", () => {
+    expect(
+      fail(validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, { selfId: "molho" })),
+    ).toBe("RECIPE_CYCLE lines.0.component");
+    expect(
+      fail(validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, { selfId: "base" })),
+    ).toBe("OK");
+  });
+
+  it("item com o mesmo id do preparo não é ciclo (só preparo usa preparo)", () => {
+    const lines = [
+      { component: { kind: "ITEM" as const, id: "tomate" }, quantity: d(1), unit: "kg" as const },
+    ];
+    expect(fail(validateRecipe(prepData({ lines }), lookup, { selfId: "tomate" }))).toBe("OK");
+  });
+
+  it("preparo que volta a si mesmo por outro preparo é recusado com o caminho", () => {
+    const graph = new Map([
+      ["molho", { id: "molho", ...prepData({ lines: [prepLine("base", "1", "kg")] }) }],
+    ]);
+    const r = validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, {
+      selfId: "base",
+      graph,
+    });
+    expect(r.ok ? null : r.error).toMatchObject({
+      code: "RECIPE_CYCLE",
+      field: "lines",
+      details: { path: ["base", "molho", "base"] },
+    });
+    expect(fail(validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, { graph }))).toBe(
+      "OK",
+    );
+    expect(
+      fail(
+        validateRecipe(prepData({ lines: [prepLine("molho", "1", "kg")] }), lookup, {
+          selfId: "outro",
+          graph,
+        }),
+      ),
+    ).toBe("OK");
+  });
+
+  it("produto vendido 'em uso' não tem regra de preparo; em uso diz o campo e quem usa", () => {
+    const dish = { kind: "DISH" as const, yieldUnit: null };
+    expect(fail(checkSubRecipeChange(dish, null, ["X-Burger"]))).toBe("OK");
+    const prep = { kind: "SUB_RECIPE" as const, yieldUnit: "kg" as const };
+    const kind = checkSubRecipeChange(prep, { kind: "DISH", yieldUnit: null }, ["X-Burger"]);
+    expect(kind.ok ? null : kind.error).toMatchObject({ field: "kind", details: { usedBy: ["X-Burger"] } });
+    const unit = checkSubRecipeChange(prep, { kind: "SUB_RECIPE", yieldUnit: "un" }, ["X-Burger"]);
+    expect(unit.ok ? null : unit.error).toMatchObject({
+      field: "yieldUnit",
+      details: { usedBy: ["X-Burger"] },
+    });
+    const off = checkSubRecipeChange(prep, null, ["X-Burger"]);
+    expect(off.ok ? null : off.error).toMatchObject({ details: { usedBy: ["X-Burger"] } });
+  });
+
+  it("em uso, sem medida de rendimento de um lado, não há troca de família", () => {
+    const prep = { kind: "SUB_RECIPE" as const, yieldUnit: "kg" as const };
+    expect(fail(checkSubRecipeChange(prep, { kind: "SUB_RECIPE", yieldUnit: null }, ["X-Burger"]))).toBe(
+      "OK",
+    );
+    expect(
+      fail(
+        checkSubRecipeChange({ ...prep, yieldUnit: null }, { kind: "SUB_RECIPE", yieldUnit: "un" }, [
+          "X-Burger",
+        ]),
+      ),
+    ).toBe("OK");
+  });
+
+  it("versão nova quando muda o rendimento (quantidade ou medida), o item ou a medida da linha", () => {
+    const prep = prepData();
+    expect(hasVersionChanges(prep, prepData())).toBe(false);
+    expect(hasVersionChanges(prep, prepData({ yieldUnit: "g" }))).toBe(true);
+    expect(hasVersionChanges(prep, prepData({ yieldQuantity: null }))).toBe(true);
+    expect(hasVersionChanges(prepData({ yieldQuantity: null }), prepData({ yieldQuantity: null }))).toBe(
+      false,
+    );
+    expect(hasVersionChanges(prepData({ yieldQuantity: null }), prep)).toBe(true);
+    const dish = dishData();
+    const swap = [itemLine("tomate", "1", "un"), ...dish.lines.slice(1)];
+    expect(hasVersionChanges(dish, dishData({ lines: swap }))).toBe(true);
+    const grams = [itemLine("pao", "1", "kg"), ...dish.lines.slice(1)];
+    expect(hasVersionChanges(dish, dishData({ lines: grams }))).toBe(true);
+  });
+
+  it("versão vigente: a de maior início, em qualquer ordem; com o mesmo início fica a primeira lida", () => {
+    const v1 = { number: 1, validFrom: new Date("2026-11-01T10:00:00Z") };
+    const v2 = { number: 2, validFrom: new Date("2026-11-05T10:00:00Z") };
+    const later = new Date("2026-11-10T00:00:00Z");
+    expect(versionAt([v2, v1], later)).toBe(v2);
+    const twin = { number: 3, validFrom: new Date("2026-11-05T10:00:00Z") };
+    expect(versionAt([v2, twin], later)).toBe(v2);
+  });
+
+  it("medida desconhecida não tem medidas compatíveis", () => {
+    expect(compatibleUnits("cx" as never)).toEqual([]);
   });
 });

@@ -63,9 +63,9 @@ export async function submitOrder(
       lines: priced.value,
     });
     if (!saved) {
-      // Outro toque com o mesmo id chegou primeiro: devolve aquele pedido.
-      const first = await repos.orders.findByClientRequest(access.id, input.value.clientRequestId);
-      return first ? ok(view(first.id, first.number, first.total.toFixed(2))) : err("STALE_RECORD");
+      // Outro toque com o mesmo id chegou primeiro e já gravou: o índice único só recusa pedido que existe.
+      const first = (await repos.orders.findByClientRequest(access.id, input.value.clientRequestId))!;
+      return ok(view(first.id, first.number, first.total.toFixed(2)));
     }
     return ok(view(saved.orderId, saved.number, saved.total.toFixed(2)));
   });

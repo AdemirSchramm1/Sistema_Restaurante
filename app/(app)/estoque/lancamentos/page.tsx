@@ -166,7 +166,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">Últimos lançamentos</h2>
           <form className="flex gap-2" role="search">
-            <Select name="tipo" defaultValue={typeFilter ?? ""} aria-label="Filtrar por tipo">
+            <Select size="lg" name="tipo" defaultValue={typeFilter ?? ""} aria-label="Filtrar por tipo">
               <option value="">Todos os tipos</option>
               {MOVEMENT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -174,7 +174,7 @@ export default async function Page({ searchParams }: PageProps<"/estoque/lancame
                 </option>
               ))}
             </Select>
-            <button className={buttonVariants({ variant: "outline" })} type="submit">
+            <button className={buttonVariants({ variant: "outline", size: "lg" })} type="submit">
               Filtrar
             </button>
           </form>

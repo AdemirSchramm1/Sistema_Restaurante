@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { SalePrice, type SalePriceProps } from "./sale-price";
 
 afterEach(cleanup);
@@ -47,5 +47,41 @@ describe("quadro do preço de venda (spec 008, US1)", () => {
     render(<SalePrice {...base} canEdit={false} />);
     expect(screen.queryByRole("button", { name: "Salvar preço" })).toBeNull();
     expect(screen.getByText("Vendo por R$ 28,00")).toBeTruthy();
+  });
+});
+
+describe("preço de venda: salvar (spec 018)", () => {
+  const submit = async () => {
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Salvar preço" }));
+    });
+  };
+
+  it("recusa do servidor marca o campo e diz o motivo", async () => {
+    render(
+      <SalePrice
+        {...base}
+        action={async () => ({
+          ok: false,
+          error: { code: "INVALID_AMOUNT", message: "Preço inválido." },
+          at: 1,
+        })}
+      />,
+    );
+    await submit();
+    expect(await screen.findByText("Preço inválido.")).toBeTruthy();
+    expect(screen.getByLabelText("Vendo por (R$)").getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("salvo diz que salvou", async () => {
+    render(<SalePrice {...base} action={async () => ({ ok: true, data: null, at: 1 })} />);
+    await submit();
+    expect(await screen.findByRole("status")).toBeTruthy();
+    expect(screen.getByText("Preço salvo.")).toBeTruthy();
+  });
+
+  it("quem não pode editar e não há preço lê 'Sem preço de venda.'", () => {
+    render(<SalePrice {...base} canEdit={false} salePrice={null} />);
+    expect(screen.getByText("Sem preço de venda.")).toBeTruthy();
   });
 });

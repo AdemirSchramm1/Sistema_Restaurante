@@ -152,3 +152,101 @@ describe("preço por medida (FR-005, US3)", () => {
     expect(cheapestOffer([{ id: "a", price: d(1), packageQuantity: null }])).toBe(null);
   });
 });
+
+describe("limites do fornecedor e do item (spec 018, US3 e R4)", () => {
+  const fail = (r: { ok: boolean; error?: { code: string; field?: string } }) =>
+    r.ok ? "OK" : `${r.error!.code}@${r.error!.field}`;
+
+  it("nome: 3 e 120 letras passam; 2 e 121 não", () => {
+    expect(fail(validateSupplier(supplier({ name: "abc" })))).toBe("OK");
+    expect(fail(validateSupplier(supplier({ name: "a".repeat(120) })))).toBe("OK");
+    expect(fail(validateSupplier(supplier({ name: "ab" })))).toBe("INVALID_NAME@name");
+    expect(fail(validateSupplier(supplier({ name: "a".repeat(121) })))).toBe("INVALID_NAME@name");
+  });
+
+  it("textos no tamanho máximo passam; um a mais é VALIDATION no campo", () => {
+    const cases: [keyof SupplierData, number][] = [
+      ["legalName", 120],
+      ["contactName", 120],
+      ["phone", 40],
+      ["paymentTerms", 200],
+      ["notes", 1000],
+    ];
+    for (const [f, max] of cases) {
+      expect(fail(validateSupplier(supplier({ [f]: "x".repeat(max) }))), f).toBe("OK");
+      expect(fail(validateSupplier(supplier({ [f]: "x".repeat(max + 1) }))), f).toBe(`VALIDATION@${f}`);
+    }
+  });
+
+  it("e-mail: o texto inteiro precisa ter cara de e-mail", () => {
+    expect(fail(validateSupplier(supplier({ email: "a b@x.com" })))).toBe("INVALID_EMAIL@email");
+    expect(fail(validateSupplier(supplier({ email: "a@b.c d" })))).toBe("INVALID_EMAIL@email");
+    expect(fail(validateSupplier(supplier({ email: "semarroba.com" })))).toBe("INVALID_EMAIL@email");
+  });
+
+  it("dias da semana: 0 e 6 passam; -1, 7 e meio dia não", () => {
+    expect(fail(validateSupplier(supplier({ deliveryDays: [0, 6] })))).toBe("OK");
+    for (const day of [-1, 7, 1.5])
+      expect(fail(validateSupplier(supplier({ deliveryDays: [day] }))), String(day)).toBe(
+        "VALIDATION@deliveryDays",
+      );
+  });
+
+  it("prazo: 0 e 90 passam; -1, 91 e meio dia não", () => {
+    for (const lead of [0, 90]) expect(fail(validateSupplier(supplier({ leadTimeDays: lead })))).toBe("OK");
+    for (const lead of [-1, 91, 0.5])
+      expect(fail(validateSupplier(supplier({ leadTimeDays: lead }))), String(lead)).toBe(
+        "VALIDATION@leadTimeDays",
+      );
+  });
+
+  it("pedido mínimo com 2 casas passa; com 3 não", () => {
+    expect(fail(validateSupplier(supplier({ minOrderValue: d("150.25") })))).toBe("OK");
+    expect(fail(validateSupplier(supplier({ minOrderValue: d("150.255") })))).toBe(
+      "INVALID_AMOUNT@minOrderValue",
+    );
+  });
+
+  const item = (over: Partial<SupplierItemData> = {}): SupplierItemData => ({
+    itemId: "i1",
+    packageLabel: null,
+    packageQuantity: null,
+    price: d("10"),
+    preferred: false,
+    ...over,
+  });
+
+  it("preço com 4 casas passa; com 5 não", () => {
+    expect(fail(validateSupplierItem(item({ price: d("1.2345") })))).toBe("OK");
+    expect(fail(validateSupplierItem(item({ price: d("1.23456") })))).toBe("INVALID_PRICE@price");
+  });
+
+  it("embalagem: cada metade sem a outra é recusada no campo que falta", () => {
+    expect(fail(validateSupplierItem(item({ packageLabel: "Caixa" })))).toBe(
+      "PURCHASE_FACTOR_REQUIRED@packageQuantity",
+    );
+    expect(fail(validateSupplierItem(item({ packageQuantity: d(18) })))).toBe(
+      "PURCHASE_LABEL_REQUIRED@packageLabel",
+    );
+  });
+
+  it("nome da embalagem: 60 letras passam; 61 não", () => {
+    const box = (label: string) => item({ packageLabel: label, packageQuantity: d(18) });
+    expect(fail(validateSupplierItem(box("c".repeat(60))))).toBe("OK");
+    expect(fail(validateSupplierItem(box("c".repeat(61))))).toBe("VALIDATION@packageLabel");
+  });
+
+  it("quantidade da embalagem com 4 casas passa; com 5 não", () => {
+    const box = (q: string) => item({ packageLabel: "Caixa", packageQuantity: d(q) });
+    expect(fail(validateSupplierItem(box("0.0001")))).toBe("OK");
+    expect(fail(validateSupplierItem(box("0.00001")))).toBe("INVALID_FACTOR@packageQuantity");
+  });
+
+  it("com exatamente duas ofertas já há a mais barata, e o empate fica com a primeira", () => {
+    const a = { id: "a", price: d(5), packageQuantity: null };
+    const b = { id: "b", price: d(4), packageQuantity: null };
+    expect(cheapestOffer([a, b])).toBe("b");
+    expect(cheapestOffer([b, a])).toBe("b");
+    expect(cheapestOffer([a, { ...a, id: "a2" }])).toBe("a");
+  });
+});

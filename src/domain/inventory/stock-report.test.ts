@@ -69,6 +69,33 @@ describe("itens que mais e menos saíram (spec 006, US3)", () => {
   });
 });
 
+describe("período, saídas sem custo e empates (spec 018)", () => {
+  const out = (name: string, quantity: string, value: string, balance = "0"): OutflowRow => ({
+    itemId: name,
+    name,
+    unit: "kg",
+    quantity: d(quantity),
+    value: d(value),
+    balance: d(balance),
+  });
+
+  it("só número inteiro vale como período; o resto vira 30 dias", () => {
+    for (const raw of ["7x", " 7", "7.5", "x7", "-7"]) expect(parsePeriod(raw, NOW).days, raw).toBe(30);
+    expect(parsePeriod("90", NOW).days).toBe(90);
+  });
+
+  it("item sem custo que saiu entra nos dois gráficos, mesmo com o estoque zerado", () => {
+    const { most, least } = rankOutflow([out("Sal", "2", "0")]);
+    expect(most.map((r) => r.name)).toEqual(["Sal"]);
+    expect(least.map((r) => [r.name, r.stopped])).toEqual([["Sal", false]]);
+  });
+
+  it("menos saíram: no mesmo valor, a menor quantidade primeiro", () => {
+    const { least } = rankOutflow([out("Açúcar", "5", "0"), out("Sal", "2", "0")]);
+    expect(least.map((r) => r.name)).toEqual(["Sal", "Açúcar"]);
+  });
+});
+
 describe("largura das barras (spec 006, FR-007)", () => {
   it("o maior valor ocupa 100% e os outros são proporcionais", () => {
     expect(barPercents([d(300), d(150), d(30)])).toEqual([100, 50, 10]);

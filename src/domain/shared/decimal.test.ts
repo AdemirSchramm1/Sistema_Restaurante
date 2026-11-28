@@ -64,3 +64,45 @@ describe("formatBrl: um jeito só de mostrar reais (spec 012, FR-011)", () => {
     expect(formatBrl(d("-8.5"))).toBe("R$ -8,50");
   });
 });
+
+describe("limites do decimal e do formato brasileiro (spec 018, US3)", () => {
+  it("guarda 40 algarismos e arredonda meio para cima", () => {
+    expect(d(1).dividedBy(3).toString()).toBe(`0.${"3".repeat(40)}`);
+    expect(d(2).dividedBy(3).toString()).toBe(`0.${"6".repeat(39)}7`);
+  });
+
+  it("aceita inteiro grande (bigint) e diz como escrever fração", () => {
+    expect(d(12345678901234567890123n).toString()).toBe("1.2345678901234567890123e+22");
+    expect(() => d(0.5)).toThrow('Use texto para valores fracionários: d("0.5")');
+    expect(d(d("1.25")).toString()).toBe("1.25");
+  });
+
+  it("lê inteiros, milhar com 1 a 3 algarismos no começo e vários grupos", () => {
+    const read = (t: string) => {
+      const r = parseBrDecimal(t);
+      return r.ok ? r.value.toString() : r.error.code;
+    };
+    expect(["12", "1234,5", "12.345", "123.456,7", "1.234.567"].map(read)).toEqual([
+      "12",
+      "1234.5",
+      "12345",
+      "123456.7",
+      "1234567",
+    ]);
+    expect(read("1234.567")).toBe("INVALID_NUMBER");
+  });
+
+  it("sem casas, zero no meio da fração e mínimo maior que o máximo", () => {
+    expect(formatBrDecimal(d("12.6"), { maxPlaces: 0 })).toBe("13");
+    expect(formatBrDecimal(d("1.05"), { maxPlaces: 2 })).toBe("1,05");
+    expect(formatBrDecimal(d("1.5"), { minPlaces: 4, maxPlaces: 2 })).toBe("1,50");
+    expect(formatBrDecimal(d("1.5"), { minPlaces: 2, maxPlaces: 4 })).toBe("1,50");
+  });
+
+  it("negativo que arredonda para zero perde o sinal; os outros mantêm", () => {
+    expect(formatBrDecimal(d("-0.001"), { maxPlaces: 2 })).toBe("0");
+    expect(formatBrDecimal(d("-0.001"), { minPlaces: 2, maxPlaces: 2 })).toBe("0,00");
+    expect(formatBrDecimal(d("-1.5"), { maxPlaces: 2 })).toBe("-1,5");
+    expect(formatBrDecimal(d("-1000"), { maxPlaces: 2 })).toBe("-1.000");
+  });
+});

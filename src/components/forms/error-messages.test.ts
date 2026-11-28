@@ -58,6 +58,15 @@ describe("mensagens com detalhes do estoque e do cadastro", () => {
     );
   });
 
+  it("medida de item usado em produto diz onde ele está e o que fazer (spec 018)", () => {
+    expect(messageFor({ code: "ITEM_UNIT_IN_USE", details: { usedBy: ["X-Burger", "Azeitonas"] } })).toBe(
+      "Este item está em: X-Burger, Azeitonas. A medida só pode mudar dentro da família (kg e g, l e ml); para outra, crie outro item.",
+    );
+    expect(messageFor({ code: "ITEM_UNIT_IN_USE" })).toBe(
+      "Este item está em produtos ou adicionais. A medida só pode mudar dentro da família (kg e g, l e ml).",
+    );
+  });
+
   it("CNPJ repetido diz de qual fornecedor", () => {
     expect(messageFor({ code: "CNPJ_IN_USE", details: { existingName: "Ceasa" } })).toBe(
       "Já existe um fornecedor com este CNPJ: Ceasa.",

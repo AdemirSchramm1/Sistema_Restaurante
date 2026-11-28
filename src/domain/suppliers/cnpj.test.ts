@@ -44,4 +44,36 @@ describe("CNPJ (03-fornecedores, FR-001)", () => {
     expect(formatCnpj("11222333000181")).toBe("11.222.333/0001-81");
     expect(formatCnpj("12ABC34501DE35")).toBe("12.ABC.345/01DE-35");
   });
+
+  it("só aceita exatamente 14 caracteres, mesmo quando os dígitos do fim batem (spec 018)", () => {
+    // Os 13 primeiros dão 8 e 1: com um caractere a mais, só o tamanho recusa.
+    expect(isValidCnpj("112223330001881")).toBe(false);
+    expect(isValidCnpj("X11222333000181")).toBe(false);
+  });
+
+  it("acerta os dígitos quando o resto da divisão por 11 é 0, 1 ou 2 (spec 018)", () => {
+    // resto 0 e 1 viram dígito 0; resto 2 vira 9.
+    for (const c of [
+      "00806360837700",
+      "72981506162202",
+      "01610339621797",
+      "06690743915050",
+      "11070434192580",
+      "99962283038869",
+    ]) {
+      expect(isValidCnpj(c), c).toBe(true);
+    }
+    expect(isValidCnpj("00806360837701")).toBe(false);
+    expect(isValidCnpj("99962283038868")).toBe(false);
+  });
+
+  it("recusa CNPJ de um caractere só repetido, também alfanumérico (spec 018)", () => {
+    expect(isValidCnpj("AAAAAAAAAAAA00")).toBe(false);
+    expect(isValidCnpj("22222222222222")).toBe(false);
+  });
+
+  it("normaliza só espaço, ponto, barra e traço", () => {
+    expect(normalizeCnpj("11\t222_333")).toBe("11222_333");
+    expect(normalizeCnpj("a.b/c-d e")).toBe("ABCDE");
+  });
 });

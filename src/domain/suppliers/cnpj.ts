@@ -21,10 +21,9 @@ function checkDigit(chars: string, weights: number[]): number {
 
 /** Recebe o CNPJ já normalizado (14 caracteres). */
 export function isValidCnpj(cnpj: string): boolean {
-  if (!SHAPE.test(cnpj) || /^(.)\1{13}$/.test(cnpj)) return false;
-  const dv1 = checkDigit(cnpj, W1);
-  const dv2 = checkDigit(cnpj.slice(0, 12) + dv1, W2);
-  return cnpj.endsWith(`${dv1}${dv2}`);
+  if (!SHAPE.test(cnpj) || /^(.)\1+$/.test(cnpj)) return false;
+  // O 13º caractere já é o 1º dígito; se ele estiver errado, a comparação abaixo falha.
+  return cnpj.endsWith(`${checkDigit(cnpj, W1)}${checkDigit(cnpj, W2)}`);
 }
 
 /** Texto do formulário → CNPJ normalizado, ou null se vazio. */

@@ -95,7 +95,7 @@ export function recipeCost(
     let cost = d(0);
     const missing: string[] = [];
     for (const [id, q] of exploded.value) {
-      const c = items(id)?.averageCost;
+      const c = items(id)!.averageCost;
       if (!c) missing.push(id);
       else cost = cost.plus(q.times(c));
     }

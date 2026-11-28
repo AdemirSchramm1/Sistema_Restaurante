@@ -32,7 +32,7 @@ export function AppShell({
   signOut: (formData: FormData) => void | Promise<void>;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname() ?? "";
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
 

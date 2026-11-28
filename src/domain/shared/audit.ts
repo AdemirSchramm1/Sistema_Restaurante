@@ -11,7 +11,6 @@ function normalize(v: unknown): unknown {
 }
 
 function same(a: unknown, b: unknown): boolean {
-  if (isDecimal(a) && isDecimal(b)) return a.equals(b);
   return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
 }
 

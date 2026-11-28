@@ -208,3 +208,58 @@ describe("pagamentos lançados (spec 011, US2-4 e US2-5)", () => {
     expect(screen.getByText("Nenhum pagamento lançado.")).toBeTruthy();
   });
 });
+
+describe("fechar e tirar: o que faltava provar (spec 018, US1)", () => {
+  it("no Caixa, o fechamento leva o nome da mesa para o aviso; recusa aparece no formulário", async () => {
+    const s = spy({ ok: false, error: { code: "STALE_RECORD", message: "A conta mudou." }, at: 1 });
+    render(
+      <CloseTabForm
+        tab={{ id: "t12", version: 5, remaining: "0.00", blockers: [], tableName: "12" }}
+        action={s.action}
+      />,
+    );
+    await click("Fechar conta");
+    expect(s.calls).toEqual([{ tabId: "t12", version: "5", tableName: "12" }]);
+    expect(await screen.findByText("A conta mudou.")).toBeTruthy();
+  });
+
+  it("Voltar desiste de tirar o pagamento", async () => {
+    const s = spy();
+    const p = {
+      id: "p1",
+      method: "PIX" as const,
+      amount: "20.00",
+      received: null,
+      change: null,
+      at: "2026-11-11T21:05:00.000Z",
+      byName: null,
+      removedAt: null,
+      removedByName: null,
+    };
+    render(<PaymentList tabId="t12" payments={[p]} timezone="America/Sao_Paulo" remove={s.action} />);
+    expect(screen.getByRole("listitem").textContent).toContain("18:05 · ");
+    await click("Tirar pagamento de R$ 20,00 (Pix)");
+    await click("Voltar");
+    expect(screen.queryByText("Tirar o pagamento de R$ 20,00 em Pix?")).toBeNull();
+    expect(screen.getByRole("button", { name: "Tirar pagamento de R$ 20,00 (Pix)" })).toBeTruthy();
+    expect(s.calls).toEqual([]);
+  });
+
+  it("dinheiro exato mostra troco R$ 0,00; tirado sem nome não inventa um", () => {
+    const p = {
+      id: "p1",
+      method: "CASH" as const,
+      amount: "20.00",
+      received: "20.00",
+      change: "0.00",
+      at: "2026-11-11T21:05:00.000Z",
+      byName: "Caixa Carla",
+      removedAt: "2026-11-11T21:10:00.000Z",
+      removedByName: null,
+    };
+    render(<PaymentList tabId="t12" payments={[p]} timezone="America/Sao_Paulo" />);
+    const text = screen.getByRole("listitem").textContent;
+    expect(text).toContain("Recebido R$ 20,00, troco R$ 0,00");
+    expect(text).toContain("Tirado às 18:10 por ");
+  });
+});

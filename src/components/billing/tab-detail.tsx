@@ -112,9 +112,10 @@ function OrderBlock({ order }: { order: Order }) {
             {placedByText({ source: order.source, placedByName: order.placedByName ?? null })}
           </span>
         )}
+        {/* Pedido cancelado sempre tem motivo (orders_cancel_reason no banco). */}
         {cancelled ? (
           <span className="text-sm font-medium">
-            {`Cancelado: ${order.cancelReason ? CANCEL_REASON_LABELS[order.cancelReason] : ""}${order.cancelNote ? ` (${order.cancelNote})` : ""}`}
+            {`Cancelado: ${CANCEL_REASON_LABELS[order.cancelReason!]}${order.cancelNote ? ` (${order.cancelNote})` : ""}`}
           </span>
         ) : (
           <Badge tone={order.status === "DELIVERED" ? "success" : "warning"}>

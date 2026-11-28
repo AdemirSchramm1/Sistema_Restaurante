@@ -29,6 +29,18 @@ tela em JavaScript (nada pula ao carregar). `customer-menu.spec.ts` confere que 
 pedido** ficam à vista sem rolar na tela larga e que a barra do pé não cobre o último cartão na
 estreita.
 
+### Telas da operação (spec 018)
+
+`operations.spec.ts` usa só os tamanhos em que cada tela é usada no restaurante, nos dois modos e
+nos dois motores, com as mesmas asserções de layout (nada rola de lado, nada cortado, toque de pelo
+menos 44 px, axe sem falha grave); sem imagem de referência, porque horários mudam a cada execução:
+
+| Tela | Tamanhos |
+|---|---|
+| Cozinha (quadro e cancelamento aberto) | `tablet-em-pe`, `tablet-deitado`, `computador` |
+| Garçom (prontos para levar) | `celular-pequeno`, `celular-android`, `celular-iphone`, `tablet-em-pe` |
+| Conta da mesa (com pagamento, divisão e taxa) e Lançamentos | `celular-android`, `tablet-em-pe`, `tablet-deitado`, `computador` |
+
 Apareceu um aparelho com problema? A linha dele entra na matriz **antes** da correção, o teste fica
 vermelho e só então vem a classe que resolve.
 
@@ -91,5 +103,5 @@ antes de `feat(013): …`):
 - `pnpm test:menu`: unidade + integração com 100% de linhas, desvios e funções em
   `src/domain/menu/**`, `src/application/menu/**`, `src/components/menu/**`, nos componentes novos
   do cardápio do cliente, em `src/infra/photos/**` e no repositório do cardápio.
-- `pnpm test:mutation`: Stryker em `src/domain/menu/**`; todo mutante tem de morrer.
+- `pnpm test:mutation`: Stryker em todo `src/domain/**` (desde a 018); todo mutante tem de morrer.
 - Layout: cada classe de layout responde a uma asserção acima que estava vermelha.

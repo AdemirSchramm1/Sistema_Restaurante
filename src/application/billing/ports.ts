@@ -126,8 +126,8 @@ export interface TabRepo {
   paymentByClientRequest(tabId: string, clientRequestId: string): Promise<TabPaymentRecord | null>;
   getPayment(tabId: string, paymentId: string): Promise<TabPaymentRecord | null>;
   insertPayment(p: NewPayment, audit: Audit): Promise<void>;
-  /** `ALREADY_REMOVED` se já foi tirado. A remoção guarda o turno do caixa em que foi feita. */
-  removePayment(paymentId: string, id: string, cashSessionId: string, audit: Audit): Promise<Result<void>>;
+  /** Na conta já travada e com o pagamento ainda não tirado. A remoção guarda o turno do caixa. */
+  removePayment(paymentId: string, id: string, cashSessionId: string, audit: Audit): Promise<void>;
   addEvent(e: NewTabEvent): Promise<void>;
   /** Na conta já travada; +1 na versão. */
   setServiceWaived(id: string, waived: boolean, audit: Audit): Promise<void>;

@@ -44,9 +44,8 @@ export function groupRepository(tx: Tx, restaurantId: string): GroupRepo {
           .where(and(eq(table.id, id), eq(table.version, version)))
           .returning({ id: table.id }),
       );
-      if (r.length > 0) return ok(undefined);
-      const exists = await tx.select({ id: table.id }).from(table).where(eq(table.id, id));
-      return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+      // O caso de uso já achou o registro: se nada mudou, a versão era velha.
+      return r.length > 0 ? ok(undefined) : err("STALE_RECORD");
     } catch (e) {
       if (isUniqueViolation(e, nameConstraint)) return err("NAME_IN_USE", "name");
       throw e;

@@ -23,9 +23,14 @@ muitos jobs paralelos, não o PR quebrado em pedaços (decisão de 2026-11-20).
 
 ## 2. Como o CI roda (`.github/workflows/ci.yml`)
 
-- Todos os jobs rodam **em paralelo**: `estatico` (formato, lint, tipos), `unidade`,
-  `integracao` (cobertura do cardápio, do caixa e do garçom), `e2e` e `telas` (Chromium e WebKit,
-  cada um em 3 partes).
+- Todos os jobs rodam **em paralelo**: `estatico` (formato, lint, tipos), `unidade`, `mutacao`
+  (2 partes: `estoque` com `src/domain/inventory` e `suppliers`, `resto` com o resto do domínio;
+  pasta nova cai no `resto` sozinha), `integracao` (5 partes: `cardapio`, `caixa-e-equipe`, `conta`,
+  `estoque`, `pedido`), `e2e` e `telas` (Chromium e WebKit, cada um em 4 partes: cardápio claro,
+  cardápio escuro, `operacoes` e `resto`).
+- A lista `--mutate` do Stryker é separada por vírgula: escreva cada pasta por extenso
+  (`src/domain/inventory/**/*.ts,src/domain/suppliers/**/*.ts`), nunca com chaves `{a,b}`, que
+  quebram o padrão e deixam a parte sem arquivo nenhum.
 - **Quebrar em mais partes:** job que passou de uns 5 minutos vira uma `matrix` com mais partes,
   cada uma com o seu banco. Divida por arquivo ou por `--grep` quando um arquivo sozinho domina o
   tempo (foi o que se fez com o cardápio do cliente em `telas`), e por `--shard` quando o tempo
@@ -46,8 +51,8 @@ Rode localmente o que o PR mexeu, do mais rápido para o mais lento:
 
 1. `pnpm format:check && pnpm lint && pnpm typecheck`
 2. `pnpm test` (unidade) e os testes de integração dos arquivos mexidos
-3. o portão de cobertura da área (`test:menu`, `test:cash`, `test:staff`) e `test:mutation` se o
-   domínio mudou
+3. o portão de cobertura da área (`test:menu`, `test:cash`, `test:staff`, `test:billing`,
+   `test:stock`, `test:orders`) e `test:mutation` se o domínio mudou
 4. `pnpm test:e2e --trace off` se mudou fluxo de tela
 5. `pnpm build && pnpm test:screens` se mudou visual; imagens de referência só na imagem oficial
    do Playwright (`05-testes-de-tela.md`)

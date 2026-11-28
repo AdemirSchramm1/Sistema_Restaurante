@@ -8,6 +8,8 @@ import {
   reverseMovement,
 } from "../../../src/application/inventory/movements";
 import { updateRecipe } from "../../../src/application/inventory/recipes";
+import { recordOrderSale, reverseOrderSale } from "../../../src/application/inventory/sales";
+import { stockReport } from "../../../src/application/inventory/stock-report";
 import { reasonByCode } from "../../../src/domain/inventory/movement-reasons";
 import type { Deps } from "../../../src/application/ports";
 import { d } from "../../../src/domain/shared/decimal";
@@ -194,5 +196,49 @@ describe("baixa do estoque ao começar o preparo (spec 011, US4)", () => {
         }),
       ),
     ).toBe("REVERSE_VIA_ORDER");
+  });
+});
+
+describe("baixa e estorno da venda: casos que faltavam (spec 018, US2)", () => {
+  it("linha que arredonda para zero na precisão do livro não sai", async () => {
+    const env = testEnv();
+    const { m, s, chef } = await setup(env);
+    unwrap(
+      await updateRecipe(env.deps, m, s.burgerId, 3, {
+        name: "X-Burger",
+        kind: "DISH",
+        yieldQuantity: null,
+        yieldUnit: null,
+        lines: [itemLine(s.pao, "1", "un"), itemLine(s.carne, "150", "g"), itemLine(s.bacon, "0.04", "g")],
+      }),
+    );
+    const order = await s.place([
+      { recipeId: s.burgerId, quantity: 1, unitPrice: "28.00", addons: [], removals: [] },
+    ]);
+    unwrap(await advanceOrderStatus(env.deps, chef, { id: order.orderId, to: "PREPARING", version: 1 }));
+    expect((await sales(order.orderId)).map((r) => r.item_id).sort()).toEqual([s.pao, s.carne].sort());
+  });
+
+  it("pedido que não existe não baixa nada; estornar duas vezes estorna uma vez só", async () => {
+    const env = testEnv();
+    const { m, chef, orderId } = await setup(env);
+    unwrap(await advanceOrderStatus(env.deps, chef, { id: orderId, to: "PREPARING", version: 1 }));
+    const inTx = <T>(fn: (repos: Parameters<Parameters<Deps["tenant"]>[1]>[0]) => Promise<T>) =>
+      env.deps.tenant(m.restaurantId, async (repos) => ({ ok: true as const, value: await fn(repos) }));
+    const missing = unwrap(await inTx((repos) => recordOrderSale(env.deps, m, repos, crypto.randomUUID())));
+    expect(code(missing)).toBe("NOT_FOUND");
+    const first = unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false)));
+    const again = unwrap(await inTx((repos) => reverseOrderSale(env.deps, m, repos, orderId, false)));
+    expect([first.length, again]).toEqual([3, []]);
+  });
+
+  it("o relatório do estoque mostra a venda como 'Venda'; garçom não vê o relatório", async () => {
+    const env = testEnv();
+    const { m, chef, orderId } = await setup(env);
+    unwrap(await advanceOrderStatus(env.deps, chef, { id: orderId, to: "PREPARING", version: 1 }));
+    const report = unwrap(await stockReport(env.deps, m, "30"));
+    expect(report.byReason.map((r) => r.label)).toContain("Venda");
+    const waiter = await addMember(env, m, ["WAITER"]);
+    expect(code(await stockReport(env.deps, waiter, "30"))).toBe("FORBIDDEN");
   });
 });

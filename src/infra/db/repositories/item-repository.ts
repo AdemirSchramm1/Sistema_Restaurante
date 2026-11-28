@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import type { ItemListRow, ItemRepo } from "@/application/inventory/ports";
 import type { Item, ItemData } from "@/domain/inventory/item";
 import { normalizeDescription } from "@/domain/inventory/description";
@@ -23,20 +23,24 @@ function toRow(data: ItemData & { descriptionNormalized: string }) {
 }
 
 export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
-  async function guarded(
-    fn: () => Promise<Result<void>>,
-    subgroupId: string,
-    normalized: string,
-    exceptId?: string,
-  ) {
+  /** Descrição repetida entre ativos do subgrupo: o índice único recusa e a tela mostra o código do outro. */
+  async function guarded(fn: () => Promise<Result<void>>, subgroupId: string, normalized: string) {
     try {
       return await withSavepoint(tx, fn);
     } catch (e) {
-      if (isUniqueViolation(e, "items_active_description")) {
-        const existing = await repo.findActiveByDescription(subgroupId, normalized, exceptId);
-        return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: existing?.code });
-      }
-      throw e;
+      if (!isUniqueViolation(e, "items_active_description")) throw e;
+      // Depois de voltar ao savepoint, o único ativo com essa descrição é o outro item.
+      const [other] = await tx
+        .select({ code: items.code })
+        .from(items)
+        .where(
+          and(
+            eq(items.subgroupId, subgroupId),
+            eq(items.descriptionNormalized, normalized),
+            eq(items.active, true),
+          ),
+        );
+      return err("ITEM_DUPLICATE_DESCRIPTION", "description", { existingCode: other!.code });
     }
   }
 
@@ -51,9 +55,8 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       .set({ ...set, version: version + 1, updatedAt: audit.at, updatedBy: audit.by })
       .where(and(eq(items.id, id), eq(items.version, version)))
       .returning({ id: items.id });
-    if (r.length) return ok(undefined);
-    const exists = await tx.select({ id: items.id }).from(items).where(eq(items.id, id));
-    return exists.length ? err("STALE_RECORD") : err("NOT_FOUND");
+    // Quem chama já achou o item: se nada mudou, a versão era velha.
+    return r.length ? ok(undefined) : err("STALE_RECORD");
   }
 
   const repo: ItemRepo = {
@@ -86,12 +89,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       ),
 
     update: (id, data, version, audit) =>
-      guarded(
-        () => optimistic(id, version, toRow(data), audit),
-        data.subgroupId,
-        data.descriptionNormalized,
-        id,
-      ),
+      guarded(() => optimistic(id, version, toRow(data), audit), data.subgroupId, data.descriptionNormalized),
 
     async get(id) {
       const [row] = await tx
@@ -176,7 +174,7 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
         .innerJoin(itemSubgroups, eq(itemSubgroups.id, items.subgroupId))
         .where(cond);
       return {
-        total: count?.n ?? 0,
+        total: count!.n,
         rows: rows.map((r): ItemListRow => ({
           id: r.id,
           code: r.code,
@@ -194,28 +192,13 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       };
     },
 
-    async findActiveByDescription(subgroupId, normalized, exceptId) {
-      const [r] = await tx
-        .select({ id: items.id, code: items.code })
-        .from(items)
-        .where(
-          and(
-            eq(items.subgroupId, subgroupId),
-            eq(items.descriptionNormalized, normalized),
-            eq(items.active, true),
-            exceptId ? ne(items.id, exceptId) : undefined,
-          ),
-        );
-      return r ?? null;
-    },
-
     async setActive(id, active, version, audit) {
       const [cur] = await tx
         .select({ s: items.subgroupId, n: items.descriptionNormalized })
         .from(items)
         .where(eq(items.id, id));
       if (!cur) return err("NOT_FOUND");
-      return guarded(() => optimistic(id, version, { active }, audit), cur.s, cur.n, id);
+      return guarded(() => optimistic(id, version, { active }, audit), cur.s, cur.n);
     },
 
     setCogsOverride: (id, value, version, audit) => optimistic(id, version, { inCogsOverride: value }, audit),
@@ -231,12 +214,24 @@ export function itemRepository(tx: Tx, restaurantId: string): ItemRepo {
       return d(r?.q ?? "0");
     },
 
+    async usedBy(id) {
+      const r = await tx.execute(sql`
+        select r.name from recipe_lines l
+          join recipe_versions v on v.id = l.recipe_version_id
+          join recipes r on r.id = v.recipe_id
+         where l.item_id = ${id}
+        union
+        select a.name from addons a where a.item_id = ${id}
+        order by 1`);
+      return (r.rows as { name: string }[]).map((x) => x.name);
+    },
+
     async activeCountInSubgroup(subgroupId) {
       const [r] = await tx
         .select({ n: sql<number>`count(*)::int` })
         .from(items)
         .where(and(eq(items.subgroupId, subgroupId), eq(items.active, true)));
-      return r?.n ?? 0;
+      return r!.n;
     },
   };
   return repo;
